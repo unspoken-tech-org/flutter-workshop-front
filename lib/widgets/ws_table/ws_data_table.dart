@@ -10,7 +10,7 @@ class WsDataTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 500,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey[300]!),
