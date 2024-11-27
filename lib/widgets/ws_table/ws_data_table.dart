@@ -20,6 +20,7 @@ class WsDataTable extends StatelessWidget {
           SliverToBoxAdapter(
             child: DataTable(
               showBottomBorder: true,
+              dataRowMaxHeight: 60,
               columns: _generateColumns(),
               rows: _genereteRows(data),
             ),
@@ -45,12 +46,14 @@ class WsDataTable extends StatelessWidget {
   List<DataRow> _genereteRows(List<DeviceDataTable> data) {
     return data.map((e) {
       return DataRow(
-        onLongPress: () {
-          print('Long press');
-        },
         cells: [
           DataCell(Text(e.deviceId.toString())),
-          DataCell(Text(e.customerName)),
+          DataCell(
+            Text(e.customerName),
+            onDoubleTap: () {
+              debugPrint('double tap');
+            },
+          ),
           DataCell(Text(e.type)),
           DataCell(Text(e.brand)),
           DataCell(Text(e.model)),
@@ -87,7 +90,7 @@ class StatusCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
       decoration: BoxDecoration(
         color: _getColor(status),
         borderRadius: BorderRadius.circular(6),
