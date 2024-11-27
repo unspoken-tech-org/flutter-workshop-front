@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/home/controllers/home_controller.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
+import 'package:flutter_workshop_front/widgets/rounded_filter_bar.dart';
+import 'package:flutter_workshop_front/widgets/ws_filter_bar/ws_filter_bar.dart';
 import 'package:flutter_workshop_front/widgets/ws_table/ws_data_table.dart';
 
 class HomePage extends StatefulWidget {
@@ -23,8 +25,10 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return WsScaffold(
         child: Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const WsFilterBar(),
+        const SizedBox(height: 16),
         ValueListenableBuilder(
           valueListenable: controller.loadingState,
           builder: (context, value, _) {
