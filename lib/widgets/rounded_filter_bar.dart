@@ -24,7 +24,7 @@ class RoundedFilterBar extends StatefulWidget {
     this.onChange,
     this.controller,
     BoxBorder? border,
-  }) : border = border ?? Border.all(color: WsColors.primary);
+  }) : border = border ?? Border.all(color: WsColors.primary, width: 2);
 
   @override
   State<RoundedFilterBar> createState() => _RoundedFilterBarState();
