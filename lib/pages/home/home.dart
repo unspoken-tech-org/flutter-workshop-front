@@ -70,47 +70,15 @@ class WsDataTable extends StatelessWidget {
 
   List<DataColumn> _generateColumns() {
     return [
-      const DataColumn(
-        label: Expanded(
-          child: Text('Id'),
-        ),
-      ),
-      const DataColumn(
-        label: Expanded(
-          child: Text('Cliente'),
-        ),
-      ),
-      const DataColumn(
-        label: Expanded(
-          child: Text('Tipo'),
-        ),
-      ),
-      const DataColumn(
-        label: Expanded(
-          child: Text('Marca'),
-        ),
-      ),
-      const DataColumn(
-        label: Expanded(
-          child: Text('Modelo'),
-        ),
-      ),
-      const DataColumn(
-        label: Expanded(
-          child: Text('Status'),
-        ),
-      ),
-      const DataColumn(
-        label: Expanded(
-          child: Text('Urgencia'),
-        ),
-      ),
-      const DataColumn(
-        label: Expanded(
-          child: Text('Entrada'),
-        ),
-      ),
-    ];
+      'Id',
+      'Cliente',
+      'Tipo',
+      'Marca',
+      'Modelo',
+      'Status',
+      'Urgencia',
+      'Entrada'
+    ].map((e) => DataColumn(label: Expanded(child: Text(e)))).toList();
   }
 
   List<DataRow> _genereteRows(List<DeviceDataTable> data) {
