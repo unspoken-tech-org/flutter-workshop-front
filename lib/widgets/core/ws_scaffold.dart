@@ -19,9 +19,17 @@ class _WsScaffoldState extends State<WsScaffold> {
       backgroundColor: Colors.white,
       appBar: const PreferredSize(
           preferredSize: Size.fromHeight(200), child: HomeButtonsHeader()),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: widget.child,
+      body: SizedBox(
+        width: 1700,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: widget.child,
+            ),
+          ],
+        ),
       ),
     );
   }
