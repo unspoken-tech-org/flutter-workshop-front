@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/home/controllers/home_controller.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
-import 'package:flutter_workshop_front/widgets/rounded_filter_bar.dart';
 import 'package:flutter_workshop_front/widgets/ws_filter_bar/ws_filter_bar.dart';
 import 'package:flutter_workshop_front/widgets/ws_table/ws_data_table.dart';
 
@@ -27,7 +26,9 @@ class _HomePageState extends State<HomePage> {
         child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const WsFilterBar(),
+        WsFilterBar(
+          controller: controller,
+        ),
         const SizedBox(height: 16),
         ValueListenableBuilder(
           valueListenable: controller.loadingState,
