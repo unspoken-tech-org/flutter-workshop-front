@@ -1,15 +1,26 @@
+import 'package:flutter/material.dart';
+
 enum StatusEnum {
-  newDevice(name: 'Novo', value: 'novo'),
-  inProgress(name: 'Em andamento', value: 'em_andamento'),
-  waitingApproval(name: 'Aguardando Aprovação', value: 'aguardando'),
-  delivered(name: 'Entregue', value: 'entregue'),
-  disposed(name: 'Descartado', value: 'descartado'),
+  newDevice(name: 'Novo', value: 'novo', color: Colors.green),
+  inProgress(name: 'Em andamento', value: 'em_andamento', color: Colors.blue),
+  waitingApproval(
+    name: 'Aguardando Aprovação',
+    value: 'aguardando',
+    color: Color.fromARGB(214, 140, 127, 8),
+  ),
+  delivered(name: 'Entregue', value: 'entregue', color: Colors.lime),
+  disposed(name: 'Descartado', value: 'descartado', color: Colors.red),
   ;
 
   final String value;
   final String name;
+  final Color color;
 
-  const StatusEnum({required this.value, required this.name});
+  const StatusEnum({
+    required this.value,
+    required this.name,
+    required this.color,
+  });
 
   static StatusEnum fromString(String value) {
     switch (value) {

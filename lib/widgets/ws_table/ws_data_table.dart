@@ -70,29 +70,12 @@ class StatusCell extends StatelessWidget {
   final StatusEnum status;
   const StatusCell({super.key, required this.status});
 
-  Color _getColor(StatusEnum status) {
-    switch (status) {
-      case StatusEnum.inProgress:
-        return Colors.blue;
-      case StatusEnum.waitingApproval:
-        return const Color.fromARGB(214, 140, 127, 8);
-      case StatusEnum.newDevice:
-        return Colors.green;
-      case StatusEnum.disposed:
-        return Colors.red;
-      case StatusEnum.delivered:
-        return Colors.green;
-      default:
-        return Colors.white;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
       decoration: BoxDecoration(
-        color: _getColor(status),
+        color: status.color,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
