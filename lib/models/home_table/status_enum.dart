@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 enum StatusEnum {
   newDevice(name: 'Novo', value: 'novo', color: Colors.green),
   inProgress(name: 'Em andamento', value: 'em_andamento', color: Colors.blue),
+  delivered(
+    name: 'Entregue',
+    value: 'entregue',
+    color: Color.fromARGB(255, 192, 210, 36),
+  ),
   waitingApproval(
     name: 'Aguardando Aprovação',
     value: 'aguardando',
     color: Color.fromARGB(214, 140, 127, 8),
   ),
-  delivered(name: 'Entregue', value: 'entregue', color: Colors.lime),
   disposed(name: 'Descartado', value: 'descartado', color: Colors.red),
   ;
 
