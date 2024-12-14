@@ -6,7 +6,6 @@ class WsColors {
   static const Color primaryDark = Color(0xFF303F9F);
   static const Color primaryLight = Color(0xFFC5CAE9);
 
-  static const Color secondary = Color(0xFF4CAF50);
   static const Color secondaryDark = Color(0xFF388E3C);
   static const Color secondaryLight = Color(0xFFC8E6C9);
 

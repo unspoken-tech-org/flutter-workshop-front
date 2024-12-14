@@ -70,6 +70,15 @@ class _WsFilterBarState extends State<WsFilterBar> {
                   },
                   child: DeviceFilters(
                     controller: widget.controller,
+                    onFilter: () {
+                      widget.controller.getTableData(widget.controller.filter);
+                      _filterOverlay.hide();
+                    },
+                    onClear: () {
+                      widget.controller.getTableData(
+                          widget.controller.filter..clearSelectableFilters());
+                      _filterOverlay.hide();
+                    },
                   ),
                 ),
               );
@@ -97,9 +106,15 @@ class _WsFilterBarState extends State<WsFilterBar> {
 }
 
 class DeviceFilters extends StatelessWidget {
+  final VoidCallback onFilter;
+  final VoidCallback onClear;
   final HomeController controller;
 
-  const DeviceFilters({super.key, required this.controller});
+  const DeviceFilters(
+      {super.key,
+      required this.controller,
+      required this.onFilter,
+      required this.onClear});
 
   @override
   Widget build(BuildContext context) {
@@ -132,12 +147,22 @@ class DeviceFilters extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              FilledButton(onPressed: () {}, child: const Text('Limpar')),
               FilledButton(
-                  onPressed: () {
-                    controller.getTableData(controller.filter);
-                  },
-                  child: const Text('Filtrar')),
+                onPressed: onClear,
+                style: FilledButton.styleFrom(
+                  fixedSize: const Size(120, 34),
+                  backgroundColor: WsColors.warning,
+                ),
+                child: const Text('Limpar'),
+              ),
+              FilledButton(
+                onPressed: onFilter,
+                style: FilledButton.styleFrom(
+                  fixedSize: const Size(120, 34),
+                  backgroundColor: WsColors.success,
+                ),
+                child: const Text('Filtrar'),
+              ),
             ],
           )
         ],
