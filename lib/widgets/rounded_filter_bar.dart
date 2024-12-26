@@ -6,6 +6,7 @@ class RoundedFilterBar extends StatefulWidget {
   final TextStyle textStyle;
   final double borderRadius;
   final BoxBorder? border;
+  final double? height;
   final Icon trailingIcon;
   final VoidCallback? onClear;
   final VoidCallback? onEnter;
@@ -18,6 +19,7 @@ class RoundedFilterBar extends StatefulWidget {
     this.hintText = 'Pesquisar',
     this.textStyle = const TextStyle(color: WsColors.primary),
     this.borderRadius = 26,
+    this.height = 46,
     this.trailingIcon = const Icon(Icons.search, color: WsColors.primary),
     this.onClear,
     this.onEnter,
@@ -64,7 +66,7 @@ class _RoundedFilterBarState extends State<RoundedFilterBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 46,
+      height: widget.height,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(widget.borderRadius),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_colors.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
+import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/pages/home/controllers/home_controller.dart';
 import 'package:flutter_workshop_front/utils/filter_utils.dart';
@@ -119,8 +120,8 @@ class DeviceFilters extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 300,
-      height: 300,
+      width: 304,
+      height: 400,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: WsColors.onPrimary,
@@ -134,16 +135,23 @@ class DeviceFilters extends StatelessWidget {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            children: [
-              StatusFilter(
-                controller: controller,
-              ),
-            ],
+          Flexible(
+            child: ListView(
+              children: [
+                StatusFilter(
+                  controller: controller,
+                ),
+                const SizedBox(height: 16),
+                TypesFilter(
+                  controller: controller,
+                )
+              ],
+            ),
           ),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -166,6 +174,123 @@ class DeviceFilters extends StatelessWidget {
             ],
           )
         ],
+      ),
+    );
+  }
+}
+
+class TypesFilter extends StatefulWidget {
+  final HomeController controller;
+
+  const TypesFilter({
+    super.key,
+    required this.controller,
+  });
+
+  @override
+  State<TypesFilter> createState() => _TypesFilterState();
+}
+
+class _TypesFilterState extends State<TypesFilter> {
+  final _textController = TextEditingController();
+
+  final int maxTypes = 5;
+
+  List<DeviceTypeModel> types = [];
+
+  void findDevicesByName() async {
+    String name = _textController.text;
+
+    var result = await widget.controller.getAllDeviceTypes(name);
+    types = result;
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    widget.controller.getAllDeviceTypes().then((value) {
+      types = value;
+      setState(() {});
+    });
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (types.isEmpty) return const SizedBox();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Tipo de Aparelho',
+          style: WsTextStyles.h4.copyWith(color: WsColors.dark),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: 270,
+          child: RoundedFilterBar(
+            height: 38,
+            controller: _textController,
+            hintText: 'Pesquisar Tipo',
+            onEnter: findDevicesByName,
+            onClear: findDevicesByName,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          runAlignment: WrapAlignment.start,
+          crossAxisAlignment: WrapCrossAlignment.start,
+          children: [
+            ...types
+                .getRange(0, maxTypes > types.length ? types.length : maxTypes)
+                .map(
+                  (e) => TypeFilterChip(
+                    type: e,
+                    onTap: () {
+                      widget.controller.filter.toggleTypes(e.idType);
+                      setState(() {});
+                    },
+                    isSelected:
+                        widget.controller.filter.deviceTypes.contains(e.idType),
+                  ),
+                ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class TypeFilterChip extends StatelessWidget {
+  final DeviceTypeModel type;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const TypeFilterChip({
+    super.key,
+    required this.type,
+    required this.onTap,
+    this.isSelected = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor:
+            isSelected ? WsColors.dark.withOpacity(0.9) : Colors.grey,
+        padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 6),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+        ),
+        elevation: isSelected ? 10 : 0,
+      ),
+      onPressed: onTap,
+      child: Text(
+        type.typeName,
+        style: WsTextStyles.body2.copyWith(color: Colors.white),
       ),
     );
   }

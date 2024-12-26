@@ -5,6 +5,7 @@ class HomeTableFilter {
   String? customerCpf;
 
   List<String> status = [];
+  List<int> deviceTypes = [];
 
   HomeTableFilter({
     this.customerName,
@@ -18,6 +19,14 @@ class HomeTableFilter {
       status.remove(name);
     } else {
       status.add(name);
+    }
+  }
+
+  void toggleTypes(int id) {
+    if (deviceTypes.contains(id)) {
+      deviceTypes.remove(id);
+    } else {
+      deviceTypes.add(id);
     }
   }
 
@@ -39,6 +48,7 @@ class HomeTableFilter {
       if (customerPhone != null) 'customerPhone': customerPhone,
       if (customerCpf != null) 'customerCpf': customerCpf,
       if (status.isNotEmpty) 'status': status,
+      if (deviceTypes.isNotEmpty) 'deviceTypes': deviceTypes,
     };
   }
 }
