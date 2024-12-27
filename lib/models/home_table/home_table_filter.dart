@@ -6,6 +6,7 @@ class HomeTableFilter {
 
   List<String> status = [];
   List<int> deviceTypes = [];
+  List<int> deviceBrands = [];
 
   HomeTableFilter({
     this.customerName,
@@ -30,6 +31,14 @@ class HomeTableFilter {
     }
   }
 
+  void toggleBrands(int id) {
+    if (deviceBrands.contains(id)) {
+      deviceBrands.remove(id);
+    } else {
+      deviceBrands.add(id);
+    }
+  }
+
   void clearTypedFilters() {
     customerName = null;
     deviceId = null;
@@ -39,6 +48,8 @@ class HomeTableFilter {
 
   void clearSelectableFilters() {
     status.clear();
+    deviceTypes.clear();
+    deviceBrands.clear();
   }
 
   Map<String, dynamic> toJson() {
@@ -49,6 +60,7 @@ class HomeTableFilter {
       if (customerCpf != null) 'customerCpf': customerCpf,
       if (status.isNotEmpty) 'status': status,
       if (deviceTypes.isNotEmpty) 'deviceTypes': deviceTypes,
+      if (deviceBrands.isNotEmpty) 'deviceBrands': deviceBrands,
     };
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_colors.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
+import 'package:flutter_workshop_front/models/device_brand/device_brand_model.dart';
 import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/pages/home/controllers/home_controller.dart';
@@ -147,6 +148,10 @@ class DeviceFilters extends StatelessWidget {
                 const SizedBox(height: 16),
                 TypesFilter(
                   controller: controller,
+                ),
+                const SizedBox(height: 16),
+                BradsFilter(
+                  controller: controller,
                 )
               ],
             ),
@@ -175,6 +180,91 @@ class DeviceFilters extends StatelessWidget {
           )
         ],
       ),
+    );
+  }
+}
+
+class BradsFilter extends StatefulWidget {
+  final HomeController controller;
+
+  const BradsFilter({
+    super.key,
+    required this.controller,
+  });
+
+  @override
+  State<BradsFilter> createState() => _BradsFilterState();
+}
+
+class _BradsFilterState extends State<BradsFilter> {
+  final _textController = TextEditingController();
+
+  final int maxBrands = 5;
+
+  List<DeviceBrandModel> brands = [];
+
+  void findBrandsByName() async {
+    String name = _textController.text;
+
+    var result = await widget.controller.getAllDeviceBrands(name);
+    brands = result;
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    widget.controller.getAllDeviceBrands().then((value) {
+      brands = value;
+      setState(() {});
+    });
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (brands.isEmpty) return const SizedBox();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Marca de Aparelho',
+          style: WsTextStyles.h4.copyWith(color: WsColors.dark),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: 270,
+          child: RoundedFilterBar(
+            height: 38,
+            controller: _textController,
+            hintText: 'Pesquisar Marca',
+            onEnter: findBrandsByName,
+            onClear: findBrandsByName,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          runAlignment: WrapAlignment.start,
+          crossAxisAlignment: WrapCrossAlignment.start,
+          children: [
+            ...brands
+                .getRange(
+                    0, maxBrands > brands.length ? brands.length : maxBrands)
+                .map(
+                  (e) => GeneralFilterChip(
+                    name: e.brand,
+                    onTap: () {
+                      widget.controller.filter.toggleBrands(e.idBrand);
+                      setState(() {});
+                    },
+                    isSelected: widget.controller.filter.deviceBrands
+                        .contains(e.idBrand),
+                  ),
+                ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -246,8 +336,8 @@ class _TypesFilterState extends State<TypesFilter> {
             ...types
                 .getRange(0, maxTypes > types.length ? types.length : maxTypes)
                 .map(
-                  (e) => TypeFilterChip(
-                    type: e,
+                  (e) => GeneralFilterChip(
+                    name: e.typeName,
                     onTap: () {
                       widget.controller.filter.toggleTypes(e.idType);
                       setState(() {});
@@ -263,14 +353,14 @@ class _TypesFilterState extends State<TypesFilter> {
   }
 }
 
-class TypeFilterChip extends StatelessWidget {
-  final DeviceTypeModel type;
+class GeneralFilterChip extends StatelessWidget {
+  final String name;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const TypeFilterChip({
+  const GeneralFilterChip({
     super.key,
-    required this.type,
+    required this.name,
     required this.onTap,
     this.isSelected = false,
   });
@@ -289,7 +379,7 @@ class TypeFilterChip extends StatelessWidget {
       ),
       onPressed: onTap,
       child: Text(
-        type.typeName,
+        name,
         style: WsTextStyles.body2.copyWith(color: Colors.white),
       ),
     );
