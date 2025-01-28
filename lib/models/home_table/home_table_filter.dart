@@ -8,6 +8,9 @@ class HomeTableFilter {
   List<int> deviceTypes = [];
   List<int> deviceBrands = [];
 
+  DateTime? initialEntryDate;
+  DateTime? finalEntryDate;
+
   HomeTableFilter({
     this.customerName,
     this.deviceId,
@@ -50,6 +53,8 @@ class HomeTableFilter {
     status.clear();
     deviceTypes.clear();
     deviceBrands.clear();
+    initialEntryDate = null;
+    finalEntryDate = null;
   }
 
   Map<String, dynamic> toJson() {
@@ -61,6 +66,9 @@ class HomeTableFilter {
       if (status.isNotEmpty) 'status': status,
       if (deviceTypes.isNotEmpty) 'deviceTypes': deviceTypes,
       if (deviceBrands.isNotEmpty) 'deviceBrands': deviceBrands,
+      if (initialEntryDate != null)
+        'initialEntryDate': initialEntryDate?.toString(),
+      if (finalEntryDate != null) 'finalEntryDate': finalEntryDate?.toString(),
     };
   }
 }

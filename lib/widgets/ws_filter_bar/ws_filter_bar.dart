@@ -1,6 +1,8 @@
+import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_colors.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
+import 'package:flutter_workshop_front/core/extensions/date_time_extension.dart';
 import 'package:flutter_workshop_front/models/device_brand/device_brand_model.dart';
 import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
@@ -68,6 +70,8 @@ class _WsFilterBarState extends State<WsFilterBar> {
                 child: TapRegion(
                   behavior: HitTestBehavior.opaque,
                   onTapOutside: (event) {
+                    if (widget.controller.isDatePickerOpen) return;
+
                     _filterOverlay.hide();
                   },
                   child: DeviceFilters(
@@ -142,17 +146,14 @@ class DeviceFilters extends StatelessWidget {
           Flexible(
             child: ListView(
               children: [
-                StatusFilter(
-                  controller: controller,
-                ),
+                StatusFilter(controller: controller),
                 const SizedBox(height: 16),
-                TypesFilter(
-                  controller: controller,
-                ),
+                TypesFilter(controller: controller),
                 const SizedBox(height: 16),
-                BradsFilter(
-                  controller: controller,
-                )
+                BradsFilter(controller: controller),
+                const SizedBox(height: 16),
+                DateRangeFilter(controller: controller),
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -180,6 +181,108 @@ class DeviceFilters extends StatelessWidget {
           )
         ],
       ),
+    );
+  }
+}
+
+class DateRangeFilter extends StatefulWidget {
+  final HomeController controller;
+
+  const DateRangeFilter({
+    super.key,
+    required this.controller,
+  });
+
+  @override
+  State<DateRangeFilter> createState() => _DateRangeFilterState();
+}
+
+class _DateRangeFilterState extends State<DateRangeFilter> {
+  DateTimeRange? timeRange;
+
+  void showDateRange(BuildContext context) async {
+    widget.controller.isDatePickerOpen = true;
+
+    var results = await showCalendarDatePicker2Dialog(
+      context: context,
+      dialogSize: const Size(400, 400),
+      config: CalendarDatePicker2WithActionButtonsConfig(
+        calendarType: CalendarDatePicker2Type.range,
+      ),
+    );
+    widget.controller.isDatePickerOpen = false;
+
+    if (results == null) return;
+
+    setState(() {
+      timeRange = DateTimeRange(
+        start: results.first ?? DateTime.now(),
+        end: results.last ?? DateTime.now(),
+      );
+    });
+
+    widget.controller.filter.initialEntryDate = timeRange?.start;
+    widget.controller.filter.finalEntryDate = timeRange?.end;
+  }
+
+  @override
+  void initState() {
+    var initialEntryDate = widget.controller.filter.initialEntryDate;
+    var finalEntryDate = widget.controller.filter.finalEntryDate;
+
+    if (initialEntryDate != null || finalEntryDate != null) {
+      timeRange = DateTimeRange(
+        start: initialEntryDate ?? DateTime.now(),
+        end: finalEntryDate ?? DateTime.now(),
+      );
+    }
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Data de Entrada',
+          style: WsTextStyles.h4.copyWith(color: WsColors.dark),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => showDateRange(context),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.black, width: 1.5)),
+            child: Row(
+              children: [
+                const Icon(Icons.date_range_outlined, size: 24),
+                const SizedBox(width: 8),
+                if (timeRange != null) ...[
+                  const Text('De '),
+                  Text(
+                    '${timeRange?.start.formatDate()} ',
+                    style: WsTextStyles.body2.copyWith(
+                        color: WsColors.dark, fontWeight: FontWeight.bold),
+                  ),
+                  const Text('até '),
+                  Text(
+                    '${timeRange?.end.formatDate()}',
+                    style: WsTextStyles.body2.copyWith(
+                        color: WsColors.dark, fontWeight: FontWeight.bold),
+                  )
+                ] else
+                  Text(
+                    'Selecione um intervalo de datas',
+                    style: WsTextStyles.body2,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

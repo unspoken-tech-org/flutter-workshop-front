@@ -12,6 +12,7 @@ class HomeController {
   final homeService = HomeService();
   final typeService = DeviceTypeService();
   final brandService = DeviceBrandService();
+  bool isDatePickerOpen = false;
 
   HomeTableFilter filter = HomeTableFilter();
 
