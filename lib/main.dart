@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_workshop_front/app_route.dart';
 
 void main() {
@@ -13,6 +14,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       routerConfig: router,
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      locale: const Locale('pt', 'BR'),
+      supportedLocales: const [
+        Locale('pt', 'BR'), // Adiciona PT-BR
+      ],
     );
   }
 }
