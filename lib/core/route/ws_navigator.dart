@@ -9,4 +9,8 @@ class WsNavigator {
   static void pushCustomers(BuildContext context) {
     context.goNamed('customers');
   }
+
+  static void pushDevice(BuildContext context, int deviceId) {
+    context.goNamed('device', pathParameters: {'id': deviceId.toString()});
+  }
 }

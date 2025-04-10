@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 
@@ -22,7 +23,7 @@ class WsDataTable extends StatelessWidget {
               showBottomBorder: true,
               dataRowMaxHeight: 60,
               columns: _generateColumns(),
-              rows: _genereteRows(data),
+              rows: _genereteRows(data, context),
             ),
           ),
         ],
@@ -43,15 +44,16 @@ class WsDataTable extends StatelessWidget {
     ].map((e) => DataColumn(label: Expanded(child: Text(e)))).toList();
   }
 
-  List<DataRow> _genereteRows(List<DeviceDataTable> data) {
+  List<DataRow> _genereteRows(
+      List<DeviceDataTable> data, BuildContext context) {
     return data.map((e) {
       return DataRow(
         cells: [
           DataCell(Text(e.deviceId.toString())),
           DataCell(
             Text(e.customerName),
-            onDoubleTap: () {
-              debugPrint('double tap');
+            onTap: () {
+              WsNavigator.pushDevice(context, e.deviceId);
             },
           ),
           DataCell(Text(e.type)),

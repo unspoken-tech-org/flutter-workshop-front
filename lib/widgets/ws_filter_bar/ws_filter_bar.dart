@@ -150,7 +150,7 @@ class DeviceFilters extends StatelessWidget {
                 const SizedBox(height: 16),
                 TypesFilter(controller: controller),
                 const SizedBox(height: 16),
-                BradsFilter(controller: controller),
+                BrandsFilter(controller: controller),
                 const SizedBox(height: 16),
                 DateRangeFilter(controller: controller),
                 const SizedBox(height: 16),
@@ -287,19 +287,19 @@ class _DateRangeFilterState extends State<DateRangeFilter> {
   }
 }
 
-class BradsFilter extends StatefulWidget {
+class BrandsFilter extends StatefulWidget {
   final HomeController controller;
 
-  const BradsFilter({
+  const BrandsFilter({
     super.key,
     required this.controller,
   });
 
   @override
-  State<BradsFilter> createState() => _BradsFilterState();
+  State<BrandsFilter> createState() => _BrandsFilterState();
 }
 
-class _BradsFilterState extends State<BradsFilter> {
+class _BrandsFilterState extends State<BrandsFilter> {
   final _textController = TextEditingController();
 
   final int maxBrands = 5;

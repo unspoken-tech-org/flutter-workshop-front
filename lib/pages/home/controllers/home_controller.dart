@@ -4,8 +4,8 @@ import 'package:flutter_workshop_front/models/device_type.dart/device_type_model
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/home_table_filter.dart';
 import 'package:flutter_workshop_front/pages/home/states/loading_home_state.dart';
-import 'package:flutter_workshop_front/services/device_brand/device_brand_service.dart';
-import 'package:flutter_workshop_front/services/device_type/device_type_service.dart';
+import 'package:flutter_workshop_front/services/device_data/device_brand_service.dart';
+import 'package:flutter_workshop_front/services/device_data/device_type_service.dart';
 import 'package:flutter_workshop_front/services/home_data/home_service.dart';
 
 class HomeController {
