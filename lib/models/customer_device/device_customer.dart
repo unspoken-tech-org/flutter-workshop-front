@@ -1,4 +1,6 @@
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
+import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
+import 'package:flutter_workshop_front/models/customer_device/customer_phones.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:equatable/equatable.dart';
 
@@ -20,7 +22,9 @@ class DeviceCustomer extends Equatable {
   final List<String> deviceColors;
   final String entryDate;
   final String? departureDate;
-  final String lastUpdate;
+  final String? lastUpdate;
+  final List<CustomerContact> customerContacts;
+  final List<CustomerPhones> customerPhones;
 
   const DeviceCustomer({
     required this.deviceId,
@@ -38,9 +42,11 @@ class DeviceCustomer extends Equatable {
     required this.isRevision,
     required this.deviceColors,
     required this.entryDate,
+    required this.lastUpdate,
     this.departureDate,
     this.budget,
-    required this.lastUpdate,
+    this.customerContacts = const [],
+    this.customerPhones = const [],
   });
 
   factory DeviceCustomer.fromJson(Map<String, dynamic> json) {
@@ -65,6 +71,12 @@ class DeviceCustomer extends Equatable {
       entryDate: json['entryDate'],
       departureDate: json['departureDate'],
       lastUpdate: json['lastUpdate'],
+      customerContacts: (json['customerContacts'] as List<dynamic>)
+          .map((e) => CustomerContact.fromJson(e))
+          .toList(),
+      customerPhones: (json['customerPhones'] as List<dynamic>)
+          .map((e) => CustomerPhones.fromJson(e))
+          .toList(),
     );
   }
 
@@ -88,6 +100,8 @@ class DeviceCustomer extends Equatable {
       entryDate: newDeviceCustomer.entryDate,
       departureDate: newDeviceCustomer.departureDate,
       lastUpdate: newDeviceCustomer.lastUpdate,
+      customerContacts: newDeviceCustomer.customerContacts,
+      customerPhones: newDeviceCustomer.customerPhones,
     );
   }
 
@@ -110,6 +124,8 @@ class DeviceCustomer extends Equatable {
     String? entryDate,
     String? departureDate,
     String? lastUpdate,
+    List<CustomerContact>? customerContacts,
+    List<CustomerPhones>? customerPhones,
   }) {
     return DeviceCustomer(
       deviceId: deviceId ?? this.deviceId,
@@ -130,6 +146,8 @@ class DeviceCustomer extends Equatable {
       entryDate: entryDate ?? this.entryDate,
       departureDate: departureDate ?? this.departureDate,
       lastUpdate: lastUpdate ?? this.lastUpdate,
+      customerContacts: customerContacts ?? this.customerContacts,
+      customerPhones: customerPhones ?? this.customerPhones,
     );
   }
 

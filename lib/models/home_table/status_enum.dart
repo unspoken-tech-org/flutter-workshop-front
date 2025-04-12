@@ -14,6 +14,7 @@ enum StatusEnum {
     color: Color.fromARGB(214, 140, 127, 8),
   ),
   disposed(name: 'Descartado', value: 'descartado', color: Colors.red),
+  ready(name: 'Pronto', value: 'pronto', color: Colors.purple),
   ;
 
   final String value;
@@ -38,6 +39,8 @@ enum StatusEnum {
         return StatusEnum.disposed;
       case 'entregue':
         return StatusEnum.delivered;
+      case 'pronto':
+        return StatusEnum.ready;
       default:
         throw Exception('Status not found');
     }
