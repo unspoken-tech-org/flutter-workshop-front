@@ -1,24 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/device_customer/customer_device_text_field.dart';
 import 'package:flutter_workshop_front/pages/device_customer/device_status_chip.dart';
+import 'package:flutter_workshop_front/pages/device_customer/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/pages/device_customer/urgency_revision_chip.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/device_customer_save_button.dart';
 
 class CustomerDeviceInfosWidget extends StatelessWidget {
-  const CustomerDeviceInfosWidget({
-    super.key,
-    required this.deviceCustomerPageController,
-    required this.width,
-  });
-
-  final DeviceCustomerPageController deviceCustomerPageController;
-  final double width;
+  const CustomerDeviceInfosWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = InheritedDeviceCustomerController.of(context);
+    var width = MediaQuery.of(context).size.width;
+
     return ValueListenableBuilder(
-      valueListenable: deviceCustomerPageController.newDeviceCustomer,
+      valueListenable: controller.newDeviceCustomer,
       builder: (context, value, child) {
         var deviceCustomer = value;
         return Row(
@@ -96,9 +92,8 @@ class CustomerDeviceInfosWidget extends StatelessWidget {
                             child: CustomerDeviceTextField(
                               initialValue: deviceCustomer.problem,
                               onUpdate: (value) {
-                                deviceCustomerPageController
-                                    .updateNewDeviceCustomer(deviceCustomer
-                                        .copyWith(problem: value));
+                                controller.updateNewDeviceCustomer(
+                                    deviceCustomer.copyWith(problem: value));
                               },
                             ),
                           ),
@@ -117,9 +112,8 @@ class CustomerDeviceInfosWidget extends StatelessWidget {
                             child: CustomerDeviceTextField(
                               initialValue: deviceCustomer.budget,
                               onUpdate: (value) {
-                                deviceCustomerPageController
-                                    .updateNewDeviceCustomer(
-                                        deviceCustomer.copyWith(budget: value));
+                                controller.updateNewDeviceCustomer(
+                                    deviceCustomer.copyWith(budget: value));
                               },
                             ),
                           ),
@@ -138,9 +132,9 @@ class CustomerDeviceInfosWidget extends StatelessWidget {
                             child: CustomerDeviceTextField(
                               initialValue: deviceCustomer.observation,
                               onUpdate: (value) {
-                                deviceCustomerPageController
-                                    .updateNewDeviceCustomer(deviceCustomer
-                                        .copyWith(observation: value));
+                                controller.updateNewDeviceCustomer(
+                                    deviceCustomer.copyWith(
+                                        observation: value));
                               },
                             ),
                           ),
