@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
-import 'package:flutter_workshop_front/services/device_data/device_customer.dart';
+import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
 
 class DeviceCustomerPageController {
   final DeviceCustomerService _deviceCustomerService = DeviceCustomerService();
