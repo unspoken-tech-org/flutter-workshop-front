@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
-import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
+import 'package:flutter_workshop_front/widgets/shared/status_cell.dart';
 
 class WsDataTable extends StatelessWidget {
   final List<DeviceDataTable> data;
@@ -9,8 +9,9 @@ class WsDataTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double height = MediaQuery.of(context).size.height;
     return Container(
-      height: 500,
+      height: height * 0.8,
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
@@ -65,27 +66,5 @@ class WsDataTable extends StatelessWidget {
         ],
       );
     }).toList();
-  }
-}
-
-class StatusCell extends StatelessWidget {
-  final StatusEnum status;
-  const StatusCell({super.key, required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-      decoration: BoxDecoration(
-        color: status.color,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        status.name,
-        style: const TextStyle(
-          color: Colors.white,
-        ),
-      ),
-    );
   }
 }
