@@ -5,12 +5,12 @@ class CustomerContact {
   final int deviceId;
   final int technicianId;
   final String technicianName;
-  final int phoneId;
-  final String phoneNumber;
+  final int? phoneId;
+  final String? phoneNumber;
   final String type;
-  final String callStatus;
+  final bool hasMadeContact;
   final String lastContact;
-  final String conversation;
+  final String? conversation;
   final StatusEnum deviceStatus;
 
   CustomerContact({
@@ -21,7 +21,7 @@ class CustomerContact {
     required this.phoneId,
     required this.phoneNumber,
     required this.type,
-    required this.callStatus,
+    required this.hasMadeContact,
     required this.lastContact,
     required this.conversation,
     required this.deviceStatus,
@@ -36,7 +36,7 @@ class CustomerContact {
       phoneId: json['phoneId'],
       phoneNumber: json['phoneNumber'],
       type: json['type'],
-      callStatus: json['callStatus'],
+      hasMadeContact: json['hasMadeContact'],
       lastContact: json['lastContact'],
       conversation: json['conversation'],
       deviceStatus: StatusEnum.fromString(json['deviceStatus']),

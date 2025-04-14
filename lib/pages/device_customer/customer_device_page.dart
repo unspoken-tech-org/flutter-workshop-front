@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/device_customer/customer_device_infos_widget.dart';
 import 'package:flutter_workshop_front/pages/device_customer/device_tabs_widget.dart';
@@ -21,12 +20,11 @@ class _CustomerDevicePageState extends State<CustomerDevicePage> {
   @override
   void initState() {
     super.initState();
-    deviceCustomerPageController.getDeviceCustomer(widget.deviceId);
+    deviceCustomerPageController.init(widget.deviceId);
   }
 
   @override
   Widget build(BuildContext context) {
-    var width = MediaQuery.of(context).size.width;
     return InheritedDeviceCustomerController(
       controller: deviceCustomerPageController,
       child: WsScaffold(
@@ -37,18 +35,14 @@ class _CustomerDevicePageState extends State<CustomerDevicePage> {
             if (value) {
               return const Center(child: CircularProgressIndicator());
             }
-            // TODO: fix scroll
-            return SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
+            return const Padding(
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomerDeviceInfosWidget(
-                    deviceCustomerPageController: deviceCustomerPageController,
-                    width: width,
-                  ),
-                  const SizedBox(height: 16),
-                  DeviceTabsWidget(width: width),
+                  CustomerDeviceInfosWidget(),
+                  SizedBox(height: 16),
+                  DeviceTabsWidget(),
                 ],
               ),
             );

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/debouncer.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/device_customer_page_controller.dart';
-import 'package:flutter_workshop_front/pages/device_customer/inherited_device_customer_controller.dart';
 
 class CustomerDeviceTextField extends StatefulWidget {
   final String? initialValue;
-  final void Function(String value) onUpdate;
+  final void Function(String value)? onUpdate;
+  final bool enabled;
+  final bool expandHeight;
 
   const CustomerDeviceTextField({
     super.key,
     required this.initialValue,
-    required this.onUpdate,
+    this.onUpdate,
+    this.enabled = true,
+    this.expandHeight = false,
   });
 
   @override
@@ -31,11 +33,14 @@ class _CustomerDeviceTextFieldState extends State<CustomerDeviceTextField> {
   @override
   Widget build(BuildContext context) {
     return TextField(
-      maxLines: 4,
+      maxLines: widget.expandHeight ? null : 4,
+      expands: widget.expandHeight,
       controller: _textEditingController,
+      enabled: widget.enabled,
+      textAlignVertical: TextAlignVertical.top,
       onChanged: (value) {
         _debouncer.run(() {
-          widget.onUpdate(value);
+          widget.onUpdate?.call(value);
         });
       },
       decoration: InputDecoration(

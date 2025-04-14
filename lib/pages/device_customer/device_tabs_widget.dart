@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
+import 'package:flutter_workshop_front/pages/device_customer/customer_contacts_list.dart';
 
 class DeviceTabsWidget extends StatelessWidget {
-  final double width;
-  const DeviceTabsWidget({super.key, required this.width});
+  const DeviceTabsWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
+    var size = MediaQuery.of(context).size;
     return SizedBox(
-      width: width * 0.7,
-      height: 100,
+      width: size.width * 0.7,
       child: DefaultTabController(
         length: 2,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
-              width: width * 0.27,
+              width: size.width * 0.27,
               child: TabBar(
                 tabs: const [
                   Tab(text: 'Contatos'),
@@ -40,10 +40,24 @@ class DeviceTabsWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Expanded(
-              child: TabBarView(
+            Container(
+              height: size.height * 0.37,
+              width: size.width * 0.7,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                  ),
+                ],
+              ),
+              child: const TabBarView(
                 children: [
-                  Center(child: Text('Conteúdo da aba Informações')),
+                  CustomerContactsList(),
                   Center(child: Text('Conteúdo da aba Histórico')),
                 ],
               ),

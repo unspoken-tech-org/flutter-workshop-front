@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/pages/device_customer/customer_device_phones_widget.dart';
 import 'package:flutter_workshop_front/pages/device_customer/customer_device_text_field.dart';
 import 'package:flutter_workshop_front/pages/device_customer/device_status_chip.dart';
 import 'package:flutter_workshop_front/pages/device_customer/inherited_device_customer_controller.dart';
@@ -46,6 +47,9 @@ class CustomerDeviceInfosWidget extends StatelessWidget {
                           Text('ID do aparelho # ${deviceCustomer.deviceId}'),
                           const SizedBox(height: 8),
                           Text('Cliente: ${deviceCustomer.customerName}'),
+                          CustomerDevicePhonesWidget(
+                            phones: deviceCustomer.customerPhones,
+                          ),
                           const SizedBox(height: 16),
                           Text(
                               '${deviceCustomer.typeName} ${deviceCustomer.brandName} | ${deviceCustomer.modelName}'),
