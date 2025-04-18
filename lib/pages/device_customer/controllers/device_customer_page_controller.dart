@@ -14,7 +14,7 @@ class DeviceCustomerPageController {
 
   late ValueNotifier<DeviceCustomer> currentDeviceCustomer;
   late ValueNotifier<DeviceCustomer> newDeviceCustomer;
-  late final List<Technician> technicians;
+  late List<Technician> technicians;
 
   ValueNotifier<bool> isLoading = ValueNotifier(false);
 

@@ -59,14 +59,14 @@ class CustomerDeviceInfosWidget extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          DeviceStatusChip(status: deviceCustomer.deviceStatus),
                           if (deviceCustomer.hasUrgency ||
                               deviceCustomer.isRevision) ...[
-                            const SizedBox(height: 4),
                             UrgencyRevisionChip(
                                 hasUrgency: deviceCustomer.hasUrgency,
                                 isRevision: deviceCustomer.isRevision),
-                          ]
+                            const SizedBox(height: 4),
+                          ],
+                          DeviceStatusChip(status: deviceCustomer.deviceStatus),
                         ],
                       )
                     ],

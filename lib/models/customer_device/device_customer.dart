@@ -1,6 +1,7 @@
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_phones.dart';
+import 'package:flutter_workshop_front/models/customer_device/minified_customer_device.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:equatable/equatable.dart';
 
@@ -25,6 +26,7 @@ class DeviceCustomer extends Equatable {
   final String? lastUpdate;
   final List<CustomerContact> customerContacts;
   final List<CustomerPhones> customerPhones;
+  final List<MinifiedCustomerDevice> otherDevices;
 
   const DeviceCustomer({
     required this.deviceId,
@@ -47,6 +49,7 @@ class DeviceCustomer extends Equatable {
     this.budget,
     this.customerContacts = const [],
     this.customerPhones = const [],
+    this.otherDevices = const [],
   });
 
   factory DeviceCustomer.fromJson(Map<String, dynamic> json) {
@@ -77,6 +80,9 @@ class DeviceCustomer extends Equatable {
       customerPhones: (json['customerPhones'] as List<dynamic>)
           .map((e) => CustomerPhones.fromJson(e))
           .toList(),
+      otherDevices: (json['otherDevices'] as List<dynamic>)
+          .map((e) => MinifiedCustomerDevice.fromJson(e))
+          .toList(),
     );
   }
 
@@ -102,6 +108,7 @@ class DeviceCustomer extends Equatable {
       lastUpdate: newDeviceCustomer.lastUpdate,
       customerContacts: newDeviceCustomer.customerContacts,
       customerPhones: newDeviceCustomer.customerPhones,
+      otherDevices: newDeviceCustomer.otherDevices,
     );
   }
 
@@ -126,6 +133,7 @@ class DeviceCustomer extends Equatable {
     String? lastUpdate,
     List<CustomerContact>? customerContacts,
     List<CustomerPhones>? customerPhones,
+    List<MinifiedCustomerDevice>? otherDevices,
   }) {
     return DeviceCustomer(
       deviceId: deviceId ?? this.deviceId,
@@ -148,6 +156,7 @@ class DeviceCustomer extends Equatable {
       lastUpdate: lastUpdate ?? this.lastUpdate,
       customerContacts: customerContacts ?? this.customerContacts,
       customerPhones: customerPhones ?? this.customerPhones,
+      otherDevices: otherDevices ?? this.otherDevices,
     );
   }
 
