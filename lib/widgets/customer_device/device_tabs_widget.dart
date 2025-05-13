@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
-import 'package:flutter_workshop_front/pages/device_customer/customer_contacts_list.dart';
-import 'package:flutter_workshop_front/pages/device_customer/other_devices_list.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/customer_contacts_list.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/other_devices_list.dart';
 
 class DeviceTabsWidget extends StatelessWidget {
   const DeviceTabsWidget({super.key});

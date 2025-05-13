@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
-import 'package:flutter_workshop_front/pages/device_customer/contact_card.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/contact_card.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/device_customer_page_controller.dart';
-import 'package:flutter_workshop_front/pages/device_customer/customer_device_text_field.dart';
-import 'package:flutter_workshop_front/pages/device_customer/date_picker.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/customer_device_text_field.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/date_picker.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/utils/phone_utils.dart';
 

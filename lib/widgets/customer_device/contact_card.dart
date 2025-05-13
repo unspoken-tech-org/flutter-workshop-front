@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
-import 'package:flutter_workshop_front/pages/device_customer/customer_device_text_field.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/customer_device_text_field.dart';
 import 'package:flutter_workshop_front/utils/phone_utils.dart';
 import 'package:flutter_workshop_front/widgets/shared/status_cell.dart';
 

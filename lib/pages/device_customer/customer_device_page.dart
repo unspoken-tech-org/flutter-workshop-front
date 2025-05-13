@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/device_customer_page_controller.dart';
-import 'package:flutter_workshop_front/pages/device_customer/customer_device_infos_widget.dart';
-import 'package:flutter_workshop_front/pages/device_customer/device_tabs_widget.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/customer_device_infos_widget.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/device_tabs_widget.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
 

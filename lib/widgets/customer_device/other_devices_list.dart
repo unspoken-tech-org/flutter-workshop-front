@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/pages/device_customer/customer_device_card.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/customer_device_card.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 
 class OtherDevicesList extends StatelessWidget {

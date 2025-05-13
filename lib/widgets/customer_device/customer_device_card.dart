@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/minified_customer_device.dart';
-import 'package:flutter_workshop_front/pages/device_customer/customer_device_text_field.dart';
-import 'package:flutter_workshop_front/pages/device_customer/urgency_revision_chip.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/customer_device_text_field.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/urgency_revision_chip.dart';
 import 'package:flutter_workshop_front/widgets/shared/status_cell.dart';
 
 class CustomerDeviceCard extends StatelessWidget {
