@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/device_customer_page_controller.dart';
-import 'package:flutter_workshop_front/pages/device_customer/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 
 class DeviceStatusChip extends StatefulWidget {
   final StatusEnum status;
