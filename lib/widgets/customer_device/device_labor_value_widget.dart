@@ -58,10 +58,9 @@ class _DeviceLaborValueWidgetState extends State<DeviceLaborValueWidget> {
   @override
   Widget build(BuildContext context) {
     final controller = InheritedDeviceCustomerController.of(context);
-    var deviceCustomer = controller.newDeviceCustomer.value;
-    if (_controller.text.isEmpty) {
-      _controller.text = deviceCustomer.laborValue?.toBrCurrency ?? '';
-    }
+    var deviceCustomer = controller.currentDeviceCustomer.value;
+    _controller.text = (deviceCustomer.laborValue ?? 0).toBrCurrency;
+
     return Container(
       padding: const EdgeInsets.all(8),
       width: 200,

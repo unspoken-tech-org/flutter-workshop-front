@@ -25,6 +25,15 @@ class _CustomerDeviceTextFieldState extends State<CustomerDeviceTextField> {
   final Debouncer _debouncer = Debouncer(milliseconds: 200);
 
   @override
+  void didUpdateWidget(CustomerDeviceTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_textEditingController.text != widget.initialValue) {
+      _textEditingController.text = widget.initialValue ?? '';
+      setState(() {});
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     _textEditingController.text = widget.initialValue ?? '';

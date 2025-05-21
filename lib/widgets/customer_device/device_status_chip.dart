@@ -16,6 +16,21 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
   OverlayEntry? _overlayEntry;
   final LayerLink _layerLink = LayerLink();
   bool _isOverlayHovered = false;
+  late StatusEnum currentStatus;
+
+  @override
+  void didUpdateWidget(DeviceStatusChip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (currentStatus != widget.status) {
+      currentStatus = widget.status;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    currentStatus = widget.status;
+  }
 
   @override
   void dispose() {
@@ -64,6 +79,7 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
                               controller
                                   .updateNewDeviceCustomer(newDeviceCustomer);
                               setState(() {
+                                currentStatus = status;
                                 _isOverlayHovered = false;
                               });
                               _removeOverlay();
@@ -127,13 +143,13 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: widget.status.color.withAlpha(50),
+            color: currentStatus.color.withAlpha(50),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
-            widget.status.name,
+            currentStatus.name,
             style: WsTextStyles.body2.copyWith(
-                color: widget.status.color, fontWeight: FontWeight.w700),
+                color: currentStatus.color, fontWeight: FontWeight.w700),
           ),
         ),
       ),

@@ -6,6 +6,11 @@ import 'package:flutter_workshop_front/services/customer_contact/customer_contac
 import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
 import 'package:flutter_workshop_front/services/technician/technician_service.dart';
 
+enum CustomerDeviceEvent {
+  revert,
+  initial,
+}
+
 class DeviceCustomerPageController {
   final DeviceCustomerService _deviceCustomerService = DeviceCustomerService();
   final TechnicianService _technicianService = TechnicianService();
@@ -17,6 +22,8 @@ class DeviceCustomerPageController {
   late List<Technician> technicians;
 
   ValueNotifier<bool> isLoading = ValueNotifier(false);
+  ValueNotifier<CustomerDeviceEvent> customerDeviceState =
+      ValueNotifier(CustomerDeviceEvent.initial);
 
   Future<void> init(int deviceId) async {
     isLoading.value = true;
@@ -55,5 +62,11 @@ class DeviceCustomerPageController {
       InputCustomerContact customerContact) async {
     await _customerContactService.createCustomerContact(customerContact);
     await _getCustomerDevice(currentDeviceCustomer.value.deviceId);
+  }
+
+  void revertDeviceCustomer() {
+    newDeviceCustomer.value = currentDeviceCustomer.value;
+    customerDeviceState.value = CustomerDeviceEvent.revert;
+    customerDeviceState.value = CustomerDeviceEvent.initial;
   }
 }
