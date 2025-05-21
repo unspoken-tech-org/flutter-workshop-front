@@ -18,7 +18,7 @@ class CustomerDeviceCard extends StatelessWidget {
       },
       child: Card(
         color: Colors.white,
-        shadowColor: Colors.grey.withOpacity(0.5),
+        shadowColor: Colors.grey.withAlpha(50),
         elevation: 4,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

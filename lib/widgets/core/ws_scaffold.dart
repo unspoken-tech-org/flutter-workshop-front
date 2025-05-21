@@ -3,11 +3,9 @@ import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 
 class WsScaffold extends StatefulWidget {
   final Widget child;
-  final AlignmentGeometry alignment;
   const WsScaffold({
     super.key,
     required this.child,
-    this.alignment = Alignment.center,
   });
 
   @override
@@ -21,21 +19,7 @@ class _WsScaffoldState extends State<WsScaffold> {
       backgroundColor: Colors.white,
       appBar: const PreferredSize(
           preferredSize: Size.fromHeight(200), child: HomeButtonsHeader()),
-      body: Align(
-        alignment: widget.alignment,
-        child: SizedBox(
-          width: 1700,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: widget.child,
-              ),
-            ],
-          ),
-        ),
-      ),
+      body: widget.child,
     );
   }
 }

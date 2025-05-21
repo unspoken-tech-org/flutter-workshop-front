@@ -133,7 +133,7 @@ class DeviceFilters extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
         boxShadow: [
           BoxShadow(
-            color: WsColors.dark.withOpacity(0.2),
+            color: WsColors.dark.withAlpha(20),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -472,8 +472,7 @@ class GeneralFilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor:
-            isSelected ? WsColors.dark.withOpacity(0.9) : Colors.grey,
+        backgroundColor: isSelected ? WsColors.dark.withAlpha(90) : Colors.grey,
         padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 6),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(28),

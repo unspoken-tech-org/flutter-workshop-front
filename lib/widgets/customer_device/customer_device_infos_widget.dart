@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/customer_device_phones_widget.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/customer_device_text_field.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/device_status_chip.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/urgency_revision_chip.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/device_customer_save_button.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/device_labor_value_widget.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/device_status_chip.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/urgency_revision_chip.dart';
 
 class CustomerDeviceInfosWidget extends StatelessWidget {
   const CustomerDeviceInfosWidget({super.key});
@@ -28,7 +29,7 @@ class CustomerDeviceInfosWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
+                    color: Colors.grey.withAlpha(50),
                     spreadRadius: 2,
                     blurRadius: 5,
                   ),
@@ -72,13 +73,29 @@ class CustomerDeviceInfosWidget extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'Cores: ${deviceCustomer.deviceColors.join(', ')}',
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Cores: ${deviceCustomer.deviceColors.join(', ')}',
+                          ),
+                          const SizedBox(height: 8),
+                          Text('Data de entrada: ${deviceCustomer.entryDate}'),
+                          const SizedBox(height: 8),
+                          Text(
+                              'Data de saída: ${deviceCustomer.departureDate}'),
+                        ],
+                      ),
+                      SizedBox(
+                        width: width * 0.2,
+                        child: const DeviceLaborValueWidget(),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text('Data de entrada: ${deviceCustomer.entryDate}'),
-                  const SizedBox(height: 8),
-                  Text('Data de saída: ${deviceCustomer.departureDate}'),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

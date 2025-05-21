@@ -1,5 +1,6 @@
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
+import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_phones.dart';
 import 'package:flutter_workshop_front/models/customer_device/minified_customer_device.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
@@ -18,6 +19,7 @@ class DeviceCustomer extends Equatable {
   final String problem;
   final String observation;
   final String? budget;
+  final double? laborValue;
   final bool hasUrgency;
   final bool isRevision;
   final List<String> deviceColors;
@@ -27,6 +29,7 @@ class DeviceCustomer extends Equatable {
   final List<CustomerContact> customerContacts;
   final List<CustomerPhones> customerPhones;
   final List<MinifiedCustomerDevice> otherDevices;
+  final List<CustomerDevicePayment> payments;
 
   const DeviceCustomer({
     required this.deviceId,
@@ -47,9 +50,11 @@ class DeviceCustomer extends Equatable {
     required this.lastUpdate,
     this.departureDate,
     this.budget,
+    this.laborValue,
     this.customerContacts = const [],
     this.customerPhones = const [],
     this.otherDevices = const [],
+    this.payments = const [],
   });
 
   factory DeviceCustomer.fromJson(Map<String, dynamic> json) {
@@ -66,6 +71,7 @@ class DeviceCustomer extends Equatable {
       problem: json['problem'],
       observation: json['observation'],
       budget: json['budget'],
+      laborValue: json['laborValue'],
       hasUrgency: json['hasUrgency'],
       isRevision: json['revision'],
       deviceColors: (json['deviceColors'] as List<dynamic>)
@@ -82,6 +88,9 @@ class DeviceCustomer extends Equatable {
           .toList(),
       otherDevices: (json['otherDevices'] as List<dynamic>)
           .map((e) => MinifiedCustomerDevice.fromJson(e))
+          .toList(),
+      payments: (json['payments'] as List<dynamic>)
+          .map((e) => CustomerDevicePayment.fromJson(e))
           .toList(),
     );
   }
@@ -100,6 +109,7 @@ class DeviceCustomer extends Equatable {
       problem: newDeviceCustomer.problem,
       observation: newDeviceCustomer.observation,
       budget: newDeviceCustomer.budget,
+      laborValue: newDeviceCustomer.laborValue,
       hasUrgency: newDeviceCustomer.hasUrgency,
       isRevision: newDeviceCustomer.isRevision,
       deviceColors: newDeviceCustomer.deviceColors,
@@ -109,6 +119,7 @@ class DeviceCustomer extends Equatable {
       customerContacts: newDeviceCustomer.customerContacts,
       customerPhones: newDeviceCustomer.customerPhones,
       otherDevices: newDeviceCustomer.otherDevices,
+      payments: newDeviceCustomer.payments,
     );
   }
 
@@ -125,6 +136,7 @@ class DeviceCustomer extends Equatable {
     String? problem,
     String? observation,
     String? budget,
+    double? laborValue,
     bool? hasUrgency,
     bool? isRevision,
     List<String>? deviceColors,
@@ -134,6 +146,7 @@ class DeviceCustomer extends Equatable {
     List<CustomerContact>? customerContacts,
     List<CustomerPhones>? customerPhones,
     List<MinifiedCustomerDevice>? otherDevices,
+    List<CustomerDevicePayment>? payments,
   }) {
     return DeviceCustomer(
       deviceId: deviceId ?? this.deviceId,
@@ -148,6 +161,7 @@ class DeviceCustomer extends Equatable {
       problem: problem ?? this.problem,
       observation: observation ?? this.observation,
       budget: budget ?? this.budget,
+      laborValue: laborValue ?? this.laborValue,
       hasUrgency: hasUrgency ?? this.hasUrgency,
       isRevision: isRevision ?? this.isRevision,
       deviceColors: deviceColors ?? this.deviceColors,
@@ -157,6 +171,7 @@ class DeviceCustomer extends Equatable {
       customerContacts: customerContacts ?? this.customerContacts,
       customerPhones: customerPhones ?? this.customerPhones,
       otherDevices: otherDevices ?? this.otherDevices,
+      payments: payments ?? this.payments,
     );
   }
 
@@ -174,6 +189,7 @@ class DeviceCustomer extends Equatable {
       'problem': problem,
       'observation': observation,
       'budget': budget,
+      'laborValue': laborValue,
       'hasUrgency': hasUrgency,
       'isRevision': isRevision,
       'deviceColors': deviceColors,
@@ -196,6 +212,7 @@ class DeviceCustomer extends Equatable {
         problem,
         observation,
         budget,
+        laborValue,
         hasUrgency,
         isRevision,
         deviceColors,
