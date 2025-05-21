@@ -44,7 +44,7 @@ class _CustomerDevicePageState extends State<CustomerDevicePage> {
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
                       child: SizedBox(
-                        height: 460,
+                        height: 500,
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           spacing: 20,
