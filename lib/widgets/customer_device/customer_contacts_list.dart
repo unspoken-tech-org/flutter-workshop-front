@@ -7,6 +7,7 @@ import 'package:flutter_workshop_front/widgets/customer_device/customer_device_t
 import 'package:flutter_workshop_front/widgets/customer_device/date_picker.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/utils/phone_utils.dart';
+import 'package:flutter_workshop_front/widgets/shared/custom_dropdown_widget.dart';
 
 class CustomerContactsList extends StatefulWidget {
   const CustomerContactsList({super.key});
@@ -137,9 +138,19 @@ class _AddContactWidgetState extends State<AddContactWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
         IconButton(
           onPressed: widget.onClose,
           icon: const Icon(Icons.close, size: 18),
+            ),
+            TextButton.icon(
+              onPressed: widget.onNewPayment,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Adicionar Pagamento'),
+            ),
+          ],
         ),
         const SizedBox(height: 4),
         Expanded(
@@ -159,20 +170,9 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Tipo de contato'),
-                                const SizedBox(height: 8),
-                                Container(
-                                  width: 170,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.grey),
-                                  ),
-                                  child: DropdownButton(
+                                CustomDropdownWidget(
+                                  label: 'Tipo de contato',
                                     value: inputCustomerContact.contactType,
-                                    borderRadius: BorderRadius.circular(8),
-                                    underline: Container(),
-                                    isExpanded: true,
                                     items: InputCustomerContact.contactTypes
                                         .map((e) => DropdownMenuItem(
                                             value: e,
@@ -185,27 +185,14 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                                         .toList(),
                                     onChanged: (value) {
                                       setState(() {
-                                        inputCustomerContact.contactType =
-                                            value;
+                                      inputCustomerContact.contactType = value;
                                       });
                                     },
-                                  ),
                                 ),
                                 const SizedBox(height: 16),
-                                const Text('Número de telefone'),
-                                const SizedBox(height: 8),
-                                Container(
-                                  width: 170,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.grey),
-                                  ),
-                                  child: DropdownButton<int?>(
+                                CustomDropdownWidget<int?>(
+                                  label: 'Número de telefone',
                                     value: inputCustomerContact.phoneNumberId,
-                                    borderRadius: BorderRadius.circular(8),
-                                    underline: Container(),
-                                    isExpanded: true,
                                     items: deviceCustomer.customerPhones
                                         .map(
                                           (e) => DropdownMenuItem<int>(
@@ -220,33 +207,20 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                                           ),
                                         )
                                         .toList(),
-                                    onChanged:
-                                        inputCustomerContact.contactType !=
+                                  onChanged: inputCustomerContact.contactType !=
                                                 'Pessoalmente'
                                             ? (value) {
                                                 setState(() {
-                                                  inputCustomerContact
-                                                      .phoneNumberId = value;
+                                            inputCustomerContact.phoneNumberId =
+                                                value;
                                                 });
                                               }
                                             : null,
-                                  ),
                                 ),
                                 const SizedBox(height: 16),
-                                const Text('Status do contato'),
-                                const SizedBox(height: 8),
-                                Container(
-                                  width: 170,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.grey),
-                                  ),
-                                  child: DropdownButton(
+                                CustomDropdownWidget(
+                                  label: 'Status do contato',
                                     value: inputCustomerContact.contactStatus,
-                                    borderRadius: BorderRadius.circular(8),
-                                    underline: Container(),
-                                    isExpanded: true,
                                     items: InputCustomerContact.contactStatuses
                                         .map((e) => DropdownMenuItem<String>(
                                             value: e,
@@ -263,7 +237,6 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                                             value;
                                       });
                                     },
-                                  ),
                                 ),
                               ],
                             ),
@@ -271,20 +244,9 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Contatante'),
-                                const SizedBox(height: 8),
-                                Container(
-                                  width: 170,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.grey),
-                                  ),
-                                  child: DropdownButton(
+                                CustomDropdownWidget(
+                                  label: 'Contatante',
                                     value: inputCustomerContact.technicianId,
-                                    borderRadius: BorderRadius.circular(8),
-                                    underline: Container(),
-                                    isExpanded: true,
                                     items: technicians
                                         .map((e) => DropdownMenuItem(
                                             value: e.id,
@@ -293,35 +255,22 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                                                 const SizedBox(width: 8),
                                                 Expanded(
                                                   child: Text(e.name,
-                                                      overflow: TextOverflow
-                                                          .ellipsis),
+                                                    overflow:
+                                                        TextOverflow.ellipsis),
                                                 ),
                                               ],
                                             )))
                                         .toList(),
                                     onChanged: (value) {
                                       setState(() {
-                                        inputCustomerContact.technicianId =
-                                            value;
+                                      inputCustomerContact.technicianId = value;
                                       });
                                     },
-                                  ),
                                 ),
                                 const SizedBox(height: 16),
-                                const Text('Status do aparelho'),
-                                const SizedBox(height: 8),
-                                Container(
-                                  width: 170,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.grey),
-                                  ),
-                                  child: DropdownButton(
+                                CustomDropdownWidget(
+                                  label: 'Status do aparelho',
                                     value: inputCustomerContact.deviceStatus,
-                                    borderRadius: BorderRadius.circular(8),
-                                    underline: Container(),
-                                    isExpanded: true,
                                     items: StatusEnum.values
                                         .map((e) => DropdownMenuItem(
                                             value: e.value,
@@ -330,19 +279,17 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                                                 const SizedBox(width: 8),
                                                 Expanded(
                                                   child: Text(e.name,
-                                                      overflow: TextOverflow
-                                                          .ellipsis),
+                                                    overflow:
+                                                        TextOverflow.ellipsis),
                                                 ),
                                               ],
                                             )))
                                         .toList(),
                                     onChanged: (value) {
                                       setState(() {
-                                        inputCustomerContact.deviceStatus =
-                                            value;
+                                      inputCustomerContact.deviceStatus = value;
                                       });
                                     },
-                                  ),
                                 ),
                                 const SizedBox(height: 16),
                                 const Text('Data do contato'),
