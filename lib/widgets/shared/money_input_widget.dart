@@ -1,27 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/double_extensions.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 
-class DeviceLaborValueWidget extends StatefulWidget {
-  const DeviceLaborValueWidget({super.key});
+class MoneyInputWidget extends StatefulWidget {
+  final String? label;
+  final double initialValue;
+  final double? width;
+  final EdgeInsetsGeometry? padding;
+  final BoxDecoration? decoration;
+  final Function(double) onChanged;
+
+  const MoneyInputWidget({
+    super.key,
+    required this.label,
+    required this.initialValue,
+    required this.onChanged,
+    this.padding = const EdgeInsets.all(8),
+    this.width = 200,
+    this.decoration,
+  });
 
   @override
-  State<DeviceLaborValueWidget> createState() => _DeviceLaborValueWidgetState();
+  State<MoneyInputWidget> createState() => _MoneyInputWidgetState();
 }
 
-class _DeviceLaborValueWidgetState extends State<DeviceLaborValueWidget> {
+class _MoneyInputWidgetState extends State<MoneyInputWidget> {
   final _controller = TextEditingController();
-  String _lastValue = '';
   double _lastLaborValue = 0;
 
   void _formatText() {
     String current = _controller.text;
-    if (current == _lastValue) return;
 
     String digitsOnly = current.replaceAll(RegExp(r'[^0-9]'), '');
     if (digitsOnly.isEmpty) {
       _controller.text = '';
-      _lastValue = '';
       return;
     }
 
@@ -32,7 +43,6 @@ class _DeviceLaborValueWidgetState extends State<DeviceLaborValueWidget> {
       selection: TextSelection.collapsed(offset: formatted.toBrCurrency.length),
     );
     _lastLaborValue = formatted;
-    _lastValue = formatted.toBrCurrency;
   }
 
   double _formatCurrency(int value) {
@@ -43,8 +53,17 @@ class _DeviceLaborValueWidgetState extends State<DeviceLaborValueWidget> {
   }
 
   @override
+  void didUpdateWidget(covariant MoneyInputWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_lastLaborValue != widget.initialValue) {
+      _controller.text = widget.initialValue.toBrCurrency;
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
+    _controller.text = widget.initialValue.toBrCurrency;
     _controller.addListener(_formatText);
   }
 
@@ -57,41 +76,37 @@ class _DeviceLaborValueWidgetState extends State<DeviceLaborValueWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = InheritedDeviceCustomerController.of(context);
-    var deviceCustomer = controller.currentDeviceCustomer.value;
-    _controller.text = (deviceCustomer.laborValue ?? 0).toBrCurrency;
-
     return Container(
-      padding: const EdgeInsets.all(8),
-      width: 200,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withAlpha(50),
-            spreadRadius: 1,
-            blurRadius: 2,
+      padding: widget.padding,
+      width: widget.width,
+      decoration: widget.decoration ??
+          BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withAlpha(50),
+                spreadRadius: 1,
+                blurRadius: 2,
+              ),
+            ],
           ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Valor Orçamento'),
-          const SizedBox(height: 8),
+          if (widget.label != null) ...[
+            Text(widget.label!),
+            const SizedBox(height: 8),
+          ],
           TextFormField(
             controller: _controller,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-              labelText: 'Digite um valor',
               floatingLabelBehavior: FloatingLabelBehavior.never,
               border: OutlineInputBorder(),
             ),
             onChanged: (value) {
-              controller.updateNewDeviceCustomer(
-                deviceCustomer.copyWith(laborValue: _lastLaborValue),
-              );
+              widget.onChanged(_lastLaborValue);
             },
           ),
         ],

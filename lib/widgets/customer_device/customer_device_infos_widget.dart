@@ -5,9 +5,9 @@ import 'package:flutter_workshop_front/pages/device_customer/controllers/inherit
 import 'package:flutter_workshop_front/widgets/customer_device/customer_device_phones_widget.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/customer_device_text_field.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/device_customer_save_button.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/device_labor_value_widget.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/device_status_chip.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/urgency_revision_chip.dart';
+import 'package:flutter_workshop_front/widgets/shared/money_input_widget.dart';
 
 class CustomerDeviceInfosWidget extends StatelessWidget {
   const CustomerDeviceInfosWidget({super.key});
@@ -103,10 +103,13 @@ class CustomerDeviceInfosWidget extends StatelessWidget {
                         child: ValueListenableBuilder(
                           valueListenable: controller.customerDeviceState,
                           builder: (context, _, __) {
-                            return DeviceLaborValueWidget(
-                              key: Key(
-                                'labor-value-${deviceCustomer.laborValue}',
-                              ),
+                            return MoneyInputWidget(
+                              label: 'Valor Orçamento',
+                              initialValue: deviceCustomer.laborValue ?? 0,
+                              onChanged: (value) {
+                                controller.updateNewDeviceCustomer(
+                                    deviceCustomer.copyWith(laborValue: value));
+                              },
                             );
                           },
                         ),
