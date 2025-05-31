@@ -209,6 +209,7 @@ class DeviceCustomer extends Equatable {
         typeName,
         technicianId,
         technicianName,
+        payments,
         problem,
         observation,
         budget,

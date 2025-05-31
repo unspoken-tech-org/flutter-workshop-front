@@ -5,10 +5,14 @@ class CustomerContactService {
   final Dio _dio = Dio();
 
   Future<void> createCustomerContact(
-      InputCustomerContact customerContact) async {
+    InputCustomerContact customerContact,
+  ) async {
+    final json = customerContact.toJson();
+
     final response = await _dio.post(
-        'http://localhost:8080/v1/customer-contact',
-        data: customerContact.toJson());
+      'http://localhost:8080/v1/customer-contact',
+      data: json,
+    );
     return response.data;
   }
 }

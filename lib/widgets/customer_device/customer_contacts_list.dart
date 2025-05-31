@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
-import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/contact_card.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/device_customer_page_controller.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/customer_device_text_field.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/date_picker.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
-import 'package:flutter_workshop_front/utils/phone_utils.dart';
-import 'package:flutter_workshop_front/widgets/shared/custom_dropdown_widget.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/add_contact_widget.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/contact_card.dart';
 
 class CustomerContactsList extends StatefulWidget {
   const CustomerContactsList({super.key});
@@ -20,7 +15,8 @@ class _CustomerContactsListState extends State<CustomerContactsList> {
   final ScrollController _scrollController = ScrollController();
   bool isAddContact = false;
 
-  void _toggleAddContact() {
+  void _toggleAddContact(DeviceCustomerPageController controller) {
+    controller.clearNewPayment();
     setState(() {
       isAddContact = !isAddContact;
     });
@@ -53,15 +49,15 @@ class _CustomerContactsListState extends State<CustomerContactsList> {
                 child: isAddContact
                     ? AddContactWidget(
                         deviceId: deviceCustomer.deviceId,
-                        onClose: _toggleAddContact,
-                        onSave: _toggleAddContact,
+                        onClose: () => _toggleAddContact(controller),
+                        onSave: () => _toggleAddContact(controller),
                       )
                     : Column(
                         key: const ValueKey('contact_list'),
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           TextButton.icon(
-                            onPressed: _toggleAddContact,
+                            onPressed: () => _toggleAddContact(controller),
                             icon: const Icon(Icons.add),
                             label: const Text('Adicionar Contato'),
                           ),
