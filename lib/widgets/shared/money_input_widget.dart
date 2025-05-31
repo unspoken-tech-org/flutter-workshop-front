@@ -6,7 +6,10 @@ class MoneyInputWidget extends StatefulWidget {
   final double initialValue;
   final double? width;
   final EdgeInsetsGeometry? padding;
-  final BoxDecoration? decoration;
+  final Color? backgroundColor;
+  final Color? borderColor;
+  final double? borderRadius;
+  final List<BoxShadow>? boxShadow;
   final Function(double) onChanged;
 
   const MoneyInputWidget({
@@ -16,7 +19,16 @@ class MoneyInputWidget extends StatefulWidget {
     required this.onChanged,
     this.padding = const EdgeInsets.all(8),
     this.width = 200,
-    this.decoration,
+    this.boxShadow = const [
+      BoxShadow(
+        color: Colors.grey,
+        spreadRadius: 1,
+        blurRadius: 2,
+      ),
+    ],
+    this.backgroundColor = Colors.white,
+    this.borderColor = Colors.grey,
+    this.borderRadius = 8,
   });
 
   @override
@@ -79,18 +91,11 @@ class _MoneyInputWidgetState extends State<MoneyInputWidget> {
     return Container(
       padding: widget.padding,
       width: widget.width,
-      decoration: widget.decoration ??
-          BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withAlpha(50),
-                spreadRadius: 1,
-                blurRadius: 2,
-              ),
-            ],
-          ),
+      decoration: BoxDecoration(
+        color: widget.backgroundColor,
+        borderRadius: BorderRadius.circular(widget.borderRadius!),
+        boxShadow: widget.boxShadow,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -101,9 +106,12 @@ class _MoneyInputWidgetState extends State<MoneyInputWidget> {
           TextFormField(
             controller: _controller,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               floatingLabelBehavior: FloatingLabelBehavior.never,
-              border: OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(widget.borderRadius!),
+                borderSide: BorderSide(color: widget.borderColor!),
+              ),
             ),
             onChanged: (value) {
               widget.onChanged(_lastLaborValue);
