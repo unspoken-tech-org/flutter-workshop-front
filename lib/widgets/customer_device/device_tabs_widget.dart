@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
+import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/customer_contacts_list.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/other_devices_list.dart';
 
@@ -9,6 +10,7 @@ class DeviceTabsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
+    final controller = InheritedDeviceCustomerController.of(context);
     return SizedBox(
       width: size.width * 0.7,
       child: DefaultTabController(
@@ -19,6 +21,11 @@ class DeviceTabsWidget extends StatelessWidget {
             SizedBox(
               width: size.width * 0.27,
               child: TabBar(
+                onTap: (index) {
+                  if (index == 1) {
+                    controller.isPaymentsWidgetVisible.value = false;
+                  }
+                },
                 tabs: const [
                   Tab(text: 'Contatos'),
                   Tab(text: 'Outros Aparelhos'),

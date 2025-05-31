@@ -18,6 +18,7 @@ class DeviceCustomerService {
   Future<DeviceCustomer> updateDeviceCustomer(
       DeviceCustomer deviceCustomer) async {
     var json = deviceCustomer.toJson();
+
     Response result = await dio.put(
       'http://localhost:8080/v1/device/update',
       options: Options(
