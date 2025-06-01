@@ -58,7 +58,7 @@ class SnackBarUtil {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 5),
       action: SnackBarAction(
         label: 'OK',
         textColor: Colors.white,
