@@ -48,26 +48,27 @@ class DeviceTabsWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Container(
-              height: size.height * 0.37,
-              width: size.width * 0.7,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withAlpha(50),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                  ),
-                ],
-              ),
-              child: const TabBarView(
-                children: [
-                  CustomerContactsList(),
-                  OtherDevicesList(),
-                ],
+            Expanded(
+              child: Container(
+                width: size.width * 0.7,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withAlpha(50),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                    ),
+                  ],
+                ),
+                child: const TabBarView(
+                  children: [
+                    CustomerContactsList(),
+                    OtherDevicesList(),
+                  ],
+                ),
               ),
             ),
           ],
