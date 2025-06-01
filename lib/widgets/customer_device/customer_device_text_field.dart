@@ -6,6 +6,7 @@ class CustomerDeviceTextField extends StatefulWidget {
   final void Function(String value)? onUpdate;
   final bool enabled;
   final bool expandHeight;
+  final bool isInvalid;
 
   const CustomerDeviceTextField({
     super.key,
@@ -13,6 +14,7 @@ class CustomerDeviceTextField extends StatefulWidget {
     this.onUpdate,
     this.enabled = true,
     this.expandHeight = false,
+    this.isInvalid = false,
   });
 
   @override
@@ -55,6 +57,24 @@ class _CustomerDeviceTextFieldState extends State<CustomerDeviceTextField> {
       decoration: InputDecoration(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: widget.isInvalid ? Colors.red : Colors.grey,
+            width: 1,
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: widget.isInvalid ? Colors.red : Colors.grey,
+            width: 1,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: widget.isInvalid ? Colors.red : Colors.blue,
+            width: 1,
+          ),
         ),
         contentPadding: const EdgeInsets.all(6),
       ),

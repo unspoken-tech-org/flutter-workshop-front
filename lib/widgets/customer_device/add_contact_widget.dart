@@ -4,10 +4,11 @@ import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/utils/phone_utils.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/customer_contacts_list.dart';
+import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/customer_device_text_field.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/date_picker.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/dialogs/unfinished_payment_dialog.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/validators/contact_form_validator.dart';
 import 'package:flutter_workshop_front/widgets/shared/custom_dropdown_widget.dart';
 
 class AddContactWidget extends StatefulWidget {
@@ -26,11 +27,20 @@ class AddContactWidget extends StatefulWidget {
   State<AddContactWidget> createState() => _AddContactWidgetState();
 }
 
-class _AddContactWidgetState extends State<AddContactWidget> {
+class _AddContactWidgetState extends State<AddContactWidget>
+    with ContactFormValidator {
+  final SnackBarUtil snackBarUtil = SnackBarUtil();
   late InputCustomerContact inputCustomerContact;
 
   void _saveContact(DeviceCustomerPageController controller,
       InputCustomerContact input) async {
+    if (!validateAll(input)) {
+      setState(() {});
+      snackBarUtil
+          .showError('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
     final isPaymentWidgetVisible = controller.isPaymentsWidgetVisible.value;
     final newPayment = controller.newPayment.value;
     if (isPaymentWidgetVisible && newPayment == null) {
@@ -141,8 +151,12 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                                   onChanged: (value) {
                                     setState(() {
                                       inputCustomerContact.contactType = value;
+                                      clearFieldValidation(
+                                          ContactField.contactType);
                                     });
                                   },
+                                  isInvalid:
+                                      isFieldInvalid(ContactField.contactType),
                                 ),
                                 const SizedBox(height: 16),
                                 CustomDropdownWidget<int?>(
@@ -168,9 +182,13 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                                           setState(() {
                                             inputCustomerContact.phoneNumberId =
                                                 value;
+                                            clearFieldValidation(
+                                                ContactField.phoneNumber);
                                           });
                                         }
                                       : null,
+                                  isInvalid:
+                                      isFieldInvalid(ContactField.phoneNumber),
                                 ),
                                 const SizedBox(height: 16),
                                 CustomDropdownWidget(
@@ -190,8 +208,12 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                                     setState(() {
                                       inputCustomerContact.contactStatus =
                                           value;
+                                      clearFieldValidation(
+                                          ContactField.contactStatus);
                                     });
                                   },
+                                  isInvalid: isFieldInvalid(
+                                      ContactField.contactStatus),
                                 ),
                               ],
                             ),
@@ -219,8 +241,12 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                                   onChanged: (value) {
                                     setState(() {
                                       inputCustomerContact.technicianId = value;
+                                      clearFieldValidation(
+                                          ContactField.technician);
                                     });
                                   },
+                                  isInvalid:
+                                      isFieldInvalid(ContactField.technician),
                                 ),
                                 const SizedBox(height: 16),
                                 CustomDropdownWidget(
@@ -243,8 +269,12 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                                   onChanged: (value) {
                                     setState(() {
                                       inputCustomerContact.deviceStatus = value;
+                                      clearFieldValidation(
+                                          ContactField.deviceStatus);
                                     });
                                   },
+                                  isInvalid:
+                                      isFieldInvalid(ContactField.deviceStatus),
                                 ),
                                 const SizedBox(height: 16),
                                 const Text('Data do contato'),
@@ -270,9 +300,13 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                                       initialValue:
                                           inputCustomerContact.message,
                                       expandHeight: true,
+                                      isInvalid:
+                                          isFieldInvalid(ContactField.message),
                                       onUpdate: (value) {
                                         setState(() {
                                           inputCustomerContact.message = value;
+                                          clearFieldValidation(
+                                              ContactField.message);
                                         });
                                       },
                                     ),
@@ -299,6 +333,7 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                 setState(() {
                   inputCustomerContact =
                       InputCustomerContact.empty(widget.deviceId);
+                  clearAllValidations();
                 });
               },
               child: const Text('Limpar'),

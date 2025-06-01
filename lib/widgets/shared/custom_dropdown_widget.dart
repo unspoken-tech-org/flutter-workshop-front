@@ -9,6 +9,7 @@ class CustomDropdownWidget<T> extends StatelessWidget {
   final Color borderColor;
   final double width;
   final double height;
+  final bool isInvalid;
 
   const CustomDropdownWidget({
     super.key,
@@ -20,6 +21,7 @@ class CustomDropdownWidget<T> extends StatelessWidget {
     this.borderColor = Colors.grey,
     this.width = 170,
     this.height = 40,
+    this.isInvalid = false,
   });
 
   @override
@@ -34,7 +36,10 @@ class CustomDropdownWidget<T> extends StatelessWidget {
           height: height,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(borderRadius),
-            border: Border.all(color: borderColor),
+            border: Border.all(
+              color: isInvalid ? Colors.red : borderColor,
+              width: 1,
+            ),
           ),
           child: DropdownButton(
             value: value,
