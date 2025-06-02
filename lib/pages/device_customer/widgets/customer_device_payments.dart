@@ -70,7 +70,13 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: 8,
                     children: [
-                      const Text('Pagamentos'),
+                      const Text(
+                        'Pagamentos',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       Expanded(
                         child: SizedBox(
                           child: Scrollbar(

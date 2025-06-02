@@ -18,8 +18,15 @@ class CustomerDevicePaymentItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.grey,
+              blurRadius: 1,
+              offset: Offset(0, 0),
+            ),
+          ],
         ),
         child: Column(
           spacing: 4,
@@ -31,7 +38,6 @@ class CustomerDevicePaymentItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Valor: ${payment.paymentValue.toBrCurrency}'),
-                Text('Pagamento: ${payment.category.capitalizeFirst}'),
               ],
             ),
           ],
