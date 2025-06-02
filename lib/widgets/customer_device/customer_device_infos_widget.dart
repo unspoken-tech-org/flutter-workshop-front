@@ -58,9 +58,9 @@ class CustomerDeviceInfosWidget extends StatelessWidget {
                               '${deviceCustomer.typeName} ${deviceCustomer.brandName} | ${deviceCustomer.modelName}'),
                         ],
                       ),
-                      Column(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                        spacing: 8,
                         children: [
                           if (deviceCustomer.hasUrgency ||
                               deviceCustomer.isRevision) ...[

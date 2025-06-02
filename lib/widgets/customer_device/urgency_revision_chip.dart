@@ -13,16 +13,23 @@ class UrgencyRevisionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(Icons.warning_amber_rounded, color: color),
-        const SizedBox(width: 4),
-        Text(
-          text,
-          style: WsTextStyles.body1
-              .copyWith(color: color, fontWeight: FontWeight.w500),
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withAlpha(40),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, color: color, size: 16),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: WsTextStyles.body1
+                .copyWith(color: color, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
     );
   }
 }
