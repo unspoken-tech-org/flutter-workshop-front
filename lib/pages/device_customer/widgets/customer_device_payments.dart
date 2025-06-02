@@ -31,12 +31,16 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
     return devicePayments.fold(0, (sum, payment) => sum + payment.paymentValue);
   }
 
+  double _getTotalValue(DeviceCustomer deviceCustomer) {
+    return ((deviceCustomer.serviceValue ?? 0) -
+        (deviceCustomer.laborValue ?? 0));
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = InheritedDeviceCustomerController.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -59,25 +63,35 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Pagamentos'),
-              const SizedBox(height: 8),
               Expanded(
-                child: SizedBox(
-                  child: Scrollbar(
-                    controller: scrollController,
-                    thumbVisibility: true,
-                    child: ListView.separated(
-                      controller: scrollController,
-                      itemCount: devicePayments.length,
-                      separatorBuilder: (context, index) {
-                        return const SizedBox(height: 10);
-                      },
-                      itemBuilder: (context, index) {
-                        return CustomerDevicePaymentItem(
-                          payment: devicePayments[index],
-                        );
-                      },
-                    ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 8,
+                    children: [
+                      const Text('Pagamentos'),
+                      Expanded(
+                        child: SizedBox(
+                          child: Scrollbar(
+                            controller: scrollController,
+                            thumbVisibility: true,
+                            child: ListView.separated(
+                              controller: scrollController,
+                              itemCount: devicePayments.length,
+                              separatorBuilder: (context, index) {
+                                return const SizedBox(height: 10);
+                              },
+                              itemBuilder: (context, index) {
+                                return CustomerDevicePaymentItem(
+                                  payment: devicePayments[index],
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -92,10 +106,41 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const Text(
+                          'Sub total',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: Text(
+                            '${deviceCustomer.serviceValue?.toBrCurrency}',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        if (deviceCustomer.laborValue != null) ...[
+                          const Text(
+                            'Orçamento',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Text(
+                              '- ${deviceCustomer.laborValue?.toBrCurrency}',
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
                         const Text(
                           'Total',
                           style: TextStyle(color: Colors.white),
@@ -103,7 +148,7 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
                         Padding(
                           padding: const EdgeInsets.only(left: 8),
                           child: Text(
-                            '${deviceCustomer.laborValue?.toBrCurrency}',
+                            _getTotalValue(deviceCustomer).toBrCurrency,
                             style: const TextStyle(color: Colors.white),
                           ),
                         ),
@@ -111,6 +156,7 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         const Text(
                           'Total pago',

@@ -104,11 +104,28 @@ class CustomerDeviceInfosWidget extends StatelessWidget {
                           valueListenable: controller.customerDeviceState,
                           builder: (context, _, __) {
                             return MoneyInputWidget(
-                              label: 'Valor Orçamento',
+                              label: 'Valor do orçamento',
                               initialValue: deviceCustomer.laborValue ?? 0,
                               onChanged: (value) {
                                 controller.updateNewDeviceCustomer(
                                     deviceCustomer.copyWith(laborValue: value));
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        width: width * 0.2,
+                        child: ValueListenableBuilder(
+                          valueListenable: controller.customerDeviceState,
+                          builder: (context, _, __) {
+                            return MoneyInputWidget(
+                              label: 'Valor do serviço',
+                              initialValue: deviceCustomer.serviceValue ?? 0,
+                              onChanged: (value) {
+                                controller.updateNewDeviceCustomer(
+                                    deviceCustomer.copyWith(
+                                        serviceValue: value));
                               },
                             );
                           },

@@ -19,6 +19,7 @@ class DeviceCustomer extends Equatable {
   final String problem;
   final String observation;
   final String? budget;
+  final double? serviceValue;
   final double? laborValue;
   final bool hasUrgency;
   final bool isRevision;
@@ -50,6 +51,7 @@ class DeviceCustomer extends Equatable {
     required this.lastUpdate,
     this.departureDate,
     this.budget,
+    this.serviceValue,
     this.laborValue,
     this.customerContacts = const [],
     this.customerPhones = const [],
@@ -71,6 +73,7 @@ class DeviceCustomer extends Equatable {
       problem: json['problem'],
       observation: json['observation'],
       budget: json['budget'],
+      serviceValue: json['serviceValue'],
       laborValue: json['laborValue'],
       hasUrgency: json['hasUrgency'],
       isRevision: json['revision'],
@@ -109,6 +112,7 @@ class DeviceCustomer extends Equatable {
       problem: newDeviceCustomer.problem,
       observation: newDeviceCustomer.observation,
       budget: newDeviceCustomer.budget,
+      serviceValue: newDeviceCustomer.serviceValue,
       laborValue: newDeviceCustomer.laborValue,
       hasUrgency: newDeviceCustomer.hasUrgency,
       isRevision: newDeviceCustomer.isRevision,
@@ -136,6 +140,7 @@ class DeviceCustomer extends Equatable {
     String? problem,
     String? observation,
     String? budget,
+    double? serviceValue,
     double? laborValue,
     bool? hasUrgency,
     bool? isRevision,
@@ -161,6 +166,7 @@ class DeviceCustomer extends Equatable {
       problem: problem ?? this.problem,
       observation: observation ?? this.observation,
       budget: budget ?? this.budget,
+      serviceValue: serviceValue ?? this.serviceValue,
       laborValue: laborValue ?? this.laborValue,
       hasUrgency: hasUrgency ?? this.hasUrgency,
       isRevision: isRevision ?? this.isRevision,
@@ -189,6 +195,7 @@ class DeviceCustomer extends Equatable {
       'problem': problem,
       'observation': observation,
       'budget': budget,
+      'serviceValue': serviceValue,
       'laborValue': laborValue,
       'hasUrgency': hasUrgency,
       'isRevision': isRevision,
@@ -213,6 +220,7 @@ class DeviceCustomer extends Equatable {
         problem,
         observation,
         budget,
+        serviceValue,
         laborValue,
         hasUrgency,
         isRevision,
