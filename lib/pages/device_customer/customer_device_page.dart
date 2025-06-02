@@ -66,6 +66,7 @@ class _CustomerDevicePageState extends State<CustomerDevicePage>
     return InheritedDeviceCustomerController(
       controller: deviceCustomerPageController,
       child: WsScaffold(
+        backgroundColor: const Color(0xFFF5F5F5),
         child: ValueListenableBuilder(
           valueListenable: deviceCustomerPageController.isLoading,
           builder: (context, value, child) {

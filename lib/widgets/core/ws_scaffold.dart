@@ -3,9 +3,11 @@ import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 
 class WsScaffold extends StatefulWidget {
   final Widget child;
+  final Color? backgroundColor;
   const WsScaffold({
     super.key,
     required this.child,
+    this.backgroundColor,
   });
 
   @override
@@ -16,7 +18,7 @@ class _WsScaffoldState extends State<WsScaffold> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: widget.backgroundColor ?? Colors.white,
       appBar: const PreferredSize(
           preferredSize: Size.fromHeight(200), child: HomeButtonsHeader()),
       body: widget.child,
