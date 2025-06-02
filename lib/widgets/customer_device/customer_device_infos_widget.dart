@@ -98,6 +98,12 @@ class CustomerDeviceInfosWidget extends StatelessWidget {
                               'Data de saída: ${deviceCustomer.departureDate}'),
                         ],
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       SizedBox(
                         width: width * 0.2,
                         child: ValueListenableBuilder(
@@ -105,6 +111,10 @@ class CustomerDeviceInfosWidget extends StatelessWidget {
                           builder: (context, _, __) {
                             return MoneyInputWidget(
                               label: 'Valor do orçamento',
+                              padding: EdgeInsets.zero,
+                              backgroundColor: Colors.transparent,
+                              borderColor: Colors.transparent,
+                              boxShadow: const [],
                               initialValue: deviceCustomer.laborValue ?? 0,
                               onChanged: (value) {
                                 controller.updateNewDeviceCustomer(
@@ -121,6 +131,10 @@ class CustomerDeviceInfosWidget extends StatelessWidget {
                           builder: (context, _, __) {
                             return MoneyInputWidget(
                               label: 'Valor do serviço',
+                              padding: EdgeInsets.zero,
+                              backgroundColor: Colors.transparent,
+                              borderColor: Colors.transparent,
+                              boxShadow: const [],
                               initialValue: deviceCustomer.serviceValue ?? 0,
                               onChanged: (value) {
                                 controller.updateNewDeviceCustomer(
@@ -131,9 +145,12 @@ class CustomerDeviceInfosWidget extends StatelessWidget {
                           },
                         ),
                       ),
+                      SizedBox(
+                        width: width * 0.2,
+                      ),
                     ],
                   ),
-                  const Spacer(),
+                  const SizedBox(height: 16),
                   ValueListenableBuilder(
                     valueListenable: controller.customerDeviceState,
                     builder: (context, _, __) {
