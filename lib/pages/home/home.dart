@@ -25,26 +25,30 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return WsScaffold(
-        child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        WsFilterBar(
-          controller: controller,
-        ),
-        const SizedBox(height: 16),
-        ValueListenableBuilder(
-          valueListenable: controller.loadingState,
-          builder: (context, value, _) {
-            if (controller.loadingState.value.isTableLoading) {
-              return const SizedBox(
-                height: 200,
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-            return WsDataTable(data: controller.tableData.value);
-          },
-        ),
-      ],
+        child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20).copyWith(right: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          WsFilterBar(
+            controller: controller,
+          ),
+          const SizedBox(height: 16),
+          ValueListenableBuilder(
+            valueListenable: controller.loadingState,
+            builder: (context, value, _) {
+              if (controller.loadingState.value.isTableLoading) {
+                return const SizedBox(
+                  height: 200,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              return Expanded(
+                  child: WsDataTable(data: controller.tableData.value));
+            },
+          ),
+        ],
+      ),
     ));
   }
 }
