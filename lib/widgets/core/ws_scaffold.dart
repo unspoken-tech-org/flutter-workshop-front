@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
+import 'package:flutter_workshop_front/widgets/core/ws_drawer.dart';
+import 'package:go_router/go_router.dart';
 
 class WsScaffold extends StatefulWidget {
   final Widget child;
@@ -19,58 +20,14 @@ class _WsScaffoldState extends State<WsScaffold> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: widget.backgroundColor ?? Colors.white,
-      appBar: const PreferredSize(
-          preferredSize: Size.fromHeight(200), child: HomeButtonsHeader()),
-      body: widget.child,
-    );
-  }
-}
-
-class HomeButtonsHeader extends StatelessWidget {
-  const HomeButtonsHeader({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 70,
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            spreadRadius: 5,
-            blurRadius: 10,
-            blurStyle: BlurStyle.outer,
-            offset: Offset(15, 15),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
+      body: Stack(
         children: [
-          Row(
-            children: [
-              FilledButton.icon(
-                onPressed: () {
-                  WsNavigator.pushHome(context);
-                },
-                style: FilledButton.styleFrom(fixedSize: const Size(132, 34)),
-                icon: const Icon(Icons.home),
-                label: const Text('Home'),
-              ),
-              const SizedBox(width: 18),
-              FilledButton.icon(
-                onPressed: () {
-                  WsNavigator.pushCustomers(context);
-                },
-                style: FilledButton.styleFrom(fixedSize: const Size(132, 34)),
-                icon: const Icon(Icons.person),
-                label: const Text('Clientes'),
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.only(left: 55),
+            child: widget.child,
+          ),
+          WsDrawer(
+            currentRoute: GoRouterState.of(context).name ?? '',
           ),
         ],
       ),

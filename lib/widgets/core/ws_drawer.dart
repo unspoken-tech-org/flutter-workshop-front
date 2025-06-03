@@ -25,7 +25,13 @@ class _WsDrawerState extends State<WsDrawer> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         width: isExpanded ? 250 : 50,
-        color: Colors.grey[300],
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: const BorderRadius.only(
+            topRight: Radius.circular(8),
+            bottomRight: Radius.circular(8),
+          ),
+        ),
         child: Column(
           children: [
             Container(
