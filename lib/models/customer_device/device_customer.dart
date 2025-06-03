@@ -21,6 +21,7 @@ class DeviceCustomer extends Equatable {
   final String? budget;
   final double? serviceValue;
   final double? laborValue;
+  final bool laborValueCollected;
   final bool hasUrgency;
   final bool isRevision;
   final List<String> deviceColors;
@@ -53,6 +54,7 @@ class DeviceCustomer extends Equatable {
     this.budget,
     this.serviceValue,
     this.laborValue,
+    this.laborValueCollected = false,
     this.customerContacts = const [],
     this.customerPhones = const [],
     this.otherDevices = const [],
@@ -75,6 +77,7 @@ class DeviceCustomer extends Equatable {
       budget: json['budget'],
       serviceValue: json['serviceValue'],
       laborValue: json['laborValue'],
+      laborValueCollected: json['laborValueCollected'],
       hasUrgency: json['hasUrgency'],
       isRevision: json['revision'],
       deviceColors: (json['deviceColors'] as List<dynamic>)
@@ -114,6 +117,7 @@ class DeviceCustomer extends Equatable {
       budget: newDeviceCustomer.budget,
       serviceValue: newDeviceCustomer.serviceValue,
       laborValue: newDeviceCustomer.laborValue,
+      laborValueCollected: newDeviceCustomer.laborValueCollected,
       hasUrgency: newDeviceCustomer.hasUrgency,
       isRevision: newDeviceCustomer.isRevision,
       deviceColors: newDeviceCustomer.deviceColors,
@@ -142,6 +146,7 @@ class DeviceCustomer extends Equatable {
     String? budget,
     double? serviceValue,
     double? laborValue,
+    bool? laborValueCollected,
     bool? hasUrgency,
     bool? isRevision,
     List<String>? deviceColors,
@@ -168,6 +173,7 @@ class DeviceCustomer extends Equatable {
       budget: budget ?? this.budget,
       serviceValue: serviceValue ?? this.serviceValue,
       laborValue: laborValue ?? this.laborValue,
+      laborValueCollected: laborValueCollected ?? this.laborValueCollected,
       hasUrgency: hasUrgency ?? this.hasUrgency,
       isRevision: isRevision ?? this.isRevision,
       deviceColors: deviceColors ?? this.deviceColors,
@@ -197,6 +203,7 @@ class DeviceCustomer extends Equatable {
       'budget': budget,
       'serviceValue': serviceValue,
       'laborValue': laborValue,
+      'laborValueCollected': laborValueCollected,
       'hasUrgency': hasUrgency,
       'isRevision': isRevision,
       'deviceColors': deviceColors,
@@ -222,6 +229,7 @@ class DeviceCustomer extends Equatable {
         budget,
         serviceValue,
         laborValue,
+        laborValueCollected,
         hasUrgency,
         isRevision,
         deviceColors,

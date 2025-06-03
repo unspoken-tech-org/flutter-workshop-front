@@ -58,22 +58,52 @@ class CustomerDeviceInfosWidget extends StatelessWidget {
                               '${deviceCustomer.typeName} ${deviceCustomer.brandName} | ${deviceCustomer.modelName}'),
                         ],
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         spacing: 8,
                         children: [
-                          if (deviceCustomer.hasUrgency ||
-                              deviceCustomer.isRevision) ...[
-                            UrgencyRevisionChip(
-                                hasUrgency: deviceCustomer.hasUrgency,
-                                isRevision: deviceCustomer.isRevision),
-                            const SizedBox(height: 4),
-                          ],
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            spacing: 8,
+                            children: [
+                              if (deviceCustomer.hasUrgency ||
+                                  deviceCustomer.isRevision) ...[
+                                UrgencyRevisionChip(
+                                    hasUrgency: deviceCustomer.hasUrgency,
+                                    isRevision: deviceCustomer.isRevision),
+                                const SizedBox(height: 4),
+                              ],
+                              ValueListenableBuilder(
+                                valueListenable: controller.customerDeviceState,
+                                builder: (context, _, __) {
+                                  return DeviceStatusChip(
+                                      status: deviceCustomer.deviceStatus);
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
                           ValueListenableBuilder(
-                            valueListenable: controller.customerDeviceState,
-                            builder: (context, _, __) {
-                              return DeviceStatusChip(
-                                  status: deviceCustomer.deviceStatus);
+                            valueListenable: controller.newDeviceCustomer,
+                            builder: (context, value, __) {
+                              var newDeviceCustomer = value;
+                              return Row(
+                                children: [
+                                  Checkbox(
+                                    value:
+                                        newDeviceCustomer.laborValueCollected,
+                                    onChanged: (value) {
+                                      controller.updateNewDeviceCustomer(
+                                        newDeviceCustomer.copyWith(
+                                          laborValueCollected: value ?? false,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  Text('Orçamento coletado',
+                                      style: WsTextStyles.body1),
+                                ],
+                              );
                             },
                           ),
                         ],
