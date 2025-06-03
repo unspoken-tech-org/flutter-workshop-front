@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
 
 class CustomersPage extends StatefulWidget {
+  static const String route = 'customers';
+
   const CustomersPage({super.key});
 
   @override

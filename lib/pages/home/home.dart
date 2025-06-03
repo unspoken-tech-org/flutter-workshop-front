@@ -5,6 +5,8 @@ import 'package:flutter_workshop_front/widgets/ws_filter_bar/ws_filter_bar.dart'
 import 'package:flutter_workshop_front/widgets/ws_table/ws_data_table.dart';
 
 class HomePage extends StatefulWidget {
+  static const String route = 'home';
+
   const HomePage({super.key});
 
   @override
