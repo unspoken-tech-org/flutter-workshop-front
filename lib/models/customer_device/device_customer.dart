@@ -226,6 +226,7 @@ class DeviceCustomer extends Equatable {
         payments,
         problem,
         observation,
+        customerContacts,
         budget,
         serviceValue,
         laborValue,
