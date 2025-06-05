@@ -63,7 +63,7 @@ class _WsDrawerState extends State<WsDrawer> {
             _buildDrawerItem(
               icon: Icons.home,
               title: 'Home',
-              route: HomePage.route,
+              route: [HomePage.route],
               onTap: () {
                 WsNavigator.pushHome(context);
               },
@@ -71,7 +71,7 @@ class _WsDrawerState extends State<WsDrawer> {
             _buildDrawerItem(
               icon: Icons.person,
               title: 'Clientes',
-              route: CustomersPage.route,
+              route: [CustomersPage.route, CustomerRegisterPage.route],
               onTap: () {
                 WsNavigator.pushCustomers(context);
               },
@@ -85,10 +85,10 @@ class _WsDrawerState extends State<WsDrawer> {
   Widget _buildDrawerItem({
     required IconData icon,
     required String title,
-    required String route,
+    required List<String> route,
     required VoidCallback onTap,
   }) {
-    final isSelected = widget.currentRoute == route;
+    final isSelected = route.contains(widget.currentRoute);
     final iconColor = isSelected ? Colors.blue : Colors.black87;
 
     if (!isExpanded) {
