@@ -56,10 +56,24 @@ class _CustomerContactsListState extends State<CustomerContactsList> {
                         key: const ValueKey('contact_list'),
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          TextButton.icon(
-                            onPressed: () => _toggleAddContact(controller),
-                            icon: const Icon(Icons.add),
-                            label: const Text('Adicionar Contato'),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8, bottom: 8),
+                            child: TextButton.icon(
+                              onPressed: () => _toggleAddContact(controller),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 18,
+                                ),
+                                backgroundColor: const Color(0xFF6366F1),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              icon: const Icon(Icons.add),
+                              label: const Text('Adicionar Contato'),
+                            ),
                           ),
                           Expanded(
                             child: Scrollbar(
@@ -75,7 +89,7 @@ class _CustomerContactsListState extends State<CustomerContactsList> {
                                   );
                                 },
                                 separatorBuilder: (context, index) {
-                                  return const SizedBox(height: 8);
+                                  return const SizedBox(height: 16);
                                 },
                                 itemCount:
                                     deviceCustomer.customerContacts.length,

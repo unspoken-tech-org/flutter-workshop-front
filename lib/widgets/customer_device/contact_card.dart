@@ -19,12 +19,19 @@ class ContactCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        borderRadius: BorderRadius.circular(12.0),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.grey.withAlpha(50),
+            color: Color.fromRGBO(0, 0, 0, 0.1),
+            offset: Offset(0, 1),
+            blurRadius: 3.0,
             spreadRadius: 1,
-            blurRadius: 5,
+          ),
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.1),
+            offset: Offset(0, 1),
+            blurRadius: 2.0,
+            spreadRadius: -1.0,
           ),
         ],
       ),
