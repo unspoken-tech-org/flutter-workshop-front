@@ -16,10 +16,26 @@ class CustomerDeviceCard extends StatelessWidget {
       onTap: () {
         onTap(device.deviceId);
       },
-      child: Card(
-        color: Colors.white,
-        shadowColor: Colors.grey.withAlpha(50),
-        elevation: 4,
+      child: Container(
+        height: 170,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12.0),
+          boxShadow: const [
+            BoxShadow(
+              color: Color.fromRGBO(0, 0, 0, 0.1),
+              offset: Offset(0, 1),
+              blurRadius: 3.0,
+              spreadRadius: 1,
+            ),
+            BoxShadow(
+              color: Color.fromRGBO(0, 0, 0, 0.1),
+              offset: Offset(0, 1),
+              blurRadius: 2.0,
+              spreadRadius: -1.0,
+            ),
+          ],
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
@@ -28,21 +44,15 @@ class CustomerDeviceCard extends StatelessWidget {
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 12,
                 children: [
                   Text('Id: ${device.deviceId}'),
-                  const SizedBox(height: 8),
                   Text(device.typeBrandModel),
-                  const SizedBox(height: 50),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Data de entrada: ${device.entryDate}'),
-                      if (device.departureDate != null) ...[
-                        const SizedBox(height: 6),
-                        Text('Data de saída: ${device.departureDate!}'),
-                      ],
-                    ],
-                  )
+                  Text('Data de entrada: ${device.entryDate}'),
+                  if (device.departureDate != null) ...[
+                    Text('Data de saída: ${device.departureDate!}'),
+                  ]
                 ],
               ),
               Column(

@@ -11,6 +11,7 @@ class OtherDevicesList extends StatelessWidget {
     final deviceCustomer = controller.newDeviceCustomer.value;
     return ListView.separated(
       itemCount: deviceCustomer.otherDevices.length,
+      padding: const EdgeInsets.all(8),
       itemBuilder: (context, index) {
         final device = deviceCustomer.otherDevices[index];
         return CustomerDeviceCard(
