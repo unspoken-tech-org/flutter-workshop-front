@@ -50,6 +50,7 @@ class _WsDrawerState extends State<WsDrawer> {
                     const SizedBox(width: 16),
                     const Text(
                       'Workshop App',
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -117,6 +118,7 @@ class _WsDrawerState extends State<WsDrawer> {
             const SizedBox(width: 16),
             Text(
               title,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: iconColor,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
