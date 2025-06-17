@@ -52,9 +52,10 @@ class SnackBarUtil {
         message,
         style: TextStyle(color: textColor),
       ),
+      width: 300,
       backgroundColor: backgroundColor,
       behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.all(8),
+      // margin: const EdgeInsets.all(8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
