@@ -5,7 +5,7 @@ class CustomerContact {
   final int deviceId;
   final int technicianId;
   final String technicianName;
-  final int? phoneId;
+  final String? phone;
   final String? phoneNumber;
   final String type;
   final bool hasMadeContact;
@@ -18,7 +18,7 @@ class CustomerContact {
     required this.deviceId,
     required this.technicianId,
     required this.technicianName,
-    required this.phoneId,
+    required this.phone,
     required this.phoneNumber,
     required this.type,
     required this.hasMadeContact,
@@ -33,7 +33,7 @@ class CustomerContact {
       deviceId: json['deviceId'],
       technicianId: json['technicianId'],
       technicianName: json['technicianName'],
-      phoneId: json['phoneId'],
+      phone: json['phone'],
       phoneNumber: json['phoneNumber'],
       type: json['type'],
       hasMadeContact: json['hasMadeContact'],

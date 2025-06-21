@@ -20,7 +20,7 @@ class FilterUtils {
     return regex.hasMatch(term);
   }
 
-  bool get isDeviceId {
+  bool get isId {
     return _isNumber && term.length <= 7;
   }
 

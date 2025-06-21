@@ -159,13 +159,13 @@ class _AddContactWidgetState extends State<AddContactWidget>
                                       isFieldInvalid(ContactField.contactType),
                                 ),
                                 const SizedBox(height: 16),
-                                CustomDropdownWidget<int?>(
+                                CustomDropdownWidget<String?>(
                                   label: 'Número de telefone',
-                                  value: inputCustomerContact.phoneNumberId,
+                                  value: inputCustomerContact.phoneNumber,
                                   items: deviceCustomer.customerPhones
                                       .map(
-                                        (e) => DropdownMenuItem<int>(
-                                          value: e.id,
+                                        (e) => DropdownMenuItem<String>(
+                                          value: e.number,
                                           child: Row(
                                             children: [
                                               const SizedBox(width: 8),
@@ -180,7 +180,7 @@ class _AddContactWidgetState extends State<AddContactWidget>
                                           'Pessoalmente'
                                       ? (value) {
                                           setState(() {
-                                            inputCustomerContact.phoneNumberId =
+                                            inputCustomerContact.phoneNumber =
                                                 value;
                                             clearFieldValidation(
                                                 ContactField.phoneNumber);

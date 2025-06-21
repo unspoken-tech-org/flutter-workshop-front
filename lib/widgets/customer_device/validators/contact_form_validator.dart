@@ -28,7 +28,7 @@ mixin ContactFormValidator {
         break;
       case ContactField.phoneNumber:
         _validationState[field] =
-            input.contactType != 'Pessoalmente' && input.phoneNumberId == null;
+            input.contactType != 'Pessoalmente' && input.phoneNumber == null;
         break;
       case ContactField.contactStatus:
         _validationState[field] = input.contactStatus == null;

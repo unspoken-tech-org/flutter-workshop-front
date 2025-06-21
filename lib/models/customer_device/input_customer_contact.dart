@@ -2,7 +2,7 @@ class InputCustomerContact {
   int deviceId;
   String? contactType;
   int? technicianId;
-  int? phoneNumberId;
+  String? phoneNumber;
   String? message;
   String? contactStatus;
   String? deviceStatus;
@@ -12,7 +12,7 @@ class InputCustomerContact {
     required this.deviceId,
     this.contactType,
     this.technicianId,
-    this.phoneNumberId,
+    this.phoneNumber,
     this.message,
     this.contactStatus,
     this.deviceStatus,
@@ -37,7 +37,7 @@ class InputCustomerContact {
         'deviceId': deviceId,
         'contactType': contactType,
         'technicianId': technicianId,
-        'phoneNumberId': phoneNumberId,
+        'phoneNumber': phoneNumber,
         'message': message,
         'contactStatus': contactStatus == 'Contatado' ? true : false,
         'deviceStatus': deviceStatus,
