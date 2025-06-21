@@ -104,7 +104,7 @@ class _WsFilterBarState extends State<WsFilterBar> {
       filter.customerCpf = search.term.replaceAll('.', '').replaceAll('-', '');
     } else if (search.isPhoneOrCellPhone) {
       filter.customerPhone = search.term;
-    } else if (search.isDeviceId) {
+    } else if (search.isId) {
       filter.deviceId = int.parse(search.term);
     }
     widget.controller.getTableData(filter);
