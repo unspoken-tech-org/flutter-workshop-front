@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/models/customer_device/minified_customer_device.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/customer_device_card.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 
-class OtherDevicesList extends StatelessWidget {
-  const OtherDevicesList({super.key});
+class CustomerDevicesList extends StatelessWidget {
+  final List<MinifiedCustomerDevice> customerDevices;
+  final Function(int) onTap;
+  const CustomerDevicesList({
+    super.key,
+    required this.customerDevices,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final controller = InheritedDeviceCustomerController.of(context);
-    final deviceCustomer = controller.newDeviceCustomer.value;
     return ListView.separated(
-      itemCount: deviceCustomer.otherDevices.length,
+      itemCount: customerDevices.length,
       padding: const EdgeInsets.all(8),
       itemBuilder: (context, index) {
-        final device = deviceCustomer.otherDevices[index];
+        final device = customerDevices[index];
         return CustomerDeviceCard(
           device: device,
           onTap: (id) {
-            controller.init(id);
+            onTap(id);
           },
         );
       },

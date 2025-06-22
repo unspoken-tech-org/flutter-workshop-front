@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/customer_contacts_list.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/other_devices_list.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/customer_devices_list.dart';
 
 class DeviceTabsWidget extends StatelessWidget {
   const DeviceTabsWidget({super.key});
@@ -64,10 +64,16 @@ class DeviceTabsWidget extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const TabBarView(
+                child: TabBarView(
                   children: [
-                    CustomerContactsList(),
-                    OtherDevicesList(),
+                    const CustomerContactsList(),
+                    CustomerDevicesList(
+                      customerDevices:
+                          controller.newDeviceCustomer.value.otherDevices,
+                      onTap: (id) {
+                        controller.init(id);
+                      },
+                    ),
                   ],
                 ),
               ),
