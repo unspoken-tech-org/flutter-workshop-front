@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
-import 'package:flutter_workshop_front/pages/customers/customers_page.dart';
+import 'package:flutter_workshop_front/pages/customers/all_customers_page.dart';
+import 'package:flutter_workshop_front/pages/customers/customer_register_page.dart';
 import 'package:flutter_workshop_front/pages/home/home.dart';
 
 class WsDrawer extends StatefulWidget {
@@ -72,7 +73,7 @@ class _WsDrawerState extends State<WsDrawer> {
             _buildDrawerItem(
               icon: Icons.person,
               title: 'Clientes',
-              route: [CustomersPage.route, CustomerRegisterPage.route],
+              route: [AllCustomersPage.route, CustomerRegisterPage.route],
               onTap: () {
                 WsNavigator.pushCustomers(context);
               },
