@@ -4,7 +4,7 @@ class MinifiedCustomerModel {
   final String insertDate;
   final String cpf;
   final String mainPhone;
-  final String email;
+  final String? email;
   final String gender;
 
   MinifiedCustomerModel({
