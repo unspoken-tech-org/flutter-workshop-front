@@ -9,7 +9,7 @@ import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
 class CustomerService {
   final Dio _dio = CustomDio.dioInstance();
 
-  Future<CustomerModel> saveCustomer(InputCustomer customer) async {
+  Future<CustomerModel> createCustomer(InputCustomer customer) async {
     final json = customer.toJson();
 
     final response = await _dio.post(

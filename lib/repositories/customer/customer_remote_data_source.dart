@@ -8,8 +8,8 @@ import 'package:flutter_workshop_front/services/customer/customer_service.dart';
 class CustomerRemoteDataSource implements CustomerRepository {
   final CustomerService _customerService = CustomerService();
   @override
-  Future<CustomerModel> saveCustomer(InputCustomer customer) async {
-    final response = await _customerService.saveCustomer(customer);
+  Future<CustomerModel> createCustomer(InputCustomer customer) async {
+    final response = await _customerService.createCustomer(customer);
     return response;
   }
 
