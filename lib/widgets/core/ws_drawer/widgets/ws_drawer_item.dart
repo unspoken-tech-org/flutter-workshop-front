@@ -24,41 +24,30 @@ class WsDrawerItem extends StatelessWidget {
     final isSelected = route.contains(widget.currentRoute);
     final iconColor = isSelected ? Colors.blue : Colors.black87;
 
-    if (!isExpanded) {
-      return InkWell(
-        onTap: onTap,
-        child: Container(
-          height: 50,
-          width: 50,
-          alignment: Alignment.center,
-          child: Icon(icon, color: iconColor),
-        ),
-      );
-    }
-
     return InkWell(
       onTap: onTap,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         physics: const NeverScrollableScrollPhysics(),
-        child: Container(
+        child: SizedBox(
           height: 50,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
               SizedBox(
-                width: 40,
+                width: 50,
                 child: Icon(icon, color: iconColor),
               ),
               const SizedBox(width: 16),
-              Text(
-                title,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: iconColor,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              if (isExpanded)
+                Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: iconColor,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
                 ),
-              ),
             ],
           ),
         ),

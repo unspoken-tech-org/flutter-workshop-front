@@ -42,10 +42,7 @@ class _WsDrawerState extends State<WsDrawer> {
               physics: const NeverScrollableScrollPhysics(),
               child: Container(
                 height: 70,
-                padding: EdgeInsets.symmetric(
-                  horizontal: isExpanded ? 16 : 8,
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 child: Row(
                   mainAxisAlignment: isExpanded
                       ? MainAxisAlignment.start
