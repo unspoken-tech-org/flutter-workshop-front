@@ -68,8 +68,8 @@ class SecondaryPhoneFields extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(width: 8),
-              if (isEditing)
+              if (isEditing) ...[
+                const SizedBox(width: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -82,6 +82,7 @@ class SecondaryPhoneFields extends StatelessWidget {
                     ),
                   ],
                 )
+              ]
             ],
           ),
         );
