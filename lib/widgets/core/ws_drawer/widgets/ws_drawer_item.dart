@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer.dart';
 
 class WsDrawerItem extends StatelessWidget {
   const WsDrawerItem({
     super.key,
-    required this.widget,
+    required this.currentRoute,
     required this.isExpanded,
     required this.icon,
     required this.title,
@@ -12,7 +11,7 @@ class WsDrawerItem extends StatelessWidget {
     required this.onTap,
   });
 
-  final WsDrawer widget;
+  final String currentRoute;
   final bool isExpanded;
   final IconData icon;
   final String title;
@@ -21,7 +20,7 @@ class WsDrawerItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSelected = route.contains(widget.currentRoute);
+    final isSelected = route.contains(currentRoute);
     final iconColor = isSelected ? Colors.blue : Colors.black87;
 
     return InkWell(

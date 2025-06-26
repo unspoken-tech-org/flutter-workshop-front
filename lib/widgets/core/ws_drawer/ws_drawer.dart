@@ -3,6 +3,7 @@ import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_register_page.dart';
+import 'package:flutter_workshop_front/pages/device_customer/customer_device_page.dart';
 import 'package:flutter_workshop_front/pages/home/home.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/widgets/ws_drawer_item.dart';
 
@@ -67,7 +68,7 @@ class _WsDrawerState extends State<WsDrawer> {
             ),
             const Divider(),
             WsDrawerItem(
-                widget: widget,
+                currentRoute: widget.currentRoute,
                 isExpanded: isExpanded,
                 icon: Icons.home,
                 title: 'Home',
@@ -76,7 +77,7 @@ class _WsDrawerState extends State<WsDrawer> {
                   WsNavigator.pushHome(context);
                 }),
             WsDrawerItem(
-                widget: widget,
+                currentRoute: widget.currentRoute,
                 isExpanded: isExpanded,
                 icon: Icons.person,
                 title: 'Clientes',
@@ -84,6 +85,17 @@ class _WsDrawerState extends State<WsDrawer> {
                   AllCustomersPage.route,
                   CustomerRegisterPage.route,
                   CustomerDetailPage.route
+                ],
+                onTap: () {
+                  WsNavigator.pushCustomers(context);
+                }),
+            WsDrawerItem(
+                currentRoute: widget.currentRoute,
+                isExpanded: isExpanded,
+                icon: Icons.local_laundry_service,
+                title: 'Aparelhos',
+                route: const [
+                  CustomerDevicePage.route,
                 ],
                 onTap: () {
                   WsNavigator.pushCustomers(context);

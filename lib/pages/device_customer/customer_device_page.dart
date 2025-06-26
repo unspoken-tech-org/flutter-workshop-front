@@ -8,6 +8,7 @@ import 'package:flutter_workshop_front/widgets/customer_device/customer_device_i
 import 'package:flutter_workshop_front/widgets/customer_device/device_tabs_widget.dart';
 
 class CustomerDevicePage extends StatefulWidget {
+  static const route = 'device';
   final int deviceId;
   const CustomerDevicePage({super.key, required this.deviceId});
 

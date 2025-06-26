@@ -10,14 +10,14 @@ final router = GoRouter(initialLocation: '/', routes: _routes);
 List<RouteBase> _routes = [
   GoRoute(
     path: '/',
-    name: 'home',
+    name: HomePage.route,
     builder: (context, state) {
       return const HomePage();
     },
   ),
   GoRoute(
     path: '/customers',
-    name: 'customers',
+    name: AllCustomersPage.route,
     builder: (context, state) {
       return const AllCustomersPage();
     },
@@ -31,7 +31,7 @@ List<RouteBase> _routes = [
   ),
   GoRoute(
     path: '/customer/:id',
-    name: 'customer_detail',
+    name: CustomerDetailPage.route,
     builder: (context, state) {
       var id = int.parse(state.pathParameters['id'] ?? '0');
       return CustomerDetailPage(customerId: id);
@@ -39,7 +39,7 @@ List<RouteBase> _routes = [
   ),
   GoRoute(
     path: '/device/:id',
-    name: 'device',
+    name: CustomerDevicePage.route,
     builder: (context, state) {
       var id = int.parse(state.pathParameters['id'] ?? '0');
       return CustomerDevicePage(deviceId: id);
