@@ -15,6 +15,7 @@ class StatusCell extends StatelessWidget {
       ),
       child: Text(
         status.name,
+        overflow: TextOverflow.ellipsis,
         style: const TextStyle(
           color: Colors.white,
         ),

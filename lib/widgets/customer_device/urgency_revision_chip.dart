@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 
 class UrgencyRevisionChip extends StatelessWidget {
   final bool hasUrgency;
@@ -15,21 +14,12 @@ class UrgencyRevisionChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      height: 32,
       decoration: BoxDecoration(
         color: color.withAlpha(40),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, color: color, size: 16),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: WsTextStyles.body1
-                .copyWith(color: color, fontWeight: FontWeight.w500),
-          ),
-        ],
-      ),
+      child: Icon(Icons.error_outline, color: color, size: 16),
     );
   }
 }

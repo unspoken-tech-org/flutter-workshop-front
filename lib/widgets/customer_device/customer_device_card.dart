@@ -45,42 +45,68 @@ class CustomerDeviceCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
-                spacing: 12,
-                children: [
-                  Text('Id: ${device.deviceId}'),
-                  Text(device.typeBrandModel),
-                  Text('Data de entrada: ${device.entryDate}'),
-                  if (device.departureDate != null) ...[
-                    Text('Data de saída: ${device.departureDate!}'),
-                  ]
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                spacing: 8,
                 children: [
                   Row(
                     children: [
-                      if (device.hasUrgency || device.revision) ...[
-                        UrgencyRevisionChip(
-                          hasUrgency: device.hasUrgency,
-                          isRevision: device.revision,
-                        ),
-                        const SizedBox(width: 20),
-                      ],
-                      StatusCell(status: device.deviceStatus),
+                      const Icon(Icons.tag_outlined, size: 16),
+                      const SizedBox(width: 8),
+                      Text('Id: ${device.deviceId}'),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: 300,
-                    ),
-                    child: CustomerDeviceTextField(
-                      initialValue: device.problem,
-                      enabled: false,
-                    ),
+                  Row(
+                    children: [
+                      const Icon(Icons.devices_outlined, size: 16),
+                      const SizedBox(width: 8),
+                      Text(device.typeBrandModel),
+                    ],
                   ),
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_month_outlined, size: 16),
+                      const SizedBox(width: 8),
+                      Text('Data de entrada: ${device.entryDate}'),
+                    ],
+                  ),
+                  if (device.departureDate != null) ...[
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_month, size: 16),
+                        const SizedBox(width: 8),
+                        Text('Data de saída: ${device.departureDate!}'),
+                      ],
+                    ),
+                  ]
                 ],
+              ),
+              const SizedBox(width: 36),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if (device.hasUrgency || device.revision) ...[
+                          Flexible(
+                              child: StatusCell(status: device.deviceStatus)),
+                          const SizedBox(width: 8),
+                          UrgencyRevisionChip(
+                            hasUrgency: device.hasUrgency,
+                            isRevision: device.revision,
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: CustomerDeviceTextField(
+                        initialValue: device.problem,
+                        enabled: false,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
