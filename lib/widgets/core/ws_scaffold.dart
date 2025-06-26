@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/widgets/core/ws_drawer.dart';
+import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer.dart';
 import 'package:go_router/go_router.dart';
 
 class WsScaffold extends StatefulWidget {
