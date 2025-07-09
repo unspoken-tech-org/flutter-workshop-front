@@ -4,10 +4,10 @@ import 'package:flutter_workshop_front/models/customer/customer_model.dart';
 import 'package:flutter_workshop_front/pages/customers/controllers/customer_detail/customer_detail_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/controllers/customer_detail/inherited_customer_detail_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/widgets/customer_detail/customer_detail_form.dart';
-import 'package:flutter_workshop_front/pages/customers/widgets/customer_detail/edit_action_buttons_view.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_remote_data_source.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/customer_devices_list.dart';
+import 'package:flutter_workshop_front/widgets/shared/empty_list_widget.dart';
 
 class CustomerDetailPage extends StatefulWidget {
   static const String route = 'customer_detail';
@@ -45,74 +45,68 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
       controller: controller,
       child: WsScaffold(
         backgroundColor: const Color(0xFFF5F5F5),
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            margin: const EdgeInsets.symmetric(vertical: 24.0),
-            width: width * 0.5,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: ValueListenableBuilder<bool>(
-              valueListenable: controller.isLoading,
-              builder: (context, isLoading, _) {
-                if (isLoading) {
-                  // TODO: add shimmer effect
-                  return const Center(child: CircularProgressIndicator());
-                }
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              margin: const EdgeInsets.symmetric(vertical: 24.0),
+              width: width * 0.5,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: ValueListenableBuilder<bool>(
+                valueListenable: controller.isLoading,
+                builder: (context, isLoading, _) {
+                  if (isLoading) {
+                    // TODO: add shimmer effect
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                return ValueListenableBuilder<String?>(
-                  valueListenable: controller.error,
-                  builder: (context, error, _) {
-                    if (error != null) {
-                      return Center(child: Text(error));
-                    }
-                    return ValueListenableBuilder<CustomerModel?>(
-                      valueListenable: controller.customer,
-                      builder: (context, customer, _) {
-                        if (customer == null) {
-                          return const Center(
-                              child: Text('Nenhum cliente encontrado.'));
-                        }
-                        return SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Column(
+                  return ValueListenableBuilder<CustomerModel?>(
+                    valueListenable: controller.customer,
+                    builder: (context, customer, _) {
+                      if (customer == null) {
+                        return const EmptyListWidget(
+                          message: 'Nenhum cliente encontrado.',
+                        );
+                      }
+                      return Column(
+                        children: [
+                          Column(
                             children: [
-                              Column(
-                                children: [
-                                  CustomerDetailForm(
-                                    formKey: _formKey,
-                                    customer: customer,
-                                    isEditingNotifier: _isEditing,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ValueListenableBuilder<bool>(
-                                    valueListenable: _isEditing,
-                                    builder: (context, isEditing, _) {
-                                      if (isEditing) {
-                                        return const SizedBox.shrink();
-                                      }
-                                      return Container(
-                                        margin: const EdgeInsets.symmetric(
-                                            horizontal: 8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.grey.withAlpha(50),
-                                              spreadRadius: 2,
-                                              blurRadius: 5,
-                                            ),
-                                          ],
+                              CustomerDetailForm(
+                                formKey: _formKey,
+                                customer: customer,
+                                isEditingNotifier: _isEditing,
+                              ),
+                              const SizedBox(height: 16),
+                              ValueListenableBuilder<bool>(
+                                valueListenable: _isEditing,
+                                builder: (context, isEditing, _) {
+                                  if (isEditing) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withAlpha(50),
+                                          spreadRadius: 2,
+                                          blurRadius: 5,
                                         ),
-                                        padding: const EdgeInsets.all(8),
-                                        child: Column(
-                                          children: [
-                                            SizedBox(
-                                              height: 500,
+                                      ],
+                                    ),
+                                    padding: const EdgeInsets.all(8),
+                                    child: Column(
+                                      children: [
+                                        SizedBox(
+                                          height: 500,
                                           child: Visibility(
                                             visible: customer
                                                 .customerDevices.isNotEmpty,
@@ -120,32 +114,30 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                                               message:
                                                   'Nenhum aparelho encontrado',
                                             ),
-                                              child: CustomerDevicesList(
-                                                customerDevices:
-                                                    customer.customerDevices,
-                                                onTap: (id) {
-                                                  WsNavigator.pushDevice(
-                                                      context, id);
-                                                },
-                                              ),
+                                            child: CustomerDevicesList(
+                                              customerDevices:
+                                                  customer.customerDevices,
+                                              onTap: (id) {
+                                                WsNavigator.pushDevice(
+                                                    context, id);
+                                              },
                                             ),
+                                          ),
                                         ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ],
+                                      ],
+                                    ),
+                                  );
+                                },
                               ),
-                              const SizedBox(height: 16),
                             ],
                           ),
-                        );
-                      },
-                    );
-                  },
-                );
-              },
+                          const SizedBox(height: 16),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ),
         ),
