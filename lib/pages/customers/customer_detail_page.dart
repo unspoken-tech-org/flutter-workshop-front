@@ -22,8 +22,7 @@ class CustomerDetailPage extends StatefulWidget {
 class _CustomerDetailPageState extends State<CustomerDetailPage> {
   late final CustomerDetailController controller;
   final _isEditing = ValueNotifier(false);
-  final GlobalKey<CustomerDetailFormState> _formKey =
-      GlobalKey<CustomerDetailFormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -59,6 +58,7 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
               valueListenable: controller.isLoading,
               builder: (context, isLoading, _) {
                 if (isLoading) {
+                  // TODO: add shimmer effect
                   return const Center(child: CircularProgressIndicator());
                 }
 
@@ -81,20 +81,9 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                             children: [
                               Column(
                                 children: [
-                                  ValueListenableBuilder<bool>(
-                                    valueListenable: _isEditing,
-                                    builder: (context, isEditing, _) {
-                                      return CustomerDetailForm(
-                                        key: _formKey,
-                                        customer: customer,
-                                        isEditing: isEditing,
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(height: 16),
-                                  EditActionButtons(
-                                    customerId: widget.customerId,
+                                  CustomerDetailForm(
                                     formKey: _formKey,
+                                    customer: customer,
                                     isEditingNotifier: _isEditing,
                                   ),
                                   const SizedBox(height: 16),

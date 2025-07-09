@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 import 'package:flutter_workshop_front/models/customer/customer_model.dart';
 import 'package:flutter_workshop_front/models/customer/input_customer.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
@@ -38,8 +39,11 @@ class CustomerDetailController {
       customer.value = result;
       _snackBarUtil.showSuccess('Cliente atualizado com sucesso');
       return true;
+    } on RequisitionException catch (e) {
+      _snackBarUtil.showError(e.message);
+      return false;
     } catch (e) {
-      _snackBarUtil.showError('Erro ao atualizar cliente: $e');
+      _snackBarUtil.showError('Erro ao atualizar cliente. Tente novamente.');
       return false;
     } finally {
       isLoading.value = false;
