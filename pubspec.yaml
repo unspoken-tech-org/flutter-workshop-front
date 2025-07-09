@@ -19,6 +19,7 @@ dependencies:
   intl: any
   calendar_date_picker2: ^1.1.8
   shimmer: ^3.0.0
+  collection: ^1.19.1
 
 dev_dependencies:
   flutter_test:
@@ -31,5 +32,6 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/icons/
   # fonts:
 

@@ -14,8 +14,8 @@ class DeviceCustomer extends Equatable {
   final String brandName;
   final String modelName;
   final String typeName;
-  final int technicianId;
-  final String technicianName;
+  final int? technicianId;
+  final String? technicianName;
   final String problem;
   final String observation;
   final String? budget;
@@ -41,8 +41,8 @@ class DeviceCustomer extends Equatable {
     required this.brandName,
     required this.modelName,
     required this.typeName,
-    required this.technicianId,
-    required this.technicianName,
+    this.technicianId,
+    this.technicianName,
     required this.problem,
     required this.observation,
     required this.hasUrgency,
