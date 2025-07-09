@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 import 'package:flutter_workshop_front/models/customer/input_customer.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
