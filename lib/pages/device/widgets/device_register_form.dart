@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/currency_input_formatter.dart';
@@ -261,6 +262,9 @@ class _DeviceRegisterFormState extends State<DeviceRegisterForm> {
                     labelText: 'Cores',
                     tooltipText:
                         'Selecione uma cor existente ou digite uma nova e pressione enter para adicionar',
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z]')),
+                    ],
                     suggestions: _getColorSuggestions(controller),
                     onAccept: (id) {
                       if (id == null) return;

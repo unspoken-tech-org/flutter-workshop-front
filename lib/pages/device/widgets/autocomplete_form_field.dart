@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/types_brands_models/types_brands_models.dart';
 
@@ -7,6 +8,7 @@ class AutocompleteFormField extends StatelessWidget {
   final String labelText;
   final List<ITypeBrandModelColor> suggestions;
   final String? tooltipText;
+  final List<TextInputFormatter> inputFormatters;
   final Function(int? id) onAccept;
   final VoidCallback? onClear;
   final Function(int? id, String name)? onSubmit;
@@ -22,6 +24,7 @@ class AutocompleteFormField extends StatelessWidget {
     this.onClear,
     this.onSubmit,
     this.fieldValidator,
+    this.inputFormatters = const [],
   });
 
   @override
@@ -109,6 +112,7 @@ class AutocompleteFormField extends StatelessWidget {
                 selection: fieldTextEditingController.selection,
               );
             },
+            inputFormatters: inputFormatters,
             decoration: InputDecoration(
               labelText: labelText,
               border: const OutlineInputBorder(),
