@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 import 'package:flutter_workshop_front/core/http/custom_dio.dart';
 import 'package:flutter_workshop_front/models/customer_device/create_device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
@@ -8,32 +9,37 @@ class DeviceCustomerService {
   final Dio dio = CustomDio.dioInstance();
 
   Future<DeviceCustomer> getCustomerDeviceById(int id) async {
-    Response result = await dio.get('/v1/device/$id');
+    Response response = await dio.get('/v1/device/$id');
 
-    if (result.statusCode != 200) {
-      throw Exception('Erro ao buscar dispositivo');
+    if (response.statusCode != 200) {
+      throw RequisitionException.fromJson(response.data['error']);
     }
 
-    return DeviceCustomer.fromJson(result.data);
+    return DeviceCustomer.fromJson(response.data);
   }
 
   Future<DeviceCustomer> updateDeviceCustomer(
       DeviceCustomer deviceCustomer) async {
     var json = deviceCustomer.toJson();
 
-    Response result = await dio.put('/v1/device/update', data: json);
-    return DeviceCustomer.fromJson(result.data);
+    Response response = await dio.put('/v1/device/update', data: json);
+
+    if (response.statusCode != 200) {
+      throw RequisitionException.fromJson(response.data['error']);
+    }
+
+    return DeviceCustomer.fromJson(response.data);
   }
 
   Future<CreateDeviceCustomerResponse> createDeviceCustomer(
       DeviceInput device) async {
     var json = device.toJson();
 
-    Response result = await dio.post('/v1/device/create', data: json);
+    Response response = await dio.post('/v1/device/create', data: json);
 
-    if (result.statusCode != 201) {
-      throw Exception('Erro ao criar dispositivo');
+    if (response.statusCode != 201) {
+      throw RequisitionException.fromJson(response.data['error']);
     }
-    return CreateDeviceCustomerResponse.fromJson(result.data);
+    return CreateDeviceCustomerResponse.fromJson(response.data);
   }
 }
