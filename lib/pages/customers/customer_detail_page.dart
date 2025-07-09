@@ -113,6 +113,13 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                                           children: [
                                             SizedBox(
                                               height: 500,
+                                          child: Visibility(
+                                            visible: customer
+                                                .customerDevices.isNotEmpty,
+                                            replacement: const EmptyListWidget(
+                                              message:
+                                                  'Nenhum aparelho encontrado',
+                                            ),
                                               child: CustomerDevicesList(
                                                 customerDevices:
                                                     customer.customerDevices,
@@ -122,6 +129,7 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                                                 },
                                               ),
                                             ),
+                                        ),
                                           ],
                                         ),
                                       );
