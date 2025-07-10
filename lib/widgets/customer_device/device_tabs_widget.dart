@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/customer_contacts_list.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/customer_contacts_tab.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/customer_devices_list.dart';
 import 'package:flutter_workshop_front/widgets/shared/empty_list_widget.dart';
 
@@ -67,7 +67,7 @@ class DeviceTabsWidget extends StatelessWidget {
                 ),
                 child: TabBarView(
                   children: [
-                    const CustomerContactsList(),
+                    const CustomerContactsTab(),
                     Visibility(
                       visible: controller
                           .newDeviceCustomer.value.otherDevices.isNotEmpty,
