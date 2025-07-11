@@ -45,7 +45,7 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
         ],
       ),
       child: ValueListenableBuilder(
-        valueListenable: controller.currentDeviceCustomer,
+        valueListenable: controller.newDeviceCustomer,
         builder: (context, value, child) {
           final DeviceCustomer deviceCustomer = value;
           final List<CustomerDevicePayment> devicePayments =

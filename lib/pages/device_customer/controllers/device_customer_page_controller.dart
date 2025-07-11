@@ -22,7 +22,7 @@ class DeviceCustomerPageController {
       CustomerContactService();
   final PaymentService _paymentService = PaymentService();
 
-  late ValueNotifier<DeviceCustomer> currentDeviceCustomer;
+  late DeviceCustomer currentDeviceCustomer;
   late ValueNotifier<DeviceCustomer> newDeviceCustomer;
   final ValueNotifier<InputPayment?> newPayment = ValueNotifier(null);
 
@@ -57,10 +57,10 @@ class DeviceCustomerPageController {
       final deviceCustomer =
           await _deviceCustomerService.getCustomerDeviceById(deviceId);
       if (isNew) {
-        currentDeviceCustomer = ValueNotifier(deviceCustomer);
+        currentDeviceCustomer = deviceCustomer;
         newDeviceCustomer = ValueNotifier(deviceCustomer);
       } else {
-        currentDeviceCustomer.value = deviceCustomer;
+        currentDeviceCustomer = deviceCustomer;
         newDeviceCustomer.value = deviceCustomer;
       }
     } on RequisitionException catch (e) {
@@ -82,20 +82,22 @@ class DeviceCustomerPageController {
     newPayment.value = null;
   }
 
-  void saveDeviceCustomer() async {
+  void updateDeviceCustomer() async {
     try {
-      var currentDeviceCustomer = this.currentDeviceCustomer.value;
+      var currentDeviceCustomer = this.currentDeviceCustomer;
       var newDeviceCustomer = this.newDeviceCustomer.value;
       var updatedDeviceCustomer =
           currentDeviceCustomer.copyWithDeviceCustomer(newDeviceCustomer);
-      this.currentDeviceCustomer.value = updatedDeviceCustomer;
+      this.currentDeviceCustomer = updatedDeviceCustomer;
 
       DeviceCustomer value = await _deviceCustomerService
           .updateDeviceCustomer(updatedDeviceCustomer);
 
-      this.currentDeviceCustomer.value = updatedDeviceCustomer;
-      this.currentDeviceCustomer.value = value;
+      this.currentDeviceCustomer = updatedDeviceCustomer;
+      this.currentDeviceCustomer = value;
       this.newDeviceCustomer.value = value;
+
+      SnackBarUtil().showSuccess('Dispositivo atualizado com sucesso');
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
     } catch (e) {
@@ -113,7 +115,7 @@ class DeviceCustomerPageController {
         await _paymentService.createPayment(newPayment.value!);
         clearNewPayment();
       }
-      await _getCustomerDevice(currentDeviceCustomer.value.deviceId);
+      await _getCustomerDevice(currentDeviceCustomer.deviceId);
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
     } catch (e) {
@@ -122,7 +124,7 @@ class DeviceCustomerPageController {
   }
 
   void revertDeviceCustomer() {
-    newDeviceCustomer.value = currentDeviceCustomer.value;
+    newDeviceCustomer.value = currentDeviceCustomer;
     customerDeviceState.value = CustomerDeviceEvent.revert;
     customerDeviceState.value = CustomerDeviceEvent.initial;
   }

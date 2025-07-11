@@ -1,306 +1,118 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/customer_device_phones_widget.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/customer_device_text_field.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/customer_device_info_header_widget.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/customer_device_observation_widget.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/device_customer_cancel_button.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/device_customer_save_button.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/device_status_chip.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/urgency_revision_chip.dart';
-import 'package:flutter_workshop_front/widgets/shared/money_input_widget.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/device_details_widget.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/device_values_widget.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/diagnostic_device_info_widget.dart';
 
-class CustomerDeviceInfosWidget extends StatelessWidget {
+class CustomerDeviceInfosWidget extends StatefulWidget {
   const CustomerDeviceInfosWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final controller = InheritedDeviceCustomerController.of(context);
-    var width = MediaQuery.of(context).size.width;
-
-    return ValueListenableBuilder(
-      valueListenable: controller.currentDeviceCustomer,
-      builder: (context, value, child) {
-        var deviceCustomer = value;
-        return Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              width: width * 0.7,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withAlpha(50),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('ID do aparelho # ${deviceCustomer.deviceId}'),
-                          const SizedBox(height: 8),
-                          Text('Cliente: ${deviceCustomer.customerName}'),
-                          CustomerDevicePhonesWidget(
-                            phones: deviceCustomer.customerPhones,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                              '${deviceCustomer.typeName} ${deviceCustomer.brandName} | ${deviceCustomer.modelName}'),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        spacing: 8,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            spacing: 8,
-                            children: [
-                              if (deviceCustomer.hasUrgency ||
-                                  deviceCustomer.isRevision) ...[
-                                UrgencyRevisionChip(
-                                    hasUrgency: deviceCustomer.hasUrgency,
-                                    isRevision: deviceCustomer.isRevision),
-                                const SizedBox(height: 4),
-                              ],
-                              ValueListenableBuilder(
-                                valueListenable: controller.customerDeviceState,
-                                builder: (context, _, __) {
-                                  return DeviceStatusChip(
-                                      status: deviceCustomer.deviceStatus);
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          ValueListenableBuilder(
-                            valueListenable: controller.newDeviceCustomer,
-                            builder: (context, value, __) {
-                              var newDeviceCustomer = value;
-                              return Row(
-                                children: [
-                                  Checkbox(
-                                    value:
-                                        newDeviceCustomer.laborValueCollected,
-                                    onChanged: (value) {
-                                      controller.updateNewDeviceCustomer(
-                                        newDeviceCustomer.copyWith(
-                                          laborValueCollected: value ?? false,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  Text('Orçamento coletado',
-                                      style: WsTextStyles.body1),
-                                ],
-                              );
-                            },
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Cores: ${deviceCustomer.deviceColors.join(', ')}',
-                          ),
-                          const SizedBox(height: 8),
-                          Text('Data de entrada: ${deviceCustomer.entryDate}'),
-                          const SizedBox(height: 8),
-                          Text(
-                              'Data de saída: ${deviceCustomer.departureDate}'),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SizedBox(
-                        width: width * 0.2,
-                        child: ValueListenableBuilder(
-                          valueListenable: controller.customerDeviceState,
-                          builder: (context, _, __) {
-                            return MoneyInputWidget(
-                              label: 'Valor do orçamento',
-                              padding: EdgeInsets.zero,
-                              backgroundColor: Colors.transparent,
-                              borderColor: Colors.transparent,
-                              boxShadow: const [],
-                              initialValue: deviceCustomer.laborValue ?? 0,
-                              onChanged: (value) {
-                                controller.updateNewDeviceCustomer(
-                                    deviceCustomer.copyWith(laborValue: value));
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                      SizedBox(
-                        width: width * 0.2,
-                        child: ValueListenableBuilder(
-                          valueListenable: controller.customerDeviceState,
-                          builder: (context, _, __) {
-                            return MoneyInputWidget(
-                              label: 'Valor do serviço',
-                              padding: EdgeInsets.zero,
-                              backgroundColor: Colors.transparent,
-                              borderColor: Colors.transparent,
-                              boxShadow: const [],
-                              initialValue: deviceCustomer.serviceValue ?? 0,
-                              onChanged: (value) {
-                                controller.updateNewDeviceCustomer(
-                                    deviceCustomer.copyWith(
-                                        serviceValue: value));
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                      SizedBox(
-                        width: width * 0.2,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  ValueListenableBuilder(
-                    valueListenable: controller.customerDeviceState,
-                    builder: (context, _, __) {
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Problema:'),
-                              const SizedBox(height: 8),
-                              ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxHeight: 100,
-                                  maxWidth: width * 0.2,
-                                ),
-                                child: CustomerDeviceTextField(
-                                  initialValue: deviceCustomer.problem,
-                                  onUpdate: (value) {
-                                    controller.updateNewDeviceCustomer(
-                                        deviceCustomer.copyWith(
-                                            problem: value));
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Orçamento:'),
-                              const SizedBox(height: 8),
-                              ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxHeight: 100,
-                                  maxWidth: width * 0.2,
-                                ),
-                                child: CustomerDeviceTextField(
-                                  initialValue: deviceCustomer.budget,
-                                  onUpdate: (value) {
-                                    controller.updateNewDeviceCustomer(
-                                        deviceCustomer.copyWith(budget: value));
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Observações:'),
-                              const SizedBox(height: 8),
-                              ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxHeight: 100,
-                                  maxWidth: width * 0.2,
-                                ),
-                                child: CustomerDeviceTextField(
-                                  initialValue: deviceCustomer.observation,
-                                  onUpdate: (value) {
-                                    controller.updateNewDeviceCustomer(
-                                        deviceCustomer.copyWith(
-                                            observation: value));
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      DeviceCustomerCancelButton(),
-                      SizedBox(width: 16),
-                      DeviceCustomerSaveButton(),
-                    ],
-                  )
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  State<CustomerDeviceInfosWidget> createState() =>
+      _CustomerDeviceInfosWidgetState();
 }
 
-class DeviceCustomerCancelButton extends StatelessWidget {
-  const DeviceCustomerCancelButton({super.key});
-
-  void _revertDeviceCustomer(DeviceCustomerPageController controller) {
-    controller.revertDeviceCustomer();
-  }
-
+class _CustomerDeviceInfosWidgetState extends State<CustomerDeviceInfosWidget> {
+  final _formKey = GlobalKey<FormState>();
+  bool isEditing = false;
   @override
   Widget build(BuildContext context) {
     final controller = InheritedDeviceCustomerController.of(context);
+    final deviceCustomer = controller.newDeviceCustomer.value;
+    var width = MediaQuery.of(context).size.width;
 
-    return ValueListenableBuilder(
-      valueListenable: controller.newDeviceCustomer,
-      builder: (context, value, child) {
-        var currentDeviceCustomer = controller.currentDeviceCustomer.value;
-        var newDeviceCustomer = value;
-
-        bool isChanged = currentDeviceCustomer != newDeviceCustomer;
-
-        return TextButton(
-          onPressed: isChanged ? () => _revertDeviceCustomer(controller) : null,
-          style: TextButton.styleFrom(
-            backgroundColor: isChanged ? Colors.red : Colors.grey,
-            iconColor: Colors.white,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      width: width * 0.7,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withAlpha(50),
+            spreadRadius: 2,
+            blurRadius: 5,
           ),
-          child: Text('Cancelar',
-              style: WsTextStyles.body1.copyWith(color: Colors.white)),
-        );
-      },
+        ],
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          spacing: 28,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomerDeviceInfoHeaderWidget(
+              deviceCustomer: deviceCustomer,
+            ),
+            Row(
+              spacing: 28,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Flexible(
+                  child: Column(
+                    spacing: 28,
+                    children: [
+                      DeviceDetailsWidget(deviceCustomer: deviceCustomer),
+                      DiagnosticDeviceInfoWidget(
+                        problem: deviceCustomer.problem,
+                        budget: deviceCustomer.budget ?? '',
+                        isEditing: isEditing,
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: Column(
+                    spacing: 28,
+                    children: [
+                      DeviceValuesWidget(
+                        laborValue: deviceCustomer.laborValue ?? 0,
+                        serviceValue: deviceCustomer.serviceValue ?? 0,
+                        laborValueCollected: deviceCustomer.laborValueCollected,
+                        isEditing: isEditing,
+                      ),
+                      CustomerDeviceObservationWidget(
+                        observation: deviceCustomer.observation,
+                        isEditing: isEditing,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Divider(color: Colors.grey.shade200, height: 1),
+            Row(
+              spacing: 16,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (isEditing)
+                  DeviceCustomerCancelButton(
+                    onCancel: () {
+                      setState(() => isEditing = false);
+                      _formKey.currentState?.reset();
+                    },
+                  ),
+                DeviceCustomerSaveButton(
+                  onSave: () {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      _formKey.currentState?.save();
+
+                      controller.updateDeviceCustomer();
+                      setState(() => isEditing = false);
+                    }
+                  },
+                  onEdit: () => setState(() => isEditing = true),
+                  isEditing: isEditing,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

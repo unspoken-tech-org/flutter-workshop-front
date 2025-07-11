@@ -73,7 +73,7 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
                       .map((status) => TextButton(
                             onPressed: () {
                               var newDeviceCustomer = controller
-                                  .currentDeviceCustomer.value
+                                  .newDeviceCustomer.value
                                   .copyWith(deviceStatus: status);
 
                               controller
