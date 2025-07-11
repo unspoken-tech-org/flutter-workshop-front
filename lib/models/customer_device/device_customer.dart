@@ -23,7 +23,7 @@ class DeviceCustomer extends Equatable {
   final double? laborValue;
   final bool laborValueCollected;
   final bool hasUrgency;
-  final bool isRevision;
+  final bool revision;
   final List<String> deviceColors;
   final String entryDate;
   final String? departureDate;
@@ -46,7 +46,7 @@ class DeviceCustomer extends Equatable {
     required this.problem,
     required this.observation,
     required this.hasUrgency,
-    required this.isRevision,
+    required this.revision,
     required this.deviceColors,
     required this.entryDate,
     required this.lastUpdate,
@@ -79,7 +79,7 @@ class DeviceCustomer extends Equatable {
       laborValue: json['laborValue'],
       laborValueCollected: json['laborValueCollected'],
       hasUrgency: json['hasUrgency'],
-      isRevision: json['revision'],
+      revision: json['revision'],
       deviceColors: (json['deviceColors'] as List<dynamic>)
           .map((e) => e.toString().capitalizeFirst)
           .toList(),
@@ -119,7 +119,7 @@ class DeviceCustomer extends Equatable {
       laborValue: newDeviceCustomer.laborValue,
       laborValueCollected: newDeviceCustomer.laborValueCollected,
       hasUrgency: newDeviceCustomer.hasUrgency,
-      isRevision: newDeviceCustomer.isRevision,
+      revision: newDeviceCustomer.revision,
       deviceColors: newDeviceCustomer.deviceColors,
       entryDate: newDeviceCustomer.entryDate,
       departureDate: newDeviceCustomer.departureDate,
@@ -148,7 +148,7 @@ class DeviceCustomer extends Equatable {
     double? laborValue,
     bool? laborValueCollected,
     bool? hasUrgency,
-    bool? isRevision,
+    bool? revision,
     List<String>? deviceColors,
     String? entryDate,
     String? departureDate,
@@ -175,7 +175,7 @@ class DeviceCustomer extends Equatable {
       laborValue: laborValue ?? this.laborValue,
       laborValueCollected: laborValueCollected ?? this.laborValueCollected,
       hasUrgency: hasUrgency ?? this.hasUrgency,
-      isRevision: isRevision ?? this.isRevision,
+      revision: revision ?? this.revision,
       deviceColors: deviceColors ?? this.deviceColors,
       entryDate: entryDate ?? this.entryDate,
       departureDate: departureDate ?? this.departureDate,
@@ -205,7 +205,7 @@ class DeviceCustomer extends Equatable {
       'laborValue': laborValue,
       'laborValueCollected': laborValueCollected,
       'hasUrgency': hasUrgency,
-      'isRevision': isRevision,
+      'revision': revision,
       'deviceColors': deviceColors,
       'entryDate': entryDate,
       'departureDate': departureDate,
@@ -232,7 +232,7 @@ class DeviceCustomer extends Equatable {
         laborValue,
         laborValueCollected,
         hasUrgency,
-        isRevision,
+        revision,
         deviceColors,
         entryDate,
         departureDate,

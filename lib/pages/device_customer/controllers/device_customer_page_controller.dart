@@ -74,6 +74,25 @@ class DeviceCustomerPageController {
     this.newDeviceCustomer.value = newDeviceCustomer;
   }
 
+  Future<void> updateDeviceHasUrgency(bool hasUrgency) async {
+    try {
+      final updatedDeviceCustomer =
+          newDeviceCustomer.value.copyWith(hasUrgency: hasUrgency);
+      final DeviceCustomer value = await _deviceCustomerService
+          .updateDeviceCustomer(updatedDeviceCustomer);
+      newDeviceCustomer.value = value;
+      currentDeviceCustomer = value;
+      SnackBarUtil().showSuccess(
+        'Urgencia do dispositivo atualizada com sucesso',
+      );
+    } on RequisitionException catch (e) {
+      SnackBarUtil().showError(e.message);
+    } catch (e) {
+      SnackBarUtil().showError(
+          'Erro ao atualizar urgência do dispositivo. Tente novamente.');
+    }
+  }
+
   void saveNewPayment(InputPayment inputPayment) {
     newPayment.value = inputPayment;
   }

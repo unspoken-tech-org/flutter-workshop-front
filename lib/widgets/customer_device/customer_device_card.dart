@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/minified_customer_device.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/customer_device_text_field.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/urgency_revision_chip.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/urgency_chip.dart';
 import 'package:flutter_workshop_front/widgets/shared/status_cell.dart';
 
 class CustomerDeviceCard extends StatelessWidget {
@@ -91,9 +91,8 @@ class CustomerDeviceCard extends StatelessWidget {
                           Flexible(
                               child: StatusCell(status: device.deviceStatus)),
                           const SizedBox(width: 8),
-                          UrgencyRevisionChip(
+                          UrgencyChip(
                             hasUrgency: device.hasUrgency,
-                            isRevision: device.revision,
                           ),
                         ],
                       ],

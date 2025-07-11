@@ -45,9 +45,7 @@ class _CustomerDeviceInfosWidgetState extends State<CustomerDeviceInfosWidget> {
           spacing: 28,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomerDeviceInfoHeaderWidget(
-              deviceCustomer: deviceCustomer,
-            ),
+            const CustomerDeviceInfoHeaderWidget(),
             Row(
               spacing: 28,
               crossAxisAlignment: CrossAxisAlignment.start,

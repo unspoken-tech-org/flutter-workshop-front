@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
-import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
+import 'package:flutter_workshop_front/models/customer_device/customer_phones.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/utils/phone_utils.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/device_status_chip.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/urgency_revision_chip.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/urgency_chip.dart';
 
 class CustomerDeviceInfoHeaderWidget extends StatefulWidget {
-  final DeviceCustomer deviceCustomer;
   const CustomerDeviceInfoHeaderWidget({
     super.key,
-    required this.deviceCustomer,
   });
 
   @override
@@ -22,14 +20,15 @@ class _CustomerDeviceInfoHeaderWidgetState
     extends State<CustomerDeviceInfoHeaderWidget> {
   bool isHoveringCustomer = false;
 
-  String get mainPhone =>
-      PhoneUtils.formatPhone(widget.deviceCustomer.customerPhones
-          .firstWhere((phone) => phone.isMain)
-          .number);
+  String getMainPhone(List<CustomerPhones> customerPhones) =>
+      PhoneUtils.formatPhone(
+          customerPhones.firstWhere((phone) => phone.isMain).number);
 
   @override
   Widget build(BuildContext context) {
     final controller = InheritedDeviceCustomerController.of(context);
+    final deviceCustomer = controller.currentDeviceCustomer;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -37,7 +36,7 @@ class _CustomerDeviceInfoHeaderWidgetState
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'ID do aparelho # ${widget.deviceCustomer.deviceId}',
+              'ID do aparelho # ${deviceCustomer.deviceId}',
               style: Theme.of(context)
                   .textTheme
                   .headlineMedium
@@ -47,18 +46,21 @@ class _CustomerDeviceInfoHeaderWidgetState
               mainAxisAlignment: MainAxisAlignment.start,
               spacing: 8,
               children: [
-                if (widget.deviceCustomer.hasUrgency ||
-                    widget.deviceCustomer.isRevision) ...[
-                  UrgencyRevisionChip(
-                      hasUrgency: widget.deviceCustomer.hasUrgency,
-                      isRevision: widget.deviceCustomer.isRevision),
-                  const SizedBox(height: 4),
-                ],
+                UrgencyChip(
+                  hasUrgency: deviceCustomer.hasUrgency,
+                  onTap: () async {
+                    await controller.updateDeviceHasUrgency(
+                      !deviceCustomer.hasUrgency,
+                    );
+                    setState(() {});
+                  },
+                ),
+                const SizedBox(height: 4),
                 ValueListenableBuilder(
                   valueListenable: controller.customerDeviceState,
                   builder: (context, _, __) {
                     return DeviceStatusChip(
-                        status: widget.deviceCustomer.deviceStatus);
+                        status: deviceCustomer.deviceStatus);
                   },
                 ),
               ],
@@ -85,7 +87,7 @@ class _CustomerDeviceInfoHeaderWidgetState
                 onTap: () {
                   WsNavigator.pushCustomerDetail(
                     context,
-                    widget.deviceCustomer.customerId,
+                    deviceCustomer.customerId,
                   );
                 },
                 child: Row(
@@ -98,7 +100,7 @@ class _CustomerDeviceInfoHeaderWidgetState
                           : Colors.black,
                     ),
                     Text(
-                      'Cliente: ${widget.deviceCustomer.customerName}',
+                      'Cliente: ${deviceCustomer.customerName}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: isHoveringCustomer
                                 ? Colors.lightBlueAccent
@@ -113,7 +115,8 @@ class _CustomerDeviceInfoHeaderWidgetState
               spacing: 8,
               children: [
                 const Icon(Icons.phone_outlined),
-                Text('Telefone principal: $mainPhone'),
+                Text(
+                    'Telefone principal: ${getMainPhone(deviceCustomer.customerPhones)}'),
               ],
             ),
           ],
