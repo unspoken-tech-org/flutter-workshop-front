@@ -8,10 +8,10 @@ class StatusCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
       decoration: BoxDecoration(
         color: status.color,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
         status.name,

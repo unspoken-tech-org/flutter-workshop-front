@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/extensions/date_time_extension.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/customer_device_text_field.dart';
-import 'package:flutter_workshop_front/utils/phone_utils.dart';
 import 'package:flutter_workshop_front/widgets/shared/status_cell.dart';
 
 class ContactCard extends StatelessWidget {
@@ -13,94 +12,139 @@ class ContactCard extends StatelessWidget {
     required this.contact,
   });
 
+  (String, Color) _getStatus() {
+    if (contact.hasMadeContact) {
+      return ('Contatado', Colors.green);
+    }
+    return ('Não contatado', Colors.red);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final (statusText, statusColor) = _getStatus();
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12.0),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [
           BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.1),
-            offset: Offset(0, 1),
-            blurRadius: 3.0,
+            color: Colors.grey.withOpacity(0.2),
             spreadRadius: 1,
-          ),
-          BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.1),
-            offset: Offset(0, 1),
-            blurRadius: 2.0,
-            spreadRadius: -1.0,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 16,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Id: ${contact.id}'),
-              const SizedBox(height: 8),
-              Text('Data: ${contact.lastContact}'),
-              const SizedBox(height: 8),
-              if (contact.phoneNumber != null) ...[
-                Text('Número: ${PhoneUtils.formatPhone(contact.phoneNumber!)}'),
-                const SizedBox(height: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.calendar_today,
+                                size: 16,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Data: ${DateTime.tryParse(contact.lastContact)?.formatDate() ?? contact.lastContact}',
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.chat_bubble_outline,
+                                size: 16,
+                                color: Colors.black,
+                              ),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'Tipo: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(contact.type.capitalizeAllWords),
+                              const SizedBox(width: 16),
+                              const Icon(
+                                Icons.person_outline,
+                                size: 16,
+                                color: Colors.black,
+                              ),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'Técnico: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(contact.technicianName.capitalizeAllWords),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  height: 100,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[200]!),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Text(
+                      contact.conversation!,
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
+                  ),
+                ),
               ],
-              Text('Tipo: ${contact.type.capitalizeAllWords}'),
-              const SizedBox(height: 8),
-              Text('Técnico: ${contact.technicianName.capitalizeAllWords}'),
-            ],
+            ),
           ),
           Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            spacing: 8,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Chip(
-                    label: Text(
-                      contact.hasMadeContact ? 'Contatado' : 'Não contatado',
-                      style: const TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
-                    backgroundColor:
-                        contact.hasMadeContact ? Colors.green : Colors.red,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 0, vertical: 7),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(
-                        color:
-                            contact.hasMadeContact ? Colors.green : Colors.red,
-                      ),
-                    ),
+              Chip(
+                label: Text(
+                  statusText,
+                  style: TextStyle(
+                    color: Color.lerp(statusColor, Colors.black, 0.6),
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(width: 8),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      StatusCell(status: contact.deviceStatus),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: 200,
-                child: CustomerDeviceTextField(
-                  initialValue: contact.conversation,
-                  enabled: false,
+                ),
+                backgroundColor: statusColor,
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide.none,
                 ),
               ),
+              StatusCell(status: contact.deviceStatus),
             ],
-          )
+          ),
         ],
       ),
     );
+    // StatusCell(status: contact.deviceStatus),
   }
 }
