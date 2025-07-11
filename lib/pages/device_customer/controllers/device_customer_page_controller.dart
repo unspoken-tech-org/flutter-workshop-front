@@ -3,6 +3,7 @@ import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dar
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
+import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/services/customer_contact/customer_contact_service.dart';
 import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
@@ -163,6 +164,24 @@ class DeviceCustomerPageController {
     } catch (e) {
       SnackBarUtil().showError(
           'Erro ao atualizar revisão do dispositivo. Tente novamente.');
+    }
+  }
+
+  Future<void> updateDeviceStatus(StatusEnum status) async {
+    try {
+      final updatedDeviceCustomer =
+          newDeviceCustomer.value.copyWith(deviceStatus: status);
+      final DeviceCustomer value = await _deviceCustomerService
+          .updateDeviceCustomer(updatedDeviceCustomer);
+      newDeviceCustomer.value = value;
+      currentDeviceCustomer = value;
+      SnackBarUtil()
+          .showSuccess('Status do dispositivo atualizada com sucesso');
+    } on RequisitionException catch (e) {
+      SnackBarUtil().showError(e.message);
+    } catch (e) {
+      SnackBarUtil().showError(
+          'Erro ao atualizar status do dispositivo. Tente novamente.');
     }
   }
 }

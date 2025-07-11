@@ -68,7 +68,12 @@ class _CustomerDeviceInfoHeaderWidgetState
                   valueListenable: controller.customerDeviceState,
                   builder: (context, _, __) {
                     return DeviceStatusChip(
-                        status: deviceCustomer.deviceStatus);
+                      status: deviceCustomer.deviceStatus,
+                      onTap: (status) async {
+                        await controller.updateDeviceStatus(status);
+                        setState(() {});
+                      },
+                    );
                   },
                 ),
               ],

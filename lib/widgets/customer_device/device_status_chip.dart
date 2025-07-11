@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/device_customer_page_controller.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 
 class DeviceStatusChip extends StatefulWidget {
   final StatusEnum status;
-  const DeviceStatusChip({super.key, required this.status});
+  final Function(StatusEnum status)? onTap;
+
+  const DeviceStatusChip({
+    super.key,
+    required this.status,
+    this.onTap,
+  });
 
   @override
   State<DeviceStatusChip> createState() => _DeviceStatusChipState();
@@ -17,14 +21,6 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
   final LayerLink _layerLink = LayerLink();
   bool _isOverlayHovered = false;
   late StatusEnum currentStatus;
-
-  @override
-  void didUpdateWidget(DeviceStatusChip oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (currentStatus != widget.status) {
-      currentStatus = widget.status;
-    }
-  }
 
   @override
   void initState() {
@@ -38,8 +34,7 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
     super.dispose();
   }
 
-  void _showOverlay(
-      BuildContext context, DeviceCustomerPageController controller) {
+  void _showOverlay(BuildContext context) {
     _removeOverlay();
 
     _overlayEntry = OverlayEntry(
@@ -72,12 +67,7 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
                   children: StatusEnum.values
                       .map((status) => TextButton(
                             onPressed: () {
-                              var newDeviceCustomer = controller
-                                  .newDeviceCustomer.value
-                                  .copyWith(deviceStatus: status);
-
-                              controller
-                                  .updateNewDeviceCustomer(newDeviceCustomer);
+                              widget.onTap?.call(status);
                               setState(() {
                                 currentStatus = status;
                                 _isOverlayHovered = false;
@@ -130,21 +120,19 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = InheritedDeviceCustomerController.of(context);
-
     return CompositedTransformTarget(
       link: _layerLink,
       child: MouseRegion(
-        onEnter: (_) => _showOverlay(context, controller),
+        onEnter: (_) => _showOverlay(context),
         onExit: (_) => Future.delayed(
           const Duration(milliseconds: 100),
           () => _removeOverlay(),
         ),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
             color: currentStatus.color.withAlpha(50),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
             currentStatus.name,
