@@ -4,6 +4,7 @@ import 'package:flutter_workshop_front/models/customer_device/customer_phones.da
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/utils/phone_utils.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/device_status_chip.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/revision_chip.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/urgency_chip.dart';
 
 class CustomerDeviceInfoHeaderWidget extends StatefulWidget {
@@ -55,7 +56,14 @@ class _CustomerDeviceInfoHeaderWidgetState
                     setState(() {});
                   },
                 ),
-                const SizedBox(height: 4),
+                RevisionChip(
+                  revision: deviceCustomer.revision,
+                  onTap: () async {
+                    await controller
+                        .updateDeviceRevision(!deviceCustomer.revision);
+                    setState(() {});
+                  },
+                ),
                 ValueListenableBuilder(
                   valueListenable: controller.customerDeviceState,
                   builder: (context, _, __) {

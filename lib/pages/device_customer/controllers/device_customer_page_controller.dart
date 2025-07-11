@@ -147,4 +147,22 @@ class DeviceCustomerPageController {
     customerDeviceState.value = CustomerDeviceEvent.revert;
     customerDeviceState.value = CustomerDeviceEvent.initial;
   }
+
+  Future<void> updateDeviceRevision(bool revision) async {
+    try {
+      final updatedDeviceCustomer =
+          newDeviceCustomer.value.copyWith(revision: revision);
+      final DeviceCustomer value = await _deviceCustomerService
+          .updateDeviceCustomer(updatedDeviceCustomer);
+      newDeviceCustomer.value = value;
+      currentDeviceCustomer = value;
+      SnackBarUtil()
+          .showSuccess('Revisão do dispositivo atualizada com sucesso');
+    } on RequisitionException catch (e) {
+      SnackBarUtil().showError(e.message);
+    } catch (e) {
+      SnackBarUtil().showError(
+          'Erro ao atualizar revisão do dispositivo. Tente novamente.');
+    }
+  }
 }
