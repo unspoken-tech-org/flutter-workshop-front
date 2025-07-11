@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/minified_customer_device.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/customer_device_text_field.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/revision_chip.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/urgency_chip.dart';
 import 'package:flutter_workshop_front/widgets/shared/status_cell.dart';
 
@@ -85,16 +86,13 @@ class CustomerDeviceCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Row(
+                      spacing: 8,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        if (device.hasUrgency || device.revision) ...[
-                          Flexible(
-                              child: StatusCell(status: device.deviceStatus)),
-                          const SizedBox(width: 8),
-                          UrgencyChip(
-                            hasUrgency: device.hasUrgency,
-                          ),
-                        ],
+                        Flexible(
+                            child: StatusCell(status: device.deviceStatus)),
+                        UrgencyChip(hasUrgency: device.hasUrgency),
+                        RevisionChip(revision: device.revision),
                       ],
                     ),
                     const SizedBox(height: 16),
