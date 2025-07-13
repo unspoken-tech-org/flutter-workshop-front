@@ -36,59 +36,72 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final showLabel = constraints.maxWidth > 300;
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Icon(Icons.credit_card),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Pagamentos',
-                          style: textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.w500),
+                        Row(
+                          children: [
+                            const Icon(Icons.credit_card),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Pagamentos',
+                              style: textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                        OutlinedButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) =>
+                                  InheritedDeviceCustomerController(
+                                controller: controller,
+                                child: const AddNewPaymentDialog(),
+                              ),
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            alignment: Alignment.center,
+                            iconColor: Colors.black,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                              side: const BorderSide(color: Colors.black),
+                            ),
+                          ),
+                          child: Row(
+                            spacing: 6,
+                            children: [
+                              if (showLabel)
+                                const Text(
+                                  'Adicionar',
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                              const Icon(Icons.add, size: 16),
+                            ],
+                          ),
                         ),
                       ],
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) =>
-                              InheritedDeviceCustomerController(
-                            controller: controller,
-                            child: const AddNewPaymentDialog(),
-                          ),
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        iconColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          side: const BorderSide(color: Colors.black),
-                        ),
-                      ),
-                      icon: const Icon(Icons.add, size: 16),
-                      label: const Text(
-                        'Adicionar',
-                        style: TextStyle(color: Colors.black),
-                      ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 24),
                 if (devicePayments.isNotEmpty)
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: devicePayments.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 4),
-                    itemBuilder: (context, index) {
-                      return CustomerDevicePaymentItem(
-                        payment: devicePayments[index],
-                      );
-                    },
+                  Expanded(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: devicePayments.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 4),
+                      itemBuilder: (context, index) {
+                        return CustomerDevicePaymentItem(
+                          payment: devicePayments[index],
+                        );
+                      },
+                    ),
                   )
                 else
                   const Center(child: EmptyPaymentsWidget()),

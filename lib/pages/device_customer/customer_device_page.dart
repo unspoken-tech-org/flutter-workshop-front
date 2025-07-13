@@ -64,13 +64,19 @@ class _CustomerDevicePageState extends State<CustomerDevicePage> {
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
                       child: SizedBox(
-                        height: 1000,
+                        height: 1010,
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           spacing: 20,
                           children: [
-                            CustomerDeviceInfosWidget(),
-                            Expanded(child: CustomerDevicePayments()),
+                            Flexible(
+                              flex: 2,
+                              child: CustomerDeviceInfosWidget(),
+                            ),
+                            Flexible(
+                              flex: 1,
+                              child: CustomerDevicePayments(),
+                            ),
                           ],
                         ),
                       ),

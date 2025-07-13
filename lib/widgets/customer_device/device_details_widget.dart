@@ -22,12 +22,15 @@ class DeviceDetailsWidget extends StatelessWidget {
             children: [
               Icon(Icons.build_outlined, color: Color(0xFF4B5563)),
               SizedBox(width: 12),
-              Text(
-                'Detalhes do Aparelho',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1F2937),
+              Expanded(
+                child: Text(
+                  'Detalhes do Aparelho',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1F2937),
+                  ),
                 ),
               ),
             ],
@@ -36,6 +39,7 @@ class DeviceDetailsWidget extends StatelessWidget {
           CustomTextField(
             label: 'Aparelho',
             readOnly: true,
+            maxLines: 1,
             value:
                 '${deviceCustomer.typeName} ${deviceCustomer.brandName} | ${deviceCustomer.modelName}',
           ),
@@ -47,11 +51,13 @@ class DeviceDetailsWidget extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: CustomTextField(
                   label: 'Data de entrada',
                   readOnly: true,
+                  maxLines: 1,
                   value: deviceCustomer.entryDate,
                   icon: Icons.calendar_today_outlined,
                 ),
@@ -62,6 +68,7 @@ class DeviceDetailsWidget extends StatelessWidget {
                   child: CustomTextField(
                     label: 'Data de saída',
                     readOnly: true,
+                    maxLines: 1,
                     value: deviceCustomer.departureDate ?? '',
                     icon: Icons.calendar_today_outlined,
                   ),

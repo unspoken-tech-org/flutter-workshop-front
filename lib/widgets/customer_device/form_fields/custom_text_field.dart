@@ -40,6 +40,7 @@ class CustomTextField extends StatelessWidget {
         if (label != null) ...[
           Text(
             label!,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFF374151),
               fontWeight: FontWeight.w500,

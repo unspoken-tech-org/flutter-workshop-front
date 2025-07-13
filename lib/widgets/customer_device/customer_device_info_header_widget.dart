@@ -119,13 +119,19 @@ class _CustomerDeviceInfoHeaderWidgetState
                 ),
               ),
             ),
-            Row(
-              spacing: 8,
-              children: [
-                const Icon(Icons.phone_outlined),
-                Text(
-                    'Telefone principal: ${getMainPhone(deviceCustomer.customerPhones)}'),
-              ],
+            Expanded(
+              child: Row(
+                spacing: 8,
+                children: [
+                  const Icon(Icons.phone_outlined),
+                  Expanded(
+                    child: Text(
+                      overflow: TextOverflow.ellipsis,
+                      'Telefone principal: ${getMainPhone(deviceCustomer.customerPhones)}',
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

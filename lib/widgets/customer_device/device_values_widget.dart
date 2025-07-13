@@ -57,6 +57,7 @@ class DeviceValuesWidget extends StatelessWidget {
               Expanded(
                 child: CustomTextField(
                   label: 'Valor do orçamento',
+                  maxLines: 1,
                   controller:
                       TextEditingController(text: formatValue(laborValue)),
                   keyboardType:
@@ -79,6 +80,7 @@ class DeviceValuesWidget extends StatelessWidget {
               Expanded(
                 child: CustomTextField(
                   label: 'Valor do serviço',
+                  maxLines: 1,
                   controller:
                       TextEditingController(text: formatValue(serviceValue)),
                   keyboardType:

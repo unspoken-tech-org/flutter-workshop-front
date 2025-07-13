@@ -34,59 +34,82 @@ class CustomerDevicePaymentItem extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide(color: Colors.grey.shade300),
       padding: const EdgeInsets.all(16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final breakLabel = constraints.maxWidth > 230;
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child:
-                    Icon(Icons.receipt, color: colorScheme.primary, size: 20),
-              ),
-              const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today, size: 12),
-                      const SizedBox(width: 4),
-                      Text(
-                        payment.paymentDate,
-                        style: textTheme.bodySmall,
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(Icons.receipt,
+                            color: colorScheme.primary, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.calendar_today, size: 12),
+                              const SizedBox(width: 4),
+                              Text(
+                                payment.paymentDate,
+                                style: textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: paymentBackgroundColor,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              payment.paymentType.displayName,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: paymentTextColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: paymentBackgroundColor,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      payment.paymentType.displayName,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: paymentTextColor,
+                  if (!breakLabel) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      payment.paymentValue.toBrCurrency,
+                      style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
+              if (breakLabel)
+                Text(
+                  payment.paymentValue.toBrCurrency,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
             ],
-          ),
-          Text(
-            payment.paymentValue.toBrCurrency,
-            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

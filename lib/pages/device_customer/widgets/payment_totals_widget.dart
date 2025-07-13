@@ -81,28 +81,36 @@ class PaymentTotalsWidget extends StatelessWidget {
             border:
                 Border.all(color: colorScheme.primary.withValues(alpha: 0.2)),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final showLabel = constraints.maxWidth > 250;
+              return Row(
+                mainAxisAlignment: showLabel
+                    ? MainAxisAlignment.spaceBetween
+                    : MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.attach_money, color: colorScheme.primary),
-                  const SizedBox(width: 8),
+                  if (showLabel)
+                    Row(
+                      children: [
+                        Icon(Icons.attach_money, color: colorScheme.primary),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Total pago',
+                          style: textTheme.titleMedium
+                              ?.copyWith(color: colorScheme.primary),
+                        ),
+                      ],
+                    ),
                   Text(
-                    'Total pago',
-                    style: textTheme.titleMedium
-                        ?.copyWith(color: colorScheme.primary),
+                    _getTotalPayments(devicePayments).toBrCurrency,
+                    style: textTheme.titleLarge?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
-              ),
-              Text(
-                _getTotalPayments(devicePayments).toBrCurrency,
-                style: textTheme.titleLarge?.copyWith(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+              );
+            },
           ),
         ),
       ],
