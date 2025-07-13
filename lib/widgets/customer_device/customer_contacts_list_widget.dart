@@ -7,13 +7,11 @@ import 'package:flutter_workshop_front/widgets/shared/empty_list_widget.dart';
 
 class CustomerContactsListWidget extends StatelessWidget {
   final List<CustomerContact> customerContacts;
-  final VoidCallback onAddContact;
   final ScrollController scrollController;
 
   const CustomerContactsListWidget({
     super.key,
     required this.customerContacts,
-    required this.onAddContact,
     required this.scrollController,
   });
 

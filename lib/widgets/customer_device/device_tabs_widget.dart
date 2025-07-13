@@ -22,11 +22,6 @@ class DeviceTabsWidget extends StatelessWidget {
             SizedBox(
               width: size.width * 0.27,
               child: TabBar(
-                onTap: (index) {
-                  if (index == 1) {
-                    controller.isPaymentsWidgetVisible.value = false;
-                  }
-                },
                 tabs: const [
                   Tab(text: 'Contatos'),
                   Tab(text: 'Outros Aparelhos'),

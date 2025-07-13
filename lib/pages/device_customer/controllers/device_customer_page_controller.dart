@@ -32,7 +32,6 @@ class DeviceCustomerPageController {
   late List<Technician> technicians;
 
   ValueNotifier<bool> isLoading = ValueNotifier(false);
-  ValueNotifier<bool> isPaymentsWidgetVisible = ValueNotifier(false);
   ValueNotifier<CustomerDeviceEvent> customerDeviceState =
       ValueNotifier(CustomerDeviceEvent.initial);
 
