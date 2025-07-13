@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/customer_device_detail_text_field.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/form_fields/custom_text_field.dart';
 
 class DeviceDetailsWidget extends StatelessWidget {
   final DeviceCustomer deviceCustomer;
@@ -33,14 +33,14 @@ class DeviceDetailsWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          CustomerDeviceDetailTextField(
+          CustomTextField(
             label: 'Aparelho',
             readOnly: true,
             value:
                 '${deviceCustomer.typeName} ${deviceCustomer.brandName} | ${deviceCustomer.modelName}',
           ),
           const SizedBox(height: 16),
-          CustomerDeviceDetailTextField(
+          CustomTextField(
             label: 'Cores',
             readOnly: true,
             value: deviceCustomer.deviceColors.join(', '),
@@ -49,7 +49,7 @@ class DeviceDetailsWidget extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: CustomerDeviceDetailTextField(
+                child: CustomTextField(
                   label: 'Data de entrada',
                   readOnly: true,
                   value: deviceCustomer.entryDate,
@@ -59,7 +59,7 @@ class DeviceDetailsWidget extends StatelessWidget {
               if (deviceCustomer.departureDate != null) ...[
                 const SizedBox(width: 16),
                 Expanded(
-                  child: CustomerDeviceDetailTextField(
+                  child: CustomTextField(
                     label: 'Data de saída',
                     readOnly: true,
                     value: deviceCustomer.departureDate ?? '',

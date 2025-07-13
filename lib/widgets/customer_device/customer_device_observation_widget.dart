@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/customer_device_detail_text_field.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/form_fields/custom_text_field.dart';
 
 class CustomerDeviceObservationWidget extends StatelessWidget {
   final String observation;
@@ -40,7 +40,7 @@ class CustomerDeviceObservationWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          CustomerDeviceDetailTextField(
+          CustomTextField(
             controller: TextEditingController(text: observation),
             readOnly: !isEditing,
             hintText: 'Descreva a observação...',

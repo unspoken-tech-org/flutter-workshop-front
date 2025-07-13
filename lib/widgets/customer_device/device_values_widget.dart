@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/currency_input_formatter.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/customer_device_detail_text_field.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/form_fields/custom_text_field.dart';
 import 'package:intl/intl.dart';
 
 class DeviceValuesWidget extends StatelessWidget {
@@ -55,7 +55,7 @@ class DeviceValuesWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: CustomerDeviceDetailTextField(
+                child: CustomTextField(
                   label: 'Valor do orçamento',
                   controller:
                       TextEditingController(text: formatValue(laborValue)),
@@ -77,7 +77,7 @@ class DeviceValuesWidget extends StatelessWidget {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: CustomerDeviceDetailTextField(
+                child: CustomTextField(
                   label: 'Valor do serviço',
                   controller:
                       TextEditingController(text: formatValue(serviceValue)),

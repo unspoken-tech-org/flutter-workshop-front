@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class CustomerDeviceDetailTextField extends StatelessWidget {
+class CustomTextField extends StatelessWidget {
   final String? label;
   final String? value;
   final IconData? icon;
@@ -15,7 +15,7 @@ class CustomerDeviceDetailTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final void Function(String?)? onSave;
 
-  const CustomerDeviceDetailTextField({
+  const CustomTextField({
     super.key,
     this.label,
     this.value,

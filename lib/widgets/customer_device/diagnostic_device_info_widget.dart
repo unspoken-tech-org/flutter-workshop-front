@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/customer_device_detail_text_field.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/form_fields/custom_text_field.dart';
 
 class DiagnosticDeviceInfoWidget extends StatelessWidget {
   final String problem;
@@ -43,7 +43,7 @@ class DiagnosticDeviceInfoWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          CustomerDeviceDetailTextField(
+          CustomTextField(
             label: 'Problema',
             controller: TextEditingController(text: problem),
             readOnly: !isEditing,
@@ -61,7 +61,7 @@ class DiagnosticDeviceInfoWidget extends StatelessWidget {
             },
           ),
           const SizedBox(height: 16),
-          CustomerDeviceDetailTextField(
+          CustomTextField(
             label: 'Orçamento',
             controller: TextEditingController(text: budget),
             readOnly: !isEditing,
