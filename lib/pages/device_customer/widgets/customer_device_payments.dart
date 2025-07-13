@@ -83,7 +83,7 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: devicePayments.length,
                     separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 4),
                     itemBuilder: (context, index) {
                       return CustomerDevicePaymentItem(
                         payment: devicePayments[index],

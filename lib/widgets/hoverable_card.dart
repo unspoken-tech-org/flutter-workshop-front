@@ -5,6 +5,7 @@ class HoverableCard extends StatefulWidget {
   final VoidCallback? onTap;
   final BorderRadius borderRadius;
   final Color? color;
+  final EdgeInsets padding;
   final BorderSide borderSide;
   final double elevationOnHover;
   final double elevation;
@@ -15,6 +16,7 @@ class HoverableCard extends StatefulWidget {
     this.onTap,
     this.borderRadius = const BorderRadius.all(Radius.circular(8.0)),
     this.color = Colors.white,
+    this.padding = EdgeInsets.zero,
     this.borderSide = const BorderSide(color: Color(0xFFE0E0E0)),
     this.elevationOnHover = 5,
     this.elevation = 0.5,
@@ -49,7 +51,10 @@ class _HoverableCardState extends State<HoverableCard> {
           borderRadius: widget.borderRadius,
           side: widget.borderSide,
         ),
-        child: widget.child,
+        child: Padding(
+          padding: widget.padding,
+          child: widget.child,
+        ),
       ),
     );
   }

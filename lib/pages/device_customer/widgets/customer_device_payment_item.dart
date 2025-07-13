@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/double_extensions.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
+import 'package:flutter_workshop_front/widgets/hoverable_card.dart';
 
 class CustomerDevicePaymentItem extends StatelessWidget {
   final CustomerDevicePayment payment;
@@ -28,13 +29,11 @@ class CustomerDevicePaymentItem extends StatelessWidget {
     final (paymentTextColor, paymentBackgroundColor) =
         _getPaymentTypeColors(payment.paymentType);
 
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
+    return HoverableCard(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: Colors.grey.shade300),
+      padding: const EdgeInsets.all(16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

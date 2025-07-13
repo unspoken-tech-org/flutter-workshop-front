@@ -20,32 +20,30 @@ class CustomerDeviceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return HoverableCard(
       onTap: () => onTap(device.deviceId),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _OtherDeviceHeaderCard(
-              id: device.deviceId,
-              status: device.deviceStatus,
-              hasUrgency: device.hasUrgency,
-              revision: device.revision,
-            ),
-            const SizedBox(height: 16),
-            _DeviceNameAndProblem(
-              deviceName: device.typeBrandModel,
-              problem: device.problem,
-            ),
-            const SizedBox(height: 12),
-            Divider(color: Colors.grey.shade900, thickness: 0.1),
-            const SizedBox(height: 12),
-            _DeviceInAndOutDate(
-              inDate: device.entryDate,
-              outDate: device.departureDate,
-            ),
-          ],
-        ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _OtherDeviceHeaderCard(
+            id: device.deviceId,
+            status: device.deviceStatus,
+            hasUrgency: device.hasUrgency,
+            revision: device.revision,
+          ),
+          const SizedBox(height: 16),
+          _DeviceNameAndProblem(
+            deviceName: device.typeBrandModel,
+            problem: device.problem,
+          ),
+          const SizedBox(height: 12),
+          Divider(color: Colors.grey.shade900, thickness: 0.1),
+          const SizedBox(height: 12),
+          _DeviceInAndOutDate(
+            inDate: device.entryDate,
+            outDate: device.departureDate,
+          ),
+        ],
       ),
     );
   }

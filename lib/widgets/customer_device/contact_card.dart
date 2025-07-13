@@ -25,122 +25,119 @@ class ContactCard extends StatelessWidget {
     final (statusText, statusColor, backgroundColor) = _getStatus();
 
     return HoverableCard(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.calendar_today,
-                                  size: 16,
-                                  color: Colors.black,
-                                ),
-                                const SizedBox(width: 4),
-                                const Text(
-                                  'Data: ',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  DateTime.tryParse(contact.lastContact)
-                                          ?.formatDate() ??
-                                      contact.lastContact,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.chat_bubble_outline,
-                                  size: 16,
-                                  color: Colors.black,
-                                ),
-                                const SizedBox(width: 4),
-                                const Text(
-                                  'Tipo: ',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(contact.type.capitalizeAllWords),
-                                const SizedBox(width: 16),
-                                const Icon(
-                                  Icons.person_outline,
-                                  size: 16,
-                                  color: Colors.black,
-                                ),
-                                const SizedBox(width: 4),
-                                const Text(
-                                  'Técnico: ',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(contact.technicianName.capitalizeAllWords),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    height: 100,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey[200]!),
-                    ),
-                    child: SingleChildScrollView(
-                      child: Text(
-                        contact.conversation!,
-                        style: TextStyle(color: Colors.grey[700]),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              spacing: 8,
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 16,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Chip(
-                  label: Text(
-                    statusText,
-                    style: TextStyle(
-                      color: statusColor,
-                      fontWeight: FontWeight.bold,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.calendar_today,
+                                size: 16,
+                                color: Colors.black,
+                              ),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'Data: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                DateTime.tryParse(contact.lastContact)
+                                        ?.formatDate() ??
+                                    contact.lastContact,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.chat_bubble_outline,
+                                size: 16,
+                                color: Colors.black,
+                              ),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'Tipo: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(contact.type.capitalizeAllWords),
+                              const SizedBox(width: 16),
+                              const Icon(
+                                Icons.person_outline,
+                                size: 16,
+                                color: Colors.black,
+                              ),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'Técnico: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(contact.technicianName.capitalizeAllWords),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  height: 100,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[200]!),
                   ),
-                  backgroundColor: backgroundColor,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    side: const BorderSide(color: Colors.transparent),
+                  child: SingleChildScrollView(
+                    child: Text(
+                      contact.conversation!,
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
                   ),
                 ),
-                StatusCell(status: contact.deviceStatus),
               ],
             ),
-          ],
-        ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            spacing: 8,
+            children: [
+              Chip(
+                label: Text(
+                  statusText,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                backgroundColor: backgroundColor,
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: const BorderSide(color: Colors.transparent),
+                ),
+              ),
+              StatusCell(status: contact.deviceStatus),
+            ],
+          ),
+        ],
       ),
     );
   }
