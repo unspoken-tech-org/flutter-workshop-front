@@ -519,10 +519,10 @@ class _StatusFilterState extends State<StatusFilter> {
               (e) => StatusFilterChip(
                 status: e,
                 onTap: () {
-                  widget.controller.filter.toggleStatus(e.value);
+                  widget.controller.filter.toggleStatus(e.dbName);
                   setState(() {});
                 },
-                isSelected: widget.controller.filter.status.contains(e.value),
+                isSelected: widget.controller.filter.status.contains(e.dbName),
               ),
             ),
           ],
@@ -546,13 +546,15 @@ class StatusFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final (backgroundColor, textColor) = status.colors;
+
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6),
         ),
-        backgroundColor: status.color,
+        backgroundColor: backgroundColor,
         side: BorderSide(
           color: isSelected ? Colors.black : Colors.transparent,
           width: 1.5,
@@ -560,8 +562,8 @@ class StatusFilterChip extends StatelessWidget {
       ),
       onPressed: onTap,
       child: Text(
-        status.name,
-        style: WsTextStyles.body2.copyWith(color: Colors.white),
+        status.displayName,
+        style: WsTextStyles.body2.copyWith(color: textColor),
       ),
     );
   }

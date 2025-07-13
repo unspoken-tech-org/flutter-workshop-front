@@ -1,34 +1,24 @@
 import 'package:flutter/material.dart';
 
 enum StatusEnum {
-  newDevice(name: 'Novo', value: 'novo', color: Colors.green),
-  inProgress(name: 'Em andamento', value: 'em_andamento', color: Colors.blue),
-  delivered(
-    name: 'Entregue',
-    value: 'entregue',
-    color: Color.fromARGB(255, 192, 210, 36),
-  ),
-  waitingApproval(
-    name: 'Aguardando Aprovação',
-    value: 'aguardando',
-    color: Color.fromARGB(214, 140, 127, 8),
-  ),
-  disposed(name: 'Descartado', value: 'descartado', color: Colors.red),
-  ready(name: 'Pronto', value: 'pronto', color: Colors.purple),
+  newDevice(displayName: 'Novo', dbName: 'novo'),
+  inProgress(displayName: 'Em andamento', dbName: 'em_andamento'),
+  delivered(displayName: 'Entregue', dbName: 'entregue'),
+  waitingApproval(displayName: 'Aguardando Aprovação', dbName: 'aguardando'),
+  disposed(displayName: 'Descartado', dbName: 'descartado'),
+  ready(displayName: 'Pronto', dbName: 'pronto'),
   ;
 
-  final String value;
-  final String name;
-  final Color color;
+  final String dbName;
+  final String displayName;
 
   const StatusEnum({
-    required this.value,
-    required this.name,
-    required this.color,
+    required this.dbName,
+    required this.displayName,
   });
 
-  static StatusEnum fromString(String value) {
-    switch (value) {
+  static StatusEnum fromDbName(String dbName) {
+    switch (dbName) {
       case 'em_andamento':
         return StatusEnum.inProgress;
       case 'aguardando':
@@ -45,4 +35,21 @@ enum StatusEnum {
         throw Exception('Status not found');
     }
   }
+}
+
+extension StatusEnumExtension on StatusEnum {
+  (Color backgroundColor, Color textColor) get colors => switch (this) {
+        StatusEnum.newDevice => (Colors.green.shade100, Colors.green),
+        StatusEnum.inProgress => (Colors.blue.shade100, Colors.blue),
+        StatusEnum.delivered => (
+            Colors.yellow.shade100,
+            Colors.yellow.shade800
+          ),
+        StatusEnum.waitingApproval => (
+            Colors.lime.shade100,
+            Colors.lime.shade700
+          ),
+        StatusEnum.disposed => (Colors.red.shade100, Colors.red),
+        StatusEnum.ready => (Colors.purple.shade100, Colors.purple),
+      };
 }

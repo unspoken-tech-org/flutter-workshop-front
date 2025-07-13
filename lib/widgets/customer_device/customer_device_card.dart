@@ -82,7 +82,10 @@ class _OtherDeviceHeaderCard extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 16),
-        StatusCell(status: status),
+        StatusCell(
+          status: status,
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+        ),
         const Spacer(),
         UrgencyChip(hasUrgency: hasUrgency),
         const SizedBox(width: 8),

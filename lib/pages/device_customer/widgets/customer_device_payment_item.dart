@@ -65,7 +65,9 @@ class CustomerDevicePaymentItem extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 payment.paymentDate,
-                                style: textTheme.bodySmall,
+                                style: textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ],
                           ),

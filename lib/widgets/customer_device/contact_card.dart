@@ -124,7 +124,7 @@ class ContactCard extends StatelessWidget {
                   statusText,
                   style: TextStyle(
                     color: statusColor,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 backgroundColor: backgroundColor,

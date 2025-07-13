@@ -39,7 +39,7 @@ class CustomerContact {
       hasMadeContact: json['hasMadeContact'],
       lastContact: json['lastContact'],
       conversation: json['conversation'],
-      deviceStatus: StatusEnum.fromString(json['deviceStatus']),
+      deviceStatus: StatusEnum.fromDbName(json['deviceStatus']),
     );
   }
 }

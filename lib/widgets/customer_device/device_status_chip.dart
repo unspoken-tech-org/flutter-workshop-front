@@ -86,15 +86,15 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
                                   width: 12,
                                   height: 12,
                                   decoration: BoxDecoration(
-                                    color: status.color,
+                                    color: status.colors.$2,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  status.name,
+                                  status.displayName,
                                   style: WsTextStyles.body2
-                                      .copyWith(color: status.color),
+                                      .copyWith(color: status.colors.$2),
                                 ),
                               ],
                             ),
@@ -120,6 +120,7 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
 
   @override
   Widget build(BuildContext context) {
+    final (backgroundColor, textColor) = currentStatus.colors;
     return CompositedTransformTarget(
       link: _layerLink,
       child: MouseRegion(
@@ -131,13 +132,13 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
-            color: currentStatus.color.withAlpha(50),
+            color: backgroundColor,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
-            currentStatus.name,
-            style: WsTextStyles.body2.copyWith(
-                color: currentStatus.color, fontWeight: FontWeight.w700),
+            currentStatus.displayName,
+            style: WsTextStyles.body2
+                .copyWith(color: textColor, fontWeight: FontWeight.w700),
           ),
         ),
       ),

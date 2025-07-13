@@ -38,7 +38,7 @@ class DeviceDataTable {
       type: json.toStr('type')!,
       brand: json.toStr('brand')!,
       model: json.toStr('model')!,
-      status: StatusEnum.fromString(json['status']),
+      status: StatusEnum.fromDbName(json['status']),
       problem: json.toStr('problem')!,
       hasUrgency: json.toBool('hasUrgency', defaultValue: false)!,
       entryDate: json.toStr('entryDate')!,

@@ -28,7 +28,7 @@ class MinifiedCustomerDevice {
       deviceId: json['deviceId'],
       customerId: json['customerId'],
       typeBrandModel: json['typeBrandModel'],
-      deviceStatus: StatusEnum.fromString(json['deviceStatus']),
+      deviceStatus: StatusEnum.fromDbName(json['deviceStatus']),
       problem: json['problem'],
       hasUrgency: json['hasUrgency'],
       revision: json['revision'],
