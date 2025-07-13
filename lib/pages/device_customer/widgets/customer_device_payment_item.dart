@@ -6,33 +6,18 @@ class CustomerDevicePaymentItem extends StatelessWidget {
   final CustomerDevicePayment payment;
   const CustomerDevicePaymentItem({super.key, required this.payment});
 
-  Color _getPaymentTypeColor(PaymentType type) {
+  (Color, Color) _getPaymentTypeColors(PaymentType type) {
     switch (type) {
       case PaymentType.credito:
-        return Colors.green.shade100;
+        return (Colors.green.shade800, Colors.green.shade100);
       case PaymentType.debito:
-        return Colors.blue.shade100;
+        return (Colors.blue.shade800, Colors.blue.shade100);
       case PaymentType.dinheiro:
-        return Colors.yellow.shade100;
+        return (Colors.yellow.shade800, Colors.yellow.shade100);
       case PaymentType.pix:
-        return Colors.purple.shade100;
+        return (Colors.purple.shade800, Colors.purple.shade100);
       default:
-        return Colors.grey.shade200;
-    }
-  }
-
-  Color _getPaymentTypeTextColor(PaymentType type) {
-    switch (type) {
-      case PaymentType.credito:
-        return Colors.green.shade800;
-      case PaymentType.debito:
-        return Colors.blue.shade800;
-      case PaymentType.dinheiro:
-        return Colors.yellow.shade800;
-      case PaymentType.pix:
-        return Colors.purple.shade800;
-      default:
-        return Colors.grey.shade800;
+        return (Colors.grey.shade800, Colors.grey.shade200);
     }
   }
 
@@ -40,18 +25,15 @@ class CustomerDevicePaymentItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final (paymentTextColor, paymentBackgroundColor) =
+        _getPaymentTypeColors(payment.paymentType);
 
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(alpha: 0.3),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-            color:
-                Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
+        border: Border.all(color: Colors.grey.shade300),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -86,13 +68,13 @@ class CustomerDevicePaymentItem extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _getPaymentTypeColor(payment.paymentType),
+                      color: paymentBackgroundColor,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
                       payment.paymentType.displayName,
                       style: textTheme.bodySmall?.copyWith(
-                        color: _getPaymentTypeTextColor(payment.paymentType),
+                        color: paymentTextColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
