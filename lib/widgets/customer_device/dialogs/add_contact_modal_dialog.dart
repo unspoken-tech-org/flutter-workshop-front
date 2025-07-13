@@ -153,7 +153,6 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                         const SizedBox(height: 16),
                         CustomDateFormField(
                           label: 'Data do contato',
-                          value: _formatDate(inputCustomerContact.contactDate),
                           dateController: _dateController,
                           context: context,
                           onSave: (value) {

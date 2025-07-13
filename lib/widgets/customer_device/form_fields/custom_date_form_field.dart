@@ -21,10 +21,6 @@ class CustomDateFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (value != null) {
-      dateController.text = value!;
-    }
-
     return TextFormField(
       controller: dateController,
       initialValue: value,
