@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/customer_device_info_header_widget.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/customer_device_observation_widget.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/customer_device_technical_info_widget.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/device_customer_cancel_button.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/device_customer_save_button.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/device_details_widget.dart';
@@ -23,11 +24,9 @@ class _CustomerDeviceInfosWidgetState extends State<CustomerDeviceInfosWidget> {
   Widget build(BuildContext context) {
     final controller = InheritedDeviceCustomerController.of(context);
     final deviceCustomer = controller.deviceCustomer.value;
-    var width = MediaQuery.of(context).size.width;
 
     return Container(
       padding: const EdgeInsets.all(16),
-      width: width * 0.7,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -75,6 +74,9 @@ class _CustomerDeviceInfosWidgetState extends State<CustomerDeviceInfosWidget> {
                       ),
                       CustomerDeviceObservationWidget(
                         observation: deviceCustomer.observation,
+                        isEditing: isEditing,
+                      ),
+                      CustomerDeviceTechnicalInfoWidget(
                         isEditing: isEditing,
                       ),
                     ],

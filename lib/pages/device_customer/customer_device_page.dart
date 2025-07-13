@@ -89,6 +89,7 @@ class _CustomerDevicePageState extends State<CustomerDevicePage> {
                         child: DeviceTabsWidget(),
                       ),
                     ),
+                    SizedBox(height: 16),
                   ],
                 ),
               ),
