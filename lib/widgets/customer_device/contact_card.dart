@@ -12,16 +12,16 @@ class ContactCard extends StatelessWidget {
     required this.contact,
   });
 
-  (String, Color) _getStatus() {
+  (String, Color, Color) _getStatus() {
     if (contact.hasMadeContact) {
-      return ('Contatado', Colors.green);
+      return ('Contatado', Colors.green, Colors.green.shade100);
     }
-    return ('Não contatado', Colors.red);
+    return ('Pendente', Colors.red, Colors.red.shade100);
   }
 
   @override
   Widget build(BuildContext context) {
-    final (statusText, statusColor) = _getStatus();
+    final (statusText, statusColor, backgroundColor) = _getStatus();
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -30,7 +30,7 @@ class ContactCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(8.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Colors.grey.withValues(alpha: 0.2),
             spreadRadius: 1,
             blurRadius: 5,
             offset: const Offset(0, 3),
@@ -58,11 +58,17 @@ class ContactCard extends StatelessWidget {
                               const Icon(
                                 Icons.calendar_today,
                                 size: 16,
-                                color: Colors.grey,
+                                color: Colors.black,
                               ),
                               const SizedBox(width: 4),
+                              const Text(
+                                'Data: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                               Text(
-                                'Data: ${DateTime.tryParse(contact.lastContact)?.formatDate() ?? contact.lastContact}',
+                                DateTime.tryParse(contact.lastContact)
+                                        ?.formatDate() ??
+                                    contact.lastContact,
                               ),
                             ],
                           ),
@@ -128,15 +134,15 @@ class ContactCard extends StatelessWidget {
                 label: Text(
                   statusText,
                   style: TextStyle(
-                    color: Color.lerp(statusColor, Colors.black, 0.6),
+                    color: statusColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                backgroundColor: statusColor,
+                backgroundColor: backgroundColor,
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide.none,
+                  side: const BorderSide(color: Colors.transparent),
                 ),
               ),
               StatusCell(status: contact.deviceStatus),
@@ -145,6 +151,5 @@ class ContactCard extends StatelessWidget {
         ],
       ),
     );
-    // StatusCell(status: contact.deviceStatus),
   }
 }
