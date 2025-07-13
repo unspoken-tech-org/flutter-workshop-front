@@ -28,7 +28,7 @@ class _CustomerDeviceInfoHeaderWidgetState
   @override
   Widget build(BuildContext context) {
     final controller = InheritedDeviceCustomerController.of(context);
-    final deviceCustomer = controller.currentDeviceCustomer;
+    final deviceCustomer = controller.deviceCustomer.value;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,16 +64,11 @@ class _CustomerDeviceInfoHeaderWidgetState
                     setState(() {});
                   },
                 ),
-                ValueListenableBuilder(
-                  valueListenable: controller.customerDeviceState,
-                  builder: (context, _, __) {
-                    return DeviceStatusChip(
-                      status: deviceCustomer.deviceStatus,
-                      onTap: (status) async {
-                        await controller.updateDeviceStatus(status);
-                        setState(() {});
-                      },
-                    );
+                DeviceStatusChip(
+                  status: deviceCustomer.deviceStatus,
+                  onTap: (status) async {
+                    await controller.updateDeviceStatus(status);
+                    setState(() {});
                   },
                 ),
               ],

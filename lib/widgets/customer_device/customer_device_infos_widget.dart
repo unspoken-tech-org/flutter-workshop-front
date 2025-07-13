@@ -22,7 +22,7 @@ class _CustomerDeviceInfosWidgetState extends State<CustomerDeviceInfosWidget> {
   @override
   Widget build(BuildContext context) {
     final controller = InheritedDeviceCustomerController.of(context);
-    final deviceCustomer = controller.newDeviceCustomer.value;
+    final deviceCustomer = controller.deviceCustomer.value;
     var width = MediaQuery.of(context).size.width;
 
     return Container(

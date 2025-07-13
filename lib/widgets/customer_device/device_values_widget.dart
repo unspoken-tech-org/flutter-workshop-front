@@ -70,7 +70,7 @@ class DeviceValuesWidget extends StatelessWidget {
                         value?.replaceAll('R\$', '').replaceAll(',', '.') ??
                             '0';
                     controller.updateNewDeviceCustomer(controller
-                        .newDeviceCustomer.value
+                        .deviceCustomer.value
                         .copyWith(laborValue: double.parse(normalizedValue)));
                   },
                 ),
@@ -92,7 +92,7 @@ class DeviceValuesWidget extends StatelessWidget {
                         value?.replaceAll('R\$', '').replaceAll(',', '.') ??
                             '0';
                     controller.updateNewDeviceCustomer(controller
-                        .newDeviceCustomer.value
+                        .deviceCustomer.value
                         .copyWith(serviceValue: double.parse(normalizedValue)));
                   },
                 ),
@@ -116,7 +116,7 @@ class DeviceValuesWidget extends StatelessWidget {
               enabled: isEditing,
               onSaved: (value) {
                 controller.updateNewDeviceCustomer(controller
-                    .newDeviceCustomer.value
+                    .deviceCustomer.value
                     .copyWith(laborValueCollected: value ?? false));
               },
               builder: (state) => CheckboxListTile(

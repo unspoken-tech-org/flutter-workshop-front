@@ -36,7 +36,7 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
   @override
   Widget build(BuildContext context) {
     final controller = InheritedDeviceCustomerController.of(context);
-    var deviceCustomer = controller.newDeviceCustomer.value;
+    var deviceCustomer = controller.deviceCustomer.value;
     var technicians = controller.technicians;
     inputCustomerContact = InputCustomerContact.empty(deviceCustomer.deviceId);
     _dateController.text = _formatDate(inputCustomerContact.contactDate) ?? '';

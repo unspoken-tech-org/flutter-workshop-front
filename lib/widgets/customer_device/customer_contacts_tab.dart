@@ -17,7 +17,7 @@ class _CustomerContactsTabState extends State<CustomerContactsTab> {
     final controller = InheritedDeviceCustomerController.of(context);
 
     return ValueListenableBuilder(
-      valueListenable: controller.newDeviceCustomer,
+      valueListenable: controller.deviceCustomer,
       builder: (context, value, child) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -26,7 +26,7 @@ class _CustomerContactsTabState extends State<CustomerContactsTab> {
                 child: CustomerContactsListWidget(
               scrollController: _scrollController,
               customerContacts:
-                  controller.newDeviceCustomer.value.customerContacts,
+                  controller.deviceCustomer.value.customerContacts,
             )),
           ],
         );

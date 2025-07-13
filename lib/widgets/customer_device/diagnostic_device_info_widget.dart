@@ -51,7 +51,7 @@ class DiagnosticDeviceInfoWidget extends StatelessWidget {
             maxLines: 4,
             onSave: (value) {
               controller.updateNewDeviceCustomer(
-                  controller.newDeviceCustomer.value.copyWith(problem: value));
+                  controller.deviceCustomer.value.copyWith(problem: value));
             },
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -69,7 +69,7 @@ class DiagnosticDeviceInfoWidget extends StatelessWidget {
             maxLines: 4,
             onSave: (value) {
               controller.updateNewDeviceCustomer(
-                  controller.newDeviceCustomer.value.copyWith(budget: value));
+                  controller.deviceCustomer.value.copyWith(budget: value));
             },
           ),
         ],

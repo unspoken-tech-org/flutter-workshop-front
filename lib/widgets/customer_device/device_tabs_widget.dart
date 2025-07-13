@@ -65,14 +65,14 @@ class DeviceTabsWidget extends StatelessWidget {
                     const CustomerContactsTab(),
                     Visibility(
                       visible: controller
-                          .newDeviceCustomer.value.otherDevices.isNotEmpty,
+                          .deviceCustomer.value.otherDevices.isNotEmpty,
                       replacement: const EmptyListWidget(
                         message:
                             'Não foram encontrado outros aparelhos para este cliente',
                       ),
                       child: CustomerDevicesList(
                         customerDevices:
-                            controller.newDeviceCustomer.value.otherDevices,
+                            controller.deviceCustomer.value.otherDevices,
                         onTap: (id) {
                           controller.init(id);
                         },

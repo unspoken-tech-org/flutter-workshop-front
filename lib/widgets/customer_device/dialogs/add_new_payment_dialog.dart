@@ -43,7 +43,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
   Widget build(BuildContext context) {
     final controller = InheritedDeviceCustomerController.of(context);
     _inputPayment =
-        InputPayment.empty(controller.currentDeviceCustomer.deviceId);
+        InputPayment.empty(controller.deviceCustomer.value.deviceId);
     _dateController.text = _formatDate(_inputPayment.paymentDate) ?? '';
 
     return AlertDialog(

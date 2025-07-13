@@ -27,7 +27,7 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ValueListenableBuilder<DeviceCustomer>(
-          valueListenable: controller.newDeviceCustomer,
+          valueListenable: controller.deviceCustomer,
           builder: (context, deviceCustomer, child) {
             final List<CustomerDevicePayment> devicePayments =
                 deviceCustomer.payments;

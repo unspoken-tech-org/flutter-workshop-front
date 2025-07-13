@@ -47,7 +47,7 @@ class CustomerDeviceObservationWidget extends StatelessWidget {
             maxLines: 4,
             onSave: (value) {
               controller.updateNewDeviceCustomer(
-                controller.newDeviceCustomer.value.copyWith(observation: value),
+                controller.deviceCustomer.value.copyWith(observation: value),
               );
             },
           ),
