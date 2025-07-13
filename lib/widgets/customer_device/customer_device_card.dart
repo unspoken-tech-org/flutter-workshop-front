@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/minified_customer_device.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/customer_device_text_field.dart';
+import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
+import 'package:flutter_workshop_front/widgets/hoverable_card.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/revision_chip.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/urgency_chip.dart';
 import 'package:flutter_workshop_front/widgets/shared/status_cell.dart';
@@ -8,107 +9,242 @@ import 'package:flutter_workshop_front/widgets/shared/status_cell.dart';
 class CustomerDeviceCard extends StatelessWidget {
   final MinifiedCustomerDevice device;
   final void Function(int) onTap;
-  const CustomerDeviceCard(
-      {super.key, required this.device, required this.onTap});
+
+  const CustomerDeviceCard({
+    super.key,
+    required this.device,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        onTap(device.deviceId);
-      },
-      child: Container(
-        height: 170,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12.0),
-          boxShadow: const [
-            BoxShadow(
-              color: Color.fromRGBO(0, 0, 0, 0.1),
-              offset: Offset(0, 1),
-              blurRadius: 3.0,
-              spreadRadius: 1,
+    return HoverableCard(
+      onTap: () => onTap(device.deviceId),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _OtherDeviceHeaderCard(
+              id: device.deviceId,
+              status: device.deviceStatus,
+              hasUrgency: device.hasUrgency,
+              revision: device.revision,
             ),
-            BoxShadow(
-              color: Color.fromRGBO(0, 0, 0, 0.1),
-              offset: Offset(0, 1),
-              blurRadius: 2.0,
-              spreadRadius: -1.0,
+            const SizedBox(height: 16),
+            _DeviceNameAndProblem(
+              deviceName: device.typeBrandModel,
+              problem: device.problem,
+            ),
+            const SizedBox(height: 12),
+            Divider(color: Colors.grey.shade900, thickness: 0.1),
+            const SizedBox(height: 12),
+            _DeviceInAndOutDate(
+              inDate: device.entryDate,
+              outDate: device.departureDate,
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
+      ),
+    );
+  }
+}
+
+class _OtherDeviceHeaderCard extends StatelessWidget {
+  final int id;
+  final StatusEnum status;
+  final bool hasUrgency;
+  final bool revision;
+
+  const _OtherDeviceHeaderCard({
+    required this.id,
+    required this.status,
+    required this.hasUrgency,
+    required this.revision,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text.rich(
+          TextSpan(
+            style: const TextStyle(fontSize: 22, color: Colors.black54),
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                spacing: 8,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.tag_outlined, size: 16),
-                      const SizedBox(width: 8),
-                      Text('Id: ${device.deviceId}'),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      const Icon(Icons.devices_outlined, size: 16),
-                      const SizedBox(width: 8),
-                      Text(device.typeBrandModel),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      const Icon(Icons.calendar_month_outlined, size: 16),
-                      const SizedBox(width: 8),
-                      Text('Data de entrada: ${device.entryDate}'),
-                    ],
-                  ),
-                  if (device.departureDate != null) ...[
-                    Row(
-                      children: [
-                        const Icon(Icons.calendar_month, size: 16),
-                        const SizedBox(width: 8),
-                        Text('Data de saída: ${device.departureDate!}'),
-                      ],
-                    ),
-                  ]
-                ],
-              ),
-              const SizedBox(width: 36),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Row(
-                      spacing: 8,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Flexible(
-                            child: StatusCell(status: device.deviceStatus)),
-                        UrgencyChip(hasUrgency: device.hasUrgency),
-                        RevisionChip(revision: device.revision),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: CustomerDeviceTextField(
-                        initialValue: device.problem,
-                        enabled: false,
-                      ),
-                    ),
-                  ],
-                ),
+              const TextSpan(text: '# '),
+              TextSpan(
+                text: 'Id: $id',
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
               ),
             ],
           ),
         ),
-      ),
+        const SizedBox(width: 16),
+        StatusCell(status: status),
+        const Spacer(),
+        UrgencyChip(hasUrgency: hasUrgency),
+        const SizedBox(width: 8),
+        RevisionChip(revision: revision)
+      ],
+    );
+  }
+}
+
+class _DeviceNameAndProblem extends StatelessWidget {
+  final String deviceName;
+  final String problem;
+
+  const _DeviceNameAndProblem({
+    required this.deviceName,
+    required this.problem,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: _ColumnInfoCell(
+              icon: Icons.microwave_outlined,
+              title: 'Aparelho:',
+              value: deviceName),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _ColumnInfoCell(
+            icon: Icons.watch_later_outlined,
+            title: 'Problema:',
+            value: problem,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DeviceInAndOutDate extends StatelessWidget {
+  final String inDate;
+  final String? outDate;
+
+  const _DeviceInAndOutDate({
+    required this.inDate,
+    required this.outDate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 16,
+      children: [
+        Expanded(
+          child: _RowInfoCell(
+              icon: Icons.calendar_today_outlined,
+              title: 'Data de entrada:',
+              value: inDate),
+        ),
+        if (outDate != null)
+          Expanded(
+            child: _RowInfoCell(
+              icon: Icons.calendar_today,
+              title: 'Data de saída:',
+              value: outDate ?? '',
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _ColumnInfoCell extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+
+  const _ColumnInfoCell({
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Icon(icon, size: 16, color: Colors.black54),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black54,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RowInfoCell extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+
+  const _RowInfoCell({
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Icon(icon, size: 16, color: Colors.black54),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black54,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(width: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }
