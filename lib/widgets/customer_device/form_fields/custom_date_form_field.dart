@@ -7,20 +7,27 @@ class CustomDateFormField extends StatelessWidget {
   final void Function(String value) onSave;
   final String? Function(String? value)? validator;
   final String label;
+  final String? value;
 
   const CustomDateFormField({
     super.key,
     required this.dateController,
     required this.context,
     required this.onSave,
-    this.validator,
     required this.label,
+    this.validator,
+    this.value,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (value != null) {
+      dateController.text = value!;
+    }
+
     return TextFormField(
       controller: dateController,
+      initialValue: value,
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),

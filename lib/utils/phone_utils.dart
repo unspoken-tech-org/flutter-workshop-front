@@ -1,5 +1,8 @@
 class PhoneUtils {
-  static String formatPhone(String input) {
+  static String formatPhone(String? input) {
+    if (input == null) {
+      return '';
+    }
     final digits = input.replaceAll(RegExp(r'\D'), '');
 
     if (digits.length == 11) {

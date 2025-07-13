@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
+import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/contact_card.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/dialogs/add_contact_modal_dialog.dart';
 import 'package:flutter_workshop_front/widgets/shared/empty_list_widget.dart';
 
 class CustomerContactsListWidget extends StatelessWidget {
@@ -17,6 +19,7 @@ class CustomerContactsListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final controller = InheritedDeviceCustomerController.of(context);
     return Column(
       key: const ValueKey('contact_list'),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -28,7 +31,13 @@ class CustomerContactsListWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton.icon(
-                onPressed: onAddContact,
+                onPressed: () => showDialog(
+                  context: context,
+                  builder: (context) => InheritedDeviceCustomerController(
+                    controller: controller,
+                    child: const AddContactModalDialog(),
+                  ),
+                ),
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -37,7 +46,7 @@ class CustomerContactsListWidget extends StatelessWidget {
                   backgroundColor: const Color(0xFF6366F1),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
                 icon: const Icon(Icons.add),

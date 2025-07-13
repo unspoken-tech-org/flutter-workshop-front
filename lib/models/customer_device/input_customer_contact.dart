@@ -26,8 +26,8 @@ class InputCustomerContact {
   ];
 
   static const List<String> contactStatuses = [
-    'Contatado',
-    'Não contatado',
+    'Realizado',
+    'Pendente',
   ];
 
   factory InputCustomerContact.empty(int deviceId) =>
