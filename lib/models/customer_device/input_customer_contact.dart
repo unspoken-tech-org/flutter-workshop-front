@@ -1,3 +1,39 @@
+enum ContactType {
+  pessoalmente('Pessoalmente'),
+  mensagem('Mensagem'),
+  ligacao('Ligação');
+
+  final String displayName;
+
+  const ContactType(
+    this.displayName,
+  );
+
+  static ContactType fromDisplayName(String displayName) =>
+      switch (displayName) {
+        'Pessoalmente' => pessoalmente,
+        'Mensagem' => mensagem,
+        'Ligação' => ligacao,
+        _ => throw Exception('Invalid contact type: $displayName'),
+      };
+}
+
+enum ContactStatus {
+  realizado('Realizado'),
+  pendente('Pendente');
+
+  final String displayName;
+
+  const ContactStatus(this.displayName);
+
+  static ContactStatus fromDisplayName(String displayName) =>
+      switch (displayName) {
+        'Realizado' => realizado,
+        'Pendente' => pendente,
+        _ => throw Exception('Invalid contact status: $displayName'),
+      };
+}
+
 class InputCustomerContact {
   int deviceId;
   String? contactType;
@@ -19,16 +55,8 @@ class InputCustomerContact {
     this.contactDate,
   });
 
-  static const List<String> contactTypes = [
-    'Pessoalmente',
-    'Mensagem',
-    'Ligação',
-  ];
-
-  static const List<String> contactStatuses = [
-    'Realizado',
-    'Pendente',
-  ];
+  static const List<ContactType> contactTypes = ContactType.values;
+  static const List<ContactStatus> contactStatuses = ContactStatus.values;
 
   factory InputCustomerContact.empty(int deviceId) =>
       InputCustomerContact(deviceId: deviceId, contactDate: DateTime.now());

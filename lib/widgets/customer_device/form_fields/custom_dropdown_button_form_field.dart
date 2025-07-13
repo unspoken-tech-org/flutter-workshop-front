@@ -5,7 +5,9 @@ class CustomDropdownButtonFormField extends StatelessWidget {
   final List<String> items;
   final String? value;
   final void Function(String value) onSave;
+  final void Function(String? value)? onChanged;
   final String? Function(String? value)? validator;
+  final bool enabled;
 
   const CustomDropdownButtonFormField({
     super.key,
@@ -14,6 +16,8 @@ class CustomDropdownButtonFormField extends StatelessWidget {
     required this.onSave,
     this.value,
     this.validator,
+    this.onChanged,
+    this.enabled = true,
   });
 
   @override
@@ -45,7 +49,7 @@ class CustomDropdownButtonFormField extends StatelessWidget {
                 child: Text(item),
               ))
           .toList(),
-      onChanged: (value) {},
+      onChanged: !enabled ? null : (onChanged ?? (value) {}),
       validator: validator,
       onSaved: (value) {
         onSave(value ?? '');

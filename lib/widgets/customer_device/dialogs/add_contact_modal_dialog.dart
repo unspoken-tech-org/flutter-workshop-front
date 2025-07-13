@@ -20,6 +20,7 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
   final _formKey = GlobalKey<FormState>();
   final _dateController = TextEditingController();
   late InputCustomerContact inputCustomerContact;
+  bool isContactTypePersonally = false;
 
   @override
   void dispose() {
@@ -72,9 +73,17 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                         const SizedBox(height: 16),
                         CustomDropdownButtonFormField(
                           label: 'Tipo de contato',
-                          items: InputCustomerContact.contactTypes,
+                          items: InputCustomerContact.contactTypes
+                              .map((e) => e.displayName)
+                              .toList(),
                           onSave: (value) {
-                            inputCustomerContact.contactType = value;
+                            inputCustomerContact.contactType =
+                                ContactType.fromDisplayName(value).name;
+                          },
+                          onChanged: (value) {
+                            isContactTypePersonally =
+                                value == ContactType.pessoalmente.displayName;
+                            setState(() {});
                           },
                           validator: (value) {
                             if (value == null) {
@@ -101,7 +110,9 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                         ),
                         const SizedBox(height: 16),
                         CustomDropdownButtonFormField(
+                          key: ValueKey(isContactTypePersonally),
                           label: 'Número de telefone',
+                          enabled: !isContactTypePersonally,
                           items: deviceCustomer.customerPhones
                               .map((e) => PhoneUtils.formatPhone(e.number))
                               .toList(),
@@ -109,6 +120,9 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                             inputCustomerContact.phoneNumber = value;
                           },
                           validator: (value) {
+                            if (isContactTypePersonally) {
+                              return null;
+                            }
                             if (value == null || value.isEmpty) {
                               return 'Digite um número de telefone';
                             }
@@ -139,9 +153,12 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                         const SizedBox(height: 16),
                         CustomDropdownButtonFormField(
                           label: 'Status do contato',
-                          items: InputCustomerContact.contactStatuses,
+                          items: InputCustomerContact.contactStatuses
+                              .map((e) => e.displayName)
+                              .toList(),
                           onSave: (value) {
-                            inputCustomerContact.contactStatus = value;
+                            inputCustomerContact.contactStatus =
+                                ContactStatus.fromDisplayName(value).name;
                           },
                           validator: (value) {
                             if (value == null) {

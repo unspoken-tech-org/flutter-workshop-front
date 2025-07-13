@@ -106,8 +106,9 @@ class DeviceCustomerPageController {
       InputCustomerContact customerContact) async {
     try {
       await _customerContactService.createCustomerContact(customerContact);
-
       await _getCustomerDevice(deviceCustomer.value.deviceId);
+
+      SnackBarUtil().showSuccess('Contato criado com sucesso');
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
     } catch (e) {
