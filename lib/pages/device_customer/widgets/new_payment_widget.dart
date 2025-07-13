@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
@@ -84,17 +85,17 @@ class _NewPaymentWidgetState extends State<NewPaymentWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: 8,
                   children: [
-                    CustomDropdownWidget(
+                    CustomDropdownWidget<PaymentType?>(
                       label: 'Tipo de pagamento',
                       value: inputPayment.paymentType,
-                      items: ['Crédito', 'Débito', 'Pix', 'Dinheiro']
+                      items: PaymentType.values
                           .map((e) => DropdownMenuItem(
                               value: e,
                               child: Row(
                                 children: [
                                   const SizedBox(width: 8),
                                   Expanded(
-                                    child: Text(e,
+                                    child: Text(e.displayName,
                                         overflow: TextOverflow.ellipsis),
                                   ),
                                 ],

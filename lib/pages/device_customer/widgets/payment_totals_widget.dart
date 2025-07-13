@@ -24,88 +24,87 @@ class PaymentTotalsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: const BoxDecoration(
-        color: Colors.deepPurple,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(16),
-          bottomRight: Radius.circular(16),
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      children: [
+        const Divider(),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Sub total', style: textTheme.bodyMedium),
+            Text(
+              (deviceCustomer.serviceValue ?? 0).toBrCurrency,
+              style:
+                  textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+            ),
+          ],
         ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Orçamento',
+                style:
+                    textTheme.bodyMedium?.copyWith(color: colorScheme.error)),
+            Text(
+              '- ${(deviceCustomer.laborValue ?? 0).toBrCurrency}',
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.error,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        const Divider(),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Total', style: textTheme.titleMedium),
+            Text(
+              _getTotalValue(deviceCustomer).toBrCurrency,
+              style:
+                  textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: colorScheme.primary.withOpacity(0.2)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Sub total',
-                style: TextStyle(color: Colors.white),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: Text(
-                  (deviceCustomer.serviceValue ?? 0).toBrCurrency,
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-              if (deviceCustomer.laborValue != null) ...[
-                const SizedBox(height: 8),
-                const Text(
-                  'Orçamento',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.w500,
+              Row(
+                children: [
+                  Icon(Icons.attach_money, color: colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Total pago',
+                    style: textTheme.titleMedium
+                        ?.copyWith(color: colorScheme.primary),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: Text(
-                    '- ${(deviceCustomer.laborValue ?? 0).toBrCurrency}',
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 8),
-              const Text(
-                'Total',
-                style: TextStyle(color: Colors.white),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: Text(
-                  _getTotalValue(deviceCustomer).toBrCurrency,
-                  style: const TextStyle(color: Colors.white),
+              Text(
+                _getTotalPayments(devicePayments).toBrCurrency,
+                style: textTheme.titleLarge?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                const Text(
-                  'Total pago',
-                  style: TextStyle(color: Colors.white),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: Text(
-                    _getTotalPayments(devicePayments).toBrCurrency,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

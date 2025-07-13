@@ -1,27 +1,43 @@
 import 'package:equatable/equatable.dart';
 
+enum PaymentType {
+  credito('Crédito'),
+  debito('Débito'),
+  pix('Pix'),
+  dinheiro('Dinheiro'),
+  outro('Outro');
+
+  final String displayName;
+
+  const PaymentType(this.displayName);
+
+  static PaymentType fromString(String value) {
+    return PaymentType.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => PaymentType.outro,
+    );
+  }
+}
+
 class CustomerDevicePayment extends Equatable {
   final int paymentId;
   final String paymentDate;
-  final String paymentType;
+  final PaymentType paymentType;
   final double paymentValue;
-  final String category;
 
   const CustomerDevicePayment({
     required this.paymentId,
     required this.paymentDate,
     required this.paymentType,
     required this.paymentValue,
-    required this.category,
   });
 
   factory CustomerDevicePayment.fromJson(Map<String, dynamic> json) {
     return CustomerDevicePayment(
       paymentId: json['paymentId'],
       paymentDate: json['paymentDate'],
-      paymentType: json['paymentType'],
+      paymentType: PaymentType.fromString(json['paymentType']),
       paymentValue: json['paymentValue'],
-      category: json['category'],
     );
   }
 
@@ -31,6 +47,5 @@ class CustomerDevicePayment extends Equatable {
         paymentDate,
         paymentType,
         paymentValue,
-        category,
       ];
 }

@@ -5,6 +5,7 @@ import 'package:flutter_workshop_front/pages/device_customer/controllers/inherit
 import 'package:flutter_workshop_front/pages/device_customer/widgets/customer_device_payment_item.dart';
 import 'package:flutter_workshop_front/pages/device_customer/widgets/empty_payments_widget.dart';
 import 'package:flutter_workshop_front/pages/device_customer/widgets/payment_totals_widget.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/dialogs/add_new_payment_dialog.dart';
 
 class CustomerDevicePayments extends StatefulWidget {
   const CustomerDevicePayments({super.key});
@@ -14,96 +15,92 @@ class CustomerDevicePayments extends StatefulWidget {
 }
 
 class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
-  late final ScrollController scrollController;
-
-  @override
-  void initState() {
-    super.initState();
-    scrollController = ScrollController();
-  }
-
-  @override
-  void dispose() {
-    scrollController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final controller = InheritedDeviceCustomerController.of(context);
+    final textTheme = Theme.of(context).textTheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withAlpha(50),
-            spreadRadius: 2,
-            blurRadius: 5,
-          ),
-        ],
-      ),
-      child: ValueListenableBuilder(
-        valueListenable: controller.newDeviceCustomer,
-        builder: (context, value, child) {
-          final DeviceCustomer deviceCustomer = value;
-          final List<CustomerDevicePayment> devicePayments =
-              deviceCustomer.payments;
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ValueListenableBuilder<DeviceCustomer>(
+          valueListenable: controller.newDeviceCustomer,
+          builder: (context, deviceCustomer, child) {
+            final List<CustomerDevicePayment> devicePayments =
+                deviceCustomer.payments;
 
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 8,
-                    children: [
-                      const Text(
-                        'Pagamentos',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.credit_card),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Pagamentos',
+                          style: textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) =>
+                              InheritedDeviceCustomerController(
+                            controller: controller,
+                            child: const AddNewPaymentDialog(),
+                          ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        iconColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          side: const BorderSide(color: Colors.black),
                         ),
                       ),
-                      Expanded(
-                        child: Visibility(
-                          visible: devicePayments.isNotEmpty,
-                          replacement: const Center(
-                            child: EmptyPaymentsWidget(),
-                          ),
-                          child: Scrollbar(
-                            controller: scrollController,
-                            thumbVisibility: true,
-                            child: ListView.separated(
-                              controller: scrollController,
-                              itemCount: devicePayments.length,
-                              separatorBuilder: (context, index) {
-                                return const SizedBox(height: 10);
-                              },
-                              itemBuilder: (context, index) {
-                                return CustomerDevicePaymentItem(
-                                  payment: devicePayments[index],
-                                );
-                              },
-                            ),
-                          ),
-                        ),
+                      icon: const Icon(Icons.add, size: 16),
+                      label: const Text(
+                        'Adicionar',
+                        style: TextStyle(color: Colors.black),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ),
-              PaymentTotalsWidget(
-                deviceCustomer: deviceCustomer,
-                devicePayments: devicePayments,
-              ),
-            ],
-          );
-        },
+                const SizedBox(height: 24),
+                if (devicePayments.isNotEmpty)
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: devicePayments.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      return CustomerDevicePaymentItem(
+                        payment: devicePayments[index],
+                      );
+                    },
+                  )
+                else
+                  const Center(child: EmptyPaymentsWidget()),
+                const SizedBox(height: 24),
+                PaymentTotalsWidget(
+                  deviceCustomer: deviceCustomer,
+                  devicePayments: devicePayments,
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

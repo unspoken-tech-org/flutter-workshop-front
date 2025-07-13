@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
+import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
@@ -10,6 +11,7 @@ import 'package:flutter_workshop_front/services/device_data/device_customer_serv
 import 'package:flutter_workshop_front/services/payment/payment_service.dart';
 import 'package:flutter_workshop_front/services/technician/technician_service.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
+import 'package:intl/intl.dart';
 
 enum CustomerDeviceEvent {
   revert,
@@ -182,6 +184,30 @@ class DeviceCustomerPageController {
     } catch (e) {
       SnackBarUtil().showError(
           'Erro ao atualizar status do dispositivo. Tente novamente.');
+    }
+  }
+
+  Future<void> createCustomerDevicePayment(InputPayment payment) async {
+    try {
+      await _paymentService.createPayment(payment);
+      newDeviceCustomer.value = newDeviceCustomer.value.copyWith(
+        payments: [
+          ...newDeviceCustomer.value.payments,
+          CustomerDevicePayment(
+            paymentId: 0,
+            paymentValue: payment.value,
+            paymentDate: DateFormat('dd/MM/yyyy').format(payment.paymentDate!),
+            paymentType: payment.paymentType!,
+          ),
+        ],
+      );
+      SnackBarUtil().showSuccess('Pagamento criado com sucesso');
+    } on RequisitionException catch (e) {
+      SnackBarUtil().showError(e.message);
+      rethrow;
+    } catch (e) {
+      SnackBarUtil().showError('Erro ao criar pagamento. Tente novamente.');
+      rethrow;
     }
   }
 }
