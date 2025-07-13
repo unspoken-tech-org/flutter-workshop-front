@@ -33,11 +33,18 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
     return double.parse(onlyNumbers);
   }
 
+  String? _formatDate(DateTime? date) {
+    if (date == null) return null;
+
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = InheritedDeviceCustomerController.of(context);
     _inputPayment =
         InputPayment.empty(controller.currentDeviceCustomer.deviceId);
+    _dateController.text = _formatDate(_inputPayment.paymentDate) ?? '';
 
     return AlertDialog(
       backgroundColor: Colors.white,
