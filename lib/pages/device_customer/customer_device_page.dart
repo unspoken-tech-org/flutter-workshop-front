@@ -17,8 +17,9 @@ class CustomerDevicePage extends StatefulWidget {
   State<CustomerDevicePage> createState() => _CustomerDevicePageState();
 }
 
-class _CustomerDevicePageState extends State<CustomerDevicePage>
-    with SingleTickerProviderStateMixin {
+class _CustomerDevicePageState extends State<CustomerDevicePage> {
+  final _scrollController = ScrollController();
+
   final DeviceCustomerPageController deviceCustomerPageController =
       DeviceCustomerPageController();
 
@@ -28,25 +29,39 @@ class _CustomerDevicePageState extends State<CustomerDevicePage>
     deviceCustomerPageController.init(widget.deviceId);
   }
 
+  void _scrollToTop() {
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return InheritedDeviceCustomerController(
       controller: deviceCustomerPageController,
       child: WsScaffold(
         backgroundColor: const Color(0xFFF5F5F5),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Colors.white70,
+          onPressed: _scrollToTop,
+          child: const Icon(Icons.arrow_upward, color: Colors.black87),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         child: ValueListenableBuilder(
           valueListenable: deviceCustomerPageController.isLoading,
-          builder: (context, value, child) {
-            if (value) {
-              return const CustomerDevicePageShimmer();
-            }
+          builder: (context, isLoading, child) {
+            if (isLoading) return const CustomerDevicePageShimmer();
+
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: SingleChildScrollView(
-                child: Column(
+                controller: _scrollController,
+                child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
                       child: SizedBox(
                         height: 1000,
@@ -60,13 +75,10 @@ class _CustomerDevicePageState extends State<CustomerDevicePage>
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 16).copyWith(
-                        bottom: 16,
-                      ),
-                      child: const SizedBox(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: SizedBox(
                         height: 514,
                         child: DeviceTabsWidget(),
                       ),
