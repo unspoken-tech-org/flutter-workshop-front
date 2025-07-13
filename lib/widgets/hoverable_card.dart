@@ -36,8 +36,11 @@ class _HoverableCardState extends State<HoverableCard> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: widget.onTap,
+      onTap: widget.onTap ?? () {},
       onHover: _onHover,
+      mouseCursor: widget.onTap != null
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
       borderRadius: widget.borderRadius,
       child: Card(
         color: widget.color,
