@@ -5,10 +5,15 @@ import 'package:go_router/go_router.dart';
 class WsScaffold extends StatefulWidget {
   final Widget child;
   final Color? backgroundColor;
+  final Widget? floatingActionButton;
+  final FloatingActionButtonLocation? floatingActionButtonLocation;
+
   const WsScaffold({
     super.key,
     required this.child,
     this.backgroundColor,
+    this.floatingActionButton,
+    this.floatingActionButtonLocation,
   });
 
   @override
@@ -31,6 +36,8 @@ class _WsScaffoldState extends State<WsScaffold> {
           ),
         ],
       ),
+      floatingActionButton: widget.floatingActionButton,
+      floatingActionButtonLocation: widget.floatingActionButtonLocation,
     );
   }
 }
