@@ -105,7 +105,7 @@ class _DeviceRegisterFormState extends State<DeviceRegisterForm> {
       final deviceInput = _getDeviceInput(controller);
       int? deviceId = await controller.createDevice(deviceInput);
       if (deviceId != null && context.mounted) {
-        WsNavigator.pushDevice(context, deviceId);
+        WsNavigator.pushDevice(context, deviceId, replaced: true);
       }
     }
   }
