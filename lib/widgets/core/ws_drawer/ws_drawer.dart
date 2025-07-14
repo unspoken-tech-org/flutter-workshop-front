@@ -41,9 +41,11 @@ class _WsDrawerState extends State<WsDrawer> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (GoRouter.of(context).canPop())
-              Padding(
-                padding: const EdgeInsets.only(left: 5, top: 10),
+            if (GoRouter.of(context).canPop()) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.only(left: 5),
+                height: 36,
                 child: BackButton(
                   style: ButtonStyle(
                     backgroundColor:
@@ -52,7 +54,9 @@ class _WsDrawerState extends State<WsDrawer> {
                   ),
                   onPressed: () => GoRouter.of(context).pop(),
                 ),
-              ),
+              )
+            ] else
+              const SizedBox(height: 46),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               physics: const NeverScrollableScrollPhysics(),
