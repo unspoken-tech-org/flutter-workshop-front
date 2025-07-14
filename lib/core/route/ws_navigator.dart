@@ -16,9 +16,15 @@ class WsNavigator {
     context.pushNamed(AllCustomersPage.route);
   }
 
-  static void pushCustomerDetail(BuildContext context, int customerId) {
-    context.pushNamed(CustomerDetailPage.route,
-        pathParameters: {'id': customerId.toString()});
+  static void pushCustomerDetail(BuildContext context, int customerId,
+      {bool replaced = false}) {
+    if (replaced) {
+      context.pushReplacementNamed(CustomerDetailPage.route,
+          pathParameters: {'id': customerId.toString()});
+    } else {
+      context.pushNamed(CustomerDetailPage.route,
+          pathParameters: {'id': customerId.toString()});
+    }
   }
 
   static void pushCustomerRegister(BuildContext context) {

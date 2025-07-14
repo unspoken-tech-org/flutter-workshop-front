@@ -217,7 +217,10 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
                             const Duration(milliseconds: 100), () {});
                         if (context.mounted) {
                           WsNavigator.pushCustomerDetail(
-                              context, createdCustomerId);
+                            context,
+                            createdCustomerId,
+                            replaced: true,
+                          );
                         }
                       }
                     }

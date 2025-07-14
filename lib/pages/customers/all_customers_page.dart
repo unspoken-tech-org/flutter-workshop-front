@@ -77,39 +77,36 @@ class _AllCustomersPageState extends State<AllCustomersPage> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: _controller.searchCustomers,
-                    decoration: InputDecoration(
-                      labelText: 'Buscar por nome, CPF, ID ou telefone',
-                      labelStyle: WsTextStyles.body1.copyWith(
-                        color: Colors.grey.shade400,
-                      ),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: Colors.grey.shade400,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: BorderSide(
-                          color: Colors.grey.shade400,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: BorderSide(
-                          color: Colors.blue.shade700,
-                        ),
-                      ),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: clearSearch,
-                            )
-                          : null,
+                TextField(
+                  controller: _searchController,
+                  onChanged: _controller.searchCustomers,
+                  decoration: InputDecoration(
+                    labelText: 'Buscar por nome, CPF, ID ou telefone',
+                    labelStyle: WsTextStyles.body1.copyWith(
+                      color: Colors.grey.shade400,
                     ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: Colors.grey.shade400,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(
+                        color: Colors.blue.shade700,
+                      ),
+                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: clearSearch,
+                          )
+                        : null,
                   ),
                 ),
                 const SizedBox(height: 16),
