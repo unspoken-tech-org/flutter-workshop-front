@@ -3,10 +3,11 @@ import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_register_page.dart';
-import 'package:flutter_workshop_front/pages/device_customer/customer_device_page.dart';
 import 'package:flutter_workshop_front/pages/device/device_register_page.dart';
+import 'package:flutter_workshop_front/pages/device_customer/customer_device_page.dart';
 import 'package:flutter_workshop_front/pages/home/home.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/widgets/ws_drawer_item.dart';
+import 'package:go_router/go_router.dart';
 
 class WsDrawer extends StatefulWidget {
   final String currentRoute;
@@ -40,6 +41,18 @@ class _WsDrawerState extends State<WsDrawer> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (GoRouter.of(context).canPop())
+              Padding(
+                padding: const EdgeInsets.only(left: 5, top: 10),
+                child: BackButton(
+                  style: ButtonStyle(
+                    backgroundColor:
+                        WidgetStateProperty.all(Colors.transparent),
+                    foregroundColor: WidgetStateProperty.all(Colors.black),
+                  ),
+                  onPressed: () => GoRouter.of(context).pop(),
+                ),
+              ),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               physics: const NeverScrollableScrollPhysics(),
