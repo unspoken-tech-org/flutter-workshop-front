@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class HoverableCard extends StatefulWidget {
@@ -29,31 +30,39 @@ class HoverableCard extends StatefulWidget {
 class _HoverableCardState extends State<HoverableCard> {
   bool _isHovered = false;
 
-  void _onHover(bool isHovered) {
+  void _onEnter(PointerEnterEvent details) {
     setState(() {
-      _isHovered = isHovered;
+      _isHovered = true;
+    });
+  }
+
+  void _onExit(PointerExitEvent details) {
+    setState(() {
+      _isHovered = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: widget.onTap ?? () {},
-      onHover: _onHover,
-      mouseCursor: widget.onTap != null
+    return MouseRegion(
+      onEnter: _onEnter,
+      onExit: _onExit,
+      cursor: widget.onTap != null
           ? SystemMouseCursors.click
           : SystemMouseCursors.basic,
-      borderRadius: widget.borderRadius,
-      child: Card(
-        color: widget.color,
-        elevation: _isHovered ? widget.elevationOnHover : widget.elevation,
-        shape: RoundedRectangleBorder(
-          borderRadius: widget.borderRadius,
-          side: widget.borderSide,
-        ),
-        child: Padding(
-          padding: widget.padding,
-          child: widget.child,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: Card(
+          color: widget.color,
+          elevation: _isHovered ? widget.elevationOnHover : widget.elevation,
+          shape: RoundedRectangleBorder(
+            borderRadius: widget.borderRadius,
+            side: widget.borderSide,
+          ),
+          child: Padding(
+            padding: widget.padding,
+            child: widget.child,
+          ),
         ),
       ),
     );
