@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer.dart';
 import 'package:go_router/go_router.dart';
@@ -28,12 +29,22 @@ class _WsScaffoldState extends State<WsScaffold> {
       body: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 55),
+            padding: EdgeInsets.only(left: isDesktop ? 100 : 55),
             child: widget.child,
           ),
-          WsDrawer(
-            currentRoute: GoRouterState.of(context).name ?? '',
-          ),
+          if (isDesktop && GoRouter.of(context).canPop())
+            Positioned(
+              top: 20,
+              left: 65,
+              child: BackButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Colors.white),
+                  foregroundColor: WidgetStateProperty.all(Colors.black),
+                ),
+                onPressed: () => GoRouter.of(context).pop(),
+              ),
+            ),
+          WsDrawer(currentRoute: GoRouterState.of(context).name ?? ''),
         ],
       ),
       floatingActionButton: widget.floatingActionButton,
@@ -41,3 +52,8 @@ class _WsScaffoldState extends State<WsScaffold> {
     );
   }
 }
+
+final isDesktop = [
+  TargetPlatform.windows,
+  TargetPlatform.macOS,
+].contains(defaultTargetPlatform);

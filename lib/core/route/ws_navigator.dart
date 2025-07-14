@@ -13,26 +13,26 @@ class WsNavigator {
   }
 
   static void pushCustomers(BuildContext context) {
-    context.goNamed(AllCustomersPage.route);
+    context.pushNamed(AllCustomersPage.route);
   }
 
   static void pushCustomerDetail(BuildContext context, int customerId) {
-    context.goNamed(CustomerDetailPage.route,
+    context.pushNamed(CustomerDetailPage.route,
         pathParameters: {'id': customerId.toString()});
   }
 
   static void pushCustomerRegister(BuildContext context) {
-    context.goNamed(CustomerRegisterPage.route);
+    context.pushNamed(CustomerRegisterPage.route);
   }
 
   static void pushDevice(BuildContext context, int deviceId) {
-    context.goNamed(CustomerDevicePage.route,
+    context.pushNamed(CustomerDevicePage.route,
         pathParameters: {'id': deviceId.toString()});
   }
 
   static void pushDeviceRegister(
       BuildContext context, int customerId, String customerName) {
-    context.goNamed(DeviceRegisterPage.route, pathParameters: {
+    context.pushNamed(DeviceRegisterPage.route, pathParameters: {
       'customerId': customerId.toString(),
       'customerName': customerName,
     });
