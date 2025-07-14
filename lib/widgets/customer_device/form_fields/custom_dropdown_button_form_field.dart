@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class CustomDropdownButtonFormField extends StatelessWidget {
-  final String label;
+  final String? headerLabel;
+  final String? fieldLabel;
   final List<String> items;
   final String? value;
   final void Function(String value) onSave;
@@ -11,7 +12,8 @@ class CustomDropdownButtonFormField extends StatelessWidget {
 
   const CustomDropdownButtonFormField({
     super.key,
-    required this.label,
+    this.headerLabel,
+    this.fieldLabel,
     required this.items,
     required this.onSave,
     this.value,
@@ -22,38 +24,65 @@ class CustomDropdownButtonFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<String>(
-      value: value,
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (headerLabel != null) ...[
+          Text(
+            headerLabel!,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFF374151),
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+        DropdownButtonFormField<String>(
+          value: value,
+          decoration: InputDecoration(
+            labelText: fieldLabel,
+            border: const OutlineInputBorder(),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              borderSide: BorderSide(color: Colors.blue.shade300, width: 1.5),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+          ),
+          dropdownColor: Colors.white,
+          isExpanded: true,
+          borderRadius: BorderRadius.circular(8),
+          items: items
+              .map((item) => DropdownMenuItem(
+                    value: item,
+                    child: Text(
+                      item,
+                      style: const TextStyle(
+                        color: Color(0xFF1F2937),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ))
+              .toList(),
+          style: const TextStyle(
+            color: Color(0xFF1F2937),
+            fontSize: 14,
+          ),
+          onChanged: !enabled ? null : (onChanged ?? (value) {}),
+          validator: validator,
+          onSaved: (value) {
+            onSave(value ?? '');
+          },
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: Colors.blue.shade300, width: 1.5),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-      ),
-      dropdownColor: Colors.white,
-      isExpanded: true,
-      borderRadius: BorderRadius.circular(8),
-      items: items
-          .map((item) => DropdownMenuItem(
-                value: item,
-                child: Text(item),
-              ))
-          .toList(),
-      onChanged: !enabled ? null : (onChanged ?? (value) {}),
-      validator: validator,
-      onSaved: (value) {
-        onSave(value ?? '');
-      },
+      ],
     );
   }
 }

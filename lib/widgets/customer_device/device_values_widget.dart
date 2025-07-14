@@ -56,7 +56,7 @@ class DeviceValuesWidget extends StatelessWidget {
             children: [
               Expanded(
                 child: CustomTextField(
-                  label: 'Valor do orçamento',
+                  headerLabel: 'Valor do orçamento',
                   maxLines: 1,
                   controller:
                       TextEditingController(text: formatValue(laborValue)),
@@ -79,7 +79,7 @@ class DeviceValuesWidget extends StatelessWidget {
               const SizedBox(width: 16),
               Expanded(
                 child: CustomTextField(
-                  label: 'Valor do serviço',
+                  headerLabel: 'Valor do serviço',
                   maxLines: 1,
                   controller:
                       TextEditingController(text: formatValue(serviceValue)),

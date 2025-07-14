@@ -45,7 +45,7 @@ class CustomerDeviceTechnicalInfoWidget extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           CustomDropdownButtonFormField(
-            label: 'Técnico',
+            headerLabel: 'Técnico',
             value: controller
                 .deviceCustomer.value.technicianName?.capitalizeAllWords,
             items: technicians.map((e) => e.name.capitalizeAllWords).toList(),

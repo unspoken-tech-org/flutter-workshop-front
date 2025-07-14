@@ -72,7 +72,7 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                             icon: Icons.person_outline),
                         const SizedBox(height: 16),
                         CustomDropdownButtonFormField(
-                          label: 'Tipo de contato',
+                          headerLabel: 'Tipo de contato',
                           items: InputCustomerContact.contactTypes
                               .map((e) => e.displayName)
                               .toList(),
@@ -94,7 +94,7 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                         ),
                         const SizedBox(height: 16),
                         CustomDropdownButtonFormField(
-                          label: 'Contactante',
+                          headerLabel: 'Contactante',
                           items: technicians.map((e) => e.name).toList(),
                           onSave: (value) {
                             inputCustomerContact.technicianId = technicians
@@ -111,7 +111,7 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                         const SizedBox(height: 16),
                         CustomDropdownButtonFormField(
                           key: ValueKey(isContactTypePersonally),
-                          label: 'Número de telefone',
+                          headerLabel: 'Número de telefone',
                           enabled: !isContactTypePersonally,
                           items: deviceCustomer.customerPhones
                               .map((e) => PhoneUtils.formatPhone(e.number))
@@ -135,7 +135,7 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                             icon: Icons.settings_outlined),
                         const SizedBox(height: 16),
                         CustomDropdownButtonFormField(
-                          label: 'Status do aparelho',
+                          headerLabel: 'Status do aparelho',
                           items: StatusEnum.values
                               .map((e) => e.displayName)
                               .toList(),
@@ -154,7 +154,7 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                         ),
                         const SizedBox(height: 16),
                         CustomDropdownButtonFormField(
-                          label: 'Status do contato',
+                          headerLabel: 'Status do contato',
                           items: InputCustomerContact.contactStatuses
                               .map((e) => e.displayName)
                               .toList(),

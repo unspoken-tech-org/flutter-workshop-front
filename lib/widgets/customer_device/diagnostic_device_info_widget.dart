@@ -44,7 +44,7 @@ class DiagnosticDeviceInfoWidget extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           CustomTextField(
-            label: 'Problema',
+            headerLabel: 'Problema',
             controller: TextEditingController(text: problem),
             readOnly: !isEditing,
             hintText: 'Descreva o problema relatado pelo cliente...',
@@ -62,7 +62,7 @@ class DiagnosticDeviceInfoWidget extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           CustomTextField(
-            label: 'Orçamento',
+            headerLabel: 'Orçamento',
             controller: TextEditingController(text: budget),
             readOnly: !isEditing,
             hintText: 'Descreva o orçamento para o conserto...',

@@ -69,7 +69,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               CustomDropdownButtonFormField(
-                label: 'Tipo de Pagamento',
+                headerLabel: 'Tipo de Pagamento',
                 items: PaymentType.values.map((e) => e.displayName).toList(),
                 onSave: (value) {
                   final paymentType = PaymentType.values.firstWhere(
@@ -88,7 +88,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
               ),
               const SizedBox(height: 16),
               CustomTextField(
-                label: 'Valor',
+                headerLabel: 'Valor',
                 value: _inputPayment.value.toBrCurrency,
                 onSave: (value) {
                   _inputPayment = _inputPayment.copyWith(

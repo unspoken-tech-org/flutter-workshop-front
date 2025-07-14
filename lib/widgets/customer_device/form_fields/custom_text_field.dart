@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class CustomTextField extends StatelessWidget {
-  final String? label;
+  final String? headerLabel;
+  final String? fieldLabel;
   final String? value;
   final IconData? icon;
   final TextEditingController? controller;
@@ -17,7 +18,8 @@ class CustomTextField extends StatelessWidget {
 
   const CustomTextField({
     super.key,
-    this.label,
+    this.headerLabel,
+    this.fieldLabel,
     this.value,
     this.icon,
     this.controller,
@@ -29,17 +31,19 @@ class CustomTextField extends StatelessWidget {
     this.hintText,
     this.validator,
     this.onSave,
-  }) : assert(value != null || controller != null,
-            'Either value or controller must be provided.');
+  }) : assert(
+          value != null || controller != null,
+          'Either value or controller must be provided.',
+        );
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (label != null) ...[
+        if (headerLabel != null) ...[
           Text(
-            label!,
+            headerLabel!,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFF374151),
@@ -58,6 +62,7 @@ class CustomTextField extends StatelessWidget {
           validator: validator,
           onSaved: onSave,
           decoration: InputDecoration(
+            labelText: fieldLabel,
             hintText: hintText,
             prefixText: prefixText,
             prefixIcon: icon != null

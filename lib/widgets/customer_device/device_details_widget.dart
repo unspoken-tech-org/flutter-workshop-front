@@ -37,7 +37,7 @@ class DeviceDetailsWidget extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           CustomTextField(
-            label: 'Aparelho',
+            headerLabel: 'Aparelho',
             readOnly: true,
             maxLines: 1,
             value:
@@ -45,7 +45,7 @@ class DeviceDetailsWidget extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           CustomTextField(
-            label: 'Cores',
+            headerLabel: 'Cores',
             readOnly: true,
             value: deviceCustomer.deviceColors.join(', '),
           ),
@@ -55,7 +55,7 @@ class DeviceDetailsWidget extends StatelessWidget {
             children: [
               Expanded(
                 child: CustomTextField(
-                  label: 'Data de entrada',
+                  headerLabel: 'Data de entrada',
                   readOnly: true,
                   maxLines: 1,
                   value: deviceCustomer.entryDate,
@@ -66,7 +66,7 @@ class DeviceDetailsWidget extends StatelessWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: CustomTextField(
-                    label: 'Data de saída',
+                    headerLabel: 'Data de saída',
                     readOnly: true,
                     maxLines: 1,
                     value: deviceCustomer.departureDate ?? '',
