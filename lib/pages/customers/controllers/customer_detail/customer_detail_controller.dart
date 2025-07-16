@@ -14,28 +14,26 @@ class CustomerDetailController {
 
   final ValueNotifier<CustomerModel?> customer = ValueNotifier(null);
   final ValueNotifier<bool> isLoading = ValueNotifier(false);
-  final ValueNotifier<String?> error = ValueNotifier(null);
+
+  InputCustomer updatedCustomerData = InputCustomer.empty();
 
   Future<void> fetchCustomer(int customerId) async {
     isLoading.value = true;
-    error.value = null;
     try {
       final result = await _customerRepository.getCustomer(customerId);
       customer.value = result;
     } catch (e) {
-      error.value = 'Erro ao buscar cliente: $e';
+      _snackBarUtil.showError('Erro ao buscar cliente: $e');
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<bool> updateCustomer(
-      int customerId, InputCustomer customerData) async {
+  Future<bool> updateCustomer(int customerId) async {
     isLoading.value = true;
-    error.value = null;
     try {
-      final result =
-          await _customerRepository.updateCustomer(customerId, customerData);
+      final result = await _customerRepository.updateCustomer(
+          customerId, updatedCustomerData);
       customer.value = result;
       _snackBarUtil.showSuccess('Cliente atualizado com sucesso');
       return true;

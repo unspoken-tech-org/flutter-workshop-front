@@ -22,7 +22,6 @@ class CustomerDetailPage extends StatefulWidget {
 class _CustomerDetailPageState extends State<CustomerDetailPage> {
   late final CustomerDetailController controller;
   final _isEditing = ValueNotifier(false);
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -74,21 +73,22 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                       }
                       return Column(
                         children: [
-                          Column(
-                            children: [
-                              CustomerDetailForm(
-                                formKey: _formKey,
-                                customer: customer,
-                                isEditingNotifier: _isEditing,
-                              ),
-                              const SizedBox(height: 16),
-                              ValueListenableBuilder<bool>(
-                                valueListenable: _isEditing,
-                                builder: (context, isEditing, _) {
-                                  if (isEditing) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return Container(
+                          CustomerDetailForm(
+                            customer: customer,
+                            controller: controller,
+                            isEditingNotifier: _isEditing,
+                          ),
+                          const SizedBox(height: 16),
+                          ValueListenableBuilder<bool>(
+                            valueListenable: _isEditing,
+                            builder: (context, isEditing, _) {
+                              if (isEditing) {
+                                return const SizedBox.shrink();
+                              }
+                              return Column(
+                                children: [
+                                  const SizedBox(height: 8),
+                                  Container(
                                     margin: const EdgeInsets.symmetric(
                                         horizontal: 8),
                                     decoration: BoxDecoration(
@@ -126,12 +126,11 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                                         ),
                                       ],
                                     ),
-                                  );
-                                },
-                              ),
-                            ],
+                                  ),
+                                ],
+                              );
+                            },
                           ),
-                          const SizedBox(height: 16),
                         ],
                       );
                     },

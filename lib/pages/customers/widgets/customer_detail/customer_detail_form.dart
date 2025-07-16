@@ -1,26 +1,30 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/cpf_formatter.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/phone_number_formatter.dart';
 import 'package:flutter_workshop_front/models/customer/customer_model.dart';
 import 'package:flutter_workshop_front/models/customer/input_customer.dart';
-import 'package:flutter_workshop_front/pages/customers/controllers/customer_detail/inherited_customer_detail_controller.dart';
-import 'package:flutter_workshop_front/pages/customers/widgets/customer_detail/customer_detail_header.dart';
+import 'package:flutter_workshop_front/pages/customers/controllers/customer_detail/customer_detail_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/widgets/customer_detail/edit_action_buttons_view.dart';
-import 'package:flutter_workshop_front/pages/customers/widgets/secondary_phone_fields.dart';
+import 'package:flutter_workshop_front/utils/cpf_utils.dart';
+import 'package:flutter_workshop_front/utils/phone_utils.dart';
 import 'package:flutter_workshop_front/utils/validators/cpf_validator.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/form_fields/custom_dropdown_button_form_field.dart';
+import 'package:flutter_workshop_front/widgets/customer_device/form_fields/custom_text_field.dart';
+import 'package:flutter_workshop_front/widgets/shared/secondary_phone_form_field.dart';
 
 class CustomerDetailForm extends StatefulWidget {
-  final GlobalKey<FormState> formKey;
   final CustomerModel customer;
+  final CustomerDetailController controller;
   final ValueNotifier<bool> isEditingNotifier;
 
   const CustomerDetailForm({
     super.key,
-    required this.formKey,
     required this.customer,
+    required this.controller,
     required this.isEditingNotifier,
   });
 
@@ -29,135 +33,66 @@ class CustomerDetailForm extends StatefulWidget {
 }
 
 class CustomerDetailFormState extends State<CustomerDetailForm> {
-  // Controllers
-  late final TextEditingController _idController;
-  late final TextEditingController _nameController;
-  late final TextEditingController _cpfController;
-  late final TextEditingController _emailController;
-  late final TextEditingController _primaryPhoneController;
-  // Formatters
-  final PhoneNumberFormatter _phoneNumberFormatter = PhoneNumberFormatter();
-  final CpfFormatter _cpfFormatter = CpfFormatter();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  int? _primaryPhoneId;
-  String? _selectedGender;
-  final List<Map<String, dynamic>> _secondaryPhoneControllers = [];
+  final List<SecondaryPhoneFormField> _secondaryPhoneFields = [];
 
   @override
   void initState() {
     super.initState();
-    _idController =
-        TextEditingController(text: widget.customer.customerId.toString());
-    _nameController = TextEditingController(text: widget.customer.name);
-    _emailController = TextEditingController(text: widget.customer.email);
-    _selectedGender = widget.customer.gender.capitalizeFirst;
-    String formattedCpf = _formatField(_cpfFormatter, widget.customer.cpf);
-    _cpfController = TextEditingController(text: formattedCpf);
-
-    _primaryPhoneController = TextEditingController();
-    for (var phone in widget.customer.phones) {
-      String formattedPhone = _formatField(_phoneNumberFormatter, phone.number);
-      if (phone.main) {
-        _primaryPhoneId = phone.idCellphone;
-        _primaryPhoneController.text = formattedPhone;
-      } else {
-        _secondaryPhoneControllers.add({
-          'id': phone.idCellphone,
-          'name': TextEditingController(text: phone.name),
-          'number': TextEditingController(text: formattedPhone),
-        });
-      }
-    }
+    _initSecondaryPhoneFields();
   }
 
-  @override
-  void dispose() {
-    _idController.dispose();
-    _nameController.dispose();
-    _cpfController.dispose();
-    _emailController.dispose();
-    _primaryPhoneController.dispose();
-    for (var controllerMap in _secondaryPhoneControllers) {
-      (controllerMap['name'] as TextEditingController?)?.dispose();
-      (controllerMap['number'] as TextEditingController?)?.dispose();
-    }
-    super.dispose();
-  }
-
-  String _formatField<T extends TextInputFormatter>(T formatter, String value) {
-    return formatter
-        .formatEditUpdate(
-          TextEditingValue(text: value),
-          TextEditingValue(text: value),
-        )
-        .text;
-  }
-
-  void resetForm() {
-    setState(() {
-      _nameController.text = widget.customer.name;
-      _cpfController.text = _formatField(_cpfFormatter, widget.customer.cpf);
-      _emailController.text = widget.customer.email ?? '';
-      _selectedGender = widget.customer.gender.capitalizeFirst;
-
-      _secondaryPhoneControllers.clear();
-      for (var phone in widget.customer.phones) {
-        final formattedPhone =
-            _formatField(_phoneNumberFormatter, phone.number);
-        if (phone.main) {
-          _primaryPhoneController.text = formattedPhone;
-          _primaryPhoneId = phone.idCellphone;
-        } else {
-          _secondaryPhoneControllers.add({
-            'id': phone.idCellphone,
-            'name': TextEditingController(text: phone.name),
-            'number': TextEditingController(text: formattedPhone),
-          });
-        }
-      }
+  void _initSecondaryPhoneFields() {
+    widget.customer.phones.where((phone) => !phone.main).forEach((phone) {
+      _secondaryPhoneFields.add(
+        SecondaryPhoneFormField(
+          name: phone.name,
+          number: PhoneUtils.formatPhone(phone.number),
+          onSaved: (value) {
+            _onSaveSecondaryPhone(widget.controller, value);
+          },
+        ),
+      );
     });
   }
 
-  InputCustomer getInput() {
-    final phones = _secondaryPhoneControllers.map((controllerMap) {
-      return InputCustomerPhone(
-        id: controllerMap['id'],
-        number: (controllerMap['number'] as TextEditingController).text,
-        name: (controllerMap['name'] as TextEditingController).text,
-        isPrimary: false,
-      );
-    }).toList();
-
-    phones.add(InputCustomerPhone(
-      id: _primaryPhoneId,
-      number: _primaryPhoneController.text,
-      isPrimary: true,
-    ));
-
-    return InputCustomer(
-      name: _nameController.text,
-      cpf: _cpfController.text.replaceAll(RegExp(r'\D'), ''),
-      email: _emailController.text,
-      gender: _selectedGender,
-      phones: phones,
+  void _onSaveSecondaryPhone(
+      CustomerDetailController controller, PhoneFieldParameters? value) {
+    controller.updatedCustomerData = controller.updatedCustomerData.copyWith(
+      phones: [
+        ...controller.updatedCustomerData.phones,
+        InputCustomerPhone(
+          id: null,
+          number: value?.number ?? '',
+          name: value?.name ?? '',
+          isPrimary: false,
+        ),
+      ],
     );
+  }
+
+  void resetForm() {
+    _secondaryPhoneFields.clear();
+    _initSecondaryPhoneFields();
+    _formKey.currentState?.reset();
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final controller = InheritedCustomerDetailController.of(context);
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Form(
-        key: widget.formKey,
+        key: _formKey,
         child: ValueListenableBuilder<bool>(
           valueListenable: widget.isEditingNotifier,
           builder: (context, isEditing, _) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CustomerDetailHeader(),
-                const SizedBox(height: 32),
+                Text('Detalhes do Cliente', style: WsTextStyles.h1),
+                const SizedBox(height: 16),
                 if (!isEditing) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -171,48 +106,47 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                             customer.name,
                           );
                         },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 18,
+                          ),
+                          backgroundColor: Colors.blue.shade700,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
                         icon: const Icon(Icons.add),
                         label: const Text('Adicionar aparelho'),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 18),
                 ],
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(
                       width: 130,
-                      child: TextFormField(
-                        controller: _idController,
+                      child: CustomTextField(
+                        fieldLabel: 'Id',
+                        value: widget.customer.customerId.toString(),
                         readOnly: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Id',
-                          border: OutlineInputBorder(),
-                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedGender,
-                        items: ['Masculino', 'Feminino', 'Outro']
-                            .map((label) => DropdownMenuItem(
-                                  value: label,
-                                  child: Text(label),
-                                ))
-                            .toList(),
-                        onChanged: isEditing
-                            ? (value) {
-                                setState(() {
-                                  _selectedGender = value;
-                                });
-                              }
-                            : null,
-                        decoration: const InputDecoration(
-                          labelText: 'Sexo',
-                          border: OutlineInputBorder(),
-                        ),
+                      child: CustomDropdownButtonFormField(
+                        value: widget.customer.gender.capitalizeFirst,
+                        fieldLabel: 'Sexo',
+                        items: const ['Masculino', 'Feminino', 'Outro'],
+                        onSave: (value) {
+                          widget.controller.updatedCustomerData =
+                              widget.controller.updatedCustomerData.copyWith(
+                            gender: value,
+                          );
+                        },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Por favor, selecione o sexo';
@@ -229,14 +163,17 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                   children: [
                     Flexible(
                       flex: 2,
-                      child: TextFormField(
-                        controller: _nameController,
+                      child: CustomTextField(
+                        fieldLabel: 'Nome',
                         readOnly: !isEditing,
+                        value: widget.customer.name.capitalizeAllWords,
                         keyboardType: TextInputType.name,
-                        decoration: const InputDecoration(
-                          labelText: 'Nome',
-                          border: OutlineInputBorder(),
-                        ),
+                        onSave: (value) {
+                          widget.controller.updatedCustomerData =
+                              widget.controller.updatedCustomerData.copyWith(
+                            name: value,
+                          );
+                        },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Por favor, insira um nome';
@@ -248,15 +185,18 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                     const SizedBox(width: 16),
                     Flexible(
                       flex: 1,
-                      child: TextFormField(
-                        controller: _cpfController,
+                      child: CustomTextField(
+                        fieldLabel: 'CPF',
                         readOnly: !isEditing,
-                        inputFormatters: [_cpfFormatter],
+                        value: CpfUtils.formatCpf(widget.customer.cpf),
+                        inputFormatters: [CpfFormatter()],
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'CPF',
-                          border: OutlineInputBorder(),
-                        ),
+                        onSave: (value) {
+                          widget.controller.updatedCustomerData =
+                              widget.controller.updatedCustomerData.copyWith(
+                            cpf: value,
+                          );
+                        },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Por favor, insira um CPF';
@@ -276,15 +216,31 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                   children: [
                     Flexible(
                       flex: 1,
-                      child: TextFormField(
-                        controller: _primaryPhoneController,
+                      child: CustomTextField(
+                        fieldLabel: 'Telefone Principal',
+                        value: PhoneUtils.formatPhone(
+                          widget.customer.phones
+                              .firstWhere((phone) => phone.main)
+                              .number,
+                        ),
                         readOnly: !isEditing,
                         inputFormatters: [PhoneNumberFormatter()],
                         keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                          labelText: 'Telefone Principal',
-                          border: OutlineInputBorder(),
-                        ),
+                        onSave: (value) {
+                          widget.controller.updatedCustomerData =
+                              widget.controller.updatedCustomerData.copyWith(
+                            phones: [
+                              ...widget.controller.updatedCustomerData.phones,
+                              InputCustomerPhone(
+                                id: widget.customer.phones
+                                    .firstWhere((phone) => phone.main)
+                                    .idCellphone,
+                                number: value ?? '',
+                                isPrimary: true,
+                              ),
+                            ],
+                          );
+                        },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'O telefone principal é obrigatório';
@@ -301,13 +257,16 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                     const SizedBox(width: 16),
                     Flexible(
                       flex: 1,
-                      child: TextFormField(
-                        controller: _emailController,
+                      child: CustomTextField(
+                        fieldLabel: 'Email',
                         readOnly: !isEditing,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                          border: OutlineInputBorder(),
-                        ),
+                        value: widget.customer.email,
+                        onSave: (value) {
+                          widget.controller.updatedCustomerData =
+                              widget.controller.updatedCustomerData.copyWith(
+                            email: value,
+                          );
+                        },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return null;
@@ -322,57 +281,74 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                SecondaryPhoneFields(
-                  controllers: _secondaryPhoneControllers,
-                  isEditing: isEditing,
-                  onRemoveController: (index) {
-                    setState(() {
-                      (_secondaryPhoneControllers[index]['name']
-                              as TextEditingController?)
-                          ?.dispose();
-                      (_secondaryPhoneControllers[index]['number']
-                              as TextEditingController?)
-                          ?.dispose();
-                      _secondaryPhoneControllers.removeAt(index);
-                    });
-                  },
-                ),
-                if (isEditing && _secondaryPhoneControllers.length < 3)
+                ..._secondaryPhoneFields.mapIndexed((index, widget) {
+                  return Column(
+                    children: [
+                      if (index > 0) const SizedBox(height: 16),
+                      Row(
+                        spacing: 8,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: widget),
+                          if (isEditing)
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              style: IconButton.styleFrom(
+                                iconSize: 32,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _secondaryPhoneFields.removeAt(index);
+                                });
+                              },
+                            )
+                        ],
+                      ),
+                    ],
+                  );
+                }),
+                if (isEditing && _secondaryPhoneFields.length < 3) ...[
+                  const SizedBox(height: 16),
                   TextButton.icon(
                     onPressed: () {
                       setState(() {
-                        _secondaryPhoneControllers.add({
-                          'id': null,
-                          'name': TextEditingController(),
-                          'number': TextEditingController(),
-                        });
+                        _secondaryPhoneFields.add(
+                          SecondaryPhoneFormField(
+                            onSaved: (value) {
+                              _onSaveSecondaryPhone(widget.controller, value);
+                            },
+                          ),
+                        );
                       });
                     },
                     icon: const Icon(Icons.add),
                     label: const Text('Adicionar telefone secundário'),
                   ),
+                ],
                 const SizedBox(height: 16),
                 EditActionButtons(
+                  customerId: widget.customer.customerId,
+                  isEditingNotifier: widget.isEditingNotifier,
                   onCancel: () {
                     resetForm();
                     widget.isEditingNotifier.value = false;
                   },
                   onSave: () async {
-                    if (!(widget.formKey.currentState?.validate() ?? false)) {
+                    if (!(_formKey.currentState?.validate() ?? false)) {
                       return;
                     }
+                    widget.controller.updatedCustomerData =
+                        InputCustomer.empty();
 
-                    final input = getInput();
-                    final success = await controller.updateCustomer(
+                    _formKey.currentState?.save();
+
+                    final success = await widget.controller.updateCustomer(
                       widget.customer.customerId,
-                      input,
                     );
                     if (success) {
                       widget.isEditingNotifier.value = false;
                     }
                   },
-                  customerId: widget.customer.customerId,
-                  isEditingNotifier: widget.isEditingNotifier,
                 ),
               ],
             );

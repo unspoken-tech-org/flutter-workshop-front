@@ -15,6 +15,23 @@ class InputCustomer extends Equatable {
     this.phones = const [],
   });
 
+  factory InputCustomer.empty() => const InputCustomer();
+
+  InputCustomer copyWith({
+    String? name,
+    String? email,
+    String? cpf,
+    String? gender,
+    List<InputCustomerPhone>? phones,
+  }) =>
+      InputCustomer(
+        name: name ?? this.name,
+        email: email ?? this.email,
+        cpf: cpf ?? this.cpf,
+        gender: gender ?? this.gender,
+        phones: phones ?? this.phones,
+      );
+
   Map<String, dynamic> toJson() => {
         'name': name,
         'email': email,

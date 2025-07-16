@@ -29,8 +29,15 @@ class EditActionButtons extends StatelessWidget {
                   isEditingNotifier.value = false;
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  foregroundColor: Colors.black87,
+                  backgroundColor: Colors.white.withAlpha(230),
                 ),
                 child: const Text('Cancelar'),
               ),
@@ -40,7 +47,14 @@ class EditActionButtons extends StatelessWidget {
                   onSave();
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6750a4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  backgroundColor: Colors.black87,
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('Salvar'),
@@ -53,6 +67,17 @@ class EditActionButtons extends StatelessWidget {
           children: [
             ElevatedButton(
               onPressed: () => isEditingNotifier.value = true,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                foregroundColor: Colors.black87,
+                backgroundColor: Colors.white.withAlpha(230),
+              ),
               child: const Text('Editar'),
             ),
           ],
