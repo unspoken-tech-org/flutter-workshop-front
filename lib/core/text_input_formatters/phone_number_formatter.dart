@@ -3,19 +3,16 @@ import 'package:flutter/services.dart';
 class PhoneNumberFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    final String newText = newValue.text;
-    final String oldText = oldValue.text;
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final newText = newValue.text;
 
-    String newDigitsOnly = newText.replaceAll(RegExp(r'\D'), '');
-
-    final int newDigitsLength = newDigitsOnly.length;
+    final newDigitsOnly = newText.replaceAll(RegExp(r'\D'), '');
+    final newDigitsLength = newDigitsOnly.length;
 
     if (newDigitsLength > 11) {
-      return TextEditingValue(
-        text: oldText,
-        selection: TextSelection.collapsed(offset: oldText.length),
-      );
+      return oldValue;
     }
 
     if (newDigitsLength == 0) {
@@ -25,33 +22,37 @@ class PhoneNumberFormatter extends TextInputFormatter {
       );
     }
 
-    final StringBuffer buffer = StringBuffer();
+    final buffer = StringBuffer();
+    final isElevenDigits = newDigitsLength > 10;
 
+    buffer.write('(');
+    buffer.write(
+      newDigitsOnly.substring(0, newDigitsLength > 2 ? 2 : newDigitsLength),
+    );
     // (XX
-    if (newDigitsLength > 0) {
-      buffer.write('(');
-      String dddDigits =
-          newDigitsOnly.substring(0, newDigitsLength > 1 ? 2 : 1);
-      buffer.write(dddDigits);
-    }
-
-    // ) XXXXX
     if (newDigitsLength > 2) {
       buffer.write(') ');
 
-      int index = newDigitsLength > 7 ? 7 : newDigitsLength;
-      String firstFiveDigits = newDigitsOnly.substring(2, index);
-      buffer.write(firstFiveDigits);
+      // ) XXXXX
+      if (isElevenDigits) {
+        final firstPart = newDigitsOnly.substring(2, 7);
+        buffer.write(firstPart);
+        buffer.write('-');
+        buffer.write(newDigitsOnly.substring(7));
+      } else {
+        // ) XXXX
+        final firstPartLength = newDigitsLength > 6 ? 4 : newDigitsLength - 2;
+        final firstPart = newDigitsOnly.substring(2, 2 + firstPartLength);
+        buffer.write(firstPart);
+
+        if (newDigitsLength > 6) {
+          buffer.write('-');
+          buffer.write(newDigitsOnly.substring(6));
+        }
+      }
     }
 
-    // -XXXXX
-    if (newDigitsLength > 7) {
-      buffer.write('-');
-      String lastFourDigits = newDigitsOnly.substring(7, newDigitsLength);
-      buffer.write(lastFourDigits);
-    }
-
-    String formattedText = buffer.toString();
+    final formattedText = buffer.toString();
 
     return TextEditingValue(
       text: formattedText,
