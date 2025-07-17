@@ -31,10 +31,7 @@ class CustomTextField extends StatelessWidget {
     this.hintText,
     this.validator,
     this.onSave,
-  }) : assert(
-          value != null || controller != null,
-          'Either value or controller must be provided.',
-        );
+  });
 
   @override
   Widget build(BuildContext context) {

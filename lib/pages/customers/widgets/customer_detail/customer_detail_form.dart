@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
@@ -15,6 +14,7 @@ import 'package:flutter_workshop_front/utils/validators/cpf_validator.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/form_fields/custom_dropdown_button_form_field.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/form_fields/custom_text_field.dart';
 import 'package:flutter_workshop_front/widgets/shared/secondary_phone_form_field.dart';
+import 'package:flutter_workshop_front/widgets/shared/secondary_phones_widget.dart';
 
 class CustomerDetailForm extends StatefulWidget {
   final CustomerModel customer;
@@ -41,6 +41,12 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
   void initState() {
     super.initState();
     _initSecondaryPhoneFields();
+  }
+
+  @override
+  void dispose() {
+    _formKey.currentState?.dispose();
+    super.dispose();
   }
 
   void _initSecondaryPhoneFields() {
@@ -281,50 +287,25 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                ..._secondaryPhoneFields.mapIndexed((index, widget) {
-                  return Column(
-                    children: [
-                      if (index > 0) const SizedBox(height: 16),
-                      Row(
-                        spacing: 8,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(child: widget),
-                          if (isEditing)
-                            IconButton(
-                              icon: const Icon(Icons.delete),
-                              style: IconButton.styleFrom(
-                                iconSize: 32,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _secondaryPhoneFields.removeAt(index);
-                                });
-                              },
-                            )
-                        ],
-                      ),
-                    ],
-                  );
-                }),
-                if (isEditing && _secondaryPhoneFields.length < 3) ...[
-                  const SizedBox(height: 16),
-                  TextButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _secondaryPhoneFields.add(
-                          SecondaryPhoneFormField(
-                            onSaved: (value) {
-                              _onSaveSecondaryPhone(widget.controller, value);
-                            },
-                          ),
-                        );
-                      });
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Adicionar telefone secundário'),
-                  ),
-                ],
+                ValueListenableBuilder<CustomerModel?>(
+                  valueListenable: widget.controller.customer,
+                  builder: (context, customer, _) {
+                    return SecondaryPhonesWidget(
+                      key: ValueKey(customer?.phones.hashCode),
+                      initialPhones: customer?.phones
+                          .where((phone) => !phone.main)
+                          .map((phone) => PhoneFieldParameters(
+                                name: phone.name,
+                                number: phone.number,
+                              ))
+                          .toList(),
+                      isEditing: isEditing,
+                      onSaved: (value) {
+                        _onSaveSecondaryPhone(widget.controller, value);
+                      },
+                    );
+                  },
+                ),
                 const SizedBox(height: 16),
                 EditActionButtons(
                   customerId: widget.customer.customerId,
