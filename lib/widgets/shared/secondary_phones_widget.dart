@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/utils/phone_utils.dart';
-import 'package:flutter_workshop_front/widgets/shared/secondary_phone_form_field.dart';
+import 'package:flutter_workshop_front/widgets/form_fields/secondary_phone_form_field.dart';
 
 class SecondaryPhonesWidget extends StatefulWidget {
   final List<PhoneFieldParameters>? initialPhones;

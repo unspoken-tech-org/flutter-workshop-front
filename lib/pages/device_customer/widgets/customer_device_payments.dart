@@ -5,7 +5,7 @@ import 'package:flutter_workshop_front/pages/device_customer/controllers/inherit
 import 'package:flutter_workshop_front/pages/device_customer/widgets/customer_device_payment_item.dart';
 import 'package:flutter_workshop_front/pages/device_customer/widgets/empty_payments_widget.dart';
 import 'package:flutter_workshop_front/pages/device_customer/widgets/payment_totals_widget.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/dialogs/add_new_payment_dialog.dart';
+import 'package:flutter_workshop_front/pages/device_customer/widgets/dialogs/add_new_payment_dialog.dart';
 
 class CustomerDevicePayments extends StatefulWidget {
   const CustomerDevicePayments({super.key});

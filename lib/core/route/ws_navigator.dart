@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/pages/customers/all_customers_page.dart';
-import 'package:flutter_workshop_front/pages/customers/customer_detail_page.dart';
-import 'package:flutter_workshop_front/pages/customers/customer_register_page.dart';
+import 'package:flutter_workshop_front/pages/customers/all_customers/all_customers_page.dart';
+import 'package:flutter_workshop_front/pages/customers/customer_detail/customer_detail_page.dart';
+import 'package:flutter_workshop_front/pages/customers/customer_register/customer_register_page.dart';
 import 'package:flutter_workshop_front/pages/device_customer/customer_device_page.dart';
 import 'package:flutter_workshop_front/pages/device/device_register_page.dart';
 import 'package:flutter_workshop_front/pages/home/home.dart';

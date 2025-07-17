@@ -3,8 +3,8 @@ import 'package:flutter_workshop_front/pages/device_customer/controllers/device_
 import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/pages/device_customer/widgets/customer_device_payments.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/customer_device_infos_widget.dart';
-import 'package:flutter_workshop_front/widgets/customer_device/device_tabs_widget.dart';
+import 'package:flutter_workshop_front/pages/device_customer/widgets/customer_device_infos_widget.dart';
+import 'package:flutter_workshop_front/pages/device_customer/widgets/tabs/device_tabs_widget.dart';
 
 import 'package:shimmer/shimmer.dart';
 
