@@ -1,15 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 
 class DeviceStatusChip extends StatefulWidget {
   final StatusEnum status;
-  final Function(StatusEnum status)? onTap;
+  final Function(StatusEnum status)? onSelect;
 
   const DeviceStatusChip({
     super.key,
     required this.status,
-    this.onTap,
+    this.onSelect,
   });
 
   @override
@@ -19,7 +21,7 @@ class DeviceStatusChip extends StatefulWidget {
 class _DeviceStatusChipState extends State<DeviceStatusChip> {
   OverlayEntry? _overlayEntry;
   final LayerLink _layerLink = LayerLink();
-  bool _isOverlayHovered = false;
+  Timer? _onExitOverlayTimer;
   late StatusEnum currentStatus;
 
   @override
@@ -30,12 +32,24 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
 
   @override
   void dispose() {
+    _onExitOverlayTimer?.cancel();
     _removeOverlay();
     super.dispose();
   }
 
+  void _startOnExitOverlayTimer() {
+    _onExitOverlayTimer?.cancel();
+    _onExitOverlayTimer = Timer(const Duration(milliseconds: 100), () {
+      _removeOverlay();
+    });
+  }
+
   void _showOverlay(BuildContext context) {
-    _removeOverlay();
+    _onExitOverlayTimer?.cancel();
+
+    if (_overlayEntry != null) {
+      return;
+    }
 
     _overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
@@ -45,11 +59,10 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
           offset: const Offset(0, 30),
           child: MouseRegion(
             onEnter: (_) {
-              _isOverlayHovered = true;
+              _onExitOverlayTimer?.cancel();
             },
             onExit: (_) {
-              _isOverlayHovered = false;
-              _removeOverlay();
+              _startOnExitOverlayTimer();
             },
             child: Material(
               elevation: 4,
@@ -67,10 +80,10 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
                   children: StatusEnum.values
                       .map((status) => TextButton(
                             onPressed: () {
-                              widget.onTap?.call(status);
+                              _onExitOverlayTimer?.cancel();
+                              widget.onSelect?.call(status);
                               setState(() {
                                 currentStatus = status;
-                                _isOverlayHovered = false;
                               });
                               _removeOverlay();
                             },
@@ -112,23 +125,18 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
   }
 
   void _removeOverlay() {
-    if (!_isOverlayHovered) {
-      _overlayEntry?.remove();
-      _overlayEntry = null;
-    }
+    _overlayEntry?.remove();
+    _overlayEntry = null;
   }
 
   @override
   Widget build(BuildContext context) {
     final (backgroundColor, textColor) = currentStatus.colors;
-    return CompositedTransformTarget(
-      link: _layerLink,
-      child: MouseRegion(
-        onEnter: (_) => _showOverlay(context),
-        onExit: (_) => Future.delayed(
-          const Duration(milliseconds: 100),
-          () => _removeOverlay(),
-        ),
+    return MouseRegion(
+      onEnter: (_) => _showOverlay(context),
+      onExit: (_) => _startOnExitOverlayTimer(),
+      child: CompositedTransformTarget(
+        link: _layerLink,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(

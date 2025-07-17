@@ -66,7 +66,7 @@ class _CustomerDeviceInfoHeaderWidgetState
                 ),
                 DeviceStatusChip(
                   status: deviceCustomer.deviceStatus,
-                  onTap: (status) async {
+                  onSelect: (status) async {
                     await controller.updateDeviceStatus(status);
                     setState(() {});
                   },
