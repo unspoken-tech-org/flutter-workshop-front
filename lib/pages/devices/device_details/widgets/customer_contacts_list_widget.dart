@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/contact_card.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/dialogs/add_contact_modal_dialog.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_contact_modal_dialog.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/contact_card.dart';
 import 'package:flutter_workshop_front/widgets/shared/empty_list_widget.dart';
 
 class CustomerContactsListWidget extends StatelessWidget {

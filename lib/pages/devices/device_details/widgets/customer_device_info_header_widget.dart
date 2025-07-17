@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_phones.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/device_status_chip.dart';
 import 'package:flutter_workshop_front/utils/phone_utils.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/device_status_chip.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/revision_chip.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/urgency_chip.dart';
 

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers/all_customers_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/customer_detail_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_register/customer_register_page.dart';
-import 'package:flutter_workshop_front/pages/device_customer/customer_device_page.dart';
-import 'package:flutter_workshop_front/pages/device/device_register_page.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/device_details_page.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/device_register_page.dart';
 import 'package:flutter_workshop_front/pages/home/home.dart';
 import 'package:go_router/go_router.dart';
 
@@ -31,13 +31,13 @@ class WsNavigator {
     context.pushNamed(CustomerRegisterPage.route);
   }
 
-  static void pushDevice(BuildContext context, int deviceId,
+  static void pushDeviceDetails(BuildContext context, int deviceId,
       {bool replaced = false}) {
     if (replaced) {
-      context.pushReplacementNamed(CustomerDevicePage.route,
+      context.pushReplacementNamed(DeviceDetailsPage.route,
           pathParameters: {'id': deviceId.toString()});
     } else {
-      context.pushNamed(CustomerDevicePage.route,
+      context.pushNamed(DeviceDetailsPage.route,
           pathParameters: {'id': deviceId.toString()});
     }
   }

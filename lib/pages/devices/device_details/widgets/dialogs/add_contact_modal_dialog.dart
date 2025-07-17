@@ -3,7 +3,7 @@ import 'package:flutter_workshop_front/core/design/ws_colors.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/utils/phone_utils.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_date_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';

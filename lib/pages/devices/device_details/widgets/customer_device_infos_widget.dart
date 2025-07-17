@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/customer_device_info_header_widget.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/customer_device_observation_widget.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/customer_device_technical_info_widget.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/device_customer_cancel_button.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/device_customer_save_button.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/device_details_widget.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_info_header_widget.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_observation_widget.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_technical_info_widget.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/device_customer_cancel_button.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/device_customer_save_button.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/device_details_widget.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/diagnostic_device_info_widget.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/device_values_widget.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/diagnostic_device_info_widget.dart';
 
 class CustomerDeviceInfosWidget extends StatefulWidget {
   const CustomerDeviceInfosWidget({super.key});

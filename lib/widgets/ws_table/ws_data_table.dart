@@ -52,7 +52,7 @@ class WsDataTable extends StatelessWidget {
           DataCell(
             Text(e.customerName),
             onTap: () {
-              WsNavigator.pushDevice(context, e.deviceId);
+              WsNavigator.pushDeviceDetails(context, e.deviceId);
             },
           ),
           DataCell(Text(e.type)),

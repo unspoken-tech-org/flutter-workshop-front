@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/device_customer_page_controller.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/customer_device_payments.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_infos_widget.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_payments.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/tabs/device_tabs_widget.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/customer_device_infos_widget.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/tabs/device_tabs_widget.dart';
 
 import 'package:shimmer/shimmer.dart';
 
-class CustomerDevicePage extends StatefulWidget {
-  static const route = 'device';
+class DeviceDetailsPage extends StatefulWidget {
+  static const route = 'device-details';
   final int deviceId;
-  const CustomerDevicePage({super.key, required this.deviceId});
+  const DeviceDetailsPage({super.key, required this.deviceId});
 
   @override
-  State<CustomerDevicePage> createState() => _CustomerDevicePageState();
+  State<DeviceDetailsPage> createState() => _DeviceDetailsPageState();
 }
 
-class _CustomerDevicePageState extends State<CustomerDevicePage> {
+class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   final _scrollController = ScrollController();
 
   final DeviceCustomerPageController deviceCustomerPageController =

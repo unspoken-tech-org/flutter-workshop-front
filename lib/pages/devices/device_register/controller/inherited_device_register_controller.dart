@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/pages/device/controller/device_register_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
 
 class InheritedDeviceRegisterController extends InheritedWidget {
   final DeviceRegisterController controller;

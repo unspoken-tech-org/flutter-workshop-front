@@ -3,8 +3,8 @@ import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers/all_customers_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/customer_detail_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_register/customer_register_page.dart';
-import 'package:flutter_workshop_front/pages/device/device_register_page.dart';
-import 'package:flutter_workshop_front/pages/device_customer/customer_device_page.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/device_details_page.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/device_register_page.dart';
 import 'package:flutter_workshop_front/pages/home/home.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/widgets/ws_drawer_item.dart';
 import 'package:go_router/go_router.dart';
@@ -108,7 +108,7 @@ class _WsDrawerState extends State<WsDrawer> {
                   WsNavigator.pushCustomers(context);
                 }),
             if ([
-              CustomerDevicePage.route,
+              DeviceDetailsPage.route,
               DeviceRegisterPage.route,
             ].contains(widget.currentRoute))
               WsDrawerItem(
@@ -117,7 +117,7 @@ class _WsDrawerState extends State<WsDrawer> {
                 icon: Icons.local_laundry_service,
                 title: 'Aparelhos',
                 route: const [
-                  CustomerDevicePage.route,
+                  DeviceDetailsPage.route,
                   DeviceRegisterPage.route,
                 ],
                 onTap: () {},

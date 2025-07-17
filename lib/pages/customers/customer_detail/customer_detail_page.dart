@@ -118,7 +118,7 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                                               customerDevices:
                                                   customer.customerDevices,
                                               onTap: (id) {
-                                                WsNavigator.pushDevice(
+                                                WsNavigator.pushDeviceDetails(
                                                     context, id);
                                               },
                                             ),

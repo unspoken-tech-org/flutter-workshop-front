@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/currency_input_formatter.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
 import 'package:intl/intl.dart';
 

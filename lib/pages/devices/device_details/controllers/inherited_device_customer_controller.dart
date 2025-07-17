@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/device_customer_page_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 
 class InheritedDeviceCustomerController extends InheritedWidget {
   final DeviceCustomerPageController controller;

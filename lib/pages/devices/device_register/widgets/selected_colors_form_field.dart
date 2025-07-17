@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/colors/color_model.dart';
-import 'package:flutter_workshop_front/pages/device/controller/inherited_device_register_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/controller/inherited_device_register_controller.dart';
 
 class SelectedColorsFormField extends StatelessWidget {
   const SelectedColorsFormField({super.key});

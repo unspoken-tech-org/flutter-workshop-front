@@ -8,12 +8,12 @@ import 'package:flutter_workshop_front/models/device/device_input.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/models/types_brands_models/type_brand_model_input.dart';
 import 'package:flutter_workshop_front/models/types_brands_models/types_brands_models.dart';
-import 'package:flutter_workshop_front/pages/device/controller/device_register_controller.dart';
-import 'package:flutter_workshop_front/pages/device/controller/inherited_device_register_controller.dart';
-import 'package:flutter_workshop_front/pages/device/widgets/autocomplete_form_field.dart';
-import 'package:flutter_workshop_front/pages/device/widgets/customer_info_form_field.dart';
-import 'package:flutter_workshop_front/pages/device/widgets/selected_colors_form_field.dart';
-import 'package:flutter_workshop_front/pages/device/widgets/urgency_switch.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/controller/inherited_device_register_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/widgets/autocomplete_form_field.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/widgets/customer_info_form_field.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/widgets/selected_colors_form_field.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/widgets/urgency_switch.dart';
 
 class DeviceRegisterForm extends StatefulWidget {
   const DeviceRegisterForm({super.key});
@@ -105,7 +105,7 @@ class _DeviceRegisterFormState extends State<DeviceRegisterForm> {
       final deviceInput = _getDeviceInput(controller);
       int? deviceId = await controller.createDevice(deviceInput);
       if (deviceId != null && context.mounted) {
-        WsNavigator.pushDevice(context, deviceId, replaced: true);
+        WsNavigator.pushDeviceDetails(context, deviceId, replaced: true);
       }
     }
   }

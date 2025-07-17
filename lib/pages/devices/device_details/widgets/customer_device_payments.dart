@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/customer_device_payment_item.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/empty_payments_widget.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/payment_totals_widget.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/dialogs/add_new_payment_dialog.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_new_payment_dialog.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_payment_item.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/empty_payments_widget.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/payment_totals_widget.dart';
 
 class CustomerDevicePayments extends StatefulWidget {
   const CustomerDevicePayments({super.key});

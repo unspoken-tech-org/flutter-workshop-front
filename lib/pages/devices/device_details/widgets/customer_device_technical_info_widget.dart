@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
 
 class CustomerDeviceTechnicalInfoWidget extends StatelessWidget {

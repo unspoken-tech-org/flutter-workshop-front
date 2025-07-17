@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/customer_contacts_list_widget.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_contacts_list_widget.dart';
 
 class CustomerContactsTab extends StatefulWidget {
   const CustomerContactsTab({super.key});

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
-import 'package:flutter_workshop_front/pages/device_customer/controllers/inherited_device_customer_controller.dart';
-import 'package:flutter_workshop_front/pages/device_customer/widgets/tabs/customer_contacts_tab.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/tabs/customer_contacts_tab.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/customer_devices_list.dart';
 import 'package:flutter_workshop_front/widgets/shared/empty_list_widget.dart';
 
@@ -75,7 +75,7 @@ class DeviceTabsWidget extends StatelessWidget {
                         customerDevices:
                             controller.deviceCustomer.value.otherDevices,
                         onTap: (id) {
-                          WsNavigator.pushDevice(context, id);
+                          WsNavigator.pushDeviceDetails(context, id);
                         },
                       ),
                     ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/pages/device/controller/device_register_controller.dart';
-import 'package:flutter_workshop_front/pages/device/controller/inherited_device_register_controller.dart';
-import 'package:flutter_workshop_front/pages/device/widgets/device_register_form.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/controller/inherited_device_register_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/widgets/device_register_form.dart';
 import 'package:flutter_workshop_front/services/color/color_service.dart';
 import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
 import 'package:flutter_workshop_front/services/technician/technician_service.dart';
