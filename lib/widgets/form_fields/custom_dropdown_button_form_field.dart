@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class CustomDropdownButtonFormField extends StatelessWidget {
   final String? headerLabel;
   final String? fieldLabel;
+  final String? hintText;
   final List<String> items;
   final String? value;
   final void Function(String value) onSave;
@@ -14,6 +15,7 @@ class CustomDropdownButtonFormField extends StatelessWidget {
     super.key,
     this.headerLabel,
     this.fieldLabel,
+    this.hintText,
     required this.items,
     required this.onSave,
     this.value,
@@ -43,6 +45,8 @@ class CustomDropdownButtonFormField extends StatelessWidget {
           value: value,
           decoration: InputDecoration(
             labelText: fieldLabel,
+            hintText: hintText,
+            hintStyle: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
             border: const OutlineInputBorder(),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),

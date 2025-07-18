@@ -13,8 +13,12 @@ class CustomTextField extends StatelessWidget {
   final String? prefixText;
   final int? maxLines;
   final String? hintText;
+  final FocusNode? focusNode;
+  final Widget? suffixIcon;
   final String? Function(String?)? validator;
   final void Function(String?)? onSave;
+  final void Function(String)? onFieldSubmitted;
+  final void Function(String)? onChanged;
 
   const CustomTextField({
     super.key,
@@ -27,10 +31,14 @@ class CustomTextField extends StatelessWidget {
     this.inputFormatters,
     this.keyboardType,
     this.prefixText,
-    this.maxLines,
     this.hintText,
+    this.focusNode,
+    this.suffixIcon,
     this.validator,
     this.onSave,
+    this.onFieldSubmitted,
+    this.onChanged,
+    this.maxLines = 1,
   });
 
   @override
@@ -56,11 +64,16 @@ class CustomTextField extends StatelessWidget {
           inputFormatters: inputFormatters,
           keyboardType: keyboardType,
           maxLines: maxLines,
+          focusNode: focusNode,
           validator: validator,
           onSaved: onSave,
+          onFieldSubmitted: onFieldSubmitted,
+          onChanged: onChanged,
           decoration: InputDecoration(
             labelText: fieldLabel,
             hintText: hintText,
+            suffixIcon: suffixIcon,
+            hintStyle: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
             prefixText: prefixText,
             prefixIcon: icon != null
                 ? Icon(icon, size: 20, color: Colors.grey.shade600)

@@ -37,7 +37,8 @@ class DeviceRegisterController {
   final ValueNotifier<List<ColorModel>> selectedColors = ValueNotifier([]);
 
   final ValueNotifier<bool> isLoading = ValueNotifier(false);
-  final ValueNotifier<bool> isCreatingDevice = ValueNotifier(false);
+
+  DeviceInput inputDevice = DeviceInput.empty();
 
   Future<void> init(int customerId, String customerName) async {
     this.customerId = customerId;
@@ -78,19 +79,20 @@ class DeviceRegisterController {
     }
   }
 
-  Future<int?> createDevice(DeviceInput device) async {
+  Future<int?> createDevice() async {
     try {
-      isCreatingDevice.value = true;
+      inputDevice = inputDevice.copyWith(
+        customerId: customerId,
+      );
+
       final deviceCustomer =
-          await _deviceCustomerService.createDeviceCustomer(device);
+          await _deviceCustomerService.createDeviceCustomer(inputDevice);
 
       SnackBarUtil().showSuccess('Dispositivo criado com sucesso');
       return deviceCustomer.deviceId;
     } catch (e) {
       SnackBarUtil().showError('Erro ao criar dispositivo');
       return null;
-    } finally {
-      isCreatingDevice.value = false;
     }
   }
 
