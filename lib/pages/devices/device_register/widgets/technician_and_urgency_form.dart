@@ -49,7 +49,8 @@ class TechnicianAndUrgencyForm extends StatelessWidget {
                       .toList(),
                   onSave: (value) {
                     final technicianId = controller.technicians.value
-                        .firstWhereOrNull((t) => t.name == value)
+                        .firstWhereOrNull(
+                            (t) => t.name.toLowerCase() == value.toLowerCase())
                         ?.id;
 
                     controller.inputDevice = controller.inputDevice.copyWith(

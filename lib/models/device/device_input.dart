@@ -53,6 +53,7 @@ class DeviceInput {
       'observation': observation,
       'budgetValue': budgetValue,
       'hasUrgency': hasUrgency,
+      'technicianId': technicianId,
       'typeBrandModel': typeBrandModel?.toJson(),
       'colors': colors,
     };
