@@ -546,7 +546,7 @@ class StatusFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (backgroundColor, textColor) = status.colors;
+    final (backgroundColor, borderColor, textColor) = status.colors;
 
     return OutlinedButton(
       style: OutlinedButton.styleFrom(

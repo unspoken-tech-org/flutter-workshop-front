@@ -12,18 +12,19 @@ class StatusCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (backgroundColor, textColor) = status.colors;
+    final (backgroundColor, borderColor, textColor) = status.colors;
     return Container(
       padding: padding,
       decoration: BoxDecoration(
         color: backgroundColor,
+        border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
         status.displayName,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
           color: textColor,
         ),
       ),

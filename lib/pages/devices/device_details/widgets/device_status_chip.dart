@@ -77,42 +77,44 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: StatusEnum.values
-                      .map((status) => TextButton(
-                            onPressed: () {
-                              _onExitOverlayTimer?.cancel();
-                              widget.onSelect?.call(status);
-                              setState(() {
-                                currentStatus = status;
-                              });
-                              _removeOverlay();
-                            },
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              overlayColor: Colors.transparent,
+                  children: StatusEnum.values.map((status) {
+                    final (backgroundColor, borderColor, textColor) =
+                        status.colors;
+                    return TextButton(
+                      onPressed: () {
+                        _onExitOverlayTimer?.cancel();
+                        widget.onSelect?.call(status);
+                        setState(() {
+                          currentStatus = status;
+                        });
+                        _removeOverlay();
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        overlayColor: Colors.transparent,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: textColor,
+                              shape: BoxShape.circle,
                             ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    color: status.colors.$2,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  status.displayName,
-                                  style: WsTextStyles.body2
-                                      .copyWith(color: status.colors.$2),
-                                ),
-                              ],
-                            ),
-                          ))
-                      .toList(),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            status.displayName,
+                            style:
+                                WsTextStyles.body2.copyWith(color: textColor),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
             ),
@@ -131,7 +133,7 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
 
   @override
   Widget build(BuildContext context) {
-    final (backgroundColor, textColor) = currentStatus.colors;
+    final (backgroundColor, borderColor, textColor) = currentStatus.colors;
     return MouseRegion(
       onEnter: (_) => _showOverlay(context),
       onExit: (_) => _startOnExitOverlayTimer(),
@@ -141,6 +143,7 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
             color: backgroundColor,
+            border: Border.all(color: borderColor),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(

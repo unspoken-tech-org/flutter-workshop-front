@@ -38,18 +38,37 @@ enum StatusEnum {
 }
 
 extension StatusEnumExtension on StatusEnum {
-  (Color backgroundColor, Color textColor) get colors => switch (this) {
-        StatusEnum.newDevice => (Colors.green.shade100, Colors.green),
-        StatusEnum.inProgress => (Colors.blue.shade100, Colors.blue),
+  (Color backgroundColor, Color borderColor, Color textColor) get colors =>
+      switch (this) {
+        StatusEnum.newDevice => (
+            Colors.green.shade100,
+            Colors.green.shade200,
+            Colors.green.shade800
+          ),
+        StatusEnum.inProgress => (
+            Colors.blue.shade100,
+            Colors.blue.shade200,
+            Colors.indigo.shade800
+          ),
         StatusEnum.delivered => (
-            Colors.yellow.shade100,
-            Colors.yellow.shade800
+            Colors.lime.shade100,
+            Colors.lime.shade200,
+            Colors.lime.shade800
           ),
         StatusEnum.waitingApproval => (
-            Colors.lime.shade100,
-            Colors.lime.shade700
+            Colors.yellow.shade100,
+            Colors.yellow.shade200,
+            Colors.yellow.shade800
           ),
-        StatusEnum.disposed => (Colors.red.shade100, Colors.red),
-        StatusEnum.ready => (Colors.purple.shade100, Colors.purple),
+        StatusEnum.disposed => (
+            Colors.red.shade50,
+            Colors.red.shade100,
+            Colors.red.shade800
+          ),
+        StatusEnum.ready => (
+            Colors.green.shade100,
+            Colors.green.shade200,
+            Colors.green.shade800
+          ),
       };
 }
