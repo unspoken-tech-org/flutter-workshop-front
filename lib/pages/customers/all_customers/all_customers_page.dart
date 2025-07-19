@@ -7,6 +7,7 @@ import 'package:flutter_workshop_front/pages/customers/all_customers/widgets/cus
 import 'package:flutter_workshop_front/pages/customers/all_customers/widgets/customers_list_shimmer.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
 import 'package:flutter_workshop_front/widgets/shared/empty_list_widget.dart';
+import 'package:flutter_workshop_front/widgets/ws_search_bar_widget.dart';
 
 class AllCustomersPage extends StatefulWidget {
   static const String route = 'customers';
@@ -19,26 +20,20 @@ class AllCustomersPage extends StatefulWidget {
 
 class _AllCustomersPageState extends State<AllCustomersPage> {
   late final AllCustomerController _controller;
-  final _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _controller = AllCustomerController();
-    _searchController.addListener(() {
-      setState(() {});
-    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _searchController.dispose();
     super.dispose();
   }
 
   void clearSearch() {
-    _searchController.clear();
     _controller.searchCustomers(null);
   }
 
@@ -77,37 +72,10 @@ class _AllCustomersPageState extends State<AllCustomersPage> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                TextField(
-                  controller: _searchController,
+                WsSearchBarWidget(
+                  labelText: 'Buscar por nome, CPF, ID ou telefone',
                   onChanged: _controller.searchCustomers,
-                  decoration: InputDecoration(
-                    labelText: 'Buscar por nome, CPF, ID ou telefone',
-                    labelStyle: WsTextStyles.body1.copyWith(
-                      color: Colors.grey.shade400,
-                    ),
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: Colors.grey.shade400,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: BorderSide(
-                        color: Colors.grey.shade400,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: BorderSide(
-                        color: Colors.blue.shade700,
-                      ),
-                    ),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: clearSearch,
-                          )
-                        : null,
-                  ),
+                  onClear: clearSearch,
                 ),
                 const SizedBox(height: 16),
                 Expanded(
