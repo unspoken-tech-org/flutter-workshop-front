@@ -6,7 +6,7 @@ class CustomDropdownButtonFormField extends StatelessWidget {
   final String? hintText;
   final List<String> items;
   final String? value;
-  final void Function(String value) onSave;
+  final void Function(String value)? onSave;
   final void Function(String? value)? onChanged;
   final String? Function(String? value)? validator;
   final bool enabled;
@@ -17,7 +17,7 @@ class CustomDropdownButtonFormField extends StatelessWidget {
     this.fieldLabel,
     this.hintText,
     required this.items,
-    required this.onSave,
+    this.onSave,
     this.value,
     this.validator,
     this.onChanged,
@@ -83,7 +83,7 @@ class CustomDropdownButtonFormField extends StatelessWidget {
           onChanged: !enabled ? null : (onChanged ?? (value) {}),
           validator: validator,
           onSaved: (value) {
-            onSave(value ?? '');
+            onSave?.call(value ?? '');
           },
         ),
       ],

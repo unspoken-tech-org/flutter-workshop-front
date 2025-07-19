@@ -4,7 +4,7 @@ import 'package:flutter_workshop_front/models/device_brand/device_brand_model.da
 class DeviceBrandService {
   final Dio dio = Dio();
 
-  Future<List<DeviceBrandModel>> getAllDeviceBrands([String? name]) async {
+  Future<List<DeviceBrand>> getAllDeviceBrands([String? name]) async {
     Response result = await dio.get('http://localhost:8080/v1/brand',
         options: Options(
           headers: {
@@ -15,8 +15,6 @@ class DeviceBrandService {
           'name': name,
         });
 
-    return (result.data as List)
-        .map((e) => DeviceBrandModel.fromJson(e))
-        .toList();
+    return (result.data as List).map((e) => DeviceBrand.fromJson(e)).toList();
   }
 }

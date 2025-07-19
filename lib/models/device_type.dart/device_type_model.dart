@@ -1,14 +1,14 @@
-class DeviceTypeModel {
+class DeviceType {
   final int idType;
   final String typeName;
 
-  DeviceTypeModel({
+  DeviceType({
     required this.idType,
     required this.typeName,
   });
 
-  factory DeviceTypeModel.fromJson(Map<String, dynamic> json) {
-    return DeviceTypeModel(
+  factory DeviceType.fromJson(Map<String, dynamic> json) {
+    return DeviceType(
       idType: json['idType'],
       typeName: json['type'],
     );

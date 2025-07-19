@@ -173,7 +173,6 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                         CustomDateFormField(
                           label: 'Data do contato',
                           dateController: _dateController,
-                          context: context,
                           onSave: (value) {
                             DateFormat format = DateFormat("dd/MM/yyyy");
                             inputCustomerContact.contactDate =

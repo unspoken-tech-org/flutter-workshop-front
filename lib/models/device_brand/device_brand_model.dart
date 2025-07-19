@@ -1,14 +1,14 @@
-class DeviceBrandModel {
+class DeviceBrand {
   final int idBrand;
   final String brand;
 
-  DeviceBrandModel({
+  DeviceBrand({
     required this.idBrand,
     required this.brand,
   });
 
-  factory DeviceBrandModel.fromJson(Map<String, dynamic> json) {
-    return DeviceBrandModel(
+  factory DeviceBrand.fromJson(Map<String, dynamic> json) {
+    return DeviceBrand(
       idBrand: json['idBrand'],
       brand: json['brand'],
     );

@@ -12,6 +12,7 @@ class DeviceDataTable {
   String problem;
   String? observation;
   bool hasUrgency;
+  bool hasRevision;
   String entryDate;
   String? departureDate;
 
@@ -25,6 +26,7 @@ class DeviceDataTable {
     required this.status,
     required this.problem,
     required this.hasUrgency,
+    required this.hasRevision,
     required this.entryDate,
     this.observation,
     this.departureDate,
@@ -41,6 +43,7 @@ class DeviceDataTable {
       status: StatusEnum.fromDbName(json['status']),
       problem: json.toStr('problem')!,
       hasUrgency: json.toBool('hasUrgency', defaultValue: false)!,
+      hasRevision: json.toBool('hasRevision', defaultValue: false)!,
       entryDate: json.toStr('entryDate')!,
       observation: json.toStr('observation'),
       departureDate: json.toStr('departureDate'),

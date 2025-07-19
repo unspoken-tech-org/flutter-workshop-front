@@ -3,6 +3,7 @@ import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers/all_customers_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/customer_detail_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_register/customer_register_page.dart';
+import 'package:flutter_workshop_front/pages/devices/all_devices/all_devices_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/device_details_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/device_register_page.dart';
 import 'package:flutter_workshop_front/pages/home/home.dart';
@@ -107,21 +108,20 @@ class _WsDrawerState extends State<WsDrawer> {
                 onTap: () {
                   WsNavigator.pushCustomers(context);
                 }),
-            if ([
-              DeviceDetailsPage.route,
-              DeviceRegisterPage.route,
-            ].contains(widget.currentRoute))
-              WsDrawerItem(
-                currentRoute: widget.currentRoute,
-                isExpanded: isExpanded,
-                icon: Icons.local_laundry_service,
-                title: 'Aparelhos',
-                route: const [
-                  DeviceDetailsPage.route,
-                  DeviceRegisterPage.route,
-                ],
-                onTap: () {},
-              ),
+            WsDrawerItem(
+              currentRoute: widget.currentRoute,
+              isExpanded: isExpanded,
+              icon: Icons.local_laundry_service,
+              title: 'Aparelhos',
+              route: const [
+                AllDevicesPage.route,
+                DeviceDetailsPage.route,
+                DeviceRegisterPage.route,
+              ],
+              onTap: () {
+                WsNavigator.pushAllDevices(context);
+              },
+            ),
           ],
         ),
       ),

@@ -27,12 +27,12 @@ class HomeController {
     loadingState.value = loadingState.value.copyWith(isTableLoading: false);
   }
 
-  Future<List<DeviceTypeModel>> getAllDeviceTypes([String? name]) async {
+  Future<List<DeviceType>> getAllDeviceTypes([String? name]) async {
     var result = await typeService.getAllDeviceTypes(name);
     return result;
   }
 
-  Future<List<DeviceBrandModel>> getAllDeviceBrands([String? name]) async {
+  Future<List<DeviceBrand>> getAllDeviceBrands([String? name]) async {
     var result = await brandService.getAllDeviceBrands(name);
     return result;
   }

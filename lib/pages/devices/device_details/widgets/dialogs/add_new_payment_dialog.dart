@@ -111,7 +111,6 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
               const SizedBox(height: 16),
               CustomDateFormField(
                 dateController: _dateController,
-                context: context,
                 label: 'Data do Pagamento',
                 onSave: (value) => _inputPayment = _inputPayment.copyWith(
                   paymentDate: DateFormat('dd/MM/yyyy').parse(value),
