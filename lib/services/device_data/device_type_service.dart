@@ -4,7 +4,7 @@ import 'package:flutter_workshop_front/models/device_type.dart/device_type_model
 class DeviceTypeService {
   final Dio dio = Dio();
 
-  Future<List<DeviceTypeModel>> getAllDeviceTypes([String? name]) async {
+  Future<List<DeviceType>> getAllDeviceTypes([String? name]) async {
     Response result = await dio.get('http://localhost:8080/v1/type',
         options: Options(
           headers: {
@@ -15,8 +15,6 @@ class DeviceTypeService {
           'name': name,
         });
 
-    return (result.data as List)
-        .map((e) => DeviceTypeModel.fromJson(e))
-        .toList();
+    return (result.data as List).map((e) => DeviceType.fromJson(e)).toList();
   }
 }

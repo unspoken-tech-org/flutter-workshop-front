@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers/all_customers_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/customer_detail_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_register/customer_register_page.dart';
+import 'package:flutter_workshop_front/pages/devices/all_devices/all_devices_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/device_details_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/device_register_page.dart';
 import 'package:flutter_workshop_front/pages/home/home.dart';
@@ -39,6 +40,14 @@ class WsNavigator {
     } else {
       context.pushNamed(DeviceDetailsPage.route,
           pathParameters: {'id': deviceId.toString()});
+    }
+  }
+
+  static void pushAllDevices(BuildContext context, {bool replaced = false}) {
+    if (replaced) {
+      context.pushReplacementNamed(AllDevicesPage.route);
+    } else {
+      context.pushNamed(AllDevicesPage.route);
     }
   }
 
