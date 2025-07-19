@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
-class UrgencySwitchFormField extends StatelessWidget {
+class SwitchFormField extends StatelessWidget {
   final bool? initialValue;
   final FormFieldSetter<bool>? onSaved;
+  final void Function(bool value)? onChanged;
   final FormFieldValidator<bool>? validator;
 
-  const UrgencySwitchFormField({
+  const SwitchFormField({
     super.key,
     this.initialValue,
     this.onSaved,
+    this.onChanged,
     this.validator,
   });
 
@@ -36,6 +38,7 @@ class UrgencySwitchFormField extends StatelessWidget {
           value: field.value ?? false,
           onChanged: (value) {
             field.didChange(value);
+            onChanged?.call(value);
           },
         );
       },

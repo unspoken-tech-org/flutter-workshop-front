@@ -304,7 +304,7 @@ class _BrandsFilterState extends State<BrandsFilter> {
 
   final int maxBrands = 5;
 
-  List<DeviceBrandModel> brands = [];
+  List<DeviceBrand> brands = [];
 
   void findBrandsByName() async {
     String name = _textController.text;
@@ -389,7 +389,7 @@ class _TypesFilterState extends State<TypesFilter> {
 
   final int maxTypes = 5;
 
-  List<DeviceTypeModel> types = [];
+  List<DeviceType> types = [];
 
   void findDevicesByName() async {
     String name = _textController.text;

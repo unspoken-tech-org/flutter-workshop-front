@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/widgets/form_fields/urgency_switch_form_field.dart';
+import 'package:flutter_workshop_front/widgets/form_fields/switch_form_field.dart';
 
 class UrgencySwitch extends StatelessWidget {
   final void Function(bool?)? onSaved;
@@ -35,7 +35,7 @@ class UrgencySwitch extends StatelessWidget {
                 ),
               ],
             ),
-            UrgencySwitchFormField(onSaved: onSaved),
+            SwitchFormField(onSaved: onSaved),
           ],
         ),
         Text(
