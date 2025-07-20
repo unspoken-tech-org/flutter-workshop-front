@@ -30,13 +30,41 @@ class AllDevicesFilterListView extends StatelessWidget {
         spacing: 16,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Filtros',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Filtros',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: () {
+                  controller.clearFilters();
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.transparent),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                label: const Text(
+                  'Limpar filtros',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                  ),
+                ),
+                icon: const Icon(
+                  Icons.close,
+                  color: Colors.black,
+                ),
+              )
+            ],
           ),
           Row(
             children: [
