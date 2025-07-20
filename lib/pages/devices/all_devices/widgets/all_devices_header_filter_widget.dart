@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/widgets/all_devices_filter_list_view.dart';
-import 'package:flutter_workshop_front/pages/devices/all_devices/widgets/filter_button_view.dart';
 import 'package:flutter_workshop_front/widgets/ws_search_bar_widget.dart';
 import 'package:provider/provider.dart';
 
@@ -15,19 +14,6 @@ class AllDevicesHeaderFilterWidget extends StatelessWidget {
     return Column(
       spacing: 16,
       children: [
-        const Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Todos os Aparelhos',
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            FilterButtonView(),
-          ],
-        ),
         WsSearchBarWidget(
           labelText: 'Buscar por nome, CPF, ID ou telefone',
           onChanged: controller.filterTable,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/all_devices/widgets/all_devices_header.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/widgets/all_devices_header_filter_widget.dart';
 import 'package:flutter_workshop_front/repositories/all_devices/all_devices_remote_data_source.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
@@ -26,6 +27,10 @@ class AllDevicesPage extends StatelessWidget {
               child: Column(
                 spacing: 16,
                 children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 18),
+                    child: AllDevicesHeader(),
+                  ),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 18),
                     child: AllDevicesHeaderFilterWidget(),
