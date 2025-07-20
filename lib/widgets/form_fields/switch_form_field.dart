@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class SwitchFormField extends StatelessWidget {
+class SwitchFormField extends StatefulWidget {
   final bool? initialValue;
   final FormFieldSetter<bool>? onSaved;
   final void Function(bool value)? onChanged;
@@ -15,11 +15,27 @@ class SwitchFormField extends StatelessWidget {
   });
 
   @override
+  State<SwitchFormField> createState() => _SwitchFormFieldState();
+}
+
+class _SwitchFormFieldState extends State<SwitchFormField> {
+  final _key = GlobalKey<FormFieldState<bool>>();
+
+  @override
+  void didUpdateWidget(covariant SwitchFormField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialValue != widget.initialValue) {
+      _key.currentState?.didChange(widget.initialValue);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FormField<bool>(
-      initialValue: initialValue ?? false,
-      onSaved: onSaved,
-      validator: validator,
+      key: _key,
+      initialValue: widget.initialValue ?? false,
+      onSaved: widget.onSaved,
+      validator: widget.validator,
       builder: (FormFieldState<bool> field) {
         bool value = field.value ?? false;
 
@@ -38,7 +54,7 @@ class SwitchFormField extends StatelessWidget {
           value: field.value ?? false,
           onChanged: (value) {
             field.didChange(value);
-            onChanged?.call(value);
+            widget.onChanged?.call(value);
           },
         );
       },
