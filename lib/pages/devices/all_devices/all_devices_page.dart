@@ -72,7 +72,17 @@ class AllDevicesPage extends StatelessWidget {
                               device: devices[index],
                               onTap: () {
                                 WsNavigator.pushDeviceDetails(
-                                    context, devices[index].deviceId);
+                                  context,
+                                  devices[index].deviceId,
+                                ).then(
+                                  (_) {
+                                    if (context.mounted) {
+                                      context
+                                          .read<AllDevicesController>()
+                                          .fetchAllDevicesFiltering();
+                                    }
+                                  },
+                                );
                               },
                             );
                           },

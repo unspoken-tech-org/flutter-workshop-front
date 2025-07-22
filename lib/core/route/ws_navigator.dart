@@ -32,13 +32,13 @@ class WsNavigator {
     context.pushNamed(CustomerRegisterPage.route);
   }
 
-  static void pushDeviceDetails(BuildContext context, int deviceId,
-      {bool replaced = false}) {
+  static Future<void> pushDeviceDetails(BuildContext context, int deviceId,
+      {bool replaced = false}) async {
     if (replaced) {
       context.pushReplacementNamed(DeviceDetailsPage.route,
           pathParameters: {'id': deviceId.toString()});
     } else {
-      context.pushNamed(DeviceDetailsPage.route,
+      await context.pushNamed(DeviceDetailsPage.route,
           pathParameters: {'id': deviceId.toString()});
     }
   }
