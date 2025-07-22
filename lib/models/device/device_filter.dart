@@ -48,7 +48,7 @@ class DeviceFilter {
     this.hasRevision = false,
     this.orderBy = const {
       OrderBy.name: null,
-      OrderBy.entryDate: null,
+      OrderBy.entryDate: OrderDirection.desc,
       OrderBy.status: null,
     },
   });
@@ -180,11 +180,13 @@ class DeviceFilter {
   }
 
   DeviceFilter clearOrderBy() {
-    return copyWith(orderBy: const {
-      OrderBy.name: null,
-      OrderBy.entryDate: null,
-      OrderBy.status: null,
-    });
+    return copyWith(
+      orderBy: const {
+        OrderBy.name: null,
+        OrderBy.entryDate: OrderDirection.desc,
+        OrderBy.status: null,
+      },
+    );
   }
 
   DeviceFilter clearSelectableFilters() {
