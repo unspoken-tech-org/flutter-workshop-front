@@ -30,6 +30,7 @@ class AllDevicesController extends ChangeNotifier {
     try {
       isLoading = true;
       notifyListeners();
+      await Future.delayed(const Duration(milliseconds: 200));
       final result = await _allDevicesRepository.getAllDevicesFiltering(filter);
       devices = result;
     } on RequisitionException catch (e) {
