@@ -25,7 +25,10 @@ class AllDevicesHeaderFilterWidget extends StatelessWidget {
               duration: const Duration(milliseconds: 300),
               curve: Curves.fastOutSlowIn,
               child: isFiltering
-                  ? const AllDevicesFilterListView()
+                  ? const Padding(
+                      padding: EdgeInsets.only(top: 16),
+                      child: AllDevicesFilterListView(),
+                    )
                   : const SizedBox.shrink(),
             );
           },
