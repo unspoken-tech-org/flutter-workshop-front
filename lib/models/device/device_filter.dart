@@ -128,11 +128,19 @@ class DeviceFilter {
   }
 
   DeviceFilter withToggledUrgency() {
-    return copyWith(hasUrgency: !hasUrgency);
+    final urgency = !hasUrgency;
+    return copyWith(
+      hasUrgency: urgency,
+      hasRevision: urgency ? false : hasRevision,
+    );
   }
 
   DeviceFilter withToggledRevision() {
-    return copyWith(hasRevision: !hasRevision);
+    final revision = !hasRevision;
+    return copyWith(
+      hasRevision: revision,
+      hasUrgency: revision ? false : hasUrgency,
+    );
   }
 
   DeviceFilter withRangeDate(DateTime? initialDate, DateTime? endDate) {

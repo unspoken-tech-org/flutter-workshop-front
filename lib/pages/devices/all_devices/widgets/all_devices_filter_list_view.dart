@@ -179,48 +179,55 @@ class AllDevicesFilterListView extends StatelessWidget {
             ],
           ),
           SelectedFiltersView(controller: controller),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Flexible(
-                flex: 2,
-                child: Row(
-                  spacing: 16,
-                  children: [
-                    Row(
-                      spacing: 4,
+          Selector<AllDevicesController, DeviceFilter>(
+            selector: (context, controller) => controller.filter,
+            builder: (context, filter, _) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Flexible(
+                    flex: 2,
+                    child: Row(
+                      spacing: 16,
                       children: [
-                        SwitchFormField(
-                          onChanged: (value) {
-                            controller.toggleUrgency();
-                          },
+                        Row(
+                          spacing: 4,
+                          children: [
+                            SwitchFormField(
+                              initialValue: controller.filter.hasUrgency,
+                              onChanged: (value) {
+                                controller.toggleUrgency();
+                              },
+                            ),
+                            const Text(
+                              'Apenas urgentes',
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.w500),
+                            ),
+                          ],
                         ),
-                        const Text(
-                          'Apenas urgentes',
-                          style: TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w500),
+                        Row(
+                          spacing: 4,
+                          children: [
+                            SwitchFormField(
+                              initialValue: controller.filter.hasRevision,
+                              onChanged: (value) {
+                                controller.toggleRevision();
+                              },
+                            ),
+                            const Text(
+                              'Apenas revisões',
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.w500),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    Row(
-                      spacing: 4,
-                      children: [
-                        SwitchFormField(
-                          onChanged: (value) {
-                            controller.toggleRevision();
-                          },
-                        ),
-                        const Text(
-                          'Apenas revisões',
-                          style: TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),

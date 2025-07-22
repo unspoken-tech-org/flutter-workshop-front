@@ -36,15 +36,10 @@ class AllDevicesPage extends StatelessWidget {
                       children: [
                         AllDevicesHeader(),
                         AllDevicesHeaderFilterWidget(),
-                      ],
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 18),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        OrderByButtonView(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [OrderByButtonView()],
+                        ),
                       ],
                     ),
                   ),
