@@ -4,7 +4,6 @@ import 'package:flutter_workshop_front/models/device_brand/device_brand_model.da
 import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
-import 'package:flutter_workshop_front/pages/devices/all_devices/widgets/order_by_view.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/widgets/selected_filters_view.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_date_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
