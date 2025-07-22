@@ -1,7 +1,20 @@
+import 'package:collection/collection.dart';
 import 'package:flutter_workshop_front/core/nullable.dart';
 import 'package:flutter_workshop_front/models/device_brand/device_brand_model.dart';
 import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
+
+enum OrderBy {
+  name('Nome'),
+  entryDate('Data de entrada'),
+  status('Status');
+
+  final String displayName;
+
+  const OrderBy(this.displayName);
+}
+
+enum OrderDirection { asc, desc }
 
 class DeviceFilter {
   String? customerName;
@@ -15,6 +28,8 @@ class DeviceFilter {
 
   DateTime? initialEntryDate;
   DateTime? finalEntryDate;
+
+  Map<OrderBy, OrderDirection?> orderBy = const {};
 
   bool hasUrgency = false;
   bool hasRevision = false;
@@ -31,6 +46,11 @@ class DeviceFilter {
     this.finalEntryDate,
     this.hasUrgency = false,
     this.hasRevision = false,
+    this.orderBy = const {
+      OrderBy.name: null,
+      OrderBy.entryDate: null,
+      OrderBy.status: null,
+    },
   });
 
   int get filtersApplied {
@@ -54,6 +74,7 @@ class DeviceFilter {
     List<DeviceBrand>? deviceBrands,
     Nullable<DateTime>? initialEntryDate,
     Nullable<DateTime>? finalEntryDate,
+    Map<OrderBy, OrderDirection?>? orderBy,
     bool? hasUrgency,
     bool? hasRevision,
   }) {
@@ -70,6 +91,7 @@ class DeviceFilter {
           : initialEntryDate.value,
       finalEntryDate:
           finalEntryDate == null ? this.finalEntryDate : finalEntryDate.value,
+      orderBy: orderBy ?? this.orderBy,
       hasUrgency: hasUrgency ?? this.hasUrgency,
       hasRevision: hasRevision ?? this.hasRevision,
     );
@@ -129,6 +151,34 @@ class DeviceFilter {
     );
   }
 
+  DeviceFilter withToggledOrderBy(
+    OrderBy orderBy,
+  ) {
+    final newMap = this.orderBy.map((key, value) {
+      if (key == orderBy) {
+        switch (value) {
+          case null:
+            return MapEntry(key, OrderDirection.desc);
+          case OrderDirection.asc:
+            return MapEntry(key, null);
+          case OrderDirection.desc:
+            return MapEntry(key, OrderDirection.asc);
+        }
+      }
+      return MapEntry(key, null);
+    });
+
+    return copyWith(orderBy: newMap);
+  }
+
+  DeviceFilter clearOrderBy() {
+    return copyWith(orderBy: const {
+      OrderBy.name: null,
+      OrderBy.entryDate: null,
+      OrderBy.status: null,
+    });
+  }
+
   DeviceFilter clearSelectableFilters() {
     return copyWith(
       status: [],
@@ -142,6 +192,8 @@ class DeviceFilter {
   }
 
   Map<String, dynamic> toJson() {
+    final orderEntry = orderBy.entries.firstWhereOrNull((e) => e.value != null);
+
     return {
       if (customerName != null) 'customerName': customerName,
       if (deviceId != null) 'deviceId': deviceId,
@@ -157,6 +209,11 @@ class DeviceFilter {
       if (finalEntryDate != null) 'finalEntryDate': finalEntryDate?.toString(),
       'urgency': hasUrgency,
       'revision': hasRevision,
+      if (orderEntry != null)
+        'ordenation': {
+          'orderByField': orderEntry.key.name,
+          'orderByDirection': orderEntry.value?.name.toUpperCase(),
+        }
     };
   }
 }

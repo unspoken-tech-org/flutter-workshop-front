@@ -119,6 +119,18 @@ class AllDevicesController extends ChangeNotifier {
     fetchAllDevicesFiltering();
   }
 
+  void toggleOrderBy(OrderBy orderBy) {
+    filter = filter.withToggledOrderBy(orderBy);
+    notifyListeners();
+    fetchAllDevicesFiltering();
+  }
+
+  void clearOrderBy() {
+    filter = filter.clearOrderBy();
+    notifyListeners();
+    fetchAllDevicesFiltering();
+  }
+
   Future<void> clearSearch() async {
     filter = filter.clearTypedFilters();
     await fetchAllDevicesFiltering();

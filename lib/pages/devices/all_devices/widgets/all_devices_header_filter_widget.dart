@@ -12,7 +12,6 @@ class AllDevicesHeaderFilterWidget extends StatelessWidget {
     final controller = context.read<AllDevicesController>();
 
     return Column(
-      spacing: 16,
       children: [
         WsSearchBarWidget(
           labelText: 'Buscar por nome, CPF, ID ou telefone',
