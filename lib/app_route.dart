@@ -45,12 +45,12 @@ List<RouteBase> _routes = [
     },
   ),
   GoRoute(
-    path: '/device/register/:customerId/:customerName',
+    path: '/device/register',
     name: DeviceRegisterPage.route,
     builder: (context, state) {
       var customerId =
-          int.tryParse(state.pathParameters['customerId'] ?? '0') ?? 0;
-      var customerName = state.pathParameters['customerName'] ?? '';
+          int.tryParse(state.uri.queryParameters['customerId'] ?? '');
+      var customerName = state.uri.queryParameters['customerName'];
 
       return DeviceRegisterPage(
         customerId: customerId,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/pages/devices/device_register/controller/inherited_device_register_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
+import 'package:provider/provider.dart';
 
 class ProblemDescriptionForm extends StatelessWidget {
   const ProblemDescriptionForm({
@@ -9,7 +10,7 @@ class ProblemDescriptionForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = InheritedDeviceRegisterController.of(context);
+    final controller = context.read<DeviceRegisterController>();
 
     return Container(
       padding: const EdgeInsets.all(28),

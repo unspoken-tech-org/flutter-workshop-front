@@ -1,22 +1,17 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
-import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/widgets/urgency_switch.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
+import 'package:provider/provider.dart';
 
 class TechnicianAndUrgencyForm extends StatelessWidget {
-  final DeviceRegisterController controller;
-  const TechnicianAndUrgencyForm({super.key, required this.controller});
-
-  List<Technician> _getTechnicianSuggestions(
-      DeviceRegisterController controller) {
-    return controller.technicians.value;
-  }
+  const TechnicianAndUrgencyForm({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = context.read<DeviceRegisterController>();
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
@@ -44,11 +39,11 @@ class TechnicianAndUrgencyForm extends StatelessWidget {
               Flexible(
                 child: CustomDropdownButtonFormField(
                   hintText: 'Selecione um técnico',
-                  items: _getTechnicianSuggestions(controller)
+                  items: controller.technicians
                       .map((technician) => technician.name.capitalizeAllWords)
                       .toList(),
                   onSave: (value) {
-                    final technicianId = controller.technicians.value
+                    final technicianId = controller.technicians
                         .firstWhereOrNull(
                             (t) => t.name.toLowerCase() == value.toLowerCase())
                         ?.id;

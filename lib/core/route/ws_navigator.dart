@@ -51,9 +51,9 @@ class WsNavigator {
     }
   }
 
-  static void pushDeviceRegister(
-      BuildContext context, int customerId, String customerName) {
-    context.pushNamed(DeviceRegisterPage.route, pathParameters: {
+  static void pushDeviceRegister(BuildContext context,
+      {int? customerId, String? customerName}) {
+    context.pushNamed(DeviceRegisterPage.route, queryParameters: {
       'customerId': customerId.toString(),
       'customerName': customerName,
     });

@@ -7,10 +7,10 @@ import 'package:flutter_workshop_front/pages/devices/device_register/controller/
 import 'package:flutter_workshop_front/pages/devices/device_register/widgets/autocomplete_form_field.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/widgets/selected_colors_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
+import 'package:provider/provider.dart';
 
 class DeviceDetailsRegisterForm extends StatefulWidget {
-  final DeviceRegisterController controller;
-  const DeviceDetailsRegisterForm({super.key, required this.controller});
+  const DeviceDetailsRegisterForm({super.key});
 
   @override
   State<DeviceDetailsRegisterForm> createState() =>
@@ -18,6 +18,7 @@ class DeviceDetailsRegisterForm extends StatefulWidget {
 }
 
 class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
+  late DeviceRegisterController controller;
   // Controllers for text fields
   final _deviceTypeController = TextEditingController();
   final _deviceBrandController = TextEditingController();
@@ -25,26 +26,29 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
   final _deviceBudgetValueController = TextEditingController();
   final _deviceColorsController = TextEditingController();
 
-  List<ITypeBrandModelColor> _getTypeSuggestions(
-      DeviceRegisterController controller) {
-    var types = controller.typesBrandsModels.value;
+  @override
+  void initState() {
+    super.initState();
+    controller = context.read<DeviceRegisterController>();
+  }
+
+  List<ITypeBrandModelColor> _getTypeSuggestions() {
+    var types = controller.typesBrandsModels;
     return types;
   }
 
-  List<ITypeBrandModelColor> _getBrandSuggestions(
-      DeviceRegisterController controller) {
-    var brands = controller.selectedType.value?.brands ?? [];
+  List<ITypeBrandModelColor> _getBrandSuggestions() {
+    var brands = controller.selectedType?.brands ?? [];
     return brands;
   }
 
-  List<ITypeBrandModelColor> _getModelSuggestions(
-      DeviceRegisterController controller) {
-    var models = controller.selectedBrand.value?.models ?? [];
+  List<ITypeBrandModelColor> _getModelSuggestions() {
+    var models = controller.selectedBrand?.models ?? [];
     return models;
   }
 
-  List<ColorModel> _getColorSuggestions(DeviceRegisterController controller) {
-    return controller.allColors.value;
+  List<ColorModel> _getColorSuggestions() {
+    return controller.allColors;
   }
 
   @override
@@ -78,20 +82,18 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
                   controller: _deviceTypeController,
                   headerLabelText: 'Tipo Aparelho',
                   hintText: 'Ex: Lavadora, Microondas, Ventilador',
-                  suggestions: _getTypeSuggestions(widget.controller),
+                  suggestions: _getTypeSuggestions(),
                   onAccept: (id) {
-                    widget.controller.setSelectedType(id);
+                    controller.setSelectedType(id);
                   },
                   onClear: () {
-                    widget.controller.setSelectedType(null);
+                    controller.setSelectedType(null);
                     _deviceBrandController.clear();
                     _deviceModelController.clear();
                   },
                   onSave: (name) {
-                    widget.controller.inputDevice =
-                        widget.controller.inputDevice.copyWith(
-                      typeBrandModel: widget
-                          .controller.inputDevice.typeBrandModel
+                    controller.inputDevice = controller.inputDevice.copyWith(
+                      typeBrandModel: controller.inputDevice.typeBrandModel
                           ?.copyWith(type: name),
                     );
                   },
@@ -103,28 +105,27 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
                   },
                 ),
               ),
-              ValueListenableBuilder(
-                valueListenable: widget.controller.selectedType,
-                builder: (context, _, __) {
+              Selector<DeviceRegisterController, TypeBrandModel?>(
+                selector: (context, controller) => controller.selectedType,
+                builder: (context, selectedType, child) {
                   return Expanded(
                     child: AutocompleteFormField(
                       controller: _deviceBrandController,
                       headerLabelText: 'Marca Aparelho',
                       hintText: 'Ex: LG, Samsung, Panasonic',
-                      suggestions: _getBrandSuggestions(widget.controller),
+                      suggestions: _getBrandSuggestions(),
                       onAccept: (id) {
-                        widget.controller.setSelectedBrand(id);
+                        controller.setSelectedBrand(id);
                       },
                       onSave: (name) {
-                        widget.controller.inputDevice =
-                            widget.controller.inputDevice.copyWith(
-                          typeBrandModel: widget
-                              .controller.inputDevice.typeBrandModel
+                        controller.inputDevice =
+                            controller.inputDevice.copyWith(
+                          typeBrandModel: controller.inputDevice.typeBrandModel
                               ?.copyWith(brand: name),
                         );
                       },
                       onClear: () {
-                        widget.controller.setSelectedBrand(null);
+                        controller.setSelectedBrand(null);
                         _deviceModelController.clear();
                       },
                       fieldValidator: (String? value) {
@@ -143,26 +144,25 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 16,
             children: [
-              ValueListenableBuilder(
-                valueListenable: widget.controller.selectedBrand,
-                builder: (context, _, __) {
+              Selector<DeviceRegisterController, Brand?>(
+                selector: (context, controller) => controller.selectedBrand,
+                builder: (context, selectedBrand, child) {
                   return Expanded(
                     child: AutocompleteFormField(
                       controller: _deviceModelController,
                       headerLabelText: 'Modelo Aparelho',
                       hintText: 'Ex: 1234567890',
-                      suggestions: _getModelSuggestions(widget.controller),
+                      suggestions: _getModelSuggestions(),
                       onAccept: (id) {
-                        widget.controller.setSelectedModel(id);
+                        controller.setSelectedModel(id);
                       },
                       onClear: () {
-                        widget.controller.setSelectedModel(null);
+                        controller.setSelectedModel(null);
                       },
                       onSave: (name) {
-                        widget.controller.inputDevice =
-                            widget.controller.inputDevice.copyWith(
-                          typeBrandModel: widget
-                              .controller.inputDevice.typeBrandModel
+                        controller.inputDevice =
+                            controller.inputDevice.copyWith(
+                          typeBrandModel: controller.inputDevice.typeBrandModel
                               ?.copyWith(model: name),
                         );
                       },
@@ -188,8 +188,7 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
                     if (value == null || value.isEmpty) return;
                     final budgetValue = double.parse(
                         value.replaceAll('R\$', '').replaceAll(',', '.'));
-                    widget.controller.inputDevice =
-                        widget.controller.inputDevice.copyWith(
+                    controller.inputDevice = controller.inputDevice.copyWith(
                       budgetValue: budgetValue,
                     );
                   },
@@ -209,7 +208,7 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z]')),
                   ],
-                  suggestions: _getColorSuggestions(widget.controller),
+                  suggestions: _getColorSuggestions(),
                   suffixIcon: Icon(
                     Icons.arrow_circle_right_outlined,
                     size: 20,
@@ -217,29 +216,26 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
                     weight: 100,
                   ),
                   suffixIconAction: (name) {
-                    widget.controller
-                        .addColor(ColorModel(idColor: null, color: name));
+                    controller.addColor(ColorModel(idColor: null, color: name));
                     setState(() {});
                   },
                   onAccept: (id) {
                     if (id == null) return;
-                    final color = widget.controller.allColors.value
-                        .firstWhere((c) => c.idColor == id);
-                    widget.controller.addColor(color);
+                    final color =
+                        controller.allColors.firstWhere((c) => c.idColor == id);
+                    controller.addColor(color);
                     _deviceColorsController.clear();
                     setState(() {});
                   },
                   onSave: (name) {
-                    widget.controller.inputDevice =
-                        widget.controller.inputDevice.copyWith(
-                      colors: widget.controller.selectedColors.value
+                    controller.inputDevice = controller.inputDevice.copyWith(
+                      colors: controller.selectedColors
                           .map((c) => c.color)
                           .toList(),
                     );
                   },
                   onSubmit: (id, name) {
-                    widget.controller
-                        .addColor(ColorModel(idColor: null, color: name));
+                    controller.addColor(ColorModel(idColor: null, color: name));
                     _deviceColorsController.clear();
                     setState(() {});
                   },

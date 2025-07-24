@@ -1,61 +1,68 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_workshop_front/models/colors/color_model.dart';
+import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
 import 'package:flutter_workshop_front/models/device/device_input.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/models/types_brands_models/types_brands_models.dart';
 import 'package:flutter_workshop_front/services/color/color_service.dart';
+import 'package:flutter_workshop_front/services/customer/customer_service.dart';
 import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
 import 'package:flutter_workshop_front/services/technician/technician_service.dart';
 import 'package:flutter_workshop_front/services/types_brands_models/type_brand_model_service.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
-class DeviceRegisterController {
+class DeviceRegisterController extends ChangeNotifier {
   final TypeBrandModelService _typeBrandModelService;
   final ColorService _colorService;
   final DeviceCustomerService _deviceCustomerService;
   final TechnicianService _technicianService;
+  final CustomerService _customerService;
 
   DeviceRegisterController(
     this._typeBrandModelService,
     this._colorService,
     this._deviceCustomerService,
     this._technicianService,
+    this._customerService,
   );
 
-  final ValueNotifier<List<TypeBrandModel>> typesBrandsModels =
-      ValueNotifier([]);
-  final ValueNotifier<List<ColorModel>> allColors = ValueNotifier([]);
-  final ValueNotifier<List<Technician>> technicians = ValueNotifier([]);
+  List<TypeBrandModel> typesBrandsModels = [];
+  List<ColorModel> allColors = [];
+  List<Technician> technicians = [];
+  List<MinifiedCustomerModel> customers = [];
 
-  late final int customerId;
-  late final String customerName;
+  int? customerId;
+  String? customerName;
 
-  final ValueNotifier<TypeBrandModel?> selectedType = ValueNotifier(null);
-  final ValueNotifier<Brand?> selectedBrand = ValueNotifier(null);
-  final ValueNotifier<Model?> selectedModel = ValueNotifier(null);
-  final ValueNotifier<List<ColorModel>> selectedColors = ValueNotifier([]);
+  TypeBrandModel? selectedType;
+  Brand? selectedBrand;
+  Model? selectedModel;
+  List<ColorModel> selectedColors = [];
 
-  final ValueNotifier<bool> isLoading = ValueNotifier(false);
+  bool isLoading = false;
+  bool isCustomerSelected = true;
 
   DeviceInput inputDevice = DeviceInput.empty();
 
-  Future<void> init(int customerId, String customerName) async {
+  Future<void> init(int? customerId, String? customerName) async {
     this.customerId = customerId;
     this.customerName = customerName;
-    isLoading.value = true;
+    isLoading = true;
     await Future.wait([
       fetchTypesBrandsModels(),
       fetchColors(),
       fetchTechnicians(),
+      if (customerId == null) fetchCustomers(),
     ]);
-    isLoading.value = false;
+    isLoading = false;
+    notifyListeners();
   }
 
   Future<void> fetchColors() async {
     try {
       final colors = await _colorService.getColors();
-      allColors.value = colors;
+      allColors = colors;
     } catch (e) {
       SnackBarUtil().showError('Erro ao buscar as cores');
     }
@@ -64,16 +71,25 @@ class DeviceRegisterController {
   Future<void> fetchTechnicians() async {
     try {
       final technicians = await _technicianService.getTechnicians();
-      this.technicians.value = technicians;
+      this.technicians = technicians;
     } catch (e) {
       SnackBarUtil().showError('Erro ao buscar os técnicos');
     }
   }
 
+  Future<void> fetchCustomers() async {
+    try {
+      isCustomerSelected = false;
+      final customers = await _customerService.searchCustomers(null);
+      this.customers = customers;
+    } catch (e) {
+      SnackBarUtil().showError('Erro ao buscar o cliente');
+    }
+  }
+
   Future<void> fetchTypesBrandsModels() async {
     try {
-      typesBrandsModels.value =
-          await _typeBrandModelService.getTypesBrandsModels();
+      typesBrandsModels = await _typeBrandModelService.getTypesBrandsModels();
     } catch (e) {
       SnackBarUtil().showError('Erro ao buscar tipos, marcas e modelos');
     }
@@ -98,48 +114,63 @@ class DeviceRegisterController {
 
   void setSelectedType(int? id) {
     if (id == null) {
-      selectedType.value = null;
-      selectedBrand.value = null;
-      selectedModel.value = null;
+      selectedType = null;
+      selectedBrand = null;
+      selectedModel = null;
+      notifyListeners();
       return;
     }
-    selectedType.value =
-        typesBrandsModels.value.firstWhere((type) => type.idType == id);
+    selectedType = typesBrandsModels.firstWhere((type) => type.idType == id);
+    notifyListeners();
   }
 
   void setSelectedBrand(int? id) {
     if (id == null) {
-      selectedBrand.value = null;
-      selectedModel.value = null;
+      selectedBrand = null;
+      selectedModel = null;
+      notifyListeners();
       return;
     }
-    selectedBrand.value =
-        selectedType.value?.brands.firstWhere((brand) => brand.idBrand == id);
+    selectedBrand =
+        selectedType?.brands.firstWhere((brand) => brand.idBrand == id);
+    notifyListeners();
   }
 
   void setSelectedModel(int? id) {
     if (id == null) {
-      selectedModel.value = null;
+      selectedModel = null;
+      notifyListeners();
       return;
     }
-    selectedModel.value =
-        selectedBrand.value?.models.firstWhere((model) => model.idModel == id);
+    selectedModel =
+        selectedBrand?.models.firstWhere((model) => model.idModel == id);
+    notifyListeners();
   }
 
   void addColor(ColorModel color) {
     if (color.idColor == null) {
       final findedColor =
-          allColors.value.firstWhereOrNull((c) => c.color == color.color);
-      selectedColors.value = [...selectedColors.value, (findedColor ?? color)];
+          allColors.firstWhereOrNull((c) => c.color == color.color);
+      selectedColors = [...selectedColors, (findedColor ?? color)];
+      notifyListeners();
       return;
     }
-    if (!selectedColors.value.any((c) => c.idColor == color.idColor)) {
-      selectedColors.value = [...selectedColors.value, color];
+    if (!selectedColors.any((c) => c.idColor == color.idColor)) {
+      selectedColors = [...selectedColors, color];
     }
+    notifyListeners();
   }
 
   void removeColor(ColorModel color) {
-    selectedColors.value =
-        selectedColors.value.where((c) => c.idColor != color.idColor).toList();
+    selectedColors =
+        selectedColors.where((c) => c.idColor != color.idColor).toList();
+    notifyListeners();
+  }
+
+  void setCustomerInfos(int? customerId, String? customerName) {
+    this.customerId = customerId;
+    this.customerName = customerName;
+    isCustomerSelected = true;
+    notifyListeners();
   }
 }

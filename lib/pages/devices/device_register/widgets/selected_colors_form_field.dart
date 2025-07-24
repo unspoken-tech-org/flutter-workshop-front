@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/colors/color_model.dart';
-import 'package:flutter_workshop_front/pages/devices/device_register/controller/inherited_device_register_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
+import 'package:provider/provider.dart';
 
 class SelectedColorsFormField extends StatelessWidget {
   final String? headerLabel;
@@ -9,7 +10,6 @@ class SelectedColorsFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = InheritedDeviceRegisterController.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -25,11 +25,11 @@ class SelectedColorsFormField extends StatelessWidget {
           ),
           const SizedBox(height: 8),
         ],
-        ValueListenableBuilder<List<ColorModel>>(
-          valueListenable: controller.selectedColors,
-          builder: (context, selectedColors, _) {
+        Selector<DeviceRegisterController, List<ColorModel>>(
+          selector: (context, controller) => controller.selectedColors,
+          builder: (context, selectedColors, child) {
             return FormField<List<ColorModel>>(
-              initialValue: controller.selectedColors.value,
+              initialValue: selectedColors,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Selecione ao menos uma cor no campo ao lado';
@@ -85,7 +85,9 @@ class SelectedColorsFormField extends StatelessWidget {
                                 ),
                               ),
                               onDeleted: () {
-                                controller.removeColor(color);
+                                context
+                                    .read<DeviceRegisterController>()
+                                    .removeColor(color);
                               },
                             ),
                           )

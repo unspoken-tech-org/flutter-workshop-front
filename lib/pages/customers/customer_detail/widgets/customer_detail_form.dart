@@ -108,8 +108,8 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                           var customer = widget.customer;
                           WsNavigator.pushDeviceRegister(
                             context,
-                            customer.customerId,
-                            customer.name,
+                            customerId: customer.customerId,
+                            customerName: customer.name,
                           );
                         },
                         style: TextButton.styleFrom(

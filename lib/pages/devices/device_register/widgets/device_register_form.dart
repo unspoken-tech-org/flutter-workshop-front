@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
-import 'package:flutter_workshop_front/pages/devices/device_register/controller/inherited_device_register_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/widgets/customer_infos.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/widgets/device_details_register_form.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/widgets/device_register_header.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/widgets/problem_description_form.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/widgets/technician_and_urgency_form.dart';
+import 'package:provider/provider.dart';
 
 class DeviceRegisterForm extends StatefulWidget {
   const DeviceRegisterForm({super.key});
@@ -24,12 +24,12 @@ class _DeviceRegisterFormState extends State<DeviceRegisterForm> {
     super.dispose();
   }
 
-  Future<void> _createDevice(
-      BuildContext context, DeviceRegisterController controller) async {
+  Future<void> _createDevice(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState?.save();
 
-    int? deviceId = await controller.createDevice();
+    int? deviceId =
+        await context.read<DeviceRegisterController>().createDevice();
     if (deviceId != null && context.mounted) {
       WsNavigator.pushDeviceDetails(context, deviceId, replaced: true);
     }
@@ -37,7 +37,6 @@ class _DeviceRegisterFormState extends State<DeviceRegisterForm> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = InheritedDeviceRegisterController.of(context);
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Form(
@@ -47,20 +46,31 @@ class _DeviceRegisterFormState extends State<DeviceRegisterForm> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const DeviceRegisterHeader(),
-            CustomerInfos(
-              customerId: controller.customerId,
-              customerName: controller.customerName,
-            ),
-            const ProblemDescriptionForm(),
-            DeviceDetailsRegisterForm(controller: controller),
-            TechnicianAndUrgencyForm(controller: controller),
-            DeviceRegisterActionButtons(
-              onCancel: () {
-                _formKey.currentState?.reset();
-                Navigator.pop(context);
-              },
-              onSave: () async {
-                await _createDevice(context, controller);
+            const CustomerInfos(),
+            Selector<DeviceRegisterController, bool>(
+              selector: (context, controller) => controller.isCustomerSelected,
+              builder: (context, isCustomerSelected, child) {
+                if (!isCustomerSelected) {
+                  return const SizedBox.shrink();
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 16,
+                  children: [
+                    const ProblemDescriptionForm(),
+                    const DeviceDetailsRegisterForm(),
+                    const TechnicianAndUrgencyForm(),
+                    DeviceRegisterActionButtons(
+                      onCancel: () {
+                        _formKey.currentState?.reset();
+                        Navigator.pop(context);
+                      },
+                      onSave: () async {
+                        await _createDevice(context);
+                      },
+                    ),
+                  ],
+                );
               },
             ),
           ],
