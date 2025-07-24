@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/models/device/device_filter.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers/all_customers_page.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/all_devices_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/device_details_page.dart';
@@ -62,7 +63,8 @@ List<RouteBase> _routes = [
     path: '/device/all',
     name: AllDevicesPage.route,
     builder: (context, state) {
-      return const AllDevicesPage();
+      var filter = state.extra as DeviceFilter?;
+      return AllDevicesPage(filter: filter);
     },
   ),
   GoRoute(

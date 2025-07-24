@@ -58,10 +58,15 @@ class DeviceFilter {
     final hasTypeFilters = deviceTypes.isNotEmpty;
     final hasBrandFilters = deviceBrands.isNotEmpty;
     final hasDateFilters = initialEntryDate != null || finalEntryDate != null;
+    final hasRevisionUrgencyFilters = hasRevision || hasUrgency;
 
-    return [hasStatusFilters, hasTypeFilters, hasBrandFilters, hasDateFilters]
-        .where((filter) => filter)
-        .length;
+    return [
+      hasStatusFilters,
+      hasTypeFilters,
+      hasBrandFilters,
+      hasDateFilters,
+      hasRevisionUrgencyFilters
+    ].where((filter) => filter).length;
   }
 
   DeviceFilter copyWith({

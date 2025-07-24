@@ -11,8 +11,9 @@ import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 class AllDevicesController extends ChangeNotifier {
   final AllDevicesRepository _allDevicesRepository;
-  AllDevicesController(this._allDevicesRepository) {
-    filter = DeviceFilter();
+
+  AllDevicesController(this._allDevicesRepository, {DeviceFilter? filter}) {
+    this.filter = filter ?? DeviceFilter();
     fetchAllDevicesFiltering();
     fetchFilterOptions();
   }
@@ -20,7 +21,7 @@ class AllDevicesController extends ChangeNotifier {
   List<DeviceDataTable> devices = [];
   List<DeviceType> deviceTypes = [];
   List<DeviceBrand> deviceBrands = [];
-  DeviceFilter filter = DeviceFilter();
+  late DeviceFilter filter;
 
   bool isLoading = true;
   bool isFiltering = false;

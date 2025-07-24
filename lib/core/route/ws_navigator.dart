@@ -43,11 +43,12 @@ class WsNavigator {
     }
   }
 
-  static void pushAllDevices(BuildContext context, {bool replaced = false}) {
+  static void pushAllDevices(BuildContext context,
+      {bool replaced = false, DeviceFilter? filter}) {
     if (replaced) {
-      context.pushReplacementNamed(AllDevicesPage.route);
+      context.pushReplacementNamed(AllDevicesPage.route, extra: filter);
     } else {
-      context.pushNamed(AllDevicesPage.route);
+      context.pushNamed(AllDevicesPage.route, extra: filter);
     }
   }
 
