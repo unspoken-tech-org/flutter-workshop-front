@@ -4,6 +4,7 @@ import 'package:flutter_workshop_front/models/home_table/device_data_table.dart'
 import 'package:flutter_workshop_front/pages/devices/all_devices/widgets/device_card_shimmer.dart';
 import 'package:flutter_workshop_front/pages/home/controllers/home_controller.dart';
 import 'package:flutter_workshop_front/widgets/device/filtered_device_card.dart';
+import 'package:flutter_workshop_front/widgets/shared/empty_list_widget.dart';
 import 'package:provider/provider.dart';
 
 class RecentDevicesView extends StatelessWidget {
@@ -54,8 +55,8 @@ class RecentDevicesView extends StatelessWidget {
                   );
                 }
                 if (devices.isEmpty) {
-                  return const Center(
-                    child: Text('Nenhum aparelho recente'),
+                  return const EmptyListWidget(
+                    message: 'Nenhum aparelho recente encontrado',
                   );
                 }
                 return ListView.builder(
