@@ -11,7 +11,7 @@ import 'package:go_router/go_router.dart';
 
 class WsNavigator {
   static void pushHome(BuildContext context) {
-    context.goNamed(HomePage.route);
+    context.pushReplacementNamed(HomePage.route);
   }
 
   static void pushCustomers(BuildContext context) {
