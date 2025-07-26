@@ -1,53 +1,72 @@
 import 'package:flutter/material.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:flutter_workshop_front/widgets/shimmer_container.dart';
 
 class CustomerCardShimmer extends StatelessWidget {
   const CustomerCardShimmer({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: double.infinity,
-                height: 24.0,
-                color: Colors.white,
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: 100,
-                height: 16.0,
-                color: Colors.white,
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: 200,
-                height: 16.0,
-                color: Colors.white,
-              ),
-              const SizedBox(height: 4),
-              Container(
-                width: 250,
-                height: 16.0,
-                color: Colors.white,
-              ),
-              const SizedBox(height: 4),
-              Container(
-                width: 150,
-                height: 16.0,
-                color: Colors.white,
-              ),
-            ],
-          ),
+    return Card(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const ShimmerContainer(
+              width: 250.0,
+              height: 24.0,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoRowShimmer(),
+                      const SizedBox(height: 12),
+                      _buildInfoRowShimmer(width: 150),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 24),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoRowShimmer(width: 120),
+                      const SizedBox(height: 12),
+                      _buildInfoRowShimmer(width: 110),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildInfoRowShimmer({double width = 100}) {
+    return Row(
+      children: [
+        const ShimmerContainer(
+          width: 16,
+          height: 16,
+        ),
+        const SizedBox(width: 8),
+        ShimmerContainer(
+          width: width,
+          height: 16.0,
+        ),
+      ],
     );
   }
 }
