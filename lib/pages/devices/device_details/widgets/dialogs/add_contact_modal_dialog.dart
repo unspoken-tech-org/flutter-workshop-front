@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_colors.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
+import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/models/technician/technician.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/utils/phone_utils.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_date_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class AddContactModalDialog extends StatefulWidget {
   const AddContactModalDialog({super.key});
@@ -36,10 +39,9 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = InheritedDeviceCustomerController.of(context);
-    var deviceCustomer = controller.deviceCustomer.value;
-    var technicians = controller.technicians;
-    inputCustomerContact = InputCustomerContact.empty(deviceCustomer.deviceId);
+    final controller = context.read<DeviceCustomerPageController>();
+    inputCustomerContact =
+        InputCustomerContact.empty(controller.deviceCustomer.deviceId);
     _dateController.text = _formatDate(inputCustomerContact.contactDate) ?? '';
 
     return Dialog(
@@ -52,183 +54,192 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
         ),
         child: Form(
           key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomerContactHeader(context: context),
-              const SizedBox(height: 24),
-              Row(
+          child: Selector<DeviceCustomerPageController,
+              (DeviceCustomer, List<Technician>)>(
+            selector: (context, controller) =>
+                (controller.deviceCustomer, controller.technicians),
+            builder: (context, values, child) {
+              final (deviceCustomer, technicians) = values;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 24,
                 children: [
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SectionTileWidget(
-                            title: 'Detalhes do Contato',
-                            icon: Icons.person_outline),
-                        const SizedBox(height: 16),
-                        CustomDropdownButtonFormField(
-                          headerLabel: 'Tipo de contato',
-                          items: InputCustomerContact.contactTypes
-                              .map((e) => e.displayName)
-                              .toList(),
-                          onSave: (value) {
-                            inputCustomerContact.contactType =
-                                ContactType.fromDisplayName(value).name;
-                          },
-                          onChanged: (value) {
-                            isContactTypePersonally =
-                                value == ContactType.pessoalmente.displayName;
-                            setState(() {});
-                          },
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Selecione um tipo de contato';
-                            }
-                            return null;
-                          },
+                  CustomerContactHeader(context: context),
+                  const SizedBox(height: 24),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 24,
+                    children: [
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SectionTileWidget(
+                                title: 'Detalhes do Contato',
+                                icon: Icons.person_outline),
+                            const SizedBox(height: 16),
+                            CustomDropdownButtonFormField(
+                              headerLabel: 'Tipo de contato',
+                              items: InputCustomerContact.contactTypes
+                                  .map((e) => e.displayName)
+                                  .toList(),
+                              onSave: (value) {
+                                inputCustomerContact.contactType =
+                                    ContactType.fromDisplayName(value).name;
+                              },
+                              onChanged: (value) {
+                                isContactTypePersonally = value ==
+                                    ContactType.pessoalmente.displayName;
+                                setState(() {});
+                              },
+                              validator: (value) {
+                                if (value == null) {
+                                  return 'Selecione um tipo de contato';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            CustomDropdownButtonFormField(
+                              headerLabel: 'Contactante',
+                              items: technicians.map((e) => e.name).toList(),
+                              onSave: (value) {
+                                inputCustomerContact.technicianId = technicians
+                                    .firstWhere((e) => e.name == value)
+                                    .id;
+                              },
+                              validator: (value) {
+                                if (value == null) {
+                                  return 'Selecione um contactante';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            CustomDropdownButtonFormField(
+                              key: ValueKey(isContactTypePersonally),
+                              headerLabel: 'Número de telefone',
+                              enabled: !isContactTypePersonally,
+                              items: deviceCustomer.customerPhones
+                                  .map((e) => PhoneUtils.formatPhone(e.number))
+                                  .toList(),
+                              onSave: (value) {
+                                inputCustomerContact.phoneNumber = value;
+                              },
+                              validator: (value) {
+                                if (isContactTypePersonally) {
+                                  return null;
+                                }
+                                if (value == null || value.isEmpty) {
+                                  return 'Digite um número de telefone';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 24),
+                            const SectionTileWidget(
+                                title: 'Status e Data',
+                                icon: Icons.settings_outlined),
+                            const SizedBox(height: 16),
+                            CustomDropdownButtonFormField(
+                              headerLabel: 'Status do aparelho',
+                              items: StatusEnum.values
+                                  .map((e) => e.displayName)
+                                  .toList(),
+                              onSave: (value) {
+                                final statusValue = StatusEnum.values
+                                    .firstWhere((e) => e.displayName == value);
+                                inputCustomerContact.deviceStatus =
+                                    statusValue.dbName;
+                              },
+                              validator: (value) {
+                                if (value == null) {
+                                  return 'Selecione um status do aparelho';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            CustomDropdownButtonFormField(
+                              headerLabel: 'Status do contato',
+                              items: InputCustomerContact.contactStatuses
+                                  .map((e) => e.displayName)
+                                  .toList(),
+                              onSave: (value) {
+                                inputCustomerContact.contactStatus =
+                                    ContactStatus.fromDisplayName(value).name;
+                              },
+                              validator: (value) {
+                                if (value == null) {
+                                  return 'Selecione um status do contato';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            CustomDateFormField(
+                              label: 'Data do contato',
+                              dateController: _dateController,
+                              onSave: (value) {
+                                DateFormat format = DateFormat("dd/MM/yyyy");
+                                inputCustomerContact.contactDate =
+                                    format.parse(value);
+                              },
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Selecione uma data';
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        CustomDropdownButtonFormField(
-                          headerLabel: 'Contactante',
-                          items: technicians.map((e) => e.name).toList(),
-                          onSave: (value) {
-                            inputCustomerContact.technicianId = technicians
-                                .firstWhere((e) => e.name == value)
-                                .id;
-                          },
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Selecione um contactante';
-                            }
-                            return null;
-                          },
+                      ),
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SectionTileWidget(
+                                title: 'Diálogo', icon: Icons.message_outlined),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              maxLines: 12,
+                              decoration: const InputDecoration(
+                                hintText:
+                                    'Digite aqui os detalhes da conversa, observações importantes ou próximos passos...',
+                                border: OutlineInputBorder(),
+                              ),
+                              onSaved: (value) {
+                                inputCustomerContact.message = value ?? '';
+                              },
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Digite aqui os detalhes da conversa';
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        CustomDropdownButtonFormField(
-                          key: ValueKey(isContactTypePersonally),
-                          headerLabel: 'Número de telefone',
-                          enabled: !isContactTypePersonally,
-                          items: deviceCustomer.customerPhones
-                              .map((e) => PhoneUtils.formatPhone(e.number))
-                              .toList(),
-                          onSave: (value) {
-                            inputCustomerContact.phoneNumber = value;
-                          },
-                          validator: (value) {
-                            if (isContactTypePersonally) {
-                              return null;
-                            }
-                            if (value == null || value.isEmpty) {
-                              return 'Digite um número de telefone';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
-                        const SectionTileWidget(
-                            title: 'Status e Data',
-                            icon: Icons.settings_outlined),
-                        const SizedBox(height: 16),
-                        CustomDropdownButtonFormField(
-                          headerLabel: 'Status do aparelho',
-                          items: StatusEnum.values
-                              .map((e) => e.displayName)
-                              .toList(),
-                          onSave: (value) {
-                            final statusValue = StatusEnum.values
-                                .firstWhere((e) => e.displayName == value);
-                            inputCustomerContact.deviceStatus =
-                                statusValue.dbName;
-                          },
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Selecione um status do aparelho';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        CustomDropdownButtonFormField(
-                          headerLabel: 'Status do contato',
-                          items: InputCustomerContact.contactStatuses
-                              .map((e) => e.displayName)
-                              .toList(),
-                          onSave: (value) {
-                            inputCustomerContact.contactStatus =
-                                ContactStatus.fromDisplayName(value).name;
-                          },
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Selecione um status do contato';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        CustomDateFormField(
-                          label: 'Data do contato',
-                          dateController: _dateController,
-                          onSave: (value) {
-                            DateFormat format = DateFormat("dd/MM/yyyy");
-                            inputCustomerContact.contactDate =
-                                format.parse(value);
-                          },
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Selecione uma data';
-                            }
-                            return null;
-                          },
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SectionTileWidget(
-                            title: 'Diálogo', icon: Icons.message_outlined),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          maxLines: 12,
-                          decoration: const InputDecoration(
-                            hintText:
-                                'Digite aqui os detalhes da conversa, observações importantes ou próximos passos...',
-                            border: OutlineInputBorder(),
-                          ),
-                          onSaved: (value) {
-                            inputCustomerContact.message = value ?? '';
-                          },
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Digite aqui os detalhes da conversa';
-                            }
-                            return null;
-                          },
-                        ),
-                      ],
-                    ),
+                  const SizedBox(height: 24),
+                  Divider(color: Colors.grey.shade300, thickness: 1),
+                  const SizedBox(height: 24),
+                  ActionButtonsWidget(
+                    formKey: _formKey,
+                    dateController: _dateController,
+                    onSave: () async {
+                      await controller
+                          .createCustomerContact(inputCustomerContact);
+                    },
                   ),
                 ],
-              ),
-              const SizedBox(height: 24),
-              Divider(color: Colors.grey.shade300, thickness: 1),
-              const SizedBox(height: 24),
-              ActionButtonsWidget(
-                formKey: _formKey,
-                dateController: _dateController,
-                onSave: () async {
-                  await controller.createCustomerContact(inputCustomerContact);
-                },
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/tabs/customer_contacts_tab.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/customer_devices_list.dart';
 import 'package:flutter_workshop_front/widgets/shared/empty_list_widget.dart';
+import 'package:provider/provider.dart';
 
 class DeviceTabsWidget extends StatelessWidget {
   const DeviceTabsWidget({super.key});
@@ -12,7 +13,7 @@ class DeviceTabsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
-    final controller = InheritedDeviceCustomerController.of(context);
+    final controller = context.read<DeviceCustomerPageController>();
     return SizedBox(
       width: size.width * 0.7,
       child: DefaultTabController(
@@ -65,15 +66,14 @@ class DeviceTabsWidget extends StatelessWidget {
                   children: [
                     const CustomerContactsTab(),
                     Visibility(
-                      visible: controller
-                          .deviceCustomer.value.otherDevices.isNotEmpty,
+                      visible:
+                          controller.deviceCustomer.otherDevices.isNotEmpty,
                       replacement: const EmptyListWidget(
                         message:
                             'Não foram encontrado outros aparelhos para este cliente',
                       ),
                       child: CustomerDevicesList(
-                        customerDevices:
-                            controller.deviceCustomer.value.otherDevices,
+                        customerDevices: controller.deviceCustomer.otherDevices,
                         onTap: (id) {
                           WsNavigator.pushDeviceDetails(context, id);
                         },

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_infos_widget.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_page_shimmer.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_payments.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/tabs/device_tabs_widget.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
+import 'package:provider/provider.dart';
 
 class DeviceDetailsPage extends StatefulWidget {
   static const route = 'device-details';
@@ -19,15 +19,6 @@ class DeviceDetailsPage extends StatefulWidget {
 class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   final _scrollController = ScrollController();
 
-  final DeviceCustomerPageController deviceCustomerPageController =
-      DeviceCustomerPageController();
-
-  @override
-  void initState() {
-    super.initState();
-    deviceCustomerPageController.init(widget.deviceId);
-  }
-
   void _scrollToTop() {
     _scrollController.animateTo(
       0,
@@ -38,8 +29,10 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return InheritedDeviceCustomerController(
-      controller: deviceCustomerPageController,
+    return ChangeNotifierProvider(
+      lazy: false,
+      create: (context) =>
+          DeviceCustomerPageController()..init(widget.deviceId),
       child: WsScaffold(
         backgroundColor: const Color(0xFFF5F5F5),
         floatingActionButton: FloatingActionButton(
@@ -48,8 +41,8 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
           child: const Icon(Icons.arrow_upward, color: Colors.black87),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        child: ValueListenableBuilder(
-          valueListenable: deviceCustomerPageController.isLoading,
+        child: Selector<DeviceCustomerPageController, bool>(
+          selector: (context, controller) => controller.isLoading,
           builder: (context, isLoading, child) {
             if (isLoading) return const CustomerDevicePageShimmer();
 

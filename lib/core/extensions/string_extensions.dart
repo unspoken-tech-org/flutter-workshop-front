@@ -13,4 +13,9 @@ extension StringExtension on String {
     if (isEmpty) return this;
     return split(' ').map((e) => e.capitalizeFirst).join(' ');
   }
+
+  double fromCurrency() {
+    final value = replaceAll(RegExp(r'[R$.]'), '').replaceAll(',', '.');
+    return double.tryParse(value) ?? 0;
+  }
 }

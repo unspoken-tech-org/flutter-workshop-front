@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
+import 'package:provider/provider.dart';
 
 class CustomerDeviceObservationWidget extends StatelessWidget {
-  final String observation;
   final bool isEditing;
   const CustomerDeviceObservationWidget({
     super.key,
-    required this.observation,
     this.isEditing = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final controller = InheritedDeviceCustomerController.of(context);
     return Container(
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
@@ -40,16 +39,21 @@ class CustomerDeviceObservationWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          CustomTextField(
-            controller: TextEditingController(text: observation),
-            readOnly: !isEditing,
-            hintText: 'Descreva a observação...',
-            maxLines: 4,
-            onSave: (value) {
-              controller.updateNewDeviceCustomer(
-                controller.deviceCustomer.value.copyWith(observation: value),
-              );
-            },
+          Selector<DeviceCustomerPageController, DeviceCustomer>(
+            selector: (context, controller) => controller.deviceCustomer,
+            builder: (context, deviceCustomer, child) => CustomTextField(
+              controller:
+                  TextEditingController(text: deviceCustomer.observation),
+              readOnly: !isEditing,
+              hintText: 'Descreva a observação...',
+              maxLines: 4,
+              onSave: (value) {
+                final controller = context.read<DeviceCustomerPageController>();
+                final newDeviceCustomer =
+                    controller.deviceCustomer.copyWith(observation: value);
+                controller.updateNewDeviceCustomer(newDeviceCustomer);
+              },
+            ),
           ),
         ],
       ),

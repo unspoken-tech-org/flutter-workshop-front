@@ -13,25 +13,27 @@ import 'package:flutter_workshop_front/services/technician/technician_service.da
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 import 'package:intl/intl.dart';
 
-class DeviceCustomerPageController {
+class DeviceCustomerPageController extends ChangeNotifier {
   final DeviceCustomerService _deviceCustomerService = DeviceCustomerService();
   final TechnicianService _technicianService = TechnicianService();
   final CustomerContactService _customerContactService =
       CustomerContactService();
   final PaymentService _paymentService = PaymentService();
 
-  late ValueNotifier<DeviceCustomer> deviceCustomer;
+  late DeviceCustomer deviceCustomer;
   late List<Technician> technicians;
 
-  ValueNotifier<bool> isLoading = ValueNotifier(false);
+  bool isLoading = false;
 
   Future<void> init(int deviceId) async {
-    isLoading.value = true;
+    isLoading = true;
+    notifyListeners();
     await Future.wait([
       _getTechnicians(),
       _getCustomerDevice(deviceId, isNew: true),
     ]);
-    isLoading.value = false;
+    isLoading = false;
+    notifyListeners();
   }
 
   Future<void> _getTechnicians() async {
@@ -41,6 +43,8 @@ class DeviceCustomerPageController {
       SnackBarUtil().showError(e.message);
     } catch (e) {
       SnackBarUtil().showError('Erro ao buscar técnicos. Tente novamente.');
+    } finally {
+      notifyListeners();
     }
   }
 
@@ -48,29 +52,33 @@ class DeviceCustomerPageController {
     try {
       final deviceCustomer =
           await _deviceCustomerService.getCustomerDeviceById(deviceId);
-      if (isNew) {
-        this.deviceCustomer = ValueNotifier(deviceCustomer);
-      } else {
-        this.deviceCustomer.value = deviceCustomer;
-      }
+      this.deviceCustomer = deviceCustomer;
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
     } catch (e) {
       SnackBarUtil().showError('Erro ao buscar dispositivo. Tente novamente.');
+    } finally {
+      notifyListeners();
     }
   }
 
   void updateNewDeviceCustomer(DeviceCustomer newDeviceCustomer) {
-    deviceCustomer.value = newDeviceCustomer;
+    deviceCustomer = newDeviceCustomer;
   }
 
   Future<void> updateDeviceHasUrgency(bool hasUrgency) async {
     try {
-      final updatedDeviceCustomer =
-          deviceCustomer.value.copyWith(hasUrgency: hasUrgency);
+      StatusEnum actualStatus = deviceCustomer.deviceStatus;
+      if ([StatusEnum.delivered, StatusEnum.disposed].contains(actualStatus)) {
+        actualStatus = StatusEnum.newDevice;
+      }
+      final updatedDeviceCustomer = deviceCustomer.copyWith(
+        hasUrgency: hasUrgency,
+        deviceStatus: actualStatus,
+      );
       final DeviceCustomer value = await _deviceCustomerService
           .updateDeviceCustomer(updatedDeviceCustomer);
-      deviceCustomer.value = value;
+      deviceCustomer = value;
       SnackBarUtil().showSuccess(
         'Urgencia do dispositivo atualizada com sucesso',
       );
@@ -79,19 +87,17 @@ class DeviceCustomerPageController {
     } catch (e) {
       SnackBarUtil().showError(
           'Erro ao atualizar urgência do dispositivo. Tente novamente.');
+    } finally {
+      notifyListeners();
     }
   }
 
   void updateDeviceCustomer() async {
     try {
-      var newDeviceCustomer = deviceCustomer.value;
-      var updatedDeviceCustomer =
-          newDeviceCustomer.copyWithDeviceCustomer(newDeviceCustomer);
+      DeviceCustomer response =
+          await _deviceCustomerService.updateDeviceCustomer(deviceCustomer);
 
-      DeviceCustomer value = await _deviceCustomerService
-          .updateDeviceCustomer(updatedDeviceCustomer);
-
-      deviceCustomer.value = value;
+      deviceCustomer = response;
 
       SnackBarUtil().showSuccess('Dispositivo atualizado com sucesso');
     } on RequisitionException catch (e) {
@@ -99,6 +105,8 @@ class DeviceCustomerPageController {
     } catch (e) {
       SnackBarUtil()
           .showError('Erro ao atualizar dispositivo. Tente novamente.');
+    } finally {
+      notifyListeners();
     }
   }
 
@@ -106,23 +114,29 @@ class DeviceCustomerPageController {
       InputCustomerContact customerContact) async {
     try {
       await _customerContactService.createCustomerContact(customerContact);
-      await _getCustomerDevice(deviceCustomer.value.deviceId);
+      await _getCustomerDevice(deviceCustomer.deviceId);
 
       SnackBarUtil().showSuccess('Contato criado com sucesso');
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
     } catch (e) {
       SnackBarUtil().showError('Erro ao criar contato. Tente novamente.');
+    } finally {
+      notifyListeners();
     }
   }
 
   Future<void> updateDeviceRevision(bool revision) async {
     try {
-      final updatedDeviceCustomer =
-          deviceCustomer.value.copyWith(revision: revision);
+      StatusEnum actualStatus = deviceCustomer.deviceStatus;
+      if ([StatusEnum.delivered, StatusEnum.disposed].contains(actualStatus)) {
+        actualStatus = StatusEnum.newDevice;
+      }
+      final updatedDeviceCustomer = deviceCustomer.copyWith(
+          revision: revision, deviceStatus: actualStatus);
       final DeviceCustomer value = await _deviceCustomerService
           .updateDeviceCustomer(updatedDeviceCustomer);
-      deviceCustomer.value = value;
+      deviceCustomer = value;
       SnackBarUtil()
           .showSuccess('Revisão do dispositivo atualizada com sucesso');
     } on RequisitionException catch (e) {
@@ -130,16 +144,27 @@ class DeviceCustomerPageController {
     } catch (e) {
       SnackBarUtil().showError(
           'Erro ao atualizar revisão do dispositivo. Tente novamente.');
+    } finally {
+      notifyListeners();
     }
   }
 
   Future<void> updateDeviceStatus(StatusEnum status) async {
     try {
-      final updatedDeviceCustomer =
-          deviceCustomer.value.copyWith(deviceStatus: status);
+      bool isUrgency = deviceCustomer.hasUrgency;
+      bool isRevision = deviceCustomer.revision;
+      if ([StatusEnum.delivered, StatusEnum.disposed].contains(status)) {
+        isUrgency = false;
+        isRevision = false;
+      }
+      final updatedDeviceCustomer = deviceCustomer.copyWith(
+        deviceStatus: status,
+        hasUrgency: isUrgency,
+        revision: isRevision,
+      );
       final DeviceCustomer value = await _deviceCustomerService
           .updateDeviceCustomer(updatedDeviceCustomer);
-      deviceCustomer.value = value;
+      deviceCustomer = value;
       SnackBarUtil()
           .showSuccess('Status do dispositivo atualizada com sucesso');
     } on RequisitionException catch (e) {
@@ -147,15 +172,17 @@ class DeviceCustomerPageController {
     } catch (e) {
       SnackBarUtil().showError(
           'Erro ao atualizar status do dispositivo. Tente novamente.');
+    } finally {
+      notifyListeners();
     }
   }
 
   Future<void> createCustomerDevicePayment(InputPayment payment) async {
     try {
       await _paymentService.createPayment(payment);
-      deviceCustomer.value = deviceCustomer.value.copyWith(
+      deviceCustomer = deviceCustomer.copyWith(
         payments: [
-          ...deviceCustomer.value.payments,
+          ...deviceCustomer.payments,
           CustomerDevicePayment(
             paymentId: 0,
             paymentValue: payment.value,
@@ -171,6 +198,8 @@ class DeviceCustomerPageController {
     } catch (e) {
       SnackBarUtil().showError('Erro ao criar pagamento. Tente novamente.');
       rethrow;
+    } finally {
+      notifyListeners();
     }
   }
 }

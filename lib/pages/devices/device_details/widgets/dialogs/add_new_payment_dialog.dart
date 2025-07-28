@@ -3,11 +3,12 @@ import 'package:flutter_workshop_front/core/extensions/double_extensions.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/currency_input_formatter.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_date_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class AddNewPaymentDialog extends StatefulWidget {
   const AddNewPaymentDialog({super.key});
@@ -41,9 +42,8 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = InheritedDeviceCustomerController.of(context);
-    _inputPayment =
-        InputPayment.empty(controller.deviceCustomer.value.deviceId);
+    final controller = context.read<DeviceCustomerPageController>();
+    _inputPayment = InputPayment.empty(controller.deviceCustomer.deviceId);
     _dateController.text = _formatDate(_inputPayment.paymentDate) ?? '';
 
     return AlertDialog(

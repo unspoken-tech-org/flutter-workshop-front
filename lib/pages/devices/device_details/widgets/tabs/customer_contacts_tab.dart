@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_contacts_list_widget.dart';
+import 'package:provider/provider.dart';
 
 class CustomerContactsTab extends StatefulWidget {
   const CustomerContactsTab({super.key});
@@ -14,19 +16,16 @@ class _CustomerContactsTabState extends State<CustomerContactsTab> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = InheritedDeviceCustomerController.of(context);
-
-    return ValueListenableBuilder(
-      valueListenable: controller.deviceCustomer,
-      builder: (context, value, child) {
+    return Selector<DeviceCustomerPageController, DeviceCustomer>(
+      selector: (context, controller) => controller.deviceCustomer,
+      builder: (context, deviceCustomer, child) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
                 child: CustomerContactsListWidget(
               scrollController: _scrollController,
-              customerContacts:
-                  controller.deviceCustomer.value.customerContacts,
+              customerContacts: deviceCustomer.customerContacts,
             )),
           ],
         );

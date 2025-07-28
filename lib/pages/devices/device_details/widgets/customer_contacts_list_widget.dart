@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_contact_modal_dialog.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/contact_card.dart';
 import 'package:flutter_workshop_front/widgets/shared/empty_list_widget.dart';
+import 'package:provider/provider.dart';
 
 class CustomerContactsListWidget extends StatelessWidget {
   final List<CustomerContact> customerContacts;
@@ -17,7 +18,7 @@ class CustomerContactsListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = InheritedDeviceCustomerController.of(context);
+    final controller = context.read<DeviceCustomerPageController>();
     return Column(
       key: const ValueKey('contact_list'),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,8 +32,8 @@ class CustomerContactsListWidget extends StatelessWidget {
               TextButton.icon(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (context) => InheritedDeviceCustomerController(
-                    controller: controller,
+                  builder: (context) => ChangeNotifierProvider.value(
+                    value: controller,
                     child: const AddContactModalDialog(),
                   ),
                 ),

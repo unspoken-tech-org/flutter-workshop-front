@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/inherited_device_customer_controller.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_new_payment_dialog.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_payment_item.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_new_payment_dialog.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/empty_payments_widget.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/payment_totals_widget.dart';
+import 'package:provider/provider.dart';
 
 class CustomerDevicePayments extends StatefulWidget {
   const CustomerDevicePayments({super.key});
@@ -17,7 +18,7 @@ class CustomerDevicePayments extends StatefulWidget {
 class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
   @override
   Widget build(BuildContext context) {
-    final controller = InheritedDeviceCustomerController.of(context);
+    final controller = context.read<DeviceCustomerPageController>();
     final textTheme = Theme.of(context).textTheme;
 
     return Card(
@@ -26,8 +27,8 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
       color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ValueListenableBuilder<DeviceCustomer>(
-          valueListenable: controller.deviceCustomer,
+        child: Selector<DeviceCustomerPageController, DeviceCustomer>(
+          selector: (context, controller) => controller.deviceCustomer,
           builder: (context, deviceCustomer, child) {
             final List<CustomerDevicePayment> devicePayments =
                 deviceCustomer.payments;
@@ -57,11 +58,12 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
                           onPressed: () {
                             showDialog(
                               context: context,
-                              builder: (context) =>
-                                  InheritedDeviceCustomerController(
-                                controller: controller,
-                                child: const AddNewPaymentDialog(),
-                              ),
+                              builder: (context) {
+                                return ChangeNotifierProvider.value(
+                                  value: controller,
+                                  child: const AddNewPaymentDialog(),
+                                );
+                              },
                             );
                           },
                           style: OutlinedButton.styleFrom(
