@@ -1,4 +1,5 @@
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
+import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 
 class DeviceStatistics {
   final StatisticsCount novo;
@@ -25,14 +26,15 @@ class DeviceStatistics {
 
   factory DeviceStatistics.fromJson(Map<String, dynamic> json) {
     return DeviceStatistics(
-      novo: StatisticsCount.fromJson(json['novo']),
-      aguardando: StatisticsCount.fromJson(json['aguardando']),
-      emAndamento: StatisticsCount.fromJson(json['em_andamento']),
-      pronto: StatisticsCount.fromJson(json['pronto']),
-      entregue: StatisticsCount.fromJson(json['entregue']),
-      descartado: StatisticsCount.fromJson(json['descartado']),
-      revisao: StatisticsCount.fromJson(json['revisao']),
-      urgente: StatisticsCount.fromJson(json['urgente']),
+      novo: StatisticsCount.fromJson(json[StatusEnum.newDevice.dbName]),
+      aguardando:
+          StatisticsCount.fromJson(json[StatusEnum.waitingApproval.dbName]),
+      emAndamento: StatisticsCount.fromJson(json[StatusEnum.inProgress.dbName]),
+      pronto: StatisticsCount.fromJson(json[StatusEnum.ready.dbName]),
+      entregue: StatisticsCount.fromJson(json[StatusEnum.delivered.dbName]),
+      descartado: StatisticsCount.fromJson(json[StatusEnum.disposed.dbName]),
+      revisao: StatisticsCount.fromJson(json['REVISAO']),
+      urgente: StatisticsCount.fromJson(json['URGENTE']),
       lastViewedDevices: (json['last_viewed_devices'] as List)
           .map((e) => DeviceDataTable.fromJson(e))
           .toList(),

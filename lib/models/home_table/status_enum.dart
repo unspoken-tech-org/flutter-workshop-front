@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 enum StatusEnum {
-  newDevice(displayName: 'Novo', dbName: 'novo'),
-  inProgress(displayName: 'Em andamento', dbName: 'em_andamento'),
-  delivered(displayName: 'Entregue', dbName: 'entregue'),
-  waitingApproval(displayName: 'Aguardando Aprovação', dbName: 'aguardando'),
-  disposed(displayName: 'Descartado', dbName: 'descartado'),
-  ready(displayName: 'Pronto', dbName: 'pronto'),
+  newDevice(displayName: 'Novo', dbName: 'NOVO'),
+  inProgress(displayName: 'Em andamento', dbName: 'EM_ANDAMENTO'),
+  delivered(displayName: 'Entregue', dbName: 'ENTREGUE'),
+  waitingApproval(displayName: 'Aguardando Aprovação', dbName: 'AGUARDANDO'),
+  disposed(displayName: 'Descartado', dbName: 'DESCARTADO'),
+  ready(displayName: 'Pronto', dbName: 'PRONTO'),
   ;
 
   final String dbName;
@@ -18,18 +18,18 @@ enum StatusEnum {
   });
 
   static StatusEnum fromDbName(String dbName) {
-    switch (dbName) {
-      case 'em_andamento':
+    switch (dbName.toUpperCase()) {
+      case 'EM_ANDAMENTO':
         return StatusEnum.inProgress;
-      case 'aguardando':
+      case 'AGUARDANDO':
         return StatusEnum.waitingApproval;
-      case 'novo':
+      case 'NOVO':
         return StatusEnum.newDevice;
-      case 'descartado':
+      case 'DESCARTADO':
         return StatusEnum.disposed;
-      case 'entregue':
+      case 'ENTREGUE':
         return StatusEnum.delivered;
-      case 'pronto':
+      case 'PRONTO':
         return StatusEnum.ready;
       default:
         throw Exception('Status not found');
