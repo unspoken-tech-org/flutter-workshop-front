@@ -33,86 +33,89 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
             final List<CustomerDevicePayment> devicePayments =
                 deviceCustomer.payments;
 
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final showLabel = constraints.maxWidth > 300;
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.credit_card),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Pagamentos',
-                              style: textTheme.titleLarge
-                                  ?.copyWith(fontWeight: FontWeight.w500),
-                            ),
-                          ],
-                        ),
-                        OutlinedButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return ChangeNotifierProvider.value(
-                                  value: controller,
-                                  child: const AddNewPaymentDialog(),
-                                );
-                              },
-                            );
-                          },
-                          style: OutlinedButton.styleFrom(
-                            alignment: Alignment.center,
-                            iconColor: Colors.black,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                              side: const BorderSide(color: Colors.black),
-                            ),
-                          ),
-                          child: Row(
-                            spacing: 6,
+            return SizedBox(
+              height: 600,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final showLabel = constraints.maxWidth > 300;
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
                             children: [
-                              if (showLabel)
-                                const Text(
-                                  'Adicionar',
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                              const Icon(Icons.add, size: 16),
+                              const Icon(Icons.credit_card),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Pagamentos',
+                                style: textTheme.titleLarge
+                                    ?.copyWith(fontWeight: FontWeight.w500),
+                              ),
                             ],
                           ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-                if (devicePayments.isNotEmpty)
-                  Expanded(
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: devicePayments.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 4),
-                      itemBuilder: (context, index) {
-                        return CustomerDevicePaymentItem(
-                          payment: devicePayments[index],
-                        );
-                      },
-                    ),
-                  )
-                else
-                  const Center(child: EmptyPaymentsWidget()),
-                const SizedBox(height: 24),
-                PaymentTotalsWidget(
-                  deviceCustomer: deviceCustomer,
-                  devicePayments: devicePayments,
-                ),
-              ],
+                          OutlinedButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return ChangeNotifierProvider.value(
+                                    value: controller,
+                                    child: const AddNewPaymentDialog(),
+                                  );
+                                },
+                              );
+                            },
+                            style: OutlinedButton.styleFrom(
+                              alignment: Alignment.center,
+                              iconColor: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                                side: const BorderSide(color: Colors.black),
+                              ),
+                            ),
+                            child: Row(
+                              spacing: 6,
+                              children: [
+                                if (showLabel)
+                                  const Text(
+                                    'Adicionar',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                const Icon(Icons.add, size: 16),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  if (devicePayments.isNotEmpty)
+                    Expanded(
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: devicePayments.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 4),
+                        itemBuilder: (context, index) {
+                          return CustomerDevicePaymentItem(
+                            payment: devicePayments[index],
+                          );
+                        },
+                      ),
+                    )
+                  else
+                    const Center(child: EmptyPaymentsWidget()),
+                  const SizedBox(height: 24),
+                  PaymentTotalsWidget(
+                    deviceCustomer: deviceCustomer,
+                    devicePayments: devicePayments,
+                  ),
+                ],
+              ),
             );
           },
         ),

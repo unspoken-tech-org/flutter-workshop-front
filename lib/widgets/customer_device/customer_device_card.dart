@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/customer_device/minified_customer_device.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/widgets/hoverable_card.dart';
@@ -111,9 +112,10 @@ class _DeviceNameAndProblem extends StatelessWidget {
       children: [
         Expanded(
           child: _ColumnInfoCell(
-              icon: Icons.microwave_outlined,
-              title: 'Aparelho:',
-              value: deviceName),
+            icon: Icons.microwave_outlined,
+            title: 'Aparelho:',
+            value: deviceName.capitalizeAllWords,
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(

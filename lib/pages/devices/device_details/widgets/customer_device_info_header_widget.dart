@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_phones.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
@@ -164,7 +165,7 @@ class _CustomerDeviceInfoHeaderWidgetState
                             : Colors.black,
                       ),
                       Text(
-                        'Cliente: ${deviceCustomer.customerName}',
+                        'Cliente: ${deviceCustomer.customerName.capitalizeAllWords}',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: isHoveringCustomer
                                   ? Colors.lightBlueAccent

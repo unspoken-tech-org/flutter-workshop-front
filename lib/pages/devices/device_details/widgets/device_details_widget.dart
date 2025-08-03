@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
@@ -44,7 +45,8 @@ class DeviceDetailsWidget extends StatelessWidget {
               readOnly: true,
               maxLines: 1,
               value:
-                  '${deviceCustomer.typeName} ${deviceCustomer.brandName} | ${deviceCustomer.modelName}',
+                  '${deviceCustomer.typeName} ${deviceCustomer.brandName} | ${deviceCustomer.modelName}'
+                      .capitalizeAllWords,
             ),
             const SizedBox(height: 16),
             CustomTextField(
