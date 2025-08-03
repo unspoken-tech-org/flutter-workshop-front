@@ -6,11 +6,12 @@ import 'package:flutter_workshop_front/models/customer_device/device_customer.da
 import 'package:flutter_workshop_front/models/device/device_filter.dart';
 import 'package:flutter_workshop_front/models/device/device_input.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
+import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 
 class DeviceCustomerService {
   final Dio dio = CustomDio.dioInstance();
 
-  Future<List<DeviceDataTable>> getAllDevicesFiltering(
+  Future<Page<DeviceDataTable>> getAllDevicesFiltering(
       [DeviceFilter? filter]) async {
     var body = filter?.toJson();
     Response response = await dio.post('/v1/device/filter', data: body);
@@ -19,9 +20,8 @@ class DeviceCustomerService {
       throw RequisitionException.fromJson(response.data['error']);
     }
 
-    return (response.data as List)
-        .map((e) => DeviceDataTable.fromJson(e))
-        .toList();
+    return Page.fromJson(
+        response.data, (json) => DeviceDataTable.fromJson(json));
   }
 
   Future<DeviceCustomer> getCustomerDeviceById(int id) async {

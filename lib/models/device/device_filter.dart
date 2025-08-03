@@ -34,6 +34,8 @@ class DeviceFilter {
   bool hasUrgency = false;
   bool hasRevision = false;
 
+  int page = 0;
+
   DeviceFilter({
     this.customerName,
     this.deviceId,
@@ -51,6 +53,7 @@ class DeviceFilter {
       OrderBy.entryDate: OrderDirection.desc,
       OrderBy.status: null,
     },
+    this.page = 0,
   });
 
   int get filtersApplied {
@@ -82,6 +85,7 @@ class DeviceFilter {
     Map<OrderBy, OrderDirection?>? orderBy,
     bool? hasUrgency,
     bool? hasRevision,
+    int? page,
   }) {
     return DeviceFilter(
       customerName: customerName ?? this.customerName,
@@ -99,6 +103,7 @@ class DeviceFilter {
       orderBy: orderBy ?? this.orderBy,
       hasUrgency: hasUrgency ?? this.hasUrgency,
       hasRevision: hasRevision ?? this.hasRevision,
+      page: page ?? this.page,
     );
   }
 
@@ -203,6 +208,7 @@ class DeviceFilter {
       finalEntryDate: null,
       hasUrgency: false,
       hasRevision: false,
+      page: 0,
     );
   }
 
@@ -228,7 +234,8 @@ class DeviceFilter {
         'ordenation': {
           'orderByField': orderEntry.key.name,
           'orderByDirection': orderEntry.value?.name.toUpperCase(),
-        }
+        },
+      'page': page,
     };
   }
 }

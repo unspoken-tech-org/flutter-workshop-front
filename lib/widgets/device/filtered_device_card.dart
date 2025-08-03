@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/widgets/device/date_text.dart';
 import 'package:flutter_workshop_front/widgets/device/revision_urgency_chip.dart';
@@ -46,12 +47,13 @@ class FilteredDeviceCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.person_outline_rounded, size: 16),
-                        Text(device.customerName,
+                        Text(device.customerName.capitalizeAllWords,
                             style: const TextStyle(
                                 fontSize: 14, fontWeight: FontWeight.w700)),
                       ],
                     ),
-                    Text('${device.type} - ${device.brand} ${device.model}',
+                    Text(
+                        '${device.type.capitalizeAllWords} - ${device.brand.capitalizeAllWords} ${device.model.capitalizeAllWords}',
                         style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
