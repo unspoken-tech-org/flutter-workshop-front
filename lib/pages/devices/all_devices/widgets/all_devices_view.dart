@@ -97,13 +97,7 @@ class _AllDevicesViewState extends State<AllDevicesView> {
                     builder: (context, values, _) {
                       final (isLoading, devices, hasMore, isLoadingMore) =
                           values;
-                      if (devices.isEmpty) {
-                        return const Center(
-                          child: EmptyListWidget(
-                            message: 'Nenhum aparelho encontrado',
-                          ),
-                        );
-                      }
+
                       if (isLoading) {
                         return ListView.builder(
                           itemCount: 10,
@@ -113,6 +107,15 @@ class _AllDevicesViewState extends State<AllDevicesView> {
                           },
                         );
                       }
+
+                      if (devices.isEmpty) {
+                        return const Center(
+                          child: EmptyListWidget(
+                            message: 'Nenhum aparelho encontrado',
+                          ),
+                        );
+                      }
+
                       return ListView.builder(
                         controller: _scrollController,
                         itemCount: devices.length + (hasMore ? 1 : 0),
