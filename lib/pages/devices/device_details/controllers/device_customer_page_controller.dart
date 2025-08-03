@@ -153,7 +153,13 @@ class DeviceCustomerPageController extends ChangeNotifier {
     try {
       bool isUrgency = deviceCustomer.hasUrgency;
       bool isRevision = deviceCustomer.revision;
-      if ([StatusEnum.delivered, StatusEnum.disposed].contains(status)) {
+      if ([
+        StatusEnum.approved,
+        StatusEnum.notApproved,
+        StatusEnum.ready,
+        StatusEnum.delivered,
+        StatusEnum.disposed
+      ].contains(status)) {
         isUrgency = false;
         isRevision = false;
       }

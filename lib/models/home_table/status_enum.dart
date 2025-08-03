@@ -5,6 +5,8 @@ enum StatusEnum {
   inProgress(displayName: 'Em andamento', dbName: 'EM_ANDAMENTO'),
   delivered(displayName: 'Entregue', dbName: 'ENTREGUE'),
   waitingApproval(displayName: 'Aguardando Aprovação', dbName: 'AGUARDANDO'),
+  approved(displayName: 'Aprovado', dbName: 'APROVADO'),
+  notApproved(displayName: 'Não aprovado', dbName: 'NAO_APROVADO'),
   disposed(displayName: 'Descartado', dbName: 'DESCARTADO'),
   ready(displayName: 'Pronto', dbName: 'PRONTO'),
   ;
@@ -31,6 +33,10 @@ enum StatusEnum {
         return StatusEnum.delivered;
       case 'PRONTO':
         return StatusEnum.ready;
+      case 'APROVADO':
+        return StatusEnum.approved;
+      case 'NAO_APROVADO':
+        return StatusEnum.notApproved;
       default:
         throw Exception('Status not found');
     }
@@ -69,6 +75,16 @@ extension StatusEnumExtension on StatusEnum {
             Colors.green.shade100,
             Colors.green.shade200,
             Colors.green.shade800
+          ),
+        StatusEnum.approved => (
+            Colors.green.shade100,
+            Colors.green.shade200,
+            Colors.green.shade800
+          ),
+        StatusEnum.notApproved => (
+            Colors.red.shade100,
+            Colors.red.shade200,
+            Colors.red.shade800
           ),
       };
 }
