@@ -33,7 +33,10 @@ class _WsDrawerState extends State<WsDrawer> {
         duration: const Duration(milliseconds: 200),
         width: isExpanded ? 250 : 50,
         decoration: BoxDecoration(
-          color: Colors.grey[300],
+          color: Colors.white,
+          border: Border(
+            right: BorderSide(color: Colors.grey.shade300, width: 1),
+          ),
           borderRadius: const BorderRadius.only(
             topRight: Radius.circular(8),
             bottomRight: Radius.circular(8),
