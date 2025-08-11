@@ -21,6 +21,7 @@ dependencies:
   shimmer: ^3.0.0
   collection: ^1.19.1
   provider: ^6.1.5
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
@@ -32,6 +33,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - .env
     - assets/images/
     - assets/icons/
   # fonts:
