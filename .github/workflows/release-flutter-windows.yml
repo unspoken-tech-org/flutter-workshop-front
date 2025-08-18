@@ -42,6 +42,16 @@ jobs:
           [IO.File]::WriteAllBytes("windows\signing\workshop-code-signing.pfx",
             [Convert]::FromBase64String("${{ secrets.WIN_PFX_BASE64 }}"))
 
+      - name: Preflight checks
+        shell: pwsh
+        env:
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+        run: |
+          if (-not (Test-Path "msix_config.yaml")) { throw "msix_config.yaml não encontrado na raiz" }
+          if (-not (Test-Path "windows/runner/resources/app_icon.ico")) { throw "Ícone windows/runner/resources/app_icon.ico não encontrado" }
+          if (-not (Test-Path "windows/signing/workshop-code-signing.pfx")) { throw "PFX não restaurado" }
+          if ([string]::IsNullOrWhiteSpace($env:CERT_PASSWORD)) { throw "CERT_PASSWORD (senha do PFX) não está definido" }
+
       - name: Build MSIX & AppInstaller
         shell: pwsh
         env:
