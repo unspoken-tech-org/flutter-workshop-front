@@ -1,0 +1,74 @@
+name: Build & Deploy Flutter Windows (MSIX)
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "win-v*"
+
+jobs:
+  build-windows-msix:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Sync msix_version from pubspec.yaml
+        shell: pwsh
+        run: |
+          $pubspec = Get-Content -Raw pubspec.yaml
+          $m = [regex]::Match($pubspec, "version:\s*([0-9]+)\.([0-9]+)\.([0-9]+)")
+          if (-not $m.Success) { throw "Não encontrei 'version:' no pubspec.yaml" }
+          $msixVer = "$($m.Groups[1].Value).$($m.Groups[2].Value).$($m.Groups[3].Value).0"
+          (Get-Content msix_config.yaml) -replace "(?m)^msix_version:.*$", "msix_version: $msixVer" | Set-Content msix_config.yaml
+          Write-Host "msix_version -> $msixVer"
+
+      - name: Restore code signing PFX
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path windows\signing | Out-Null
+          [IO.File]::WriteAllBytes("windows\signing\workshop-code-signing.pfx",
+            [Convert]::FromBase64String("${{ secrets.WIN_PFX_BASE64 }}"))
+
+      - name: Build MSIX & AppInstaller
+        shell: pwsh
+        env:
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        run: |
+          flutter clean
+          flutter pub get
+          dart run msix:create          
+          New-Item -ItemType Directory -Force -Path build\release | Out-Null
+          Copy-Item build\msix\*.msix build\release\WorkshopApp.msix
+          Copy-Item build\msix\*.appinstaller build\release\WorkshopApp.appinstaller
+
+      - name: Upload artifacts (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-msix
+          path: build\release\*
+
+      - name: Push to Ubuntu Server (SCP)
+        shell: bash
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          echo "$SSH_PRIVATE_KEY" > key.pem
+          chmod 600 key.pem
+          ssh -i key.pem -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_HOST} "mkdir -p /srv/samba/apps/workshop"
+          scp -i key.pem -o StrictHostKeyChecking=no build/release/WorkshopApp.msix build/release/WorkshopApp.appinstaller ${SERVER_USER}@${SERVER_HOST}:/srv/samba/apps/workshop/
