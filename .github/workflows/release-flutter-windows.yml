@@ -42,6 +42,36 @@ jobs:
           [IO.File]::WriteAllBytes("windows\signing\workshop-code-signing.pfx",
             [Convert]::FromBase64String("${{ secrets.WIN_PFX_BASE64 }}"))
 
+      - name: Validate PFX and inject publisher (from PFX Subject)
+        shell: pwsh
+        env:
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $pfxPath = "windows\signing\workshop-code-signing.pfx"
+          if (-not (Test-Path $pfxPath)) { throw "PFX não restaurado em $pfxPath" }
+          if ([string]::IsNullOrWhiteSpace($env:CERT_PASSWORD)) { throw "CERT_PASSWORD não definido nos Secrets" }
+      
+          # Tenta abrir o PFX COM a senha -> falha aqui se a senha estiver errada
+          Add-Type -AssemblyName System.Security
+          $bytes  = [IO.File]::ReadAllBytes($pfxPath)
+          $secure = ConvertTo-SecureString -String $env:CERT_PASSWORD -AsPlainText -Force
+          $cert   = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2
+          $cert.Import($bytes, $secure, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+      
+          $subject = $cert.Subject  # ex.: "CN=Unspoken Tech Org"
+          if (-not $subject) { throw "Subject do certificado vazio" }
+          Write-Host "PFX OK. Subject: $subject"
+      
+          # injeta 'publisher:' no msix_config.yaml para bater com o PFX
+          $yaml = Get-Content -Raw msix_config.yaml
+          if ($yaml -notmatch "(?m)^\s*publisher:\s*") {
+            $yaml = $yaml.TrimEnd() + "`r`npublisher: $subject`r`n"
+          } else {
+            $yaml = $yaml -replace "(?m)^\s*publisher:.*$", "publisher: $subject"
+          }
+          Set-Content -Path msix_config.yaml -Value $yaml -Encoding UTF8
+
       - name: Preflight checks
         shell: pwsh
         env:
