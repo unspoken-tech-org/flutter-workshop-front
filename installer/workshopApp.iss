@@ -29,7 +29,7 @@ Name: "ptbr"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 
 [Files]
 ; Copia tudo da pasta Release do build do Flutter
-Source: "..\build\windows\runner\Release\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
+Source: "..\build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
