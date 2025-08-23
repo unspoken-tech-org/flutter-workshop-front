@@ -1,13 +1,15 @@
-name: Build & Deploy Flutter Windows (MSIX)
+name: Build & Release Windows (Inno + GitHub Releases)
 
 on:
   workflow_dispatch:
   push:
-    tags:
-      - "win-v*"
+    branches: [ main ]
+
+permissions:
+  contents: write
 
 jobs:
-  build-windows-msix:
+  build-windows:
     runs-on: windows-latest
 
     steps:
@@ -22,93 +24,77 @@ jobs:
       - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
 
-      - name: Pub get
+      - name: Flutter pub get
         run: flutter pub get
 
-      - name: Sync msix_version from pubspec.yaml
+      - name: Build Flutter Windows (release)
+        run: flutter build windows --release
+
+      # Instala Inno Setup no runner
+      - name: Install Inno Setup (choco)
         shell: pwsh
         run: |
-          $pubspec = Get-Content -Raw pubspec.yaml
-          $m = [regex]::Match($pubspec, "version:\s*([0-9]+)\.([0-9]+)\.([0-9]+)")
+          choco install innosetup -y
+          $env:PATH += ";C:\Program Files (x86)\Inno Setup 6"
+
+      # Extrai versão do pubspec e compila o instalador
+      - name: Compile installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $pub = Get-Content -Raw pubspec.yaml
+          $m = [regex]::Match($pub, "version:\s*([0-9]+)\.([0-9]+)\.([0-9]+)")
           if (-not $m.Success) { throw "Não encontrei 'version:' no pubspec.yaml" }
-          $msixVer = "$($m.Groups[1].Value).$($m.Groups[2].Value).$($m.Groups[3].Value).0"
-          (Get-Content msix_config.yaml) -replace "(?m)^msix_version:.*$", "msix_version: $msixVer" | Set-Content msix_config.yaml
-          Write-Host "msix_version -> $msixVer"
+          $ver = "$($m.Groups[1].Value).$($m.Groups[2].Value).$($m.Groups[3].Value)"
+          echo "APP_VER=$ver" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Restore code signing PFX
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path windows\signing | Out-Null
-          [IO.File]::WriteAllBytes("windows\signing\workshop-code-signing.pfx",
-            [Convert]::FromBase64String("${{ secrets.WIN_PFX_BASE64 }}"))
+          # Passa APP_VER como variável de ambiente para o .iss
+          $env:APP_VER = $ver
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\WorkshopApp.iss
 
-      - name: Validate PFX and inject publisher (from PFX Subject)
-        shell: pwsh
-        env:
-          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
-        run: |
-          $ErrorActionPreference = "Stop"
-          $pfxPath = "windows\signing\workshop-code-signing.pfx"
-          if (-not (Test-Path $pfxPath)) { throw "PFX não restaurado em $pfxPath" }
-          if ([string]::IsNullOrWhiteSpace($env:CERT_PASSWORD)) { throw "CERT_PASSWORD não definido nos Secrets" }
-      
-          Add-Type -AssemblyName System.Security
-          $bytes = [IO.File]::ReadAllBytes($pfxPath)
-
-          $flags = [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable `
-                -bor [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::EphemeralKeySet
-          $cert  = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($bytes, $env:CERT_PASSWORD, $flags)
-
-          $subject = $cert.Subject  # ex.: "CN=Unspoken Tech Org"
-          if ([string]::IsNullOrWhiteSpace($subject)) { throw "Subject do certificado vazio" }
-          Write-Host "PFX OK. Subject: $subject"
-
-          # injeta 'publisher:' no msix_config.yaml para bater com o Subject do PFX
-          $yaml = Get-Content -Raw msix_config.yaml
-          if ($yaml -notmatch "(?m)^\s*publisher:\s*") {
-            $yaml = $yaml.TrimEnd() + "`r`npublisher: $subject`r`n"
-          } else {
-            $yaml = $yaml -replace "(?m)^\s*publisher:.*$", "publisher: $subject"
+          if (-not (Test-Path "dist\WorkshopApp-setup.exe")) {
+            throw "Instalador não gerado em dist\WorkshopApp-setup.exe"
           }
-          Set-Content -Path msix_config.yaml -Value $yaml -Encoding UTF8
 
-      - name: Preflight checks
+      # Prepara artefatos: renomeia EXE com versão, calcula length, gera appcast/notes
+      - name: Prepare appcast and notes
+        id: prep
         shell: pwsh
-        env:
-          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
         run: |
-          if (-not (Test-Path "msix_config.yaml")) { throw "msix_config.yaml não encontrado na raiz" }
-          if (-not (Test-Path "windows/runner/resources/app_icon.ico")) { throw "Ícone windows/runner/resources/app_icon.ico não encontrado" }
-          if (-not (Test-Path "windows/signing/workshop-code-signing.pfx")) { throw "PFX não restaurado" }
-          if ([string]::IsNullOrWhiteSpace($env:CERT_PASSWORD)) { throw "CERT_PASSWORD (senha do PFX) não está definido" }
+          $ver = "$env:APP_VER"
+          if ([string]::IsNullOrWhiteSpace($ver)) { throw "APP_VER vazio" }
 
-      - name: Build MSIX & AppInstaller
-        shell: pwsh
-        env:
-          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-        run: |
-          flutter clean
-          flutter pub get
-          flutter pub run msix:create          
           New-Item -ItemType Directory -Force -Path build\release | Out-Null
-          Copy-Item build\msix\*.msix build\release\WorkshopApp.msix
-          Copy-Item build\msix\*.appinstaller build\release\WorkshopApp.appinstaller
 
-      - name: Upload artifacts (optional)
-        uses: actions/upload-artifact@v4
+          $src = "dist\WorkshopApp-setup.exe"
+          $dst = "build\release\WorkshopApp-$ver-setup.exe"
+          Copy-Item $src $dst -Force
+
+          $len = (Get-Item $dst).Length
+          echo "FILE_LEN=$len" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+          $org  = "unspoken-tech-org"
+          $repo = "flutter-workshop-front"
+
+          $tpl = Get-Content -Raw appcast_template.xml
+          $appcast = $tpl.Replace("__ORG__", $org).Replace("__REPO__", $repo).Replace("__VER__", $ver).Replace("__LEN__", "$len")
+          $appcast | Set-Content -Path build\release\appcast.xml -Encoding UTF8
+
+          @"
+          <h2>Workshop App $ver</h2>
+          <ul>
+            <li>Correções e melhorias.</li>
+          </ul>
+          "@ | Set-Content -Path build\release\notes-$ver.html -Encoding UTF8
+
+      # Publica Release usando a VERSÃO do pubspec como tag_name
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: windows-msix
-          path: build\release\*
-
-      - name: Push to Ubuntu Server (SCP)
-        shell: bash
-        env:
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_USER: ${{ secrets.SERVER_USER }}
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          echo "$SSH_PRIVATE_KEY" > key.pem
-          chmod 600 key.pem
-          ssh -i key.pem -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_HOST} "mkdir -p /srv/samba/apps/workshop"
-          scp -i key.pem -o StrictHostKeyChecking=no build/release/WorkshopApp.msix build/release/WorkshopApp.appinstaller ${SERVER_USER}@${SERVER_HOST}:/srv/samba/apps/workshop/
+          tag_name: ${{ env.APP_VER }}        # <= tag será exatamente a versão do pubspec
+          name: "Windows ${ { env.APP_VER } }"
+          draft: false
+          prerelease: false
+          files: |
+            build/release/WorkshopApp-${{ env.APP_VER }}-setup.exe
+            build/release/appcast.xml
+            build/release/notes-${{ env.APP_VER }}.html

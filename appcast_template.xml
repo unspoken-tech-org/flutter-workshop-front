@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Workshop App Updates</title>
+    <item>
+      <title>__VER__</title>
+      <sparkle:releaseNotesLink>https://github.com/__ORG__/__REPO__/releases/latest/download/notes-__VER__.html</sparkle:releaseNotesLink>
+      <enclosure
+        url="https://github.com/__ORG__/__REPO__/releases/latest/download/WorkshopApp-__VER__-setup.exe"
+        sparkle:version="__VER__"
+        length="__LEN__"
+        type="application/octet-stream"/>
+    </item>
+  </channel>
+</rss>

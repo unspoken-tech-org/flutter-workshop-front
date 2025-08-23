@@ -1,5 +1,5 @@
 display_name: Workshop App
-publisher_display_name: CN=Unspoken Tech Org
+publisher_display_name: Unspoken Tech Org
 identity_name: com.workshop.app
 
 # Será sobrescrito no CI (a partir do pubspec), mas deixe um valor inicial:
