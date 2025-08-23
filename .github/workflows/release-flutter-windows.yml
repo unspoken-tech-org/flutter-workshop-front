@@ -91,7 +91,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.APP_VER }}        # <= tag será exatamente a versão do pubspec
-          name: "Windows ${ { env.APP_VER } }"
+          name: "Windows ${{ env.APP_VER }}"
           draft: false
           prerelease: false
           files: |

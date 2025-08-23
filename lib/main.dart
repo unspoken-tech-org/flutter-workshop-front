@@ -9,7 +9,8 @@ Future<void> main() async {
   await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
 
-  String feedURL = 'http://192.168.3.42/updates/appcast.xml';
+  String feedURL =
+      'https://github.com/unspoken-tech-org/flutter-workshop-front/releases/latest/download/appcast.xml';
   await autoUpdater.setFeedURL(feedURL);
   await autoUpdater.checkForUpdates();
   await autoUpdater.setScheduledCheckInterval(3600);

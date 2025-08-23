@@ -3,7 +3,7 @@
 #define MyAppExeName "flutter_workshop_front.exe"   ; <-- executável correto
 #define MyAppPublisher "Unspoken Tech Org"
 #define MyAppVersion GetEnv("APP_VER")              ; setado pelo CI
-#define MyAppDir "C:\Program Files\WorkshopApp"
+#define MyAppDir "{localappdata}\WorkshopApp"
 
 [Setup]
 AppId={{A8B5D3C4-1A2B-4C5D-9E0F-112233445566}}      ; GUID fixo
