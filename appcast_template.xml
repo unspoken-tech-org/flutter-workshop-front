@@ -4,9 +4,11 @@
     <title>Workshop App Updates</title>
     <item>
       <title>__VER__</title>
-      <sparkle:releaseNotesLink>https://github.com/__ORG__/__REPO__/releases/latest/download/notes-__VER__.html</sparkle:releaseNotesLink>
+      <description><![CDATA[
+__DESC__
+      ]]></description>
       <enclosure
-        url="https://github.com/__ORG__/__REPO__/releases/latest/download/WorkshopApp-__VER__-setup.exe"
+        url="https://github.com/__ORG__/__REPO__/releases/download/win-v__VER__/WorkshopApp-__VER__-setup.exe"
         sparkle:version="__VER__"
         length="__LEN__"
         type="application/octet-stream"/>

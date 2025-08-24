@@ -15,6 +15,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -37,7 +40,6 @@ jobs:
           choco install innosetup -y
           $env:PATH += ";C:\Program Files (x86)\Inno Setup 6"
 
-      # Extrai versão do pubspec e compila o instalador
       - name: Compile installer (Inno Setup)
         shell: pwsh
         run: |
@@ -55,42 +57,75 @@ jobs:
             throw "Instalador não gerado em dist\WorkshopApp-setup.exe"
           }
 
-      # Prepara artefatos: renomeia EXE com versão, calcula length, gera appcast/notes
-      - name: Prepare appcast and notes
-        id: prep
-        shell: pwsh
-        run: |
-          $ver = "$env:APP_VER"
-          if ([string]::IsNullOrWhiteSpace($ver)) { throw "APP_VER vazio" }
+          - name: Prepare appcast (inline release notes from git)
+          id: prep
+          shell: pwsh
+          run: |
+            $ErrorActionPreference = "Stop"
+        
+            $ver = "$env:APP_VER"
+            if ([string]::IsNullOrWhiteSpace($ver)) { throw "APP_VER vazio" }
+            $currentTag = "win-v$ver"
+        
+            New-Item -ItemType Directory -Force -Path build\release | Out-Null
+        
+            $src = "dist\WorkshopApp-setup.exe"
+            $dst = "build\release\WorkshopApp-$ver-setup.exe"
+            Copy-Item $src $dst -Force
+            $len = (Get-Item $dst).Length
+            "FILE_LEN=$len" | Out-File -FilePath $env:GITHUB_ENV -Append
+        
+            git fetch --tags --force
+        
+            # get previous tag
+            $tags = (git tag -l "win-v*" --sort=-v:refname) -split "`n" | Where-Object { $_ -ne "" }
+            $prevTag = $null
+            for ($i=0; $i -lt $tags.Count; $i++) {
+              if ($tags[$i] -eq $currentTag -and $i -lt $tags.Count-1) {
+                $prevTag = $tags[$i+1]
+                break
+              }
+            }
+            if ($null -eq $prevTag) {
+              Write-Host "Sem tag anterior — trataremos como primeiro release."
+            }
+        
+            $range = if ($prevTag) { "$prevTag..$currentTag" } else { "$currentTag" }
+            $commitSubjects = (git log $range --pretty=format:"%s") -split "`n" | Where-Object { $_ -ne "" }
+        
+            $lis = ""
+            if ($commitSubjects.Count -eq 0) {
+              $lis = "        <li>Primeiro release</li>`r`n"
+            } else {
+              foreach ($s in $commitSubjects) {
+                $esc = [System.Net.WebUtility]::HtmlEncode($s)
+                $lis += "        <li>$esc</li>`r`n"
+              }
+            }
+        
+            $desc = @"
+            <h2>Workshop App $ver</h2>
+            <ul>
+            $lis</ul>
+            "@
+        
+            $org  = "unspoken-tech-org"
+            $repo = "flutter-workshop-front"
+            $tpl = Get-Content -Raw appcast_template.xml
+            $appcast = $tpl.
+              Replace("__ORG__", $org).
+              Replace("__REPO__", $repo).
+              Replace("__VER__", $ver).
+              Replace("__LEN__", "$len").
+              Replace("__DESC__", $desc)
+        
+            $appcast | Set-Content -Path build\release\appcast.xml -Encoding UTF8
+        
 
-          New-Item -ItemType Directory -Force -Path build\release | Out-Null
-
-          $src = "dist\WorkshopApp-setup.exe"
-          $dst = "build\release\WorkshopApp-$ver-setup.exe"
-          Copy-Item $src $dst -Force
-
-          $len = (Get-Item $dst).Length
-          echo "FILE_LEN=$len" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-          $org  = "unspoken-tech-org"
-          $repo = "flutter-workshop-front"
-
-          $tpl = Get-Content -Raw appcast_template.xml
-          $appcast = $tpl.Replace("__ORG__", $org).Replace("__REPO__", $repo).Replace("__VER__", $ver).Replace("__LEN__", "$len")
-          $appcast | Set-Content -Path build\release\appcast.xml -Encoding UTF8
-
-          @"
-          <h2>Workshop App $ver</h2>
-          <ul>
-            <li>Correções e melhorias.</li>
-          </ul>
-          "@ | Set-Content -Path build\release\notes-$ver.html -Encoding UTF8
-
-      # Publica Release usando a VERSÃO do pubspec como tag_name
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.APP_VER }}        # <= tag será exatamente a versão do pubspec
+          tag_name: ${{ env.APP_VER }}
           name: "Windows ${{ env.APP_VER }}"
           draft: false
           prerelease: false
