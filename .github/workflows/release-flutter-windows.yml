@@ -1,0 +1,159 @@
+name: Build & Release Windows (Inno + GitHub Releases)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Build Flutter Windows (release)
+        run: flutter build windows --release
+
+      - name: Install Inno Setup (choco)
+        shell: pwsh
+        run: |
+          choco install innosetup -y
+          $env:PATH += ";C:\Program Files (x86)\Inno Setup 6"
+
+      - name: Compile installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $pub = Get-Content -Raw pubspec.yaml
+          $m = [regex]::Match($pub, "version:\s*([0-9]+)\.([0-9]+)\.([0-9]+)")
+          if (-not $m.Success) { throw "Não encontrei 'version:' no pubspec.yaml" }
+          $ver = "$($m.Groups[1].Value).$($m.Groups[2].Value).$($m.Groups[3].Value)"
+          echo "APP_VER=$ver" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+          # set APP_VER as environment variable for the .iss
+          $env:APP_VER = $ver
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\WorkshopApp.iss
+
+          if (-not (Test-Path "dist\WorkshopApp-setup.exe")) {
+            throw "Instalador não gerado em dist\WorkshopApp-setup.exe"
+          }
+
+      - name: Prepare appcast (inline release notes from git)
+        id: prep
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+      
+          $ver = "$env:APP_VER"
+          if ([string]::IsNullOrWhiteSpace($ver)) { throw "APP_VER vazio" }
+          $currentTag = "win-v$ver"
+      
+          New-Item -ItemType Directory -Force -Path build\release | Out-Null
+      
+          # rename the setup with version
+          $src = "dist\WorkshopApp-setup.exe"
+          $dst = "build\release\WorkshopApp-$ver-setup.exe"
+          Copy-Item $src $dst -Force
+          $len = (Get-Item $dst).Length
+          "FILE_LEN=$len" | Out-File -FilePath $env:GITHUB_ENV -Append
+      
+          git fetch --tags --force
+      
+          $tags = (git tag -l "win-v*" --sort=-v:refname) -split "`n" | Where-Object { $_ -ne "" }
+      
+          $prevTag = $null
+          for ($i=0; $i -lt $tags.Count; $i++) {
+            if ($tags[$i] -eq $currentTag -and $i -lt $tags.Count-1) {
+              $prevTag = $tags[$i+1]
+              break
+            }
+          }
+          if (-not $prevTag -and $tags.Count -gt 0) {
+            # if the current tag does not exist, use the most recent tag as "previous"
+            $prevTag = $tags[0]
+          }
+      
+          # check if the current tag exists locally
+          $tagExists = $false
+          try {
+            git rev-parse --verify "$currentTag^{}" | Out-Null
+            $tagExists = $true
+          } catch {}
+      
+          if ($prevTag -and $tagExists) {
+            $range = "$prevTag..$currentTag"
+          } elseif ($prevTag -and -not $tagExists) {
+            Write-Host "Tag $currentTag não existe ainda. Usando range $prevTag..HEAD"
+            $range = "$prevTag..HEAD"
+          } else {
+            Write-Host "Sem tag anterior — trataremos como primeiro release."
+            $range = "HEAD"
+          }
+      
+          # collect commit messages
+          $commitSubjects = @()
+          if ($range -eq "HEAD") {
+            $commitSubjects = (git log -n 50 --pretty=format:"%s") -split "`n" | Where-Object { $_ -ne "" }
+          } else {
+            $commitSubjects = (git log $range --pretty=format:"%s") -split "`n" | Where-Object { $_ -ne "" }
+          }
+      
+          # build the <description> in HTML
+          $lis = ""
+          if ($commitSubjects.Count -eq 0) {
+            $lis = "        <li>Atualização de manutenção</li>`r`n"
+          } else {
+            foreach ($s in $commitSubjects) {
+              $esc = [System.Net.WebUtility]::HtmlEncode($s)
+              $lis += "        <li>$esc</li>`r`n"
+            }
+          }
+          $desc = @"
+          <h2>Workshop App ($ver)</h2>
+          <ul>
+          $lis</ul>
+          "@
+      
+          # replace in template and save appcast.xml
+          $org  = "unspoken-tech-org"
+          $repo = "flutter-workshop-front"
+          $tpl = Get-Content -Raw appcast_template.xml
+          $appcast = $tpl.
+            Replace("__ORG__", $org).
+            Replace("__REPO__", $repo).
+            Replace("__VER__", $ver).
+            Replace("__LEN__", "$len").
+            Replace("__DESC__", $desc)
+      
+          $appcast | Set-Content -Path build\release\appcast.xml -Encoding UTF8        
+        
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.APP_VER }}
+          name: "Windows ${{ env.APP_VER }}"
+          draft: false
+          prerelease: false
+          files: |
+            build/release/WorkshopApp-${{ env.APP_VER }}-setup.exe
+            build/release/appcast.xml
+            build/release/notes-${{ env.APP_VER }}.html
