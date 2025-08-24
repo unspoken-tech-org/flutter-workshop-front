@@ -57,69 +57,69 @@ jobs:
             throw "Instalador não gerado em dist\WorkshopApp-setup.exe"
           }
 
-          - name: Prepare appcast (inline release notes from git)
-          id: prep
-          shell: pwsh
-          run: |
-            $ErrorActionPreference = "Stop"
-        
-            $ver = "$env:APP_VER"
-            if ([string]::IsNullOrWhiteSpace($ver)) { throw "APP_VER vazio" }
-            $currentTag = "win-v$ver"
-        
-            New-Item -ItemType Directory -Force -Path build\release | Out-Null
-        
-            $src = "dist\WorkshopApp-setup.exe"
-            $dst = "build\release\WorkshopApp-$ver-setup.exe"
-            Copy-Item $src $dst -Force
-            $len = (Get-Item $dst).Length
-            "FILE_LEN=$len" | Out-File -FilePath $env:GITHUB_ENV -Append
-        
-            git fetch --tags --force
-        
-            # get previous tag
-            $tags = (git tag -l "win-v*" --sort=-v:refname) -split "`n" | Where-Object { $_ -ne "" }
-            $prevTag = $null
-            for ($i=0; $i -lt $tags.Count; $i++) {
-              if ($tags[$i] -eq $currentTag -and $i -lt $tags.Count-1) {
-                $prevTag = $tags[$i+1]
-                break
-              }
+      - name: Prepare appcast (inline release notes from git)
+        id: prep
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+      
+          $ver = "$env:APP_VER"
+          if ([string]::IsNullOrWhiteSpace($ver)) { throw "APP_VER vazio" }
+          $currentTag = "win-v$ver"
+      
+          New-Item -ItemType Directory -Force -Path build\release | Out-Null
+      
+          $src = "dist\WorkshopApp-setup.exe"
+          $dst = "build\release\WorkshopApp-$ver-setup.exe"
+          Copy-Item $src $dst -Force
+          $len = (Get-Item $dst).Length
+          "FILE_LEN=$len" | Out-File -FilePath $env:GITHUB_ENV -Append
+      
+          git fetch --tags --force
+      
+          # get previous tag
+          $tags = (git tag -l "win-v*" --sort=-v:refname) -split "`n" | Where-Object { $_ -ne "" }
+          $prevTag = $null
+          for ($i=0; $i -lt $tags.Count; $i++) {
+            if ($tags[$i] -eq $currentTag -and $i -lt $tags.Count-1) {
+              $prevTag = $tags[$i+1]
+              break
             }
-            if ($null -eq $prevTag) {
-              Write-Host "Sem tag anterior — trataremos como primeiro release."
+          }
+          if ($null -eq $prevTag) {
+            Write-Host "Sem tag anterior — trataremos como primeiro release."
+          }
+      
+          $range = if ($prevTag) { "$prevTag..$currentTag" } else { "$currentTag" }
+          $commitSubjects = (git log $range --pretty=format:"%s") -split "`n" | Where-Object { $_ -ne "" }
+      
+          $lis = ""
+          if ($commitSubjects.Count -eq 0) {
+            $lis = "        <li>Primeiro release</li>`r`n"
+          } else {
+            foreach ($s in $commitSubjects) {
+              $esc = [System.Net.WebUtility]::HtmlEncode($s)
+              $lis += "        <li>$esc</li>`r`n"
             }
-        
-            $range = if ($prevTag) { "$prevTag..$currentTag" } else { "$currentTag" }
-            $commitSubjects = (git log $range --pretty=format:"%s") -split "`n" | Where-Object { $_ -ne "" }
-        
-            $lis = ""
-            if ($commitSubjects.Count -eq 0) {
-              $lis = "        <li>Primeiro release</li>`r`n"
-            } else {
-              foreach ($s in $commitSubjects) {
-                $esc = [System.Net.WebUtility]::HtmlEncode($s)
-                $lis += "        <li>$esc</li>`r`n"
-              }
-            }
-        
-            $desc = @"
-            <h2>Workshop App $ver</h2>
-            <ul>
-            $lis</ul>
-            "@
-        
-            $org  = "unspoken-tech-org"
-            $repo = "flutter-workshop-front"
-            $tpl = Get-Content -Raw appcast_template.xml
-            $appcast = $tpl.
-              Replace("__ORG__", $org).
-              Replace("__REPO__", $repo).
-              Replace("__VER__", $ver).
-              Replace("__LEN__", "$len").
-              Replace("__DESC__", $desc)
-        
-            $appcast | Set-Content -Path build\release\appcast.xml -Encoding UTF8
+          }
+      
+          $desc = @"
+          <h2>Workshop App $ver</h2>
+          <ul>
+          $lis</ul>
+          "@
+      
+          $org  = "unspoken-tech-org"
+          $repo = "flutter-workshop-front"
+          $tpl = Get-Content -Raw appcast_template.xml
+          $appcast = $tpl.
+            Replace("__ORG__", $org).
+            Replace("__REPO__", $repo).
+            Replace("__VER__", $ver).
+            Replace("__LEN__", "$len").
+            Replace("__DESC__", $desc)
+      
+          $appcast | Set-Content -Path build\release\appcast.xml -Encoding UTF8
         
 
       - name: Publish GitHub Release
