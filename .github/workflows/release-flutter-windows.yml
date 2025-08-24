@@ -69,16 +69,18 @@ jobs:
       
           New-Item -ItemType Directory -Force -Path build\release | Out-Null
       
+          # 1) Renomeia o setup com versão
           $src = "dist\WorkshopApp-setup.exe"
           $dst = "build\release\WorkshopApp-$ver-setup.exe"
           Copy-Item $src $dst -Force
           $len = (Get-Item $dst).Length
           "FILE_LEN=$len" | Out-File -FilePath $env:GITHUB_ENV -Append
       
+          # 2) Baixa todas as tags e descobre a anterior
           git fetch --tags --force
       
-          # get previous tag
           $tags = (git tag -l "win-v*" --sort=-v:refname) -split "`n" | Where-Object { $_ -ne "" }
+      
           $prevTag = $null
           for ($i=0; $i -lt $tags.Count; $i++) {
             if ($tags[$i] -eq $currentTag -and $i -lt $tags.Count-1) {
@@ -86,29 +88,54 @@ jobs:
               break
             }
           }
-          if ($null -eq $prevTag) {
-            Write-Host "Sem tag anterior — trataremos como primeiro release."
+          if (-not $prevTag -and $tags.Count -gt 0) {
+            # se a tag atual ainda não existe, usa a tag mais recente como "anterior"
+            $prevTag = $tags[0]
           }
       
-          $range = if ($prevTag) { "$prevTag..$currentTag" } else { "$currentTag" }
-          $commitSubjects = (git log $range --pretty=format:"%s") -split "`n" | Where-Object { $_ -ne "" }
+          # 3) Verifica se a tag atual existe localmente
+          $tagExists = $false
+          try {
+            git rev-parse --verify "$currentTag^{}" | Out-Null
+            $tagExists = $true
+          } catch {}
       
+          # 4) Define o range de commits de forma robusta
+          if ($prevTag -and $tagExists) {
+            $range = "$prevTag..$currentTag"
+          } elseif ($prevTag -and -not $tagExists) {
+            Write-Host "Tag $currentTag não existe ainda. Usando range $prevTag..HEAD"
+            $range = "$prevTag..HEAD"
+          } else {
+            Write-Host "Sem tag anterior — trataremos como primeiro release."
+            $range = "HEAD"
+          }
+      
+          # 5) Coleta mensagens de commit
+          $commitSubjects = @()
+          if ($range -eq "HEAD") {
+            $commitSubjects = (git log -n 50 --pretty=format:"%s") -split "`n" | Where-Object { $_ -ne "" }
+          } else {
+            $commitSubjects = (git log $range --pretty=format:"%s") -split "`n" | Where-Object { $_ -ne "" }
+          }
+      
+          # 6) Monta a <description> em HTML
           $lis = ""
           if ($commitSubjects.Count -eq 0) {
-            $lis = "        <li>Primeiro release</li>`r`n"
+            $lis = "        <li>Atualização de manutenção</li>`r`n"
           } else {
             foreach ($s in $commitSubjects) {
               $esc = [System.Net.WebUtility]::HtmlEncode($s)
               $lis += "        <li>$esc</li>`r`n"
             }
           }
-      
           $desc = @"
-          <h2>Workshop App $ver</h2>
+          <h2>Workshop App ($ver)</h2>
           <ul>
           $lis</ul>
           "@
       
+          # 7) Substitui no template e grava appcast.xml
           $org  = "unspoken-tech-org"
           $repo = "flutter-workshop-front"
           $tpl = Get-Content -Raw appcast_template.xml
@@ -119,7 +146,7 @@ jobs:
             Replace("__LEN__", "$len").
             Replace("__DESC__", $desc)
       
-          $appcast | Set-Content -Path build\release\appcast.xml -Encoding UTF8
+          $appcast | Set-Content -Path build\release\appcast.xml -Encoding UTF8        
         
 
       - name: Publish GitHub Release
