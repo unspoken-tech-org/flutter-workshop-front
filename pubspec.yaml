@@ -2,7 +2,7 @@ name: flutter_workshop_front
 description: "Flutter Workshop Frontend"
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.0.0
 
 environment:
   sdk: ^3.5.3
@@ -24,7 +24,7 @@ dependencies:
   flutter_dotenv: ^5.1.0
   auto_updater: ^1.0.0
   # msix: ^3.16.12
-  
+
 
 dev_dependencies:
   flutter_test:
