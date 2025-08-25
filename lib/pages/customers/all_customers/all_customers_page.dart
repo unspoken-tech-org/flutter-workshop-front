@@ -92,6 +92,7 @@ class _AllCustomersPageState extends State<AllCustomersPage> {
                       }
                       return CustomersList(
                         customers: _controller.customers,
+                        controller: _controller,
                         onTap: (customerId) {
                           WsNavigator.pushCustomerDetail(context, customerId);
                         },
