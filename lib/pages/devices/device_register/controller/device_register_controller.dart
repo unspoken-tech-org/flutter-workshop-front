@@ -1,6 +1,8 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_workshop_front/core/debouncer.dart';
 import 'package:flutter_workshop_front/models/colors/color_model.dart';
+import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
 import 'package:flutter_workshop_front/models/device/device_input.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
@@ -26,6 +28,8 @@ class DeviceRegisterController extends ChangeNotifier {
     this._technicianService,
     this._customerService,
   );
+
+  final Debouncer _debouncer = Debouncer(milliseconds: 500);
 
   List<TypeBrandModel> typesBrandsModels = [];
   List<ColorModel> allColors = [];
@@ -53,8 +57,8 @@ class DeviceRegisterController extends ChangeNotifier {
       fetchTypesBrandsModels(),
       fetchColors(),
       fetchTechnicians(),
-      if (customerId == null) fetchCustomers(),
     ]);
+    if (customerId == null) isCustomerSelected = false;
     isLoading = false;
     notifyListeners();
   }
@@ -77,14 +81,23 @@ class DeviceRegisterController extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchCustomers() async {
-    try {
-      isCustomerSelected = false;
-      final customers = await _customerService.searchCustomers(null);
-      this.customers = customers;
-    } catch (e) {
-      SnackBarUtil().showError('Erro ao buscar o cliente');
-    }
+  Future<void> searchCustomers(String? searchTerm) async {
+    _debouncer.run(() async {
+      try {
+        final filter = CustomerSearchFilter.getCustomerSearchFilter(
+          searchTerm,
+          page: 0,
+          size: 20,
+        );
+        final customersPage = await _customerService.searchCustomers(filter);
+        customers = customersPage.content;
+        notifyListeners();
+      } catch (e) {
+        SnackBarUtil().showError('Erro ao buscar o cliente');
+        customers = [];
+        notifyListeners();
+      }
+    });
   }
 
   Future<void> fetchTypesBrandsModels() async {
@@ -171,6 +184,14 @@ class DeviceRegisterController extends ChangeNotifier {
     this.customerId = customerId;
     this.customerName = customerName;
     isCustomerSelected = true;
+    notifyListeners();
+  }
+
+  void clearCustomerInfos() {
+    customerId = null;
+    customerName = null;
+    isCustomerSelected = false;
+    customers = [];
     notifyListeners();
   }
 }

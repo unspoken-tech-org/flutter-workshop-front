@@ -20,14 +20,34 @@ class CustomerInfos extends StatelessWidget {
       child: Column(
         spacing: 16,
         children: [
-          const Row(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Icons.person_outline),
-              SizedBox(width: 16),
-              Text(
-                'Informações do Cliente',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              const Row(
+                spacing: 16,
+                children: [
+                  Icon(Icons.person_outline),
+                  Text(
+                    'Informações do Cliente',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                ],
               ),
+              Selector<DeviceRegisterController, bool>(
+                  selector: (context, controller) =>
+                      controller.isCustomerSelected,
+                  builder: (context, isCustomerSelected, child) {
+                    if (!isCustomerSelected) return const SizedBox.shrink();
+
+                    return IconButton(
+                      onPressed: () {
+                        context
+                            .read<DeviceRegisterController>()
+                            .clearCustomerInfos();
+                      },
+                      icon: const Icon(Icons.close),
+                    );
+                  }),
             ],
           ),
           Selector<DeviceRegisterController, (int?, String?)>(
@@ -97,6 +117,10 @@ class CustomerSearchField extends StatelessWidget {
           items: itemsMap.keys.toList(),
           fieldLabel: 'Buscar Cliente',
           hintText: 'Busque por um cliente',
+          showAllItems: true,
+          onTextChanged: (value) {
+            controller.searchCustomers(value);
+          },
           onItemSelected: (value) {
             controller.setCustomerInfos(itemsMap[value], value);
           },

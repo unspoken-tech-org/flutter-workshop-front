@@ -13,6 +13,8 @@ class SearchableDropdownButtonFormField extends StatefulWidget {
   final void Function(String? value)? onItemSelected;
   final VoidCallback? onClear;
   final bool enabled;
+  final double offset;
+  final bool showAllItems;
 
   const SearchableDropdownButtonFormField({
     super.key,
@@ -26,6 +28,8 @@ class SearchableDropdownButtonFormField extends StatefulWidget {
     this.onItemSelected,
     this.onClear,
     this.enabled = true,
+    this.offset = 0,
+    this.showAllItems = false,
   });
 
   @override
@@ -83,7 +87,7 @@ class _SearchableDropdownButtonFormFieldState
   }
 
   void _onTextChanged() {
-    // _filterItems(_controller.text);
+    widget.onTextChanged?.call(_controller.text);
     if (_controller.text.isEmpty) {
       if (_overlayEntry != null) _hideOverlay();
     } else {
@@ -91,7 +95,9 @@ class _SearchableDropdownButtonFormFieldState
       if (_overlayEntry == null) _showOverlay();
     }
 
-    _overlayEntry?.markNeedsBuild();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _overlayEntry?.markNeedsBuild();
+    });
   }
 
   void _showOverlay() {
@@ -114,7 +120,7 @@ class _SearchableDropdownButtonFormFieldState
   void _filterItems(String query) {
     if (!mounted) return;
 
-    if (query.isEmpty) {
+    if (query.isEmpty || widget.showAllItems) {
       _filteredItems = widget.items;
     } else {
       _filteredItems = widget.items
@@ -122,7 +128,9 @@ class _SearchableDropdownButtonFormFieldState
           .toList();
     }
 
-    _overlayEntry?.markNeedsBuild();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _overlayEntry?.markNeedsBuild();
+    });
   }
 
   void _onItemSelected(String item) {
@@ -141,7 +149,7 @@ class _SearchableDropdownButtonFormFieldState
         child: CompositedTransformFollower(
           link: _layerLink,
           showWhenUnlinked: false,
-          offset: Offset(0.0, size.height - 20),
+          offset: Offset(0.0, size.height - widget.offset),
           child: Material(
             type: MaterialType.transparency,
             child: ConstrainedBox(
