@@ -116,6 +116,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                       headerLabel: 'Tipo de aparelho',
                       hintText: 'Busque pelo tipo',
                       items: deviceTypesNames,
+                      offset: 20,
                       onItemSelected: (value) {
                         if (value == null) return;
                         final deviceType = deviceTypes.firstWhere(
@@ -140,6 +141,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                       headerLabel: 'Marca do aparelho',
                       hintText: 'Busque pela marca',
                       items: deviceBrandsNames,
+                      offset: 20,
                       onItemSelected: (value) {
                         if (value == null) return;
                         final deviceBrand = deviceBrands.firstWhere(

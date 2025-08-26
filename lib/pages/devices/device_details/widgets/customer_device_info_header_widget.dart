@@ -41,22 +41,29 @@ class _CustomerDeviceInfoHeaderWidgetState
     }
     return showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Aviso'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+      builder: (context) => SizedBox(
+        width: 100,
+        height: 100,
+        child: AlertDialog(
+          title: const Text('Aviso'),
+          content: SizedBox(
+            width: 300,
+            child: Text(message),
           ),
-          TextButton(
-            onPressed: () {
-              onConfirm();
-              Navigator.pop(context);
-            },
-            child: const Text('Prosseguir'),
-          ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                onConfirm();
+                Navigator.pop(context);
+              },
+              child: const Text('Prosseguir'),
+            ),
+          ],
+        ),
       ),
     );
   }
