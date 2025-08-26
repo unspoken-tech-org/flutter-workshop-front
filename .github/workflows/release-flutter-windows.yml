@@ -30,6 +30,10 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
+      - name: Change .env to production
+        run: |
+          cp .env-prd .env
+
       - name: Build Flutter Windows (release)
         run: flutter build windows --release
 

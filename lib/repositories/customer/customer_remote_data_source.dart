@@ -2,6 +2,7 @@ import 'package:flutter_workshop_front/models/customer/customer_model.dart';
 import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
 import 'package:flutter_workshop_front/models/customer/input_customer.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
+import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
 import 'package:flutter_workshop_front/services/customer/customer_service.dart';
 
@@ -28,7 +29,7 @@ class CustomerRemoteDataSource implements CustomerRepository {
   }
 
   @override
-  Future<List<MinifiedCustomerModel>> searchCustomers(
+  Future<Page<MinifiedCustomerModel>> searchCustomers(
       CustomerSearchFilter? filter) async {
     final response = await _customerService.searchCustomers(filter);
     return response;

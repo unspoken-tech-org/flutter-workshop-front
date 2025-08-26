@@ -5,6 +5,7 @@ import 'package:flutter_workshop_front/models/customer/customer_model.dart';
 import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
 import 'package:flutter_workshop_front/models/customer/input_customer.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
+import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 
 class CustomerService {
   final Dio _dio = CustomDio.dioInstance();
@@ -52,7 +53,7 @@ class CustomerService {
     }
   }
 
-  Future<List<MinifiedCustomerModel>> searchCustomers(
+  Future<Page<MinifiedCustomerModel>> searchCustomers(
       CustomerSearchFilter? filter) async {
     final response = await _dio.post(
       '/v1/customer/search',
@@ -60,9 +61,10 @@ class CustomerService {
     );
 
     if ([200].contains(response.statusCode)) {
-      return (response.data as List)
-          .map((customer) => MinifiedCustomerModel.fromJson(customer))
-          .toList();
+      return Page.fromJson(
+        response.data,
+        (customer) => MinifiedCustomerModel.fromJson(customer),
+      );
     } else {
       throw RequisitionException.fromJson(response.data['error']);
     }
