@@ -8,7 +8,7 @@
 __DESC__
       ]]></description>
       <enclosure
-        url="https://github.com/__ORG__/__REPO__/releases/download/win-v__VER__/WorkshopApp-__VER__-setup.exe"
+        url="https://github.com/__ORG__/__REPO__/releases/download/__VER__/WorkshopApp-__VER__-setup.exe"
         sparkle:version="__VER__"
         length="__LEN__"
         type="application/octet-stream"/>
