@@ -10,7 +10,7 @@ class EmptyPaymentsWidget extends StatelessWidget {
         const SizedBox(height: 30),
         Image.asset(
           'assets/images/empty_pockets.png',
-          height: 250,
+          height: 180,
         ),
         const SizedBox(height: 16),
         Text(

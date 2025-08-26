@@ -10,6 +10,7 @@ __DESC__
       <enclosure
         url="https://github.com/__ORG__/__REPO__/releases/download/__VER__/WorkshopApp-__VER__-setup.exe"
         sparkle:version="__VER__"
+        sparkle:installerArguments="/VERYSILENT /SUPPRESSMSGBOXES /NORESTART"
         length="__LEN__"
         type="application/octet-stream"/>
     </item>
