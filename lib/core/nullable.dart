@@ -7,6 +7,10 @@ class Nullable<T> {
     return Nullable(value: value);
   }
 
+  factory Nullable.empty() {
+    return Nullable(value: null);
+  }
+
   bool get isNull => value == null;
   bool get isNotNull => value != null;
 }

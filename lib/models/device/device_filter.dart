@@ -73,10 +73,10 @@ class DeviceFilter {
   }
 
   DeviceFilter copyWith({
-    String? customerName,
-    int? deviceId,
-    String? customerPhone,
-    String? customerCpf,
+    Nullable<String>? customerName,
+    Nullable<int>? deviceId,
+    Nullable<String>? customerPhone,
+    Nullable<String>? customerCpf,
     List<StatusEnum>? status,
     List<DeviceType>? deviceTypes,
     List<DeviceBrand>? deviceBrands,
@@ -88,10 +88,12 @@ class DeviceFilter {
     int? page,
   }) {
     return DeviceFilter(
-      customerName: customerName ?? this.customerName,
-      deviceId: deviceId ?? this.deviceId,
-      customerPhone: customerPhone ?? this.customerPhone,
-      customerCpf: customerCpf ?? this.customerCpf,
+      customerName:
+          customerName == null ? this.customerName : customerName.value,
+      deviceId: deviceId == null ? this.deviceId : deviceId.value,
+      customerPhone:
+          customerPhone == null ? this.customerPhone : customerPhone.value,
+      customerCpf: customerCpf == null ? this.customerCpf : customerCpf.value,
       status: status ?? this.status,
       deviceTypes: deviceTypes ?? this.deviceTypes,
       deviceBrands: deviceBrands ?? this.deviceBrands,
@@ -162,10 +164,10 @@ class DeviceFilter {
 
   DeviceFilter clearTypedFilters() {
     return copyWith(
-      customerName: null,
-      deviceId: null,
-      customerPhone: null,
-      customerCpf: null,
+      customerName: Nullable.empty(),
+      deviceId: Nullable.empty(),
+      customerPhone: Nullable.empty(),
+      customerCpf: Nullable.empty(),
     );
   }
 

@@ -88,13 +88,13 @@ class AllDevicesController extends ChangeNotifier {
   }
 
   void filterTable(String searchTerm) {
-    filter.clearTypedFilters();
+    filter = filter.clearTypedFilters();
 
     var search = FilterUtils(searchTerm);
     if (search.isName) {
       filter.customerName = search.term;
     } else if (search.isCpf) {
-      filter.customerCpf = search.term.replaceAll('.', '').replaceAll('-', '');
+      filter.customerCpf = search.term;
     } else if (search.isPhoneOrCellPhone) {
       filter.customerPhone = search.term;
     } else if (search.isId) {

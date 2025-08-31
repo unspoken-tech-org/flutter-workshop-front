@@ -166,6 +166,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
                 ElevatedButton(
                   onPressed: () async {
                     if (!_formKey.currentState!.validate()) return;
+                    _inputCustomer = _inputCustomer.copyWith(phones: []);
                     _formKey.currentState?.save();
                     final newCustomerId =
                         await controller.createCustomer(_inputCustomer);

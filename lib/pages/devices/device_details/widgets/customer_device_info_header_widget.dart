@@ -189,8 +189,7 @@ class _CustomerDeviceInfoHeaderWidgetState
                   children: [
                     const Icon(Icons.phone_outlined),
                     Expanded(
-                      child: Text(
-                        overflow: TextOverflow.ellipsis,
+                      child: SelectableText(
                         'Telefone principal: ${getMainPhone(deviceCustomer.customerPhones)}',
                       ),
                     ),

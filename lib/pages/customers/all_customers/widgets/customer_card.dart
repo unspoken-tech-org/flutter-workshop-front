@@ -35,6 +35,7 @@ class CustomerCard extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Column(
@@ -45,7 +46,7 @@ class CustomerCard extends StatelessWidget {
                         label: 'ID',
                         value: customer.customerId.toString()),
                     const SizedBox(height: 12),
-                    if (customer.email != null)
+                    if (customer.email?.isNotEmpty ?? false)
                       _InfoRow(
                           icon: Icons.email_outlined,
                           label: 'Email',
