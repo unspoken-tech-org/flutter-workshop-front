@@ -48,6 +48,8 @@ class _SecondaryPhonesWidgetState extends State<SecondaryPhonesWidget> {
     widget.initialPhones?.forEach((phone) {
       _secondaryPhoneFields.add(
         SecondaryPhoneFormField(
+          key:
+              ValueKey('phone_field_name_${phone.name}_number_${phone.number}'),
           name: phone.name,
           number: PhoneUtils.formatPhone(phone.number),
           readOnly: !widget.isEditing,
@@ -95,6 +97,7 @@ class _SecondaryPhonesWidgetState extends State<SecondaryPhonesWidget> {
               setState(() {
                 _secondaryPhoneFields.add(
                   SecondaryPhoneFormField(
+                    key: const ValueKey('phone_field_name_number_'),
                     readOnly: !widget.isEditing,
                     onSaved: widget.onSaved,
                   ),

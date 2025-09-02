@@ -295,7 +295,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                       initialPhones: customer?.phones
                           .where((phone) => !phone.main)
                           .map((phone) => PhoneFieldParameters(
-                                name: phone.name,
+                                name: phone.name?.capitalizeAllWords,
                                 number: phone.number,
                               ))
                           .toList(),

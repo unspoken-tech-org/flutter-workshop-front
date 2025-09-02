@@ -23,17 +23,9 @@ class MinifiedCustomerModel {
       name: json['name'],
       insertDate: json['insertDate'],
       cpf: json['cpf'],
-      mainPhone: json['mainPhone'],
+      mainPhone: json['mainPhone'] ?? '',
       email: json['email'],
       gender: json['gender'],
     );
   }
 }
-
-// private int id;
-//     private String name;
-//     private String cpf;
-//     private String email;
-//     private String gender;
-//     private LocalDateTime insertDate;
-//     private String mainPhone;
