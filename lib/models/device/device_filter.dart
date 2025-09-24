@@ -31,8 +31,8 @@ class DeviceFilter {
 
   Map<OrderBy, OrderDirection?> orderBy = const {};
 
-  bool hasUrgency = false;
-  bool hasRevision = false;
+  bool? hasUrgency;
+  bool? hasRevision;
 
   int page = 0;
 
@@ -46,8 +46,8 @@ class DeviceFilter {
     this.deviceBrands = const [],
     this.initialEntryDate,
     this.finalEntryDate,
-    this.hasUrgency = false,
-    this.hasRevision = false,
+    this.hasUrgency,
+    this.hasRevision,
     this.orderBy = const {
       OrderBy.name: null,
       OrderBy.entryDate: OrderDirection.desc,
@@ -61,7 +61,8 @@ class DeviceFilter {
     final hasTypeFilters = deviceTypes.isNotEmpty;
     final hasBrandFilters = deviceBrands.isNotEmpty;
     final hasDateFilters = initialEntryDate != null || finalEntryDate != null;
-    final hasRevisionUrgencyFilters = hasRevision || hasUrgency;
+    final hasRevisionUrgencyFilters =
+        (hasRevision ?? false) || (hasUrgency ?? false);
 
     return [
       hasStatusFilters,
@@ -83,8 +84,8 @@ class DeviceFilter {
     Nullable<DateTime>? initialEntryDate,
     Nullable<DateTime>? finalEntryDate,
     Map<OrderBy, OrderDirection?>? orderBy,
-    bool? hasUrgency,
-    bool? hasRevision,
+    Nullable<bool>? hasUrgency,
+    Nullable<bool>? hasRevision,
     int? page,
   }) {
     return DeviceFilter(
@@ -103,8 +104,8 @@ class DeviceFilter {
       finalEntryDate:
           finalEntryDate == null ? this.finalEntryDate : finalEntryDate.value,
       orderBy: orderBy ?? this.orderBy,
-      hasUrgency: hasUrgency ?? this.hasUrgency,
-      hasRevision: hasRevision ?? this.hasRevision,
+      hasUrgency: hasUrgency == null ? this.hasUrgency : hasUrgency.value,
+      hasRevision: hasRevision == null ? this.hasRevision : hasRevision.value,
       page: page ?? this.page,
     );
   }
@@ -140,18 +141,16 @@ class DeviceFilter {
   }
 
   DeviceFilter withToggledUrgency() {
-    final urgency = !hasUrgency;
+    final urgency = hasUrgency == true ? null : true;
     return copyWith(
-      hasUrgency: urgency,
-      hasRevision: urgency ? false : hasRevision,
+      hasUrgency: Nullable.of(urgency),
     );
   }
 
   DeviceFilter withToggledRevision() {
-    final revision = !hasRevision;
+    final revision = hasRevision == true ? null : true;
     return copyWith(
-      hasRevision: revision,
-      hasUrgency: revision ? false : hasUrgency,
+      hasRevision: Nullable.of(revision),
     );
   }
 
@@ -208,8 +207,8 @@ class DeviceFilter {
       deviceBrands: [],
       initialEntryDate: null,
       finalEntryDate: null,
-      hasUrgency: false,
-      hasRevision: false,
+      hasUrgency: Nullable.empty(),
+      hasRevision: Nullable.empty(),
       page: 0,
     );
   }
