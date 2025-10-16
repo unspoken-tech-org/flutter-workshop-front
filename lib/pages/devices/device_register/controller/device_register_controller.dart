@@ -46,6 +46,7 @@ class DeviceRegisterController extends ChangeNotifier {
 
   bool isLoading = false;
   bool isCustomerSelected = true;
+  bool isCreatingDevice = false;
 
   DeviceInput inputDevice = DeviceInput.empty();
 
@@ -110,6 +111,9 @@ class DeviceRegisterController extends ChangeNotifier {
 
   Future<int?> createDevice() async {
     try {
+      isCreatingDevice = true;
+      notifyListeners();
+
       inputDevice = inputDevice.copyWith(
         customerId: customerId,
       );
@@ -122,6 +126,9 @@ class DeviceRegisterController extends ChangeNotifier {
     } catch (e) {
       SnackBarUtil().showError('Erro ao criar dispositivo');
       return null;
+    } finally {
+      isCreatingDevice = false;
+      notifyListeners();
     }
   }
 

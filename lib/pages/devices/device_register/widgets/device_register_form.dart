@@ -94,46 +94,67 @@ class DeviceRegisterActionButtons extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey.shade300),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          ElevatedButton(
-            onPressed: () {
-              onCancel();
-            },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 32,
-                vertical: 20,
+      child: SizedBox(
+        height: 44,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                onCancel();
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 20,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                foregroundColor: Colors.black87,
+                backgroundColor: Colors.white.withAlpha(230),
               ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
-              ),
-              foregroundColor: Colors.black87,
-              backgroundColor: Colors.white.withAlpha(230),
+              child: const Text('Cancelar'),
             ),
-            child: const Text('Cancelar'),
-          ),
-          const SizedBox(width: 16),
-          ElevatedButton.icon(
-            onPressed: () async {
-              await onSave();
-            },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 32,
-                vertical: 20,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
-              ),
-              backgroundColor: Colors.black87,
-              foregroundColor: Colors.white,
+            const SizedBox(width: 16),
+            Selector<DeviceRegisterController, bool>(
+              selector: (context, controller) => controller.isCreatingDevice,
+              builder: (context, isCreatingDevice, child) {
+                return SizedBox(
+                  width: 220,
+                  child: ElevatedButton.icon(
+                    onPressed:
+                        isCreatingDevice ? null : () async => await onSave(),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 20,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      backgroundColor: Colors.black87,
+                      foregroundColor: Colors.white,
+                    ),
+                    icon: isCreatingDevice
+                        ? null
+                        : const Icon(Icons.save_outlined),
+                    label: isCreatingDevice
+                        ? const Center(
+                            child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.black87,
+                            ),
+                          ))
+                        : const Text('Cadastrar Aparelho'),
+                  ),
+                );
+              },
             ),
-            icon: const Icon(Icons.save_outlined),
-            label: const Text('Cadastrar Aparelho'),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
