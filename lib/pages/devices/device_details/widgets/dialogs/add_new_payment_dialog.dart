@@ -24,7 +24,6 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
 
   @override
   void dispose() {
-    _dateController.dispose();
     super.dispose();
   }
 

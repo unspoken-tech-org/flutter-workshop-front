@@ -38,6 +38,8 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                spacing: 16,
                 children: [
                   LayoutBuilder(
                     builder: (context, constraints) {
@@ -92,7 +94,6 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
                       );
                     },
                   ),
-                  const SizedBox(height: 24),
                   if (devicePayments.isNotEmpty)
                     Expanded(
                       child: ListView.separated(
@@ -109,7 +110,6 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
                     )
                   else
                     const Center(child: EmptyPaymentsWidget()),
-                  const SizedBox(height: 24),
                   PaymentTotalsWidget(
                     deviceCustomer: deviceCustomer,
                     devicePayments: devicePayments,
