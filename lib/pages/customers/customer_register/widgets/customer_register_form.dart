@@ -3,12 +3,13 @@ import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/cpf_formatter.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/phone_number_formatter.dart';
 import 'package:flutter_workshop_front/models/customer/input_customer.dart';
-import 'package:flutter_workshop_front/pages/customers/customer_register/controllers/inherited_create_customer_controller.dart';
+import 'package:flutter_workshop_front/pages/customers/customer_register/controllers/customer_register_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_register/widgets/customer_registration_header.dart';
 import 'package:flutter_workshop_front/utils/validators/cpf_validator.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
 import 'package:flutter_workshop_front/widgets/shared/secondary_phones_widget.dart';
+import 'package:provider/provider.dart';
 
 class CustomerRegisterForm extends StatefulWidget {
   const CustomerRegisterForm({super.key});
@@ -27,9 +28,24 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
     super.dispose();
   }
 
+  Future<void> onSave(BuildContext context) async {
+    if (!_formKey.currentState!.validate()) return;
+    var customerController = context.read<CustomerRegisterController>();
+
+    _inputCustomer = _inputCustomer.copyWith(phones: []);
+    _formKey.currentState?.save();
+
+    final newCustomerId =
+        await customerController.createCustomer(_inputCustomer);
+
+    if (newCustomerId != null && context.mounted) {
+      _formKey.currentState?.reset();
+      WsNavigator.pushCustomerDetail(context, newCustomerId, replaced: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final controller = InheritedCreateCustomerController.of(context);
     return Form(
       key: _formKey,
       child: SingleChildScrollView(
@@ -144,55 +160,64 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
               },
             ),
             const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton(
-                  onPressed: _formKey.currentState?.reset,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
+            SizedBox(
+              height: 40,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                spacing: 16,
+                children: [
+                  ElevatedButton(
+                    onPressed: _formKey.currentState?.reset,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      foregroundColor: Colors.black87,
+                      backgroundColor: Colors.white.withAlpha(230),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    foregroundColor: Colors.black87,
-                    backgroundColor: Colors.white.withAlpha(230),
+                    child: const Text('Limpar'),
                   ),
-                  child: const Text('Limpar'),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (!_formKey.currentState!.validate()) return;
-                    _inputCustomer = _inputCustomer.copyWith(phones: []);
-                    _formKey.currentState?.save();
-                    final newCustomerId =
-                        await controller.createCustomer(_inputCustomer);
-                    if (newCustomerId != null && context.mounted) {
-                      _formKey.currentState?.reset();
-                      WsNavigator.pushCustomerDetail(
-                        context,
-                        newCustomerId,
-                        replaced: true,
+                  Selector<CustomerRegisterController, bool>(
+                    selector: (context, controller) =>
+                        controller.isCreatingCustomer,
+                    builder: (context, isCreatingCustomer, child) {
+                      return SizedBox(
+                        width: 150,
+                        child: ElevatedButton(
+                          onPressed: isCreatingCustomer
+                              ? null
+                              : () async => await onSave(context),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            backgroundColor: Colors.black87,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: isCreatingCustomer
+                              ? const Center(
+                                  child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.black87,
+                                  ),
+                                ))
+                              : const Text('Cadastrar'),
+                        ),
                       );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    backgroundColor: Colors.black87,
-                    foregroundColor: Colors.white,
+                    },
                   ),
-                  child: const Text('Cadastrar'),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
