@@ -24,6 +24,7 @@ class DeviceCustomerPageController extends ChangeNotifier {
   late List<Technician> technicians;
 
   bool isLoading = false;
+  bool isCreatingPayment = false;
 
   Future<void> init(int deviceId) async {
     isLoading = true;
@@ -185,6 +186,8 @@ class DeviceCustomerPageController extends ChangeNotifier {
 
   Future<void> createCustomerDevicePayment(InputPayment payment) async {
     try {
+      isCreatingPayment = true;
+      notifyListeners();
       await _paymentService.createPayment(payment);
       deviceCustomer = deviceCustomer.copyWith(
         payments: [
@@ -205,6 +208,7 @@ class DeviceCustomerPageController extends ChangeNotifier {
       SnackBarUtil().showError('Erro ao criar pagamento. Tente novamente.');
       rethrow;
     } finally {
+      isCreatingPayment = false;
       notifyListeners();
     }
   }

@@ -18,9 +18,16 @@ class AddNewPaymentDialog extends StatefulWidget {
 }
 
 class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
+  late DeviceCustomerPageController controller;
   final _formKey = GlobalKey<FormState>();
   final _dateController = TextEditingController();
   late InputPayment _inputPayment;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = context.read<DeviceCustomerPageController>();
+  }
 
   @override
   void dispose() {
@@ -39,9 +46,18 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
+  Future<void> _createNewPayment(BuildContext context) async {
+    if (controller.isCreatingPayment) return;
+
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      await controller.createCustomerDevicePayment(_inputPayment);
+      if (context.mounted) Navigator.of(context).pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final controller = context.read<DeviceCustomerPageController>();
     _inputPayment = InputPayment.empty(controller.deviceCustomer.deviceId);
     _dateController.text = _formatDate(_inputPayment.paymentDate) ?? '';
 
@@ -142,19 +158,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
           ),
         ),
         ElevatedButton(
-          onPressed: () async {
-            if (_formKey.currentState!.validate()) {
-              _formKey.currentState!.save();
-              try {
-                await controller.createCustomerDevicePayment(_inputPayment);
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
-              } catch (e) {
-                // do nothing
-              }
-            }
-          },
+          onPressed: () async => await _createNewPayment(context),
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             shape: RoundedRectangleBorder(
