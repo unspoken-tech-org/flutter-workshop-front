@@ -7,6 +7,8 @@ import 'package:flutter_workshop_front/pages/devices/all_devices/all_devices_pag
 import 'package:flutter_workshop_front/pages/devices/device_details/device_details_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/device_register_page.dart';
 import 'package:flutter_workshop_front/pages/home/home_page.dart';
+import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
+import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/widgets/ws_drawer_item.dart';
 import 'package:go_router/go_router.dart';
 
@@ -125,6 +127,21 @@ class _WsDrawerState extends State<WsDrawer> {
                 WsNavigator.pushAllDevices(context);
               },
             ),
+            const Spacer(),
+            const Divider(),
+            WsDrawerItem(
+              currentRoute: widget.currentRoute,
+              isExpanded: isExpanded,
+              icon: Icons.logout,
+              title: 'Logout',
+              route: const [],
+              onTap: () async {
+                await AuthService().logout();
+                if (!context.mounted) return;
+                context.go(SetupPage.route);
+              },
+            ),
+            const SizedBox(height: 10),
           ],
         ),
       ),
