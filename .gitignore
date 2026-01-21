@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/release
 
 .gemini/
+.opencode/
+.specify/
+specs/
