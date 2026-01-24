@@ -6,7 +6,7 @@ class TechnicianService {
   final Dio dio = CustomDio.dioInstance();
 
   Future<List<Technician>> getTechnicians() async {
-    Response result = await dio.get('/v1/technician/list');
+    Response result = await dio.get('/v1/technician');
     return (result.data as List).map((e) => Technician.fromJson(e)).toList();
   }
 }
