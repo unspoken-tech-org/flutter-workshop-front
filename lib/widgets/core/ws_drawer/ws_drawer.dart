@@ -9,7 +9,9 @@ import 'package:flutter_workshop_front/pages/devices/device_register/device_regi
 import 'package:flutter_workshop_front/pages/home/home_page.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
+import 'package:flutter_workshop_front/services/update/update_service.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/widgets/ws_drawer_item.dart';
+import 'package:flutter_workshop_front/widgets/shared/update_dialog.dart';
 import 'package:go_router/go_router.dart';
 
 class WsDrawer extends StatefulWidget {
@@ -129,6 +131,50 @@ class _WsDrawerState extends State<WsDrawer> {
             ),
             const Spacer(),
             const Divider(),
+            WsDrawerItem(
+              currentRoute: widget.currentRoute,
+              isExpanded: isExpanded,
+              icon: Icons.system_update,
+              title: 'Atualizações',
+              route: const [],
+              onTap: () async {
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Verificando atualizações...'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+
+                final updateService = UpdateService();
+                final updateInfo = await updateService.checkForUpdates();
+
+                if (!context.mounted) return;
+
+                scaffoldMessenger.hideCurrentSnackBar();
+
+                if (updateInfo == null) {
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Erro ao verificar atualizações.'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                if (updateInfo.hasUpdate) {
+                  await UpdateDialog.show(context, updateInfo, updateService);
+                } else {
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('O aplicativo já está atualizado!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              },
+            ),
             WsDrawerItem(
               currentRoute: widget.currentRoute,
               isExpanded: isExpanded,

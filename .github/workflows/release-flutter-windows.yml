@@ -1,9 +1,9 @@
-name: Build & Release Windows (Inno + GitHub Releases)
+name: Build and Release (Windows)
 
 on:
-  workflow_dispatch:
   push:
-    branches: [ main ]
+    tags:
+      - "v*.*.*"
 
 permissions:
   contents: write
@@ -17,147 +17,97 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          fetch-tags: true
+
+      - name: Fetch tags
+        run: git fetch --force --tags
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
-
-      - name: Enable Windows desktop
-        run: flutter config --enable-windows-desktop
+          flutter-version: "3.29.3"
+          channel: "stable"
 
       - name: Flutter pub get
         run: flutter pub get
+
+      - name: Enable Windows Desktop
+        run: flutter config --enable-windows-desktop
 
       - name: Change .env to production
         run: |
           cp .env-prd .env
 
-      - name: Build Flutter Windows (release)
+      - name: Build Windows Release
         run: flutter build windows --release
 
-      - name: Install Inno Setup (choco)
+      - name: Extract version from pubspec.yaml
+        id: get_version
         shell: pwsh
         run: |
-          choco install innosetup -y
-          $env:PATH += ";C:\Program Files (x86)\Inno Setup 6"
+          $content = Get-Content pubspec.yaml -Raw
+          $version = ($content | Select-String -Pattern 'version:\s*(\d+\.\d+\.\d+)').Matches.Groups[1].Value
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Download and Install Inno Setup
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://jrsoftware.org/download.php/is.exe" -OutFile "innosetup-installer.exe"
+          Start-Process -FilePath "innosetup-installer.exe" -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
 
       - name: Compile installer (Inno Setup)
         shell: pwsh
         run: |
-          $pub = Get-Content -Raw pubspec.yaml
-          $m = [regex]::Match($pub, "version:\s*([0-9]+)\.([0-9]+)\.([0-9]+)")
-          if (-not $m.Success) { throw "Não encontrei 'version:' no pubspec.yaml" }
-          $ver = "$($m.Groups[1].Value).$($m.Groups[2].Value).$($m.Groups[3].Value)"
-          echo "APP_VER=$ver" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $setupScript = Get-Content installer\workshopApp.iss -Raw
+          $setupScript = $setupScript -replace '#define MyAppVersion ".*"', "#define MyAppVersion `"${{ steps.get_version.outputs.VERSION }}`""
+          Set-Content -Path installer\workshopApp.iss -Value $setupScript
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\workshopApp.iss
 
-          # set APP_VER as environment variable for the .iss
-          $env:APP_VER = $ver
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\WorkshopApp.iss
-
-          if (-not (Test-Path "dist\WorkshopApp-setup.exe")) {
-            throw "Instalador não gerado em dist\WorkshopApp-setup.exe"
-          }
-
-      - name: Prepare appcast (inline release notes from git)
-        id: prep
+      - name: Extract release notes from annotated tag
+        id: get_release_notes
         shell: pwsh
         run: |
-          $ErrorActionPreference = "Stop"
-      
-          $ver = "$env:APP_VER"
-          if ([string]::IsNullOrWhiteSpace($ver)) { throw "APP_VER vazio" }
-          $currentTag = "win-v$ver"
-      
-          New-Item -ItemType Directory -Force -Path build\release | Out-Null
-      
-          # rename the setup with version
-          $src = "dist\WorkshopApp-setup.exe"
-          $dst = "build\release\WorkshopApp-$ver-setup.exe"
-          Copy-Item $src $dst -Force
-          $len = (Get-Item $dst).Length
-          "FILE_LEN=$len" | Out-File -FilePath $env:GITHUB_ENV -Append
-      
-          git fetch --tags --force
-      
-          $tags = (git tag -l "win-v*" --sort=-v:refname) -split "`n" | Where-Object { $_ -ne "" }
-      
-          $prevTag = $null
-          for ($i=0; $i -lt $tags.Count; $i++) {
-            if ($tags[$i] -eq $currentTag -and $i -lt $tags.Count-1) {
-              $prevTag = $tags[$i+1]
+          $tagName = "${{ github.ref_name }}"
+          $tagContentArray = git cat-file -p $tagName
+          $tagContent = $tagContentArray -join "`n"
+          $lines = $tagContent -split '\r?\n'
+          $messageStartIndex = -1
+          for ($i = 0; $i -lt $lines.Length; $i++) {
+            if ([string]::IsNullOrWhiteSpace($lines[$i])) {
+              $messageStartIndex = $i + 1
               break
             }
           }
-          if (-not $prevTag -and $tags.Count -gt 0) {
-            # if the current tag does not exist, use the most recent tag as "previous"
-            $prevTag = $tags[0]
-          }
-      
-          # check if the current tag exists locally
-          $tagExists = $false
-          try {
-            git rev-parse --verify "$currentTag^{}" | Out-Null
-            $tagExists = $true
-          } catch {}
-      
-          if ($prevTag -and $tagExists) {
-            $range = "$prevTag..$currentTag"
-          } elseif ($prevTag -and -not $tagExists) {
-            Write-Host "Tag $currentTag não existe ainda. Usando range $prevTag..HEAD"
-            $range = "$prevTag..HEAD"
-          } else {
-            Write-Host "Sem tag anterior — trataremos como primeiro release."
-            $range = "HEAD"
-          }
-      
-          # collect commit messages
-          $commitSubjects = @()
-          if ($range -eq "HEAD") {
-            $commitSubjects = (git log -n 50 --pretty=format:"%s") -split "`n" | Where-Object { $_ -ne "" }
-          } else {
-            $commitSubjects = (git log $range --pretty=format:"%s") -split "`n" | Where-Object { $_ -ne "" }
-          }
-      
-          # build the <description> in HTML
-          $lis = ""
-          if ($commitSubjects.Count -eq 0) {
-            $lis = "        <li>Atualização de manutenção</li>`r`n"
-          } else {
-            foreach ($s in $commitSubjects) {
-              $esc = [System.Net.WebUtility]::HtmlEncode($s)
-              $lis += "        <li>$esc</li>`r`n"
+          $notes = "Nenhuma nota de release fornecida."
+          if ($messageStartIndex -gt 0 -and $messageStartIndex -lt $lines.Length) {
+            $tagMessage = ($lines[$messageStartIndex..($lines.Length-1)] -join "`n").Trim()
+            if ($tagMessage -match '###\s*Novidades\s*\r?\n\r?\n([\s\S]+)') {
+              $notes = $matches[1].Trim()
+            } elseif ($tagMessage -match 'Release\s+[\d\.]+\s*\r?\n\r?\n([\s\S]+)') {
+              $notes = $matches[1].Trim()
+            } else {
+              $msgLines = $tagMessage -split '\r?\n'
+              if ($msgLines.Length -gt 1) {
+                $tmp = ($msgLines[1..($msgLines.Length-1)] -join "`n").Trim()
+                if ($tmp) { $notes = $tmp }
+              } else {
+                $notes = $tagMessage
+              }
             }
           }
-          $desc = @"
-          <h2>Workshop App ($ver)</h2>
-          <ul>
-          $lis</ul>
-          "@
-      
-          # replace in template and save appcast.xml
-          $org  = "unspoken-tech-org"
-          $repo = "flutter-workshop-front"
-          $tpl = Get-Content -Raw appcast_template.xml
-          $appcast = $tpl.
-            Replace("__ORG__", $org).
-            Replace("__REPO__", $repo).
-            Replace("__VER__", $ver).
-            Replace("__LEN__", "$len").
-            Replace("__DESC__", $desc)
-      
-          $appcast | Set-Content -Path build\release\appcast.xml -Encoding UTF8        
-        
+          "NOTES<<EOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          $notes | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "EOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
-      - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Create GitHub Release and upload installer
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ env.APP_VER }}
-          name: "Windows ${{ env.APP_VER }}"
+          name: Release ${{ steps.get_version.outputs.VERSION }}
+          body: |
+            ## v${{ steps.get_version.outputs.VERSION }}
+
+            ### Novidades
+
+            ${{ steps.get_release_notes.outputs.NOTES }}
+          files: ./output/*.exe
           draft: false
           prerelease: false
-          files: |
-            build/release/WorkshopApp-${{ env.APP_VER }}-setup.exe
-            build/release/appcast.xml
-            build/release/notes-${{ env.APP_VER }}.html
