@@ -54,14 +54,18 @@ class DeviceRegisterController extends ChangeNotifier {
     this.customerId = customerId;
     this.customerName = customerName;
     isLoading = true;
-    await Future.wait([
-      fetchTypesBrandsModels(),
-      fetchColors(),
-      fetchTechnicians(),
-    ]);
-    if (customerId == null) isCustomerSelected = false;
-    isLoading = false;
     notifyListeners();
+    try {
+      await Future.wait([
+        fetchTypesBrandsModels(),
+        fetchColors(),
+        fetchTechnicians(),
+      ]);
+      if (customerId == null) isCustomerSelected = false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> fetchColors() async {
