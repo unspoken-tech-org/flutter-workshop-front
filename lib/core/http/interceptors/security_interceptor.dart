@@ -44,24 +44,44 @@ class SecurityInterceptor extends QueuedInterceptor {
       }
 
       try {
-        debugPrint('[AuthDebug] Access token expired. Attempting refresh...');
+        // Deduplication Logic: Check if token already changed in storage
+        final requestedToken = options.headers['Authorization'];
+        final currentToken = await _storage.getAccessToken();
 
-        final newToken = await _onRefresh();
+        String? tokenToUse = currentToken;
 
-        if (newToken != null) {
+        // If the request token is the same as the current storage token, nobody refreshed yet
+        if (requestedToken == 'Bearer $currentToken') {
+          debugPrint('[AuthDebug] Access token expired. Attempting refresh...');
+          tokenToUse = await _onRefresh();
+        } else {
           debugPrint(
-              '[AuthDebug] Refresh successful. Retrying original request.');
-          options.headers['Authorization'] = 'Bearer $newToken';
+              '[AuthDebug] Token already refreshed by another request. Reusing...');
+        }
+
+        if (tokenToUse != null) {
+          debugPrint(
+              '[AuthDebug] Retry ready. Retrying original request to ${options.path}');
+          options.headers['Authorization'] = 'Bearer $tokenToUse';
 
           // Retry original request with new token
           final response = await _dio.fetch(options);
+
+          // RESOLVE with the retry response. This silences the original error for the caller.
           return handler.resolve(response);
         } else {
           debugPrint('[AuthDebug] Refresh returned null. Cannot retry.');
         }
       } catch (e) {
         debugPrint('[AuthDebug] Exception during refresh flow: $e');
-        return handler.next(err);
+        // Reject with cancellation to silence subsequent UI errors during redirect
+        return handler.reject(
+          DioException(
+            requestOptions: options,
+            type: DioExceptionType.cancel,
+            error: 'Sessão expirada',
+          ),
+        );
       }
     } else if (err.response?.statusCode == 403) {
       // Forbidden: Invalid API Key or blocked user
