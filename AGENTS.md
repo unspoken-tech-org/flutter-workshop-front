@@ -1,4 +1,4 @@
-﻿# Agent Guide for flutter-workshop-front
+# Agent Guide for flutter-workshop-front
 
 ## Idioma
 - Sempre responder em pt-BR.
@@ -71,9 +71,17 @@
 - For state, use `ChangeNotifier` + `notifyListeners` as in controllers.
 - Keep UI code declarative and avoid side effects in `build`.
 
+## Security Architecture
+- O app utiliza `QueuedInterceptor` no `SecurityInterceptor` para serializar requisições e evitar múltiplas chamadas de refresh simultâneas (deduplicação).
+- Injeção automática de `Authorization: Bearer <token>` em todas as requisições via `SecurityInterceptor`.
+- Se 401: O interceptor verifica se o token no storage já mudou (deduplicação); se for o mesmo, realiza o refresh. Após o sucesso, retenta a requisição original e usa `handler.resolve(response)` para que o erro seja invisível aos controllers.
+- Se 403: Executa logout forçado, limpa storage e notifica via `AuthNotifier`. O erro é rejeitado com `DioExceptionType.cancel` para silenciar a UI.
+
 ## Controllers and state
+
 - Controllers extend `ChangeNotifier` and expose simple state fields.
-- Set loading flags before async calls, then reset and notify.
+- Always use `try-finally` blocks when setting loading flags to ensure state is reset even on silent errors.
+- Set loading flags before async calls, then reset in `finally` and notify.
 - Keep controllers focused on orchestration, not UI rendering.
 - Initialize services as private fields (e.g., `_deviceStatisticsService`).
 
@@ -83,6 +91,7 @@
 - Response handling uses explicit status checks (e.g., `[200, 201]`).
 - Throw `RequisitionException.fromJson(response.data['error'])` on error.
 - Keep service methods small and return domain models.
+- Authentication (401/403) is handled globally via `SecurityInterceptor` (transparent retry).
 
 ## Error handling and logging
 - Use try/catch around network calls that can fail.
@@ -90,6 +99,9 @@
 - Use `debugPrint` for structured logs (see `AuthService`).
 - When rethrowing, prefer `rethrow` to preserve stack traces.
 - Ensure storage cleanup in `finally` blocks when logging out.
+- Erros 401/403 são silenciados no interceptor; controllers não precisam tratar renovação de token manualmente.
+- Requisições canceladas (`DioExceptionType.cancel`) são ignoradas pelo `GlobalErrorInterceptor`.
+
 
 ## Models and JSON
 - Models use `factory ClassName.fromJson(Map<String, dynamic> json)`.
@@ -108,7 +120,14 @@
 - Keep new UI strings consistent with existing Portuguese copy.
 - If adding new locales, update `supportedLocales` and delegates.
 
+## Mermaid Diagrams
+- Use aliases for participants (e.g., `participant U as User`) to keep syntax clean.
+- Avoid using colons (`:`) within labels or notes unless absolutely necessary, as it can break some parsers.
+- Prefer simple arrows (`->>`, `-->>`) and keep labels concise and without special characters.
+- For `stateDiagram-v2`, use short state names and simple transitions.
+
 ## Testing patterns
+
 - Use `group` and `setUp` for organization.
 - Manual mocks are acceptable when avoiding extra dependencies.
 - Keep tests deterministic; avoid timers and network calls.
