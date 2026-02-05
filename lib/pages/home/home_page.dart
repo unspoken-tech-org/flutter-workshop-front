@@ -3,7 +3,9 @@ import 'package:flutter_workshop_front/pages/home/controllers/home_controller.da
 import 'package:flutter_workshop_front/pages/home/widgets/dashboard_stats_view.dart';
 import 'package:flutter_workshop_front/pages/home/widgets/quick_actions_widget.dart';
 import 'package:flutter_workshop_front/pages/home/widgets/recent_devices_view.dart';
+import 'package:flutter_workshop_front/services/update/update_service.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
+import 'package:flutter_workshop_front/widgets/shared/update_dialog.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -16,6 +18,31 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForUpdatesOnStartup();
+    });
+  }
+
+  Future<void> _checkForUpdatesOnStartup() async {
+    if (UpdateService.hasCheckedOnStartup) return;
+    UpdateService.hasCheckedOnStartup = true;
+
+    try {
+      final updateService = UpdateService();
+      final updateInfo = await updateService.checkForUpdates();
+
+      if (!mounted || updateInfo == null || !updateInfo.hasUpdate) return;
+
+      await Future.delayed(const Duration(seconds: 2));
+      if (!mounted) return;
+
+      await UpdateDialog.show(context, updateInfo, updateService);
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
