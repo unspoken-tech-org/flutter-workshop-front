@@ -2,7 +2,7 @@ name: flutter_workshop_front
 description: "Flutter Workshop Frontend"
 publish_to: 'none'
 
-version: 1.3.1
+version: 1.3.2
 
 environment:
   sdk: ^3.5.3
