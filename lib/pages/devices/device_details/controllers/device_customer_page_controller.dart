@@ -29,12 +29,15 @@ class DeviceCustomerPageController extends ChangeNotifier {
   Future<void> init(int deviceId) async {
     isLoading = true;
     notifyListeners();
-    await Future.wait([
-      _getTechnicians(),
-      _getCustomerDevice(deviceId, isNew: true),
-    ]);
-    isLoading = false;
-    notifyListeners();
+    try {
+      await Future.wait([
+        _getTechnicians(),
+        _getCustomerDevice(deviceId, isNew: true),
+      ]);
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> _getTechnicians() async {

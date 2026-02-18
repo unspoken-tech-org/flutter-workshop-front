@@ -77,8 +77,8 @@ class AuthService {
   /// Performs silent Access Token refresh.
   Future<String?> refreshToken() async {
     debugPrint('[AuthDebug] Starting refreshToken flow...');
-    final refreshToken = await _storage.getRefreshToken();
-    if (refreshToken == null) {
+    final currentRefreshToken = await _storage.getRefreshToken();
+    if (currentRefreshToken == null) {
       debugPrint('[AuthDebug] No refresh token found.');
       return null;
     }
@@ -86,13 +86,43 @@ class AuthService {
     try {
       final response = await _dio.post(
         '/api/auth/refresh',
-        data: {'refreshToken': refreshToken},
+        data: {'refreshToken': currentRefreshToken},
       );
 
-      // RFC states refresh returns at least the new accessToken
-      final newAccessToken = response.data['accessToken'] as String;
-      debugPrint('[AuthDebug] Refresh successful. Saving new access token.');
-      await _storage.saveAccessToken(newAccessToken);
+      final statusCode = response.statusCode ?? 0;
+      if (statusCode != 200 && statusCode != 201) {
+        debugPrint('[AuthDebug] Unexpected refresh status: $statusCode');
+        if (statusCode == 400 || statusCode == 401 || statusCode == 403) {
+          await logout();
+        }
+        return null;
+      }
+
+      if (response.data is! Map<String, dynamic>) {
+        debugPrint('[AuthDebug] Invalid refresh payload format.');
+        await logout();
+        return null;
+      }
+
+      final payload = response.data as Map<String, dynamic>;
+      final newAccessToken = payload['accessToken'] as String?;
+
+      if (newAccessToken == null || newAccessToken.isEmpty) {
+        debugPrint('[AuthDebug] Invalid refresh payload: missing accessToken.');
+        await logout();
+        return null;
+      }
+
+      final newRefreshToken = payload['refreshToken'] as String?;
+
+      if (newRefreshToken != null && newRefreshToken.isNotEmpty) {
+        debugPrint(
+            '[AuthDebug] Refresh successful. Rotating access and refresh tokens.');
+        await _storage.saveTokens(newAccessToken, newRefreshToken);
+      } else {
+        debugPrint('[AuthDebug] Refresh successful. Saving new access token.');
+        await _storage.saveAccessToken(newAccessToken);
+      }
 
       return newAccessToken;
     } on DioException catch (e) {

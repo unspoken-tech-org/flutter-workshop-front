@@ -28,22 +28,20 @@ class SetupController extends ChangeNotifier {
 
     try {
       await _authService.authenticate(apiKey);
-      isLoading = false;
       isSuccess = true;
-      notifyListeners();
       return true;
     } on RequisitionException catch (e) {
-      isLoading = false;
       isSuccess = false;
       errorMessage = e.message;
-      notifyListeners();
       return false;
     } catch (e) {
-      isLoading = false;
       isSuccess = false;
       errorMessage = 'Falha na autenticação. Verifique a chave e sua conexão.';
-      notifyListeners();
       return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
+
   }
 }

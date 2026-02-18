@@ -30,6 +30,7 @@ class CustomerDetailController {
   }
 
   Future<bool> updateCustomer(int customerId) async {
+    isLoading.value = true;
     try {
       final result = await _customerRepository.updateCustomer(
           customerId, updatedCustomerData);
@@ -42,6 +43,8 @@ class CustomerDetailController {
     } catch (e) {
       _snackBarUtil.showError('Erro ao atualizar cliente. Tente novamente.');
       return false;
+    } finally {
+      isLoading.value = false;
     }
   }
 }
