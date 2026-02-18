@@ -125,9 +125,9 @@ class SecurityInterceptor extends QueuedInterceptor {
     } else if (err.response?.statusCode == 403) {
       // Forbidden: Invalid API Key or blocked user
       debugPrint(
-        '[AuthDebug][$requestId] 403 Forbidden detected. Clearing session (Forced Logout).',
+        '[AuthDebug][$requestId] 403 Forbidden detected. Clearing provisioning (Forced Logout).',
       );
-      await _storage.clearSession();
+      await _storage.clearProvisioning();
       _authNotifier.setState(AuthRouteState.needsSetup);
 
       // Reject with cancellation to silence subsequent UI errors during redirect
