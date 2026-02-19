@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 
 class DuplicateRequestInterceptor extends Interceptor {
   final int milliseconds;
+  final Duration waiterTimeout;
   static const _kIsAuthRetry = 'isAuthRetry';
   static const _kBypassDuplicateCheck = 'bypassDuplicateCheck';
   static const _kRequestHash = 'duplicateRequestHash';
@@ -13,7 +14,10 @@ class DuplicateRequestInterceptor extends Interceptor {
   final Map<String, _InFlightRequest> _inFlightRequests = {};
   final Map<String, _RecentResponse> _recentResponses = {};
 
-  DuplicateRequestInterceptor({this.milliseconds = 500});
+  DuplicateRequestInterceptor({
+    this.milliseconds = 500,
+    Duration? waiterTimeout,
+  }) : waiterTimeout = waiterTimeout ?? const Duration(seconds: 5);
 
   @override
   void onRequest(
@@ -36,8 +40,23 @@ class DuplicateRequestInterceptor extends Interceptor {
         now.difference(inFlight.startedAt).inMilliseconds < milliseconds) {
       inFlight.waiters += 1;
       try {
-        final response = await inFlight.completer.future;
+        final response = await inFlight.completer.future.timeout(waiterTimeout);
         handler.resolve(_cloneResponseForRequest(response, options));
+      } on TimeoutException {
+        final currentInFlight = _inFlightRequests[requestHash];
+        if (currentInFlight != null &&
+            identical(currentInFlight.completer, inFlight.completer)) {
+          _inFlightRequests.remove(requestHash);
+        }
+
+        final fallbackCompleter = Completer<Response<dynamic>>();
+        _inFlightRequests[requestHash] = _InFlightRequest(
+          startedAt: DateTime.now(),
+          completer: fallbackCompleter,
+        );
+        options.extra[_kRequestHash] = requestHash;
+        options.extra[_kRequestCompleter] = fallbackCompleter;
+        handler.next(options);
       } on DioException catch (e) {
         handler.reject(_cloneDioExceptionForRequest(e, options));
       } catch (e) {
@@ -48,6 +67,10 @@ class DuplicateRequestInterceptor extends Interceptor {
             error: e,
           ),
         );
+      } finally {
+        if (inFlight.waiters > 0) {
+          inFlight.waiters -= 1;
+        }
       }
       return;
     }
@@ -150,7 +173,7 @@ class DuplicateRequestInterceptor extends Interceptor {
     final threshold = milliseconds * 2;
     _inFlightRequests.removeWhere((_, value) {
       final age = now.difference(value.startedAt).inMilliseconds;
-      return age > threshold && value.completer.isCompleted;
+      return age > threshold;
     });
 
     _recentResponses.removeWhere((_, value) {
