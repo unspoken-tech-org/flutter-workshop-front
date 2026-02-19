@@ -11,14 +11,17 @@ class SecurityInterceptor extends QueuedInterceptor {
   final SecurityStorage _storage;
   final Dio _dio;
   final Future<String?> Function() _onRefresh;
+  final AuthNotifier _authNotifier;
 
   SecurityInterceptor({
     required SecurityStorage storage,
     required Dio dio,
     required Future<String?> Function() onRefresh,
+    required AuthNotifier authNotifier,
   })  : _storage = storage,
         _dio = dio,
-        _onRefresh = onRefresh;
+        _onRefresh = onRefresh,
+        _authNotifier = authNotifier;
 
   @override
   void onRequest(
@@ -122,10 +125,10 @@ class SecurityInterceptor extends QueuedInterceptor {
     } else if (err.response?.statusCode == 403) {
       // Forbidden: Invalid API Key or blocked user
       debugPrint(
-        '[AuthDebug][$requestId] 403 Forbidden detected. Clearing session (Forced Logout).',
+        '[AuthDebug][$requestId] 403 Forbidden detected. Clearing provisioning (Forced Logout).',
       );
-      await _storage.clearSession();
-      AuthNotifier().notifyAuthChange();
+      await _storage.clearProvisioning();
+      _authNotifier.setState(AuthRouteState.needsSetup);
 
       // Reject with cancellation to silence subsequent UI errors during redirect
       return handler.reject(

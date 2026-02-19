@@ -5,8 +5,8 @@ import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 class SetupController extends ChangeNotifier {
   final AuthService _authService;
 
-  SetupController({AuthService? authService})
-      : _authService = authService ?? AuthService();
+  SetupController({required AuthService authService})
+      : _authService = authService;
 
   bool isLoading = false;
 
@@ -42,6 +42,5 @@ class SetupController extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
-
   }
 }

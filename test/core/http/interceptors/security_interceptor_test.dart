@@ -6,15 +6,18 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/duplicate_request_interceptor.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/security_interceptor.dart';
+import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
 
 class _MemorySecurityStorage implements SecurityStorage {
   final Map<String, String> _storage = {};
   int clearSessionCalls = 0;
+  int clearProvisioningCalls = 0;
 
-  void seedTokens({String? accessToken, String? refreshToken}) {
+  void seedTokens({String? accessToken, String? refreshToken, String? apiKey}) {
     if (accessToken != null) _storage['access_token'] = accessToken;
     if (refreshToken != null) _storage['refresh_token'] = refreshToken;
+    if (apiKey != null) _storage['api_key'] = apiKey;
   }
 
   @override
@@ -23,9 +26,18 @@ class _MemorySecurityStorage implements SecurityStorage {
   @override
   Future<void> clearSession() async {
     clearSessionCalls += 1;
-    _storage.remove('api_key');
     _storage.remove('access_token');
     _storage.remove('refresh_token');
+  }
+
+  @override
+  Future<void> clearProvisioning({bool removeBoundDeviceId = false}) async {
+    clearProvisioningCalls += 1;
+    await clearSession();
+    _storage.remove('api_key');
+    if (removeBoundDeviceId) {
+      _storage.remove('bound_device_id');
+    }
   }
 
   @override
@@ -100,10 +112,16 @@ void main() {
     late _MemorySecurityStorage storage;
     late Dio dio;
     late int refreshCalls;
+    late AuthNotifier authNotifier;
 
     setUp(() {
       storage = _MemorySecurityStorage();
-      storage.seedTokens(accessToken: 'old-token', refreshToken: 'rt-1');
+      storage.seedTokens(
+        accessToken: 'old-token',
+        refreshToken: 'rt-1',
+        apiKey: 'api-key-1',
+      );
+      authNotifier = AuthNotifier();
       refreshCalls = 0;
     });
 
@@ -123,6 +141,7 @@ void main() {
         SecurityInterceptor(
           storage: storage,
           dio: dio,
+          authNotifier: authNotifier,
           onRefresh: () async {
             refreshCalls += 1;
             await storage.saveAccessToken('new-token');
@@ -147,6 +166,7 @@ void main() {
         SecurityInterceptor(
           storage: storage,
           dio: dio,
+          authNotifier: authNotifier,
           onRefresh: () async {
             refreshCalls += 1;
             return 'new-token';
@@ -179,6 +199,7 @@ void main() {
         SecurityInterceptor(
           storage: storage,
           dio: retryDio,
+          authNotifier: authNotifier,
           onRefresh: () async {
             refreshCalls += 1;
             await storage.saveAccessToken('new-token');
@@ -195,7 +216,7 @@ void main() {
       expect(refreshCalls, 1);
     });
 
-    test('deve limpar sessao em 403 e retornar cancel', () async {
+    test('deve limpar provisioning em 403 e retornar cancel', () async {
       dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
       dio.httpClientAdapter = _TestHttpClientAdapter(
         responder: (_) =>
@@ -205,6 +226,7 @@ void main() {
         SecurityInterceptor(
           storage: storage,
           dio: dio,
+          authNotifier: authNotifier,
           onRefresh: () async => null,
         ),
       );
@@ -216,7 +238,9 @@ void main() {
               .having((e) => e.type, 'type', DioExceptionType.cancel),
         ),
       );
+      expect(storage.clearProvisioningCalls, 1);
       expect(storage.clearSessionCalls, 1);
+      expect(await storage.getApiKey(), isNull);
     });
 
     test('deve executar somente um refresh para requests concorrentes',
@@ -237,6 +261,7 @@ void main() {
         SecurityInterceptor(
           storage: storage,
           dio: dio,
+          authNotifier: authNotifier,
           onRefresh: () async {
             refreshCalls += 1;
             await Future<void>.delayed(const Duration(milliseconds: 30));
@@ -288,6 +313,7 @@ void main() {
         SecurityInterceptor(
           storage: storage,
           dio: retryDio,
+          authNotifier: authNotifier,
           onRefresh: () async {
             refreshCalls += 1;
             await storage.saveAccessToken('new-token');

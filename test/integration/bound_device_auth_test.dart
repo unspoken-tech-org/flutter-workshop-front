@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import '../auth/bound_device_id_test.dart';
 
@@ -33,7 +34,11 @@ void main() {
 
     setUp(() {
       storage = MockSecurityStorageWithBoundId();
-      authService = AuthService(dio: MockDioSuccess(), storage: storage);
+      authService = AuthService(
+        dio: MockDioSuccess(),
+        storage: storage,
+        authNotifier: AuthNotifier(),
+      );
     });
 
     test('Should persist and reuse boundDeviceId across authentications',

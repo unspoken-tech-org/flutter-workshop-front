@@ -47,9 +47,16 @@ class SecurityStorage {
   }
 
   Future<void> clearSession() async {
-    await _storage.delete(key: _kApiKey);
     await _storage.delete(key: _kAccessToken);
     await _storage.delete(key: _kRefreshToken);
+  }
+
+  Future<void> clearProvisioning({bool removeBoundDeviceId = false}) async {
+    await clearSession();
+    await _storage.delete(key: _kApiKey);
+    if (removeBoundDeviceId) {
+      await _storage.delete(key: _kBoundDeviceId);
+    }
   }
 
   Future<void> clearAll() async {

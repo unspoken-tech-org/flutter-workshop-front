@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 
@@ -37,9 +38,17 @@ class MockSecurityStorage implements SecurityStorage {
 
   @override
   Future<void> clearSession() async {
-    storage.remove('api_key');
     storage.remove('access_token');
     storage.remove('refresh_token');
+  }
+
+  @override
+  Future<void> clearProvisioning({bool removeBoundDeviceId = false}) async {
+    await clearSession();
+    storage.remove('api_key');
+    if (removeBoundDeviceId) {
+      storage.remove('bound_device_id');
+    }
   }
 
   @override
@@ -100,7 +109,11 @@ void main() {
     setUp(() {
       storage = MockSecurityStorage();
 
-      authService = AuthService(dio: MockDio(), storage: storage);
+      authService = AuthService(
+        dio: MockDio(),
+        storage: storage,
+        authNotifier: AuthNotifier(),
+      );
     });
 
     test('AuthService: Should identify ADMIN correctly via JWT (Simulated)',
@@ -130,7 +143,7 @@ void main() {
       expect(await authService.isAdmin, isFalse);
     });
 
-    test('Logout Flow: Should clear storage', () async {
+    test('Logout Flow: Should clear session tokens and api key', () async {
       await storage.saveApiKey('123');
 
       await storage.saveTokens('abc', 'def');

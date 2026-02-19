@@ -13,12 +13,24 @@ import '../../models/auth/token_response.dart';
 class AuthService {
   final Dio _dio;
   final SecurityStorage _storage;
+  final AuthNotifier _authNotifier;
 
-  AuthService({Dio? dio, SecurityStorage? storage})
-      : _dio = dio ?? CustomDio.authDioInstance(),
+  AuthService({
+    Dio? dio,
+    SecurityStorage? storage,
+    required AuthNotifier authNotifier,
+  })  : _authNotifier = authNotifier,
+        _dio = dio ?? CustomDio.authDioInstance(),
         _storage = storage ?? SecurityStorage();
 
   Future<bool> get hasApiKey async => (await _storage.getApiKey()) != null;
+
+  Future<bool> get hasSession async {
+    final accessToken = await _storage.getAccessToken();
+    final refreshToken = await _storage.getRefreshToken();
+    return (accessToken != null && accessToken.isNotEmpty) ||
+        (refreshToken != null && refreshToken.isNotEmpty);
+  }
 
   /// RBAC: Checks if user has ADMIN role by decoding the current JWT.
   Future<bool> get isAdmin async {
@@ -60,17 +72,50 @@ class AuthService {
           tokenResponse.accessToken,
           tokenResponse.refreshToken,
         );
-        AuthNotifier().notifyAuthChange();
+        _authNotifier.setState(AuthRouteState.authenticated);
       } else if (response.statusCode == 409) {
         throw RequisitionException.fromJson(response.data['error']);
       }
+    } on DioException catch (e) {
+      debugPrint(
+          '[AuthDebug] Authenticate failed with status ${e.response?.statusCode}: $e');
+      if (e.response?.statusCode == 401) {
+        await _storage.clearProvisioning();
+        _authNotifier.setState(AuthRouteState.needsSetup);
+      } else {
+        await _storage.clearSession();
+      }
+      rethrow;
     } on RequisitionException {
       rethrow;
     } catch (e) {
       debugPrint('[AuthDebug] Authenticate failed: $e');
       // If initial auth fails, ensure session is cleared but preserve boundDeviceId
       await _storage.clearSession();
+      _authNotifier.setState(AuthRouteState.needsSetup);
       rethrow;
+    }
+  }
+
+  Future<bool> restoreSessionFromStoredApiKey() async {
+    final apiKey = await _storage.getApiKey();
+    if (apiKey == null || apiKey.isEmpty) {
+      return false;
+    }
+
+    if (await hasSession) {
+      return true;
+    }
+
+    try {
+      await authenticate(apiKey);
+      return true;
+    } on DioException {
+      return false;
+    } on RequisitionException {
+      return false;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -157,8 +202,47 @@ class AuthService {
       // Network logout failed, but proceeding with local cleanup
     } finally {
       debugPrint('[AuthDebug] Clearing local secure storage.');
-      await _storage.clearSession();
-      AuthNotifier().notifyAuthChange();
+      await _storage.clearProvisioning();
+      _authNotifier.setState(AuthRouteState.needsSetup);
     }
+  }
+
+  Future<AuthRouteState> initializeAuthState() async {
+    final alreadyHasSession = await hasSession;
+    if (alreadyHasSession) {
+      _authNotifier.setState(AuthRouteState.authenticated);
+      return AuthRouteState.authenticated;
+    }
+
+    final hasStoredApiKey = await hasApiKey;
+    if (!hasStoredApiKey) {
+      if (kDebugMode) {
+        try {
+          final devApiKey = Config.devApiKey;
+          if (devApiKey.isNotEmpty) {
+            await authenticate(devApiKey);
+            _authNotifier.setState(AuthRouteState.authenticated);
+            return AuthRouteState.authenticated;
+          }
+        } catch (_) {
+          // If DEV key fails or env is unavailable, keep setup flow.
+        }
+      }
+
+      _authNotifier.setState(AuthRouteState.needsSetup);
+      return AuthRouteState.needsSetup;
+    }
+
+    final restored = await restoreSessionFromStoredApiKey();
+    final stillHasApiKey = await hasApiKey;
+    final hasValidSessionAfterRestore = await hasSession;
+
+    if (restored && stillHasApiKey && hasValidSessionAfterRestore) {
+      _authNotifier.setState(AuthRouteState.authenticated);
+      return AuthRouteState.authenticated;
+    }
+
+    _authNotifier.setState(AuthRouteState.needsSetup);
+    return AuthRouteState.needsSetup;
   }
 }

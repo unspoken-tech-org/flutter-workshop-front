@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_controller.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
@@ -14,7 +15,11 @@ void main() {
 
   setUp(() {
     mockStorage = MockSecurityStorageWithBoundId();
-    final mockAuthService = AuthService(dio: MockDio(), storage: mockStorage);
+    final mockAuthService = AuthService(
+      dio: MockDio(),
+      storage: mockStorage,
+      authNotifier: AuthNotifier(),
+    );
     mockController = SetupController(authService: mockAuthService);
   });
 

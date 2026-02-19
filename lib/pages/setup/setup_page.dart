@@ -5,6 +5,7 @@ import 'package:flutter_workshop_front/pages/home/home_page.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_controller.dart';
 import 'package:flutter_workshop_front/pages/setup/widgets/api_key_input.dart';
 import 'package:flutter_workshop_front/pages/setup/widgets/setup_action_button.dart';
+import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 
 class SetupPage extends StatefulWidget {
   static const route = '/setup';
@@ -23,7 +24,8 @@ class _SetupPageState extends State<SetupPage> {
   @override
   void initState() {
     super.initState();
-    _controller = widget.controller ?? SetupController();
+    _controller = widget.controller ??
+        SetupController(authService: context.read<AuthService>());
   }
 
   @override
@@ -189,7 +191,10 @@ class _SetupPageState extends State<SetupPage> {
   Future<void> _submit(BuildContext context, SetupController controller) async {
     final success = await controller.authenticate(_apiKeyController.text);
     if (success && context.mounted) {
-      context.go(HomePage.route);
+      final router = GoRouter.maybeOf(context);
+      if (router != null) {
+        context.go(HomePage.route);
+      }
     }
   }
 }

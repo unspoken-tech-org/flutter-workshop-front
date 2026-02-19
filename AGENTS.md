@@ -133,6 +133,10 @@
 - Keep tests deterministic; avoid timers and network calls.
 - Use `expect` with clear matcher semantics.
 
+## Commits
+- Quando for fazer commits, eles devem ser separados por contexto/escopo da mudança.
+- Mensagens de commit devem estar em inglês.
+
 ## Do and don’t
 - Do keep file/module boundaries (models, services, widgets).
 - Do keep changes minimal and aligned with surrounding patterns.
