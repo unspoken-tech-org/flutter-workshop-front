@@ -275,5 +275,39 @@ void main() {
       );
       expect(calls, 1);
     });
+
+    test('deve liberar waiter travado e executar fallback sem deadlock',
+        () async {
+      var calls = 0;
+      final stalledDio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+      stalledDio.httpClientAdapter = _TestHttpClientAdapter(
+        responder: (_) async {
+          calls += 1;
+          if (calls == 1) {
+            await Future<void>.delayed(const Duration(milliseconds: 220));
+            return const _AdapterResult(statusCode: 200, data: {'call': 1});
+          }
+          return _AdapterResult(statusCode: 200, data: {'call': calls});
+        },
+      );
+      stalledDio.interceptors.add(
+        DuplicateRequestInterceptor(
+          milliseconds: 100,
+          waiterTimeout: const Duration(milliseconds: 60),
+        ),
+      );
+
+      final first = stalledDio.post('/device', data: {'name': 'A'});
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      final second = stalledDio.post('/device', data: {'name': 'A'});
+
+      final secondResponse = await second;
+      final firstResponse = await first;
+
+      expect(secondResponse.statusCode, 200);
+      expect(secondResponse.data['call'], 2);
+      expect(firstResponse.statusCode, 200);
+      expect(calls, 2);
+    });
   });
 }
