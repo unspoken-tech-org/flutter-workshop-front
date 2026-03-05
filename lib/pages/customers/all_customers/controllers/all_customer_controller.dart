@@ -16,7 +16,7 @@ class AllCustomerController extends ChangeNotifier {
   List<MinifiedCustomerModel> _customers = [];
   List<MinifiedCustomerModel> get customers => _customers;
 
-  bool _isLoading = true;
+  bool _isLoading = false;
   bool get isLoading => _isLoading;
 
   int _currentPage = 0;
@@ -46,6 +46,7 @@ class AllCustomerController extends ChangeNotifier {
     );
 
     _debouncer.run(() async {
+      if (_isLoading) return;
       _isLoading = true;
       notifyListeners();
 

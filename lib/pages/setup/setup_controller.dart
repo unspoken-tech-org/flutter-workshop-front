@@ -14,6 +14,7 @@ class SetupController extends ChangeNotifier {
   String? errorMessage;
 
   Future<bool> authenticate(String apiKey) async {
+    if (isLoading) return false;
     if (apiKey.trim().isEmpty) {
       errorMessage = 'A API Key não pode estar vazia.';
       isSuccess = false;

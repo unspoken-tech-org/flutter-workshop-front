@@ -114,6 +114,7 @@ class DeviceRegisterController extends ChangeNotifier {
   }
 
   Future<int?> createDevice() async {
+    if (isCreatingDevice) return null;
     try {
       isCreatingDevice = true;
       notifyListeners();

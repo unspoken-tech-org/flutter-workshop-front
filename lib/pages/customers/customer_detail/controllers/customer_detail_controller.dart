@@ -18,6 +18,7 @@ class CustomerDetailController {
   InputCustomer updatedCustomerData = InputCustomer.empty();
 
   Future<void> fetchCustomer(int customerId) async {
+    if (isLoading.value) return;
     isLoading.value = true;
     try {
       final result = await _customerRepository.getCustomer(customerId);
@@ -30,6 +31,7 @@ class CustomerDetailController {
   }
 
   Future<bool> updateCustomer(int customerId) async {
+    if (isLoading.value) return false;
     isLoading.value = true;
     try {
       final result = await _customerRepository.updateCustomer(
