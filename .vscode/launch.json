@@ -12,7 +12,7 @@
       "program": "lib/main.dart",
       "args": [
         "-d",
-        "edge"
+        "brave"
       ]
     },
     {
@@ -24,6 +24,17 @@
       "args": [
         "-d",
         "windows"
+      ]
+    },
+    {
+      "name": "Flutter Linux",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "program": "lib/main.dart",
+      "args": [
+        "-d",
+        "linux"
       ]
     }
   ]
