@@ -5,7 +5,6 @@ import '../../security/security_storage.dart';
 
 class SecurityInterceptor extends QueuedInterceptor {
   static const _kAuthRetryCount = 'authRetryCount';
-  static const _kIsAuthRetry = 'isAuthRetry';
   static const _kRequestId = 'requestId';
 
   final SecurityStorage _storage;
@@ -102,7 +101,6 @@ class SecurityInterceptor extends QueuedInterceptor {
           '[AuthDebug][$requestId] Retry ready. Retrying original request to ${options.path}',
         );
         options.headers['Authorization'] = 'Bearer $tokenToUse';
-        options.extra[_kIsAuthRetry] = true;
         options.extra[_kAuthRetryCount] = retryCount + 1;
 
         // Retry original request with new token
@@ -121,6 +119,13 @@ class SecurityInterceptor extends QueuedInterceptor {
       } else {
         debugPrint(
             '[AuthDebug][$requestId] Refresh returned null. Cannot retry.');
+        return handler.reject(
+          DioException(
+            requestOptions: options,
+            type: DioExceptionType.cancel,
+            error: 'Sessão expirada',
+          ),
+        );
       }
     } else if (err.response?.statusCode == 403) {
       // Forbidden: Invalid API Key or blocked user

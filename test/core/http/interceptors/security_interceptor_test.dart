@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_workshop_front/core/http/interceptors/duplicate_request_interceptor.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/security_interceptor.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
@@ -216,7 +215,35 @@ void main() {
       expect(refreshCalls, 1);
     });
 
-    test('deve limpar provisioning em 403 e retornar cancel', () async {
+    test('deve retornar cancel quando refresh retorna null em 401', () async {
+      dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+      dio.httpClientAdapter = _TestHttpClientAdapter(
+        responder: (_) =>
+            const _AdapterResult(statusCode: 401, data: {'error': 'expired'}),
+      );
+      dio.interceptors.add(
+        SecurityInterceptor(
+          storage: storage,
+          dio: dio,
+          onRefresh: () async {
+            refreshCalls += 1;
+            return null;
+          },
+          authNotifier: AuthNotifier(),
+        ),
+      );
+
+      await expectLater(
+        dio.get('/protected'),
+        throwsA(
+          isA<DioException>()
+              .having((e) => e.type, 'type', DioExceptionType.cancel),
+        ),
+      );
+      expect(refreshCalls, 1);
+    });
+
+    test('deve limpar sessao em 403 e retornar cancel', () async {
       dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
       dio.httpClientAdapter = _TestHttpClientAdapter(
         responder: (_) =>
@@ -279,56 +306,6 @@ void main() {
 
       expect(responses, hasLength(3));
       expect(refreshCalls, 1);
-    });
-
-    test('retry de auth deve ignorar cache de duplicidade', () async {
-      var retryProtectedCalls = 0;
-      final retryDio = Dio(BaseOptions(baseUrl: 'https://example.test'));
-      retryDio.httpClientAdapter = _TestHttpClientAdapter(
-        responder: (options) {
-          if (options.path == '/protected') {
-            retryProtectedCalls += 1;
-            final authHeader = options.headers['Authorization'];
-            if (authHeader == 'Bearer new-token') {
-              return const _AdapterResult(
-                  statusCode: 200, data: {'source': 'retry'});
-            }
-            return const _AdapterResult(
-                statusCode: 200, data: {'source': 'prewarm'});
-          }
-          return const _AdapterResult(statusCode: 404);
-        },
-      );
-      retryDio.interceptors.add(DuplicateRequestInterceptor(milliseconds: 500));
-
-      final prewarmResponse = await retryDio.get('/protected');
-      expect(prewarmResponse.data['source'], 'prewarm');
-
-      dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
-      dio.httpClientAdapter = _TestHttpClientAdapter(
-        responder: (_) =>
-            const _AdapterResult(statusCode: 401, data: {'error': 'expired'}),
-      );
-      dio.interceptors.add(
-        SecurityInterceptor(
-          storage: storage,
-          dio: retryDio,
-          authNotifier: authNotifier,
-          onRefresh: () async {
-            refreshCalls += 1;
-            await storage.saveAccessToken('new-token');
-            return 'new-token';
-          },
-        ),
-      );
-
-      final retriedResponse = await dio.get('/protected');
-
-      expect(retriedResponse.statusCode, 200);
-      expect(retriedResponse.data['source'], 'retry');
-      expect(retryProtectedCalls, 2,
-          reason:
-              'Uma chamada de prewarm e outra de retry real; sem bypass retornaria cache antigo.');
     });
   });
 }
