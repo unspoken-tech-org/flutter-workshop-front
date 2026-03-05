@@ -24,6 +24,8 @@ class DeviceCustomerPageController extends ChangeNotifier {
   late List<Technician> technicians;
 
   bool isLoading = false;
+  bool isUpdating = false;
+  bool isCreatingContact = false;
   bool isCreatingPayment = false;
 
   Future<void> init(int deviceId) async {
@@ -71,6 +73,9 @@ class DeviceCustomerPageController extends ChangeNotifier {
   }
 
   Future<void> updateDeviceHasUrgency(bool hasUrgency) async {
+    if (isUpdating) return;
+    isUpdating = true;
+    notifyListeners();
     try {
       StatusEnum actualStatus = deviceCustomer.deviceStatus;
       if ([StatusEnum.delivered, StatusEnum.disposed].contains(actualStatus)) {
@@ -92,17 +97,19 @@ class DeviceCustomerPageController extends ChangeNotifier {
       SnackBarUtil().showError(
           'Erro ao atualizar urgência do dispositivo. Tente novamente.');
     } finally {
+      isUpdating = false;
       notifyListeners();
     }
   }
 
-  void updateDeviceCustomer() async {
+  Future<void> updateDeviceCustomer() async {
+    if (isUpdating) return;
+    isUpdating = true;
+    notifyListeners();
     try {
       DeviceCustomer response =
           await _deviceCustomerService.updateDeviceCustomer(deviceCustomer);
-
       deviceCustomer = response;
-
       SnackBarUtil().showSuccess('Dispositivo atualizado com sucesso');
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
@@ -110,12 +117,16 @@ class DeviceCustomerPageController extends ChangeNotifier {
       SnackBarUtil()
           .showError('Erro ao atualizar dispositivo. Tente novamente.');
     } finally {
+      isUpdating = false;
       notifyListeners();
     }
   }
 
   Future<void> createCustomerContact(
       InputCustomerContact customerContact) async {
+    if (isCreatingContact) return;
+    isCreatingContact = true;
+    notifyListeners();
     try {
       await _customerContactService.createCustomerContact(customerContact);
       await _getCustomerDevice(deviceCustomer.deviceId);
@@ -126,11 +137,15 @@ class DeviceCustomerPageController extends ChangeNotifier {
     } catch (e) {
       SnackBarUtil().showError('Erro ao criar contato. Tente novamente.');
     } finally {
+      isCreatingContact = false;
       notifyListeners();
     }
   }
 
   Future<void> updateDeviceRevision(bool revision) async {
+    if (isUpdating) return;
+    isUpdating = true;
+    notifyListeners();
     try {
       StatusEnum actualStatus = deviceCustomer.deviceStatus;
       if ([StatusEnum.delivered, StatusEnum.disposed].contains(actualStatus)) {
@@ -149,11 +164,15 @@ class DeviceCustomerPageController extends ChangeNotifier {
       SnackBarUtil().showError(
           'Erro ao atualizar revisão do dispositivo. Tente novamente.');
     } finally {
+      isUpdating = false;
       notifyListeners();
     }
   }
 
   Future<void> updateDeviceStatus(StatusEnum status) async {
+    if (isUpdating) return;
+    isUpdating = true;
+    notifyListeners();
     try {
       bool isUrgency = deviceCustomer.hasUrgency;
       bool isRevision = deviceCustomer.revision;
@@ -183,6 +202,7 @@ class DeviceCustomerPageController extends ChangeNotifier {
       SnackBarUtil().showError(
           'Erro ao atualizar status do dispositivo. Tente novamente.');
     } finally {
+      isUpdating = false;
       notifyListeners();
     }
   }

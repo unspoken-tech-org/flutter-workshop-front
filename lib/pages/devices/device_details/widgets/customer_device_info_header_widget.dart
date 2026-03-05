@@ -70,9 +70,12 @@ class _CustomerDeviceInfoHeaderWidgetState
 
   @override
   Widget build(BuildContext context) {
-    return Selector<DeviceCustomerPageController, DeviceCustomer>(
-      selector: (context, controller) => controller.deviceCustomer,
-      builder: (context, deviceCustomer, child) => Column(
+    return Selector<DeviceCustomerPageController, (DeviceCustomer, bool)>(
+      selector: (context, controller) =>
+          (controller.deviceCustomer, controller.isUpdating),
+      builder: (context, values, child) {
+        final (deviceCustomer, isUpdating) = values;
+        return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -91,49 +94,56 @@ class _CustomerDeviceInfoHeaderWidgetState
                 children: [
                   UrgencyChip(
                     hasUrgency: deviceCustomer.hasUrgency,
-                    onTap: () async {
-                      await _executeUpdateOrShowDialog(
-                        context,
-                        actualStatus: deviceCustomer.deviceStatus,
-                        message:
-                            'Alterar o status de urgência fara com que o status do aparelho seja alterado para "Novo". Deseja Prosseguir?',
-                        onConfirm: () async {
-                          await context
-                              .read<DeviceCustomerPageController>()
-                              .updateDeviceHasUrgency(
-                                !deviceCustomer.hasUrgency,
-                              );
-                          setState(() {});
-                        },
-                      );
-                    },
+                    onTap: isUpdating
+                        ? null
+                        : () async {
+                            await _executeUpdateOrShowDialog(
+                              context,
+                              actualStatus: deviceCustomer.deviceStatus,
+                              message:
+                                  'Alterar o status de urgência fara com que o status do aparelho seja alterado para "Novo". Deseja Prosseguir?',
+                              onConfirm: () async {
+                                await context
+                                    .read<DeviceCustomerPageController>()
+                                    .updateDeviceHasUrgency(
+                                      !deviceCustomer.hasUrgency,
+                                    );
+                                setState(() {});
+                              },
+                            );
+                          },
                   ),
                   RevisionChip(
                     revision: deviceCustomer.revision,
-                    onTap: () async {
-                      await _executeUpdateOrShowDialog(
-                        context,
-                        actualStatus: deviceCustomer.deviceStatus,
-                        message:
-                            'Alterar o status de revisão fara com que o status do aparelho seja alterado para "Novo". Deseja Prosseguir?',
-                        onConfirm: () async {
-                          await context
-                              .read<DeviceCustomerPageController>()
-                              .updateDeviceRevision(!deviceCustomer.revision);
-                          setState(() {});
-                        },
-                      );
-                    },
+                    onTap: isUpdating
+                        ? null
+                        : () async {
+                            await _executeUpdateOrShowDialog(
+                              context,
+                              actualStatus: deviceCustomer.deviceStatus,
+                              message:
+                                  'Alterar o status de revisão fara com que o status do aparelho seja alterado para "Novo". Deseja Prosseguir?',
+                              onConfirm: () async {
+                                await context
+                                    .read<DeviceCustomerPageController>()
+                                    .updateDeviceRevision(
+                                        !deviceCustomer.revision);
+                                setState(() {});
+                              },
+                            );
+                          },
                   ),
                   DeviceStatusChip(
                     key: GlobalKey(),
                     status: deviceCustomer.deviceStatus,
-                    onSelect: (status) async {
-                      await context
-                          .read<DeviceCustomerPageController>()
-                          .updateDeviceStatus(status);
-                      setState(() {});
-                    },
+                    onSelect: isUpdating
+                        ? null
+                        : (status) async {
+                            await context
+                                .read<DeviceCustomerPageController>()
+                                .updateDeviceStatus(status);
+                            setState(() {});
+                          },
                   ),
                 ],
               ),
@@ -199,7 +209,8 @@ class _CustomerDeviceInfoHeaderWidgetState
             ],
           ),
         ],
-      ),
+      );
+      },
     );
   }
 }
