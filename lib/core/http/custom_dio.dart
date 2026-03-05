@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_workshop_front/core/config/config.dart';
-import 'package:flutter_workshop_front/core/http/interceptors/duplicate_request_interceptor.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/global_error_interceptor.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/security_interceptor.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
@@ -69,8 +68,6 @@ class CustomDio {
         },
       ),
     );
-
-    dio.interceptors.add(DuplicateRequestInterceptor());
 
     return dio;
   }
