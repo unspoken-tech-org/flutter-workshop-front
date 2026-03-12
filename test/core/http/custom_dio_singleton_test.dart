@@ -9,6 +9,18 @@ import 'package:flutter_workshop_front/core/http/custom_dio.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
 
+/// Gera um JWT minimalista com o timestamp de expiração informado.
+String _makeJwt(int expEpochSeconds) {
+  final header =
+      base64Url.encode(utf8.encode('{"alg":"HS256","typ":"JWT"}')).replaceAll('=', '');
+  final payload = base64Url
+      .encode(utf8.encode('{"sub":"test","exp":$expEpochSeconds}'))
+      .replaceAll('=', '');
+  return '$header.$payload.fake-sig';
+}
+
+int get _nowSeconds => DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
 class _MemorySecurityStorage implements SecurityStorage {
   final Map<String, String> _storage = {};
 
@@ -121,26 +133,31 @@ void main() {
     });
 
     test('deve executar somente um refresh em escritas concorrentes', () async {
+      // Tokens como JWTs válidos: oldToken válido localmente mas rejeitado pelo
+      // servidor com 401 (ex: invalidação forçada), newToken válido por 2h.
+      final oldToken = _makeJwt(_nowSeconds + 3600);
+      final newToken = _makeJwt(_nowSeconds + 7200);
+
       final storage = _MemorySecurityStorage()
-        ..seedTokens(accessToken: 'old-token', refreshToken: 'rt-1');
+        ..seedTokens(accessToken: oldToken, refreshToken: 'rt-1');
       var refreshCalls = 0;
 
       CustomDio.setup(
         storage,
         () async {
           refreshCalls += 1;
-          await storage.saveAccessToken('new-token');
-          return 'new-token';
+          await storage.saveAccessToken(newToken);
+          return newToken;
         },
         AuthNotifier(),
       );
 
       final dioA = CustomDio.dioInstance();
       final dioB = CustomDio.dioInstance();
-      dioA.httpClientAdapter = _TestHttpClientAdapter(
+      final adapter = _TestHttpClientAdapter(
         responder: (options) {
           final authHeader = options.headers['Authorization'];
-          if (authHeader == 'Bearer new-token') {
+          if (authHeader == 'Bearer $newToken') {
             final status = options.method == 'POST' ? 201 : 200;
             return _AdapterResult(statusCode: status, data: {'ok': true});
           }
@@ -150,6 +167,9 @@ void main() {
           );
         },
       );
+      dioA.httpClientAdapter = adapter;
+      // retryDio precisa do mesmo adapter para que os retries funcionem nos testes.
+      CustomDio.retryDioForTest?.httpClientAdapter = adapter;
 
       final responses = await Future.wait([
         dioA.post('/v1/payment', data: {'value': 100}),
