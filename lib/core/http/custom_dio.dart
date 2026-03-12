@@ -12,6 +12,7 @@ class CustomDio {
   static AuthNotifier? _authNotifier;
   static Dio? _appDio;
   static Dio? _authDio;
+  static Dio? _retryDio;
   static bool _securityAttached = false;
 
   /// Configures global dependencies for the security interceptor.
@@ -54,8 +55,12 @@ class CustomDio {
     _authNotifier = null;
     _appDio = null;
     _authDio = null;
+    _retryDio = null;
     _securityAttached = false;
   }
+
+  @visibleForTesting
+  static Dio? get retryDioForTest => _retryDio;
 
   static Dio _baseDio() {
     final dio = Dio(
@@ -81,9 +86,13 @@ class CustomDio {
       return;
     }
 
+    // retryDio: mesmas BaseOptions, sem SecurityInterceptor → sem deadlock no retry.
+    _retryDio = Dio(dio.options)..interceptors.add(GlobalErrorInterceptor());
+    final retryDio = _retryDio!;
+
     final securityInterceptor = SecurityInterceptor(
       storage: _storage!,
-      dio: dio,
+      retryDio: retryDio,
       onRefresh: _onRefresh!,
       authNotifier: _authNotifier!,
     );
