@@ -19,11 +19,12 @@ class AuthService {
     Dio? dio,
     SecurityStorage? storage,
     required AuthNotifier authNotifier,
-  })  : _authNotifier = authNotifier,
-        _dio = dio ?? CustomDio.authDioInstance(),
-        _storage = storage ?? SecurityStorage();
+  }) : _authNotifier = authNotifier,
+       _dio = dio ?? CustomDio.authDioInstance(),
+       _storage = storage ?? SecurityStorage();
 
-  Future<bool> get hasApiKey async => (await _storage.getApiKey()) != null;
+  Future<String?> get apiKey async => (await _storage.getApiKey());
+  Future<bool> get hasApiKey async => (await apiKey) != null;
 
   Future<bool> get hasSession async {
     final accessToken = await _storage.getAccessToken();
@@ -78,7 +79,8 @@ class AuthService {
       }
     } on DioException catch (e) {
       debugPrint(
-          '[AuthDebug] Authenticate failed with status ${e.response?.statusCode}: $e');
+        '[AuthDebug] Authenticate failed with status ${e.response?.statusCode}: $e',
+      );
       if (e.response?.statusCode == 401) {
         await _storage.clearProvisioning();
         _authNotifier.setState(AuthRouteState.needsSetup);
@@ -137,7 +139,14 @@ class AuthService {
       final statusCode = response.statusCode ?? 0;
       if (statusCode != 200 && statusCode != 201) {
         debugPrint('[AuthDebug] Unexpected refresh status: $statusCode');
-        if (statusCode == 400 || statusCode == 401 || statusCode == 403) {
+        if (statusCode == 401) {
+          // Refresh token expirado: preserva API key para facilitar re-login.
+          debugPrint(
+            '[AuthDebug] Refresh token expired. Clearing session only.',
+          );
+          await _storage.clearSession();
+          _authNotifier.setState(AuthRouteState.needsSetup);
+        } else if (statusCode == 400 || statusCode == 403) {
           await logout();
         }
         return null;
@@ -162,7 +171,8 @@ class AuthService {
 
       if (newRefreshToken != null && newRefreshToken.isNotEmpty) {
         debugPrint(
-            '[AuthDebug] Refresh successful. Rotating access and refresh tokens.');
+          '[AuthDebug] Refresh successful. Rotating access and refresh tokens.',
+        );
         await _storage.saveTokens(newAccessToken, newRefreshToken);
       } else {
         debugPrint('[AuthDebug] Refresh successful. Saving new access token.');
@@ -172,10 +182,16 @@ class AuthService {
       return newAccessToken;
     } on DioException catch (e) {
       debugPrint(
-          '[AuthDebug] Refresh failed with status ${e.response?.statusCode}');
-      // If 401 or 403 during refresh, session is invalid
-      if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
-        debugPrint('[AuthDebug] Session invalid on refresh. Logging out...');
+        '[AuthDebug] Refresh failed with status ${e.response?.statusCode}',
+      );
+      if (e.response?.statusCode == 401) {
+        // Refresh token expirado: preserva API key para facilitar re-login.
+        debugPrint('[AuthDebug] Refresh token expired. Clearing session only.');
+        await _storage.clearSession();
+        _authNotifier.setState(AuthRouteState.needsSetup);
+      } else if (e.response?.statusCode == 403) {
+        // API key inválida/bloqueada: logout completo.
+        debugPrint('[AuthDebug] API key invalid on refresh. Logging out...');
         await logout();
       }
       return null;

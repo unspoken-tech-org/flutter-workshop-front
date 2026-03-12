@@ -6,12 +6,20 @@ class SetupController extends ChangeNotifier {
   final AuthService _authService;
 
   SetupController({required AuthService authService})
-      : _authService = authService;
+    : _authService = authService;
 
   bool isLoading = false;
-
   bool isSuccess = false;
+
+  String apiKey = '';
   String? errorMessage;
+
+  Future<String?> get storedApiKey async => await _authService.apiKey;
+
+  Future<void> init() async {
+    apiKey = await storedApiKey ?? '';
+    notifyListeners();
+  }
 
   Future<bool> authenticate(String apiKey) async {
     if (isLoading) return false;

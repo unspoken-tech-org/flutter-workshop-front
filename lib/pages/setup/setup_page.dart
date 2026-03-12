@@ -18,19 +18,21 @@ class SetupPage extends StatefulWidget {
 }
 
 class _SetupPageState extends State<SetupPage> {
-  final TextEditingController _apiKeyController = TextEditingController();
+  final TextEditingController _apiKeyTextController = TextEditingController();
   late final SetupController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = widget.controller ??
-        SetupController(authService: context.read<AuthService>());
+    _controller =
+        widget.controller ??
+              SetupController(authService: context.read<AuthService>())
+          ..init();
   }
 
   @override
   void dispose() {
-    _apiKeyController.dispose();
+    _apiKeyTextController.dispose();
     if (widget.controller == null) {
       _controller.dispose();
     }
@@ -43,6 +45,11 @@ class _SetupPageState extends State<SetupPage> {
       value: _controller,
       child: Consumer<SetupController>(
         builder: (context, controller, child) {
+          final String apiKey = _controller.apiKey;
+          if (apiKey.isNotEmpty) {
+            _apiKeyTextController.text = _controller.apiKey;
+          }
+
           return Scaffold(
             backgroundColor: const Color(0xFFF7F9FC),
             body: Center(
@@ -85,10 +92,7 @@ class _SetupPageState extends State<SetupPage> {
                     const SizedBox(height: 4),
                     const Text(
                       'Gestão Inteligente de Sistemas',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF49454F),
-                      ),
+                      style: TextStyle(fontSize: 14, color: Color(0xFF49454F)),
                     ),
                     const SizedBox(height: 32),
 
@@ -131,14 +135,14 @@ class _SetupPageState extends State<SetupPage> {
                           const SizedBox(height: 24),
                           ApiKeyInput(
                             controller: controller,
-                            apiKeyController: _apiKeyController,
+                            apiKeyController: _apiKeyTextController,
                             onSubmitted: () => _submit(context, controller),
                             onChanged: () => setState(() {}),
                           ),
                           const SizedBox(height: 24),
                           SetupActionButton(
                             controller: controller,
-                            apiKeyController: _apiKeyController,
+                            apiKeyController: _apiKeyTextController,
                             onPressed: () => _submit(context, controller),
                           ),
                           const SizedBox(height: 24),
@@ -161,8 +165,9 @@ class _SetupPageState extends State<SetupPage> {
                                 ),
                               ),
                               style: TextButton.styleFrom(
-                                overlayColor:
-                                    Colors.blue.withValues(alpha: 0.1),
+                                overlayColor: Colors.blue.withValues(
+                                  alpha: 0.1,
+                                ),
                               ),
                             ),
                           ),
@@ -173,10 +178,7 @@ class _SetupPageState extends State<SetupPage> {
                     const SizedBox(height: 32),
                     const Text(
                       '© 2024 Eletroluk Workshop. Todos os direitos reservados.',
-                      style: TextStyle(
-                        color: Color(0xFF938F99),
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Color(0xFF938F99), fontSize: 12),
                     ),
                   ],
                 ),
@@ -189,7 +191,7 @@ class _SetupPageState extends State<SetupPage> {
   }
 
   Future<void> _submit(BuildContext context, SetupController controller) async {
-    final success = await controller.authenticate(_apiKeyController.text);
+    final success = await controller.authenticate(_apiKeyTextController.text);
     if (success && context.mounted) {
       final router = GoRouter.maybeOf(context);
       if (router != null) {
