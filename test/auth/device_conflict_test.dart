@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 import '../auth_pvt_test.dart';
@@ -57,6 +58,7 @@ void main() {
       final authService = AuthService(
         dio: MockDioConflict(),
         storage: MockSecurityStorageWithBoundId(),
+        authNotifier: AuthNotifier(),
       );
 
       expect(

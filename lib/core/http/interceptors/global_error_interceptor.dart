@@ -6,6 +6,16 @@ import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 class GlobalErrorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
+    final extra = err.requestOptions.extra;
+    debugPrint(
+      '[GlobalError] ${err.requestOptions.method} ${err.requestOptions.path} '
+      'status=${err.response?.statusCode} type=${err.type} '
+      'requestId=${extra['requestId']} isAuthRetry=${extra['isAuthRetry']} '
+      'authRetryCount=${extra['authRetryCount']} '
+      'duplicateHash=${extra['duplicateRequestHash']} '
+      'bypassDuplicate=${extra['bypassDuplicateCheck']}',
+    );
+
     // 1. Ignore cancellations (usually triggered by us during logout)
     if (err.type == DioExceptionType.cancel) {
       return handler.next(err);

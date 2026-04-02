@@ -13,6 +13,7 @@ import 'package:flutter_workshop_front/services/update/update_service.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/widgets/ws_drawer_item.dart';
 import 'package:flutter_workshop_front/widgets/shared/update_dialog.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class WsDrawer extends StatefulWidget {
   final String currentRoute;
@@ -182,7 +183,7 @@ class _WsDrawerState extends State<WsDrawer> {
               title: 'Logout',
               route: const [],
               onTap: () async {
-                await AuthService().logout();
+                await context.read<AuthService>().logout();
                 if (!context.mounted) return;
                 context.go(SetupPage.route);
               },

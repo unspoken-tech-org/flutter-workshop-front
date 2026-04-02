@@ -5,15 +5,24 @@ import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 class SetupController extends ChangeNotifier {
   final AuthService _authService;
 
-  SetupController({AuthService? authService})
-      : _authService = authService ?? AuthService();
+  SetupController({required AuthService authService})
+    : _authService = authService;
 
   bool isLoading = false;
-
   bool isSuccess = false;
+
+  String apiKey = '';
   String? errorMessage;
 
+  Future<String?> get storedApiKey async => await _authService.apiKey;
+
+  Future<void> init() async {
+    apiKey = await storedApiKey ?? '';
+    notifyListeners();
+  }
+
   Future<bool> authenticate(String apiKey) async {
+    if (isLoading) return false;
     if (apiKey.trim().isEmpty) {
       errorMessage = 'A API Key não pode estar vazia.';
       isSuccess = false;
@@ -42,6 +51,5 @@ class SetupController extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
-
   }
 }

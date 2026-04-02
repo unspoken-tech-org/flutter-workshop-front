@@ -24,9 +24,9 @@ class AllDevicesController extends ChangeNotifier {
   List<DeviceBrand> deviceBrands = [];
   late DeviceFilter filter;
 
-  bool isLoading = true;
+  bool isLoading = false;
   bool isFiltering = false;
-  bool isFiltersLoading = true;
+  bool isFiltersLoading = false;
   bool _isLoadingMore = false;
   bool get isLoadingMore => _isLoadingMore;
   bool _hasMore = true;
@@ -39,6 +39,7 @@ class AllDevicesController extends ChangeNotifier {
   int get totalPages => _totalPages;
 
   Future<void> fetchAllDevicesFiltering() async {
+    if (isLoading) return;
     try {
       isLoading = true;
       _currentPage = 0;
@@ -63,6 +64,7 @@ class AllDevicesController extends ChangeNotifier {
   }
 
   Future<void> fetchFilterOptions() async {
+    if (isFiltersLoading) return;
     try {
       isFiltersLoading = true;
       notifyListeners();

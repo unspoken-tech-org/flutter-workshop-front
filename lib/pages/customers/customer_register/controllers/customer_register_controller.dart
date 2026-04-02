@@ -12,6 +12,7 @@ class CustomerRegisterController extends ChangeNotifier {
   bool isCreatingCustomer = false;
 
   Future<int?> createCustomer(InputCustomer newCustomer) async {
+    if (isCreatingCustomer) return null;
     try {
       isCreatingCustomer = true;
       notifyListeners();

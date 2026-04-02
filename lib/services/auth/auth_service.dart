@@ -13,12 +13,25 @@ import '../../models/auth/token_response.dart';
 class AuthService {
   final Dio _dio;
   final SecurityStorage _storage;
+  final AuthNotifier _authNotifier;
 
-  AuthService({Dio? dio, SecurityStorage? storage})
-      : _dio = dio ?? CustomDio.authDioInstance(),
-        _storage = storage ?? SecurityStorage();
+  AuthService({
+    Dio? dio,
+    SecurityStorage? storage,
+    required AuthNotifier authNotifier,
+  }) : _authNotifier = authNotifier,
+       _dio = dio ?? CustomDio.authDioInstance(),
+       _storage = storage ?? SecurityStorage();
 
-  Future<bool> get hasApiKey async => (await _storage.getApiKey()) != null;
+  Future<String?> get apiKey async => (await _storage.getApiKey());
+  Future<bool> get hasApiKey async => (await apiKey) != null;
+
+  Future<bool> get hasSession async {
+    final accessToken = await _storage.getAccessToken();
+    final refreshToken = await _storage.getRefreshToken();
+    return (accessToken != null && accessToken.isNotEmpty) ||
+        (refreshToken != null && refreshToken.isNotEmpty);
+  }
 
   /// RBAC: Checks if user has ADMIN role by decoding the current JWT.
   Future<bool> get isAdmin async {
@@ -60,17 +73,51 @@ class AuthService {
           tokenResponse.accessToken,
           tokenResponse.refreshToken,
         );
-        AuthNotifier().notifyAuthChange();
+        _authNotifier.setState(AuthRouteState.authenticated);
       } else if (response.statusCode == 409) {
         throw RequisitionException.fromJson(response.data['error']);
       }
+    } on DioException catch (e) {
+      debugPrint(
+        '[AuthDebug] Authenticate failed with status ${e.response?.statusCode}: $e',
+      );
+      if (e.response?.statusCode == 401) {
+        await _storage.clearProvisioning();
+        _authNotifier.setState(AuthRouteState.needsSetup);
+      } else {
+        await _storage.clearSession();
+      }
+      rethrow;
     } on RequisitionException {
       rethrow;
     } catch (e) {
       debugPrint('[AuthDebug] Authenticate failed: $e');
       // If initial auth fails, ensure session is cleared but preserve boundDeviceId
       await _storage.clearSession();
+      _authNotifier.setState(AuthRouteState.needsSetup);
       rethrow;
+    }
+  }
+
+  Future<bool> restoreSessionFromStoredApiKey() async {
+    final apiKey = await _storage.getApiKey();
+    if (apiKey == null || apiKey.isEmpty) {
+      return false;
+    }
+
+    if (await hasSession) {
+      return true;
+    }
+
+    try {
+      await authenticate(apiKey);
+      return true;
+    } on DioException {
+      return false;
+    } on RequisitionException {
+      return false;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -92,7 +139,14 @@ class AuthService {
       final statusCode = response.statusCode ?? 0;
       if (statusCode != 200 && statusCode != 201) {
         debugPrint('[AuthDebug] Unexpected refresh status: $statusCode');
-        if (statusCode == 400 || statusCode == 401 || statusCode == 403) {
+        if (statusCode == 401) {
+          // Refresh token expirado: preserva API key para facilitar re-login.
+          debugPrint(
+            '[AuthDebug] Refresh token expired. Clearing session only.',
+          );
+          await _storage.clearSession();
+          _authNotifier.setState(AuthRouteState.needsSetup);
+        } else if (statusCode == 400 || statusCode == 403) {
           await logout();
         }
         return null;
@@ -117,7 +171,8 @@ class AuthService {
 
       if (newRefreshToken != null && newRefreshToken.isNotEmpty) {
         debugPrint(
-            '[AuthDebug] Refresh successful. Rotating access and refresh tokens.');
+          '[AuthDebug] Refresh successful. Rotating access and refresh tokens.',
+        );
         await _storage.saveTokens(newAccessToken, newRefreshToken);
       } else {
         debugPrint('[AuthDebug] Refresh successful. Saving new access token.');
@@ -127,10 +182,16 @@ class AuthService {
       return newAccessToken;
     } on DioException catch (e) {
       debugPrint(
-          '[AuthDebug] Refresh failed with status ${e.response?.statusCode}');
-      // If 401 or 403 during refresh, session is invalid
-      if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
-        debugPrint('[AuthDebug] Session invalid on refresh. Logging out...');
+        '[AuthDebug] Refresh failed with status ${e.response?.statusCode}',
+      );
+      if (e.response?.statusCode == 401) {
+        // Refresh token expirado: preserva API key para facilitar re-login.
+        debugPrint('[AuthDebug] Refresh token expired. Clearing session only.');
+        await _storage.clearSession();
+        _authNotifier.setState(AuthRouteState.needsSetup);
+      } else if (e.response?.statusCode == 403) {
+        // API key inválida/bloqueada: logout completo.
+        debugPrint('[AuthDebug] API key invalid on refresh. Logging out...');
         await logout();
       }
       return null;
@@ -157,8 +218,47 @@ class AuthService {
       // Network logout failed, but proceeding with local cleanup
     } finally {
       debugPrint('[AuthDebug] Clearing local secure storage.');
-      await _storage.clearSession();
-      AuthNotifier().notifyAuthChange();
+      await _storage.clearProvisioning();
+      _authNotifier.setState(AuthRouteState.needsSetup);
     }
+  }
+
+  Future<AuthRouteState> initializeAuthState() async {
+    final alreadyHasSession = await hasSession;
+    if (alreadyHasSession) {
+      _authNotifier.setState(AuthRouteState.authenticated);
+      return AuthRouteState.authenticated;
+    }
+
+    final hasStoredApiKey = await hasApiKey;
+    if (!hasStoredApiKey) {
+      if (kDebugMode) {
+        try {
+          final devApiKey = Config.devApiKey;
+          if (devApiKey.isNotEmpty) {
+            await authenticate(devApiKey);
+            _authNotifier.setState(AuthRouteState.authenticated);
+            return AuthRouteState.authenticated;
+          }
+        } catch (_) {
+          // If DEV key fails or env is unavailable, keep setup flow.
+        }
+      }
+
+      _authNotifier.setState(AuthRouteState.needsSetup);
+      return AuthRouteState.needsSetup;
+    }
+
+    final restored = await restoreSessionFromStoredApiKey();
+    final stillHasApiKey = await hasApiKey;
+    final hasValidSessionAfterRestore = await hasSession;
+
+    if (restored && stillHasApiKey && hasValidSessionAfterRestore) {
+      _authNotifier.setState(AuthRouteState.authenticated);
+      return AuthRouteState.authenticated;
+    }
+
+    _authNotifier.setState(AuthRouteState.needsSetup);
+    return AuthRouteState.needsSetup;
   }
 }

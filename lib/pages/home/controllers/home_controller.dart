@@ -9,9 +9,10 @@ class HomeController extends ChangeNotifier {
   HomeController();
 
   DeviceStatistics? deviceStatistics;
-  bool isLoading = true;
+  bool isLoading = false;
 
   Future<void> getDeviceStatistics() async {
+    if (isLoading) return;
     isLoading = true;
     notifyListeners();
     try {
