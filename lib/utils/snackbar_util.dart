@@ -48,18 +48,13 @@ class SnackBarUtil {
     required Color textColor,
   }) {
     final snackBar = SnackBar(
-      content: Text(
-        message,
-        style: TextStyle(color: textColor),
-      ),
+      content: Text(message, style: TextStyle(color: textColor)),
       width: 300,
       backgroundColor: backgroundColor,
       behavior: SnackBarBehavior.floating,
       // margin: const EdgeInsets.all(8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      duration: const Duration(seconds: 5),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      duration: const Duration(seconds: 3),
       action: SnackBarAction(
         label: 'OK',
         textColor: Colors.white,
@@ -68,7 +63,7 @@ class SnackBarUtil {
         },
       ),
     );
-
+    _scaffoldKey.currentState?.removeCurrentSnackBar();
     _scaffoldKey.currentState?.showSnackBar(snackBar);
   }
 }
