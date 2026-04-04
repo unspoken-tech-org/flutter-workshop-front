@@ -15,7 +15,11 @@ extension StringExtension on String {
   }
 
   double fromCurrency() {
-    final value = replaceAll(RegExp(r'[R$.]'), '').replaceAll(',', '.');
+    final value = replaceAll(
+      ' ',
+      '',
+    ).replaceAll('R\$', '').replaceAll('.', '').replaceAll(',', '.');
+
     return double.tryParse(value) ?? 0;
   }
 }
