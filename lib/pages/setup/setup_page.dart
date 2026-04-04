@@ -26,8 +26,13 @@ class _SetupPageState extends State<SetupPage> {
     super.initState();
     _controller =
         widget.controller ??
-              SetupController(authService: context.read<AuthService>())
-          ..init();
+        SetupController(authService: context.read<AuthService>());
+
+    _controller.init().then((_) {
+      if (_controller.apiKey.isNotEmpty) {
+        _apiKeyTextController.text = _controller.apiKey;
+      }
+    });
   }
 
   @override
@@ -45,11 +50,6 @@ class _SetupPageState extends State<SetupPage> {
       value: _controller,
       child: Consumer<SetupController>(
         builder: (context, controller, child) {
-          final String apiKey = _controller.apiKey;
-          if (apiKey.isNotEmpty) {
-            _apiKeyTextController.text = _controller.apiKey;
-          }
-
           return Scaffold(
             backgroundColor: const Color(0xFFF7F9FC),
             body: Center(
