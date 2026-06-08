@@ -6,10 +6,12 @@ import 'package:flutter_workshop_front/widgets/shared/status_cell.dart';
 
 class ContactCard extends StatelessWidget {
   final CustomerContact contact;
+  final VoidCallback? onEdit;
 
   const ContactCard({
     super.key,
     required this.contact,
+    this.onEdit,
   });
 
   (String, Color, Color) _getStatus() {
@@ -24,6 +26,7 @@ class ContactCard extends StatelessWidget {
     final (statusText, statusColor, backgroundColor) = _getStatus();
 
     return HoverableCard(
+      onDoubleTap: onEdit,
       padding: const EdgeInsets.all(16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

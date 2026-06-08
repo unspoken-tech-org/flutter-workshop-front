@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 class HoverableCard extends StatefulWidget {
   final Widget child;
   final VoidCallback? onTap;
+  final VoidCallback? onDoubleTap;
   final BorderRadius borderRadius;
   final Color? color;
   final EdgeInsets padding;
@@ -15,6 +16,7 @@ class HoverableCard extends StatefulWidget {
     super.key,
     required this.child,
     this.onTap,
+    this.onDoubleTap,
     this.borderRadius = const BorderRadius.all(Radius.circular(8.0)),
     this.color = Colors.white,
     this.padding = EdgeInsets.zero,
@@ -47,11 +49,12 @@ class _HoverableCardState extends State<HoverableCard> {
     return MouseRegion(
       onEnter: _onEnter,
       onExit: _onExit,
-      cursor: widget.onTap != null
+      cursor: widget.onTap != null || widget.onDoubleTap != null
           ? SystemMouseCursors.click
           : SystemMouseCursors.basic,
       child: GestureDetector(
         onTap: widget.onTap,
+        onDoubleTap: widget.onDoubleTap,
         child: Card(
           color: widget.color,
           elevation: _isHovered ? widget.elevationOnHover : widget.elevation,
