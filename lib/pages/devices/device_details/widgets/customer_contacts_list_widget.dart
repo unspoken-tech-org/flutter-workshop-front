@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_contact_modal_dialog.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/edit_contact_modal_dialog.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/contact_card.dart';
 import 'package:flutter_workshop_front/widgets/shared/empty_list_widget.dart';
 import 'package:provider/provider.dart';
@@ -68,8 +69,16 @@ class CustomerContactsListWidget extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 itemBuilder: (context, index) {
+                  final contact = customerContacts[index];
                   return ContactCard(
-                    contact: customerContacts[index],
+                    contact: contact,
+                    onEdit: () => showDialog(
+                      context: context,
+                      builder: (context) => ChangeNotifierProvider.value(
+                        value: controller,
+                        child: EditContactModalDialog(contact: contact),
+                      ),
+                    ),
                   );
                 },
                 separatorBuilder: (context, index) {
