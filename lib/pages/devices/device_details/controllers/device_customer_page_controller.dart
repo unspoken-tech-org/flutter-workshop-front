@@ -26,6 +26,7 @@ class DeviceCustomerPageController extends ChangeNotifier {
   bool isLoading = false;
   bool isUpdating = false;
   bool isCreatingContact = false;
+  bool isEditingContact = false;
   bool isCreatingPayment = false;
 
   Future<void> init(int deviceId) async {
@@ -138,6 +139,31 @@ class DeviceCustomerPageController extends ChangeNotifier {
       SnackBarUtil().showError('Erro ao criar contato. Tente novamente.');
     } finally {
       isCreatingContact = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateCustomerContact(
+    int contactId,
+    InputCustomerContact customerContact,
+  ) async {
+    if (isEditingContact) return;
+    isEditingContact = true;
+    notifyListeners();
+    try {
+      await _customerContactService.updateCustomerContact(
+        contactId,
+        customerContact,
+      );
+      await _getCustomerDevice(deviceCustomer.deviceId);
+
+      SnackBarUtil().showSuccess('Contato editado com sucesso');
+    } on RequisitionException catch (e) {
+      SnackBarUtil().showError(e.message);
+    } catch (e) {
+      SnackBarUtil().showError('Erro ao editar contato. Tente novamente.');
+    } finally {
+      isEditingContact = false;
       notifyListeners();
     }
   }

@@ -16,4 +16,16 @@ class CustomerContactService {
     );
     return response.data;
   }
+
+  Future<void> updateCustomerContact(
+    int id,
+    InputCustomerContact customerContact,
+  ) async {
+    final json = customerContact.toJson();
+
+    await _dio.put(
+      '/v1/customer-contact/$id',
+      data: json,
+    );
+  }
 }
