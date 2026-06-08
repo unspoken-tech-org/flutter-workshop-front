@@ -46,3 +46,4 @@ app.*.map.json
 .opencode/
 .specify/
 specs/
+/.memsearch/
