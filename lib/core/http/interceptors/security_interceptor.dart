@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -27,10 +29,10 @@ class SecurityInterceptor extends Interceptor {
     required Dio retryDio,
     required Future<String?> Function() onRefresh,
     required AuthNotifier authNotifier,
-  })  : _storage = storage,
-        _retryDio = retryDio,
-        _onRefresh = onRefresh,
-        _authNotifier = authNotifier;
+  }) : _storage = storage,
+       _retryDio = retryDio,
+       _onRefresh = onRefresh,
+       _authNotifier = authNotifier;
 
   // ── onRequest: verificação PROATIVA ──────────────────────────────────────
 
@@ -71,9 +73,7 @@ class SecurityInterceptor extends Interceptor {
       options.headers['Authorization'] = 'Bearer $token';
     }
 
-    debugPrint(
-      '[AuthDebug][$requestId] Injecting token into ${options.path}',
-    );
+    debugPrint('[AuthDebug][$requestId] Injecting token into ${options.path}');
     handler.next(options);
   }
 
@@ -103,7 +103,10 @@ class SecurityInterceptor extends Interceptor {
           ? authHeader!.substring(7)
           : null;
 
-      final newToken = await _refreshUnderLock(requestId, knownToken: sentToken);
+      final newToken = await _refreshUnderLock(
+        requestId,
+        knownToken: sentToken,
+      );
       if (newToken == null) {
         debugPrint(
           '[AuthDebug][$requestId] Refresh returned null. Cannot retry.',
@@ -178,7 +181,10 @@ class SecurityInterceptor extends Interceptor {
         '[AuthDebug][$requestId] Access token expired. Attempting refresh...',
       );
       try {
-        return await _onRefresh();
+        return await _onRefresh().timeout(const Duration(seconds: 10));
+      } on TimeoutException catch (_) {
+        debugPrint('[AuthDebug][$requestId] Refresh timed out after 10s.');
+        return null;
       } catch (e) {
         debugPrint('[AuthDebug][$requestId] Refresh threw: $e');
         return null;
