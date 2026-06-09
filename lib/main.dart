@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_skill/flutter_skill.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_workshop_front/app_route.dart';
@@ -12,6 +14,7 @@ import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kDebugMode) FlutterSkillBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
 
   // Inicialização da Camada de Segurança

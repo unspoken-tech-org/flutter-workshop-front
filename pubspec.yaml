@@ -29,6 +29,7 @@ dependencies:
   uuid: ^4.5.2
   url_launcher: ^6.3.1
   synchronized: ^3.4.0
+  flutter_skill: ^0.9.36
 
 
 dev_dependencies:
