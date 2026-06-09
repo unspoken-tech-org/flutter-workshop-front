@@ -68,6 +68,7 @@ class CustomDio {
         baseUrl: Config.baseUrl,
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
+        sendTimeout: const Duration(seconds: 15),
         validateStatus: (status) {
           return status! < 500 && status != 401 && status != 403;
         },
