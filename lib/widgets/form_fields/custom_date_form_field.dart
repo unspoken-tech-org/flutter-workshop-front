@@ -18,6 +18,8 @@ class CustomDateFormField extends StatefulWidget {
   final void Function(DateTime initialDate, DateTime? endDate)? onSelected;
   final void Function()? onClear;
   final String? Function(String? value)? validator;
+  final bool enabled;
+  final int errorMaxLines;
 
   const CustomDateFormField({
     super.key,
@@ -31,6 +33,8 @@ class CustomDateFormField extends StatefulWidget {
     this.onSelected,
     this.datePickerType = DatePickerType.single,
     this.onClear,
+    this.enabled = true,
+    this.errorMaxLines = 1,
   });
 
   @override
@@ -45,6 +49,14 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
     super.initState();
     dateController =
         widget.dateController ?? TextEditingController(text: widget.value);
+  }
+
+  @override
+  void didUpdateWidget(CustomDateFormField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.dateController == null && dateController.text != (widget.value ?? '')) {
+      dateController.text = widget.value ?? '';
+    }
   }
 
   @override
@@ -77,20 +89,22 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
             hintText: widget.hintText,
             hintStyle: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
             border: const OutlineInputBorder(),
-            suffixIcon: IconButton(
-              onPressed: dateController.text.isEmpty
-                  ? null
-                  : () {
-                      dateController.text = '';
-                      widget.onClear?.call();
-                    },
-              icon: Icon(
-                dateController.text.isEmpty
-                    ? Icons.calendar_today
-                    : Icons.close,
-                color: Colors.grey.shade500,
-              ),
-            ),
+            suffixIcon: widget.enabled
+                ? IconButton(
+                    onPressed: dateController.text.isEmpty
+                        ? null
+                        : () {
+                            dateController.text = '';
+                            widget.onClear?.call();
+                          },
+                    icon: Icon(
+                      dateController.text.isEmpty
+                          ? Icons.calendar_today
+                          : Icons.close,
+                      color: Colors.grey.shade500,
+                    ),
+                  )
+                : Icon(Icons.calendar_today, color: Colors.grey.shade500),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -103,6 +117,7 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
               borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
+            errorMaxLines: widget.errorMaxLines,
           ),
           validator: widget.validator,
           onSaved: (value) {
@@ -110,6 +125,7 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
           },
           readOnly: true,
           onTap: () async {
+            if (!widget.enabled) return;
             if (widget.datePickerType == DatePickerType.single) {
               final date = await showDatePicker(
                 context: context,
