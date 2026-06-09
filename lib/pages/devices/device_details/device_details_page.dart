@@ -56,7 +56,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
                       child: SizedBox(
-                        height: 1010,
+                        height: 1050,
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           spacing: 20,
@@ -65,10 +65,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                               flex: 2,
                               child: CustomerDeviceInfosWidget(),
                             ),
-                            Flexible(
-                              flex: 1,
-                              child: CustomerDevicePayments(),
-                            ),
+                            Flexible(flex: 1, child: CustomerDevicePayments()),
                           ],
                         ),
                       ),
@@ -76,10 +73,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                     SizedBox(height: 16),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: SizedBox(
-                        height: 514,
-                        child: DeviceTabsWidget(),
-                      ),
+                      child: SizedBox(height: 514, child: DeviceTabsWidget()),
                     ),
                     SizedBox(height: 16),
                   ],
