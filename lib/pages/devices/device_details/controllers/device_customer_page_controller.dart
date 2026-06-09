@@ -57,8 +57,9 @@ class DeviceCustomerPageController extends ChangeNotifier {
 
   Future<void> _getCustomerDevice(int deviceId, {bool isNew = false}) async {
     try {
-      final deviceCustomer =
-          await _deviceCustomerService.getCustomerDeviceById(deviceId);
+      final deviceCustomer = await _deviceCustomerService.getCustomerDeviceById(
+        deviceId,
+      );
       this.deviceCustomer = deviceCustomer;
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
@@ -69,8 +70,22 @@ class DeviceCustomerPageController extends ChangeNotifier {
     }
   }
 
+  DeviceCustomer? _editingSnapshot;
+
   void updateNewDeviceCustomer(DeviceCustomer newDeviceCustomer) {
     deviceCustomer = newDeviceCustomer;
+  }
+
+  void onEditingStarted() {
+    _editingSnapshot = deviceCustomer;
+  }
+
+  void onEditingCancelled() {
+    if (_editingSnapshot != null) {
+      deviceCustomer = _editingSnapshot!;
+      _editingSnapshot = null;
+      notifyListeners();
+    }
   }
 
   Future<void> updateDeviceHasUrgency(bool hasUrgency) async {
@@ -78,16 +93,8 @@ class DeviceCustomerPageController extends ChangeNotifier {
     isUpdating = true;
     notifyListeners();
     try {
-      StatusEnum actualStatus = deviceCustomer.deviceStatus;
-      if ([StatusEnum.delivered, StatusEnum.disposed].contains(actualStatus)) {
-        actualStatus = StatusEnum.newDevice;
-      }
-      final updatedDeviceCustomer = deviceCustomer.copyWith(
-        hasUrgency: hasUrgency,
-        deviceStatus: actualStatus,
-      );
       final DeviceCustomer value = await _deviceCustomerService
-          .updateDeviceCustomer(updatedDeviceCustomer);
+          .updateDeviceHasUrgency(deviceCustomer.deviceId, hasUrgency);
       deviceCustomer = value;
       SnackBarUtil().showSuccess(
         'Urgencia do dispositivo atualizada com sucesso',
@@ -96,7 +103,8 @@ class DeviceCustomerPageController extends ChangeNotifier {
       SnackBarUtil().showError(e.message);
     } catch (e) {
       SnackBarUtil().showError(
-          'Erro ao atualizar urgência do dispositivo. Tente novamente.');
+        'Erro ao atualizar urgência do dispositivo. Tente novamente.',
+      );
     } finally {
       isUpdating = false;
       notifyListeners();
@@ -108,15 +116,16 @@ class DeviceCustomerPageController extends ChangeNotifier {
     isUpdating = true;
     notifyListeners();
     try {
-      DeviceCustomer response =
-          await _deviceCustomerService.updateDeviceCustomer(deviceCustomer);
+      DeviceCustomer response = await _deviceCustomerService
+          .updateDeviceCustomer(deviceCustomer);
       deviceCustomer = response;
       SnackBarUtil().showSuccess('Dispositivo atualizado com sucesso');
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
     } catch (e) {
-      SnackBarUtil()
-          .showError('Erro ao atualizar dispositivo. Tente novamente.');
+      SnackBarUtil().showError(
+        'Erro ao atualizar dispositivo. Tente novamente.',
+      );
     } finally {
       isUpdating = false;
       notifyListeners();
@@ -124,7 +133,8 @@ class DeviceCustomerPageController extends ChangeNotifier {
   }
 
   Future<void> createCustomerContact(
-      InputCustomerContact customerContact) async {
+    InputCustomerContact customerContact,
+  ) async {
     if (isCreatingContact) return;
     isCreatingContact = true;
     notifyListeners();
@@ -173,22 +183,18 @@ class DeviceCustomerPageController extends ChangeNotifier {
     isUpdating = true;
     notifyListeners();
     try {
-      StatusEnum actualStatus = deviceCustomer.deviceStatus;
-      if ([StatusEnum.delivered, StatusEnum.disposed].contains(actualStatus)) {
-        actualStatus = StatusEnum.newDevice;
-      }
-      final updatedDeviceCustomer = deviceCustomer.copyWith(
-          revision: revision, deviceStatus: actualStatus);
       final DeviceCustomer value = await _deviceCustomerService
-          .updateDeviceCustomer(updatedDeviceCustomer);
+          .updateDeviceRevision(deviceCustomer.deviceId, revision);
       deviceCustomer = value;
-      SnackBarUtil()
-          .showSuccess('Revisão do dispositivo atualizada com sucesso');
+      SnackBarUtil().showSuccess(
+        'Revisão do dispositivo atualizada com sucesso',
+      );
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
     } catch (e) {
       SnackBarUtil().showError(
-          'Erro ao atualizar revisão do dispositivo. Tente novamente.');
+        'Erro ao atualizar revisão do dispositivo. Tente novamente.',
+      );
     } finally {
       isUpdating = false;
       notifyListeners();
@@ -200,33 +206,18 @@ class DeviceCustomerPageController extends ChangeNotifier {
     isUpdating = true;
     notifyListeners();
     try {
-      bool isUrgency = deviceCustomer.hasUrgency;
-      bool isRevision = deviceCustomer.revision;
-      if ([
-        StatusEnum.approved,
-        StatusEnum.notApproved,
-        StatusEnum.ready,
-        StatusEnum.delivered,
-        StatusEnum.disposed
-      ].contains(status)) {
-        isUrgency = false;
-        isRevision = false;
-      }
-      final updatedDeviceCustomer = deviceCustomer.copyWith(
-        deviceStatus: status,
-        hasUrgency: isUrgency,
-        revision: isRevision,
-      );
       final DeviceCustomer value = await _deviceCustomerService
-          .updateDeviceCustomer(updatedDeviceCustomer);
+          .updateDeviceStatus(deviceCustomer.deviceId, status);
       deviceCustomer = value;
-      SnackBarUtil()
-          .showSuccess('Status do dispositivo atualizada com sucesso');
+      SnackBarUtil().showSuccess(
+        'Status do dispositivo atualizado com sucesso',
+      );
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
     } catch (e) {
       SnackBarUtil().showError(
-          'Erro ao atualizar status do dispositivo. Tente novamente.');
+        'Erro ao atualizar status do dispositivo. Tente novamente.',
+      );
     } finally {
       isUpdating = false;
       notifyListeners();
