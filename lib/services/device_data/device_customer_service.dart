@@ -4,6 +4,7 @@ import 'package:flutter_workshop_front/core/http/custom_dio.dart';
 import 'package:flutter_workshop_front/models/customer_device/create_device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/device/device_filter.dart';
+import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
 import 'package:flutter_workshop_front/models/device/device_input.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
@@ -16,6 +17,19 @@ class DeviceCustomerService {
       [DeviceFilter? filter]) async {
     var body = filter?.toJson();
     Response response = await dio.post('/v1/device/filter', data: body);
+
+    if (response.statusCode != 200) {
+      throw RequisitionException.fromJson(response.data['error']);
+    }
+
+    return Page.fromJson(
+        response.data, (json) => DeviceDataTable.fromJson(json));
+  }
+
+  Future<Page<DeviceDataTable>> searchDevices(
+      [DeviceSearchFilter? filter]) async {
+    var body = filter?.toJson();
+    Response response = await dio.post('/v1/device/search', data: body);
 
     if (response.statusCode != 200) {
       throw RequisitionException.fromJson(response.data['error']);
