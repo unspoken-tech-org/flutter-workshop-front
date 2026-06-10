@@ -60,18 +60,21 @@ class SearchDevicesFilterListView extends StatelessWidget {
               ),
             ],
           ),
-          Row(
-            spacing: 18,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Selector<SearchDevicesController, DeviceSearchFilter>(
-                selector: (context, controller) => controller.filter,
-                builder: (context, filter, _) {
-                  final String rangeDate =
-                      [filter.initialEntryDate, filter.finalEntryDate].nonNulls
-                          .map((e) => DateFormat('dd/MM/yyyy').format(e))
-                          .join(' - ');
-                  return Flexible(
+          Selector<SearchDevicesController, DeviceSearchFilter>(
+            selector: (context, controller) => controller.filter,
+            builder: (context, filter, _) {
+              final String rangeDate =
+                  [filter.initialEntryDate, filter.finalEntryDate].nonNulls
+                      .map((e) => DateFormat('dd/MM/yyyy').format(e))
+                      .join(' - ');
+              final statusNames =
+                  StatusEnum.values.map((e) => e.displayName).toList();
+
+              return Row(
+                spacing: 18,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Flexible(
                     child: CustomDateFormField(
                       headerLabel: 'Data de entrada',
                       hintText: 'Busque pela data de entrada',
@@ -87,17 +90,8 @@ class SearchDevicesFilterListView extends StatelessWidget {
                         controller.addRemoveEnterRangeDate(null, null);
                       },
                     ),
-                  );
-                },
-              ),
-              Selector<SearchDevicesController, DeviceSearchFilter>(
-                selector: (context, controller) => controller.filter,
-                builder: (context, filter, _) {
-                  final statusNames = StatusEnum.values
-                      .map((e) => e.displayName)
-                      .toList();
-
-                  return Flexible(
+                  ),
+                  Flexible(
                     child: CustomDropdownButtonFormField(
                       key: GlobalKey(),
                       headerLabel: 'Status do aparelho',
@@ -113,41 +107,57 @@ class SearchDevicesFilterListView extends StatelessWidget {
                         controller.addRemoveStatus(status);
                       },
                     ),
-                  );
-                },
-              ),
-              Column(
-                spacing: 12,
-                children: [
-                  const Text(
-                    'Urgentes',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                   ),
-                  SwitchFormField(
-                    initialValue: controller.filter.hasUrgency,
-                    onChanged: (value) {
-                      controller.toggleUrgency();
-                    },
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Flexible(
+                        flex: 2,
+                        child: Row(
+                          spacing: 16,
+                          children: [
+                            Row(
+                              spacing: 4,
+                              children: [
+                                SwitchFormField(
+                                  initialValue: filter.hasUrgency,
+                                  onChanged: (value) {
+                                    controller.toggleUrgency();
+                                  },
+                                ),
+                                const Text(
+                                  'Apenas urgentes',
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              spacing: 4,
+                              children: [
+                                SwitchFormField(
+                                  initialValue: filter.hasRevision,
+                                  onChanged: (value) {
+                                    controller.toggleRevision();
+                                  },
+                                ),
+                                const Text(
+                                  'Apenas revisões',
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-              Column(
-                spacing: 12,
-                children: [
-                  const Text(
-                    'Revisões',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                  SwitchFormField(
-                    initialValue: controller.filter.hasRevision,
-                    onChanged: (value) {
-                      controller.toggleRevision();
-                    },
-                  ),
-                ],
-              ),
-              // const Flexible(child: SizedBox()),
-            ],
+              );
+            },
           ),
           SearchSelectedFiltersView(controller: controller),
         ],
