@@ -7,8 +7,8 @@ import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
 import 'package:flutter_workshop_front/models/device/device_input.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/models/types_brands_models/types_brands_models.dart';
+import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
 import 'package:flutter_workshop_front/services/color/color_service.dart';
-import 'package:flutter_workshop_front/services/customer/customer_service.dart';
 import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
 import 'package:flutter_workshop_front/services/technician/technician_service.dart';
 import 'package:flutter_workshop_front/services/types_brands_models/type_brand_model_service.dart';
@@ -19,14 +19,14 @@ class DeviceRegisterController extends ChangeNotifier {
   final ColorService _colorService;
   final DeviceCustomerService _deviceCustomerService;
   final TechnicianService _technicianService;
-  final CustomerService _customerService;
+  final CustomerRepository _customerRepository;
 
   DeviceRegisterController(
     this._typeBrandModelService,
     this._colorService,
     this._deviceCustomerService,
     this._technicianService,
-    this._customerService,
+    this._customerRepository,
   );
 
   final Debouncer _debouncer = Debouncer(milliseconds: 500);
@@ -94,7 +94,7 @@ class DeviceRegisterController extends ChangeNotifier {
           page: 0,
           size: 20,
         );
-        final customersPage = await _customerService.searchCustomers(filter);
+        final customersPage = await _customerRepository.searchCustomers(filter);
         customers = customersPage.content;
         notifyListeners();
       } catch (e) {
@@ -119,12 +119,11 @@ class DeviceRegisterController extends ChangeNotifier {
       isCreatingDevice = true;
       notifyListeners();
 
-      inputDevice = inputDevice.copyWith(
-        customerId: customerId,
-      );
+      inputDevice = inputDevice.copyWith(customerId: customerId);
 
-      final deviceCustomer =
-          await _deviceCustomerService.createDeviceCustomer(inputDevice);
+      final deviceCustomer = await _deviceCustomerService.createDeviceCustomer(
+        inputDevice,
+      );
 
       SnackBarUtil().showSuccess('Dispositivo criado com sucesso');
       return deviceCustomer.deviceId;
@@ -156,8 +155,9 @@ class DeviceRegisterController extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    selectedBrand =
-        selectedType?.brands.firstWhere((brand) => brand.idBrand == id);
+    selectedBrand = selectedType?.brands.firstWhere(
+      (brand) => brand.idBrand == id,
+    );
     notifyListeners();
   }
 
@@ -167,15 +167,17 @@ class DeviceRegisterController extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    selectedModel =
-        selectedBrand?.models.firstWhere((model) => model.idModel == id);
+    selectedModel = selectedBrand?.models.firstWhere(
+      (model) => model.idModel == id,
+    );
     notifyListeners();
   }
 
   void addColor(ColorModel color) {
     if (color.idColor == null) {
-      final findedColor =
-          allColors.firstWhereOrNull((c) => c.color == color.color);
+      final findedColor = allColors.firstWhereOrNull(
+        (c) => c.color == color.color,
+      );
       selectedColors = [...selectedColors, (findedColor ?? color)];
       notifyListeners();
       return;
@@ -187,8 +189,9 @@ class DeviceRegisterController extends ChangeNotifier {
   }
 
   void removeColor(ColorModel color) {
-    selectedColors =
-        selectedColors.where((c) => c.idColor != color.idColor).toList();
+    selectedColors = selectedColors
+        .where((c) => c.idColor != color.idColor)
+        .toList();
     notifyListeners();
   }
 
