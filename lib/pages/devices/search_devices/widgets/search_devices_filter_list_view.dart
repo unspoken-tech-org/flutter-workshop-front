@@ -67,8 +67,10 @@ class SearchDevicesFilterListView extends StatelessWidget {
                   [filter.initialEntryDate, filter.finalEntryDate].nonNulls
                       .map((e) => DateFormat('dd/MM/yyyy').format(e))
                       .join(' - ');
-              final statusNames =
-                  StatusEnum.values.map((e) => e.displayName).toList();
+
+              final statusNames = StatusEnum.values
+                  .map((e) => e.displayName)
+                  .toList();
 
               return Row(
                 spacing: 18,
@@ -109,49 +111,43 @@ class SearchDevicesFilterListView extends StatelessWidget {
                     ),
                   ),
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    spacing: 16,
                     children: [
-                      Flexible(
-                        flex: 2,
-                        child: Row(
-                          spacing: 16,
-                          children: [
-                            Row(
-                              spacing: 4,
-                              children: [
-                                SwitchFormField(
-                                  initialValue: filter.hasUrgency,
-                                  onChanged: (value) {
-                                    controller.toggleUrgency();
-                                  },
-                                ),
-                                const Text(
-                                  'Apenas urgentes',
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500),
-                                ),
-                              ],
+                      Column(
+                        spacing: 8,
+                        children: [
+                          const Text(
+                            'Urgentes',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
                             ),
-                            Row(
-                              spacing: 4,
-                              children: [
-                                SwitchFormField(
-                                  initialValue: filter.hasRevision,
-                                  onChanged: (value) {
-                                    controller.toggleRevision();
-                                  },
-                                ),
-                                const Text(
-                                  'Apenas revisões',
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500),
-                                ),
-                              ],
+                          ),
+                          SwitchFormField(
+                            initialValue: filter.hasUrgency,
+                            onChanged: (value) {
+                              controller.toggleUrgency();
+                            },
+                          ),
+                        ],
+                      ),
+                      Column(
+                        spacing: 8,
+                        children: [
+                          const Text(
+                            'Revisões',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
                             ),
-                          ],
-                        ),
+                          ),
+                          SwitchFormField(
+                            initialValue: filter.hasRevision,
+                            onChanged: (value) {
+                              controller.toggleRevision();
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),

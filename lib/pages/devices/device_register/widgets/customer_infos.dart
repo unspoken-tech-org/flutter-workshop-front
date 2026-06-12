@@ -3,7 +3,7 @@ import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
-import 'package:flutter_workshop_front/widgets/form_fields/searchable_dropdown_button_form_field.dart';
+import 'package:flutter_workshop_front/widgets/form_fields/searchable_dropdown_form_field.dart';
 import 'package:provider/provider.dart';
 
 class CustomerInfos extends StatelessWidget {
@@ -34,20 +34,21 @@ class CustomerInfos extends StatelessWidget {
                 ],
               ),
               Selector<DeviceRegisterController, bool>(
-                  selector: (context, controller) =>
-                      controller.isCustomerSelected,
-                  builder: (context, isCustomerSelected, child) {
-                    if (!isCustomerSelected) return const SizedBox.shrink();
+                selector: (context, controller) =>
+                    controller.isCustomerSelected,
+                builder: (context, isCustomerSelected, child) {
+                  if (!isCustomerSelected) return const SizedBox.shrink();
 
-                    return IconButton(
-                      onPressed: () {
-                        context
-                            .read<DeviceRegisterController>()
-                            .clearCustomerInfos();
-                      },
-                      icon: const Icon(Icons.close),
-                    );
-                  }),
+                  return IconButton(
+                    onPressed: () {
+                      context
+                          .read<DeviceRegisterController>()
+                          .clearCustomerInfos();
+                    },
+                    icon: const Icon(Icons.close),
+                  );
+                },
+              ),
             ],
           ),
           Selector<DeviceRegisterController, (int?, String?)>(
@@ -57,7 +58,9 @@ class CustomerInfos extends StatelessWidget {
               final (customerId, customerName) = values;
               if (customerId != null && customerName != null) {
                 return CustomerNameAndId(
-                    customerId: customerId, customerName: customerName);
+                  customerId: customerId,
+                  customerName: customerName,
+                );
               }
               return const CustomerSearchField();
             },
@@ -71,8 +74,11 @@ class CustomerInfos extends StatelessWidget {
 class CustomerNameAndId extends StatelessWidget {
   final int customerId;
   final String customerName;
-  const CustomerNameAndId(
-      {super.key, required this.customerId, required this.customerName});
+  const CustomerNameAndId({
+    super.key,
+    required this.customerId,
+    required this.customerName,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +95,7 @@ class CustomerNameAndId extends StatelessWidget {
         Expanded(
           child: CustomTextField(
             headerLabel: 'Nome do Cliente',
-            value: customerName,
+            value: customerName.capitalizeAllWords,
             readOnly: true,
           ),
         ),
@@ -105,26 +111,14 @@ class CustomerSearchField extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = context.read<DeviceRegisterController>();
 
-    return Selector<DeviceRegisterController, List<MinifiedCustomerModel>>(
-      selector: (context, controller) => controller.customers,
-      builder: (context, customers, child) {
-        Map<String, int> itemsMap = {};
-        for (var customer in customers) {
-          itemsMap[customer.name.capitalizeAllWords] = customer.customerId;
-        }
-
-        return SearchableDropdownButtonFormField(
-          items: itemsMap.keys.toList(),
-          fieldLabel: 'Buscar Cliente',
-          hintText: 'Busque por um cliente',
-          showAllItems: true,
-          onTextChanged: (value) {
-            controller.searchCustomers(value);
-          },
-          onItemSelected: (value) {
-            controller.setCustomerInfos(itemsMap[value], value);
-          },
-        );
+    return SearchableDropdownFormField<MinifiedCustomerModel>(
+      headerLabelText: 'Buscar Cliente',
+      hintText: 'Busque por um cliente',
+      searchFn: (query) => controller.fetchCustomers(query),
+      getName: (item) => item.name,
+      getId: (item) => item.customerId,
+      onAccept: (customer) {
+        controller.setCustomerInfos(customer.customerId, customer.name);
       },
     );
   }

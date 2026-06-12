@@ -48,8 +48,13 @@ class FilterUtils {
   }
 
   bool get isName {
-    // Define a RegEx para letras (maiúsculas e minúsculas)
+    // Define uma RegEx para letras (maiúsculas e minúsculas)
     final regex = RegExp(r'^[a-zA-Z]+$');
+    return regex.hasMatch(_term);
+  }
+
+  bool get isEmail {
+    final regex = RegExp(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$');
     return regex.hasMatch(_term);
   }
 

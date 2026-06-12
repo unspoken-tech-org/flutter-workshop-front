@@ -22,15 +22,20 @@ class CustomerRemoteDataSource implements CustomerRepository {
 
   @override
   Future<CustomerModel> updateCustomer(
-      int customerId, InputCustomer customer) async {
-    final response =
-        await _customerService.updateCustomer(customerId, customer);
+    int customerId,
+    InputCustomer customer,
+  ) async {
+    final response = await _customerService.updateCustomer(
+      customerId,
+      customer,
+    );
     return response;
   }
 
   @override
   Future<Page<MinifiedCustomerModel>> searchCustomers(
-      CustomerSearchFilter? filter) async {
+    CustomerSearchFilter? filter,
+  ) async {
     final response = await _customerService.searchCustomers(filter);
     return response;
   }

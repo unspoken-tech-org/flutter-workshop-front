@@ -8,6 +8,7 @@ class CustomTextField extends StatelessWidget {
   final IconData? icon;
   final TextEditingController? controller;
   final bool readOnly;
+  final bool enabled;
   final List<TextInputFormatter>? inputFormatters;
   final TextInputType? keyboardType;
   final String? prefixText;
@@ -15,6 +16,7 @@ class CustomTextField extends StatelessWidget {
   final String? hintText;
   final FocusNode? focusNode;
   final Widget? suffixIcon;
+  final Color? selectedBorderColor;
   final String? Function(String?)? validator;
   final void Function(String?)? onSave;
   final void Function(String)? onFieldSubmitted;
@@ -28,12 +30,14 @@ class CustomTextField extends StatelessWidget {
     this.icon,
     this.controller,
     this.readOnly = false,
+    this.enabled = true,
     this.inputFormatters,
     this.keyboardType,
     this.prefixText,
     this.hintText,
     this.focusNode,
     this.suffixIcon,
+    this.selectedBorderColor,
     this.validator,
     this.onSave,
     this.onFieldSubmitted,
@@ -61,6 +65,7 @@ class CustomTextField extends StatelessWidget {
         TextFormField(
           controller: controller ?? TextEditingController(text: value),
           readOnly: readOnly,
+          enabled: enabled,
           inputFormatters: inputFormatters,
           keyboardType: keyboardType,
           maxLines: maxLines,
@@ -86,7 +91,9 @@ class CustomTextField extends StatelessWidget {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(
+                color: selectedBorderColor ?? Colors.grey.shade300,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
