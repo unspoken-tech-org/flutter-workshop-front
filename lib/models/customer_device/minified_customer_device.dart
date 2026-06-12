@@ -8,8 +8,8 @@ class MinifiedCustomerDevice {
   String problem;
   bool hasUrgency;
   bool revision;
-  String entryDate;
-  String? departureDate;
+  DateTime entryDate;
+  DateTime? departureDate;
 
   MinifiedCustomerDevice({
     required this.deviceId,
@@ -32,8 +32,10 @@ class MinifiedCustomerDevice {
       problem: json['problem'],
       hasUrgency: json['hasUrgency'],
       revision: json['revision'],
-      entryDate: json['entryDate'],
-      departureDate: json['departureDate'],
+      entryDate: DateTime.parse(json['entryDate']),
+      departureDate: json['departureDate'] != null
+          ? DateTime.parse(json['departureDate'])
+          : null,
     );
   }
 }

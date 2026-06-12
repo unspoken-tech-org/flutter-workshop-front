@@ -21,7 +21,7 @@ enum PaymentType {
 
 class CustomerDevicePayment extends Equatable {
   final int paymentId;
-  final String paymentDate;
+  final DateTime paymentDate;
   final PaymentType paymentType;
   final double paymentValue;
 
@@ -35,7 +35,7 @@ class CustomerDevicePayment extends Equatable {
   factory CustomerDevicePayment.fromJson(Map<String, dynamic> json) {
     return CustomerDevicePayment(
       paymentId: json['paymentId'],
-      paymentDate: json['paymentDate'],
+      paymentDate: DateTime.parse(json['paymentDate']),
       paymentType: PaymentType.fromString(json['paymentType']),
       paymentValue: json['paymentValue'],
     );

@@ -25,9 +25,9 @@ class DeviceCustomer extends Equatable {
   final bool hasUrgency;
   final bool revision;
   final List<String> deviceColors;
-  final String entryDate;
-  final String? departureDate;
-  final String? lastUpdate;
+  final DateTime entryDate;
+  final DateTime? departureDate;
+  final DateTime? lastUpdate;
   final List<CustomerContact> customerContacts;
   final List<CustomerPhones> customerPhones;
   final List<MinifiedCustomerDevice> otherDevices;
@@ -83,9 +83,13 @@ class DeviceCustomer extends Equatable {
       deviceColors: (json['deviceColors'] as List<dynamic>)
           .map((e) => e.toString().capitalizeFirst)
           .toList(),
-      entryDate: json['entryDate'],
-      departureDate: json['departureDate'],
-      lastUpdate: json['lastUpdate'],
+      entryDate: DateTime.parse(json['entryDate']),
+      departureDate: json['departureDate'] != null
+          ? DateTime.parse(json['departureDate'])
+          : null,
+      lastUpdate: json['lastUpdate'] != null
+          ? DateTime.parse(json['lastUpdate'])
+          : null,
       customerContacts: (json['customerContacts'] as List<dynamic>)
           .map((e) => CustomerContact.fromJson(e))
           .toList(),
@@ -150,9 +154,9 @@ class DeviceCustomer extends Equatable {
     bool? hasUrgency,
     bool? revision,
     List<String>? deviceColors,
-    String? entryDate,
-    String? departureDate,
-    String? lastUpdate,
+    DateTime? entryDate,
+    DateTime? departureDate,
+    DateTime? lastUpdate,
     List<CustomerContact>? customerContacts,
     List<CustomerPhones>? customerPhones,
     List<MinifiedCustomerDevice>? otherDevices,
@@ -207,8 +211,8 @@ class DeviceCustomer extends Equatable {
       'hasUrgency': hasUrgency,
       'revision': revision,
       'deviceColors': deviceColors,
-      'entryDate': entryDate,
-      'departureDate': departureDate,
+      'entryDate': entryDate.toIso8601String(),
+      'departureDate': departureDate?.toIso8601String(),
     };
   }
 
