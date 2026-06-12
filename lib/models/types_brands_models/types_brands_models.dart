@@ -3,15 +3,13 @@ abstract class ITypeBrandModelColor {
   String getName();
 }
 
-class TypeBrandModel implements ITypeBrandModelColor {
+class Type implements ITypeBrandModelColor {
   final int idType;
   final String type;
-  final List<Brand> brands;
 
-  TypeBrandModel({
+  Type({
     required this.idType,
     required this.type,
-    required this.brands,
   });
 
   @override
@@ -24,13 +22,10 @@ class TypeBrandModel implements ITypeBrandModelColor {
     return type;
   }
 
-  factory TypeBrandModel.fromJson(Map<String, dynamic> json) {
-    return TypeBrandModel(
+  factory Type.fromJson(Map<String, dynamic> json) {
+    return Type(
       idType: json['idType'],
       type: json['type'],
-      brands: (json['brands'] as List)
-          .map((brand) => Brand.fromJson(brand))
-          .toList(),
     );
   }
 }
@@ -38,12 +33,10 @@ class TypeBrandModel implements ITypeBrandModelColor {
 class Brand implements ITypeBrandModelColor {
   final int idBrand;
   final String brand;
-  final List<Model> models;
 
   Brand({
     required this.idBrand,
     required this.brand,
-    required this.models,
   });
 
   @override
@@ -60,9 +53,6 @@ class Brand implements ITypeBrandModelColor {
     return Brand(
       idBrand: json['idBrand'],
       brand: json['brand'],
-      models: (json['models'] as List)
-          .map((model) => Model.fromJson(model))
-          .toList(),
     );
   }
 }
