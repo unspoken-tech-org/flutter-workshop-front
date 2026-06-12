@@ -7,7 +7,7 @@ import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all
 import 'package:flutter_workshop_front/pages/devices/all_devices/widgets/selected_filters_view.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_date_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
-import 'package:flutter_workshop_front/widgets/form_fields/searchable_dropdown_button_form_field.dart';
+import 'package:flutter_workshop_front/widgets/form_fields/searchable_dropdown_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/switch_form_field.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -59,11 +59,8 @@ class AllDevicesFilterListView extends StatelessWidget {
                     color: Colors.black,
                   ),
                 ),
-                icon: const Icon(
-                  Icons.close,
-                  color: Colors.black,
-                ),
-              )
+                icon: const Icon(Icons.close, color: Colors.black),
+              ),
             ],
           ),
           Row(
@@ -71,13 +68,10 @@ class AllDevicesFilterListView extends StatelessWidget {
               Selector<AllDevicesController, DeviceFilter>(
                 selector: (context, controller) => controller.filter,
                 builder: (context, filter, _) {
-                  final String rangeDate = [
-                    filter.initialEntryDate,
-                    filter.finalEntryDate
-                  ]
-                      .nonNulls
-                      .map((e) => DateFormat('dd/MM/yyyy').format(e))
-                      .join(' - ');
+                  final String rangeDate =
+                      [filter.initialEntryDate, filter.finalEntryDate].nonNulls
+                          .map((e) => DateFormat('dd/MM/yyyy').format(e))
+                          .join(' - ');
                   return Flexible(
                     child: CustomDateFormField(
                       headerLabel: 'Data de entrada',
@@ -106,23 +100,22 @@ class AllDevicesFilterListView extends StatelessWidget {
             children: [
               Selector<AllDevicesController, List<DeviceType>>(
                 selector: (context, controller) => controller.deviceTypes,
-                builder: (context, values, _) {
-                  final deviceTypes = values;
-                  final deviceTypesNames =
-                      deviceTypes.map((e) => e.typeName).toList();
-
+                builder: (context, deviceTypes, _) {
                   return Flexible(
-                    child: SearchableDropdownButtonFormField(
-                      headerLabel: 'Tipo de aparelho',
+                    child: SearchableDropdownFormField<DeviceType>(
+                      headerLabelText: 'Tipo de aparelho',
                       hintText: 'Busque pelo tipo',
-                      items: deviceTypesNames,
-                      offset: 20,
-                      onItemSelected: (value) {
-                        if (value == null) return;
-                        final deviceType = deviceTypes.firstWhere(
-                          (e) =>
-                              e.typeName.toLowerCase() == value.toLowerCase(),
-                        );
+                      searchFn: (query) async {
+                        if (query.isEmpty) return deviceTypes;
+                        return deviceTypes
+                            .where((e) => e.typeName
+                                .toLowerCase()
+                                .contains(query.toLowerCase()))
+                            .toList();
+                      },
+                      getName: (item) => item.typeName,
+                      getId: (item) => item.idType,
+                      onAccept: (deviceType) {
                         controller.addRemoveDeviceType(deviceType);
                       },
                     ),
@@ -131,22 +124,22 @@ class AllDevicesFilterListView extends StatelessWidget {
               ),
               Selector<AllDevicesController, List<DeviceBrand>>(
                 selector: (context, controller) => controller.deviceBrands,
-                builder: (context, values, _) {
-                  final deviceBrands = values;
-                  final deviceBrandsNames =
-                      deviceBrands.map((e) => e.brand).toList();
-
+                builder: (context, deviceBrands, _) {
                   return Flexible(
-                    child: SearchableDropdownButtonFormField(
-                      headerLabel: 'Marca do aparelho',
+                    child: SearchableDropdownFormField<DeviceBrand>(
+                      headerLabelText: 'Marca do aparelho',
                       hintText: 'Busque pela marca',
-                      items: deviceBrandsNames,
-                      offset: 20,
-                      onItemSelected: (value) {
-                        if (value == null) return;
-                        final deviceBrand = deviceBrands.firstWhere(
-                          (e) => e.brand.toLowerCase() == value.toLowerCase(),
-                        );
+                      searchFn: (query) async {
+                        if (query.isEmpty) return deviceBrands;
+                        return deviceBrands
+                            .where((e) => e.brand
+                                .toLowerCase()
+                                .contains(query.toLowerCase()))
+                            .toList();
+                      },
+                      getName: (item) => item.brand,
+                      getId: (item) => item.idBrand,
+                      onAccept: (deviceBrand) {
                         controller.addRemoveDeviceBrand(deviceBrand);
                       },
                     ),
@@ -156,8 +149,9 @@ class AllDevicesFilterListView extends StatelessWidget {
               Selector<AllDevicesController, DeviceFilter>(
                 selector: (context, controller) => controller.filter,
                 builder: (context, filter, _) {
-                  final statusNames =
-                      StatusEnum.values.map((e) => e.displayName).toList();
+                  final statusNames = StatusEnum.values
+                      .map((e) => e.displayName)
+                      .toList();
 
                   return Flexible(
                     child: CustomDropdownButtonFormField(
@@ -204,7 +198,9 @@ class AllDevicesFilterListView extends StatelessWidget {
                             const Text(
                               'Apenas urgentes',
                               style: TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.w500),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ],
                         ),
@@ -220,7 +216,9 @@ class AllDevicesFilterListView extends StatelessWidget {
                             const Text(
                               'Apenas revisões',
                               style: TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.w500),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ],
                         ),
