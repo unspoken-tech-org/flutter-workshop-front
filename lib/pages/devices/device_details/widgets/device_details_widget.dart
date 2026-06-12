@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/extensions/date_time_extension.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
@@ -71,7 +72,7 @@ class DeviceDetailsWidget extends StatelessWidget {
                     enabled: isEditing,
                     errorMaxLines: 2,
                     headerLabel: 'Data de entrada',
-                    value: deviceCustomer.entryDate,
+                    value: deviceCustomer.entryDate.formatDate(),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Data de entrada é obrigatória';
@@ -80,13 +81,13 @@ class DeviceDetailsWidget extends StatelessWidget {
                     },
                     onSelected: (date, _) {
                       final updated = controller.deviceCustomer.copyWith(
-                        entryDate: DateFormat('dd/MM/yyyy').format(date),
+                        entryDate: date,
                       );
                       controller.updateNewDeviceCustomer(updated);
                     },
                     onSave: (value) {
                       final updated = controller.deviceCustomer.copyWith(
-                        entryDate: value,
+                        entryDate: DateFormat('dd/MM/yyyy').parse(value),
                       );
                       controller.updateNewDeviceCustomer(updated);
                     },
@@ -102,7 +103,7 @@ class DeviceDetailsWidget extends StatelessWidget {
                     child: CustomDateFormField(
                       enabled: isEditing,
                       headerLabel: 'Data de saída',
-                      value: deviceCustomer.departureDate ?? '',
+                      value: deviceCustomer.departureDate?.formatDate() ?? '',
                       errorMaxLines: 2,
                       validator: (value) {
                         if ([
@@ -113,33 +114,26 @@ class DeviceDetailsWidget extends StatelessWidget {
                             return 'Saída obrigatoria para entregue/descartado';
                           }
                         }
-                        if (value != null &&
-                            value.isNotEmpty &&
-                            controller.deviceCustomer.entryDate.isNotEmpty) {
-                          try {
-                            final entry = DateFormat(
-                              'dd/MM/yyyy',
-                            ).parse(controller.deviceCustomer.entryDate);
-                            final departure = DateFormat(
-                              'dd/MM/yyyy',
-                            ).parse(value);
-                            if (!departure.isAfter(entry)) {
-                              return 'Data de saída deve ser posterior à entrada';
-                            }
-                          } catch (_) {}
+                        if (value != null && value.isNotEmpty) {
+                          final entry = controller.deviceCustomer.entryDate;
+                          final departure = DateFormat('dd/MM/yyyy').parse(value);
+                          if (!departure.isAfter(entry)) {
+                            return 'Data de saída deve ser posterior à entrada';
+                          }
                         }
                         return null;
                       },
                       onSelected: (date, _) {
                         final updated = controller.deviceCustomer.copyWith(
-                          departureDate:
-                              DateFormat('dd/MM/yyyy').format(date),
+                          departureDate: date,
                         );
                         controller.updateNewDeviceCustomer(updated);
                       },
                       onSave: (value) {
                         final updated = controller.deviceCustomer.copyWith(
-                          departureDate: value.isEmpty ? null : value,
+                          departureDate: value.isEmpty
+                              ? null
+                              : DateFormat('dd/MM/yyyy').parse(value),
                         );
                         controller.updateNewDeviceCustomer(updated);
                       },

@@ -1,6 +1,6 @@
 class DevicePayment {
   final int paymentId;
-  final String paymentDate;
+  final DateTime paymentDate;
   final String paymentType;
   final double paymentValue;
   final String category;
@@ -16,7 +16,7 @@ class DevicePayment {
   factory DevicePayment.fromJson(Map<String, dynamic> json) {
     return DevicePayment(
       paymentId: json['paymentId'],
-      paymentDate: json['paymentDate'],
+      paymentDate: DateTime.parse(json['paymentDate']),
       paymentType: json['paymentType'],
       paymentValue: json['paymentValue'],
       category: json['category'],

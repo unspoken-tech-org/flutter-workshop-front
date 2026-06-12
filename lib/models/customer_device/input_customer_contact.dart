@@ -1,5 +1,4 @@
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
-import 'package:intl/intl.dart';
 
 enum ContactType {
   pessoalmente('Pessoalmente'),
@@ -67,9 +66,7 @@ class InputCustomerContact {
       (e) => e.name.toLowerCase() == contact.type.toLowerCase(),
     );
 
-    DateTime? parsedDate = DateFormat(
-      'dd/MM/yyyy',
-    ).tryParse(contact.lastContact);
+    DateTime? parsedDate = contact.lastContact;
 
     return InputCustomerContact(
       deviceId: contact.deviceId,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/extensions/date_time_extension.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/widgets/shared/status_cell.dart';
@@ -60,7 +61,7 @@ class WsDataTable extends StatelessWidget {
           DataCell(Text(e.model)),
           DataCell(StatusCell(status: e.status)),
           DataCell(Text(e.hasUrgency ? 'Sim' : 'Não')),
-          DataCell(Text(e.entryDate)),
+          DataCell(Text(e.entryDate.formatDate())),
         ],
       );
     }).toList();

@@ -11,7 +11,6 @@ import 'package:flutter_workshop_front/services/device_data/device_customer_serv
 import 'package:flutter_workshop_front/services/payment/payment_service.dart';
 import 'package:flutter_workshop_front/services/technician/technician_service.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
-import 'package:intl/intl.dart';
 
 class DeviceCustomerPageController extends ChangeNotifier {
   final DeviceCustomerService _deviceCustomerService = DeviceCustomerService();
@@ -235,7 +234,7 @@ class DeviceCustomerPageController extends ChangeNotifier {
           CustomerDevicePayment(
             paymentId: 0,
             paymentValue: payment.value,
-            paymentDate: DateFormat('dd/MM/yyyy').format(payment.paymentDate!),
+            paymentDate: payment.paymentDate!,
             paymentType: payment.paymentType!,
           ),
         ],

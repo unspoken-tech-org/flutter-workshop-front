@@ -3,7 +3,7 @@ import 'package:flutter_workshop_front/models/customer_device/minified_customer_
 class CustomerModel {
   final int customerId;
   final String name;
-  final String insertDate;
+  final DateTime createdAt;
   final String cpf;
   final String gender;
   final String? email;
@@ -13,7 +13,7 @@ class CustomerModel {
   CustomerModel({
     required this.customerId,
     required this.name,
-    required this.insertDate,
+    required this.createdAt,
     required this.cpf,
     required this.gender,
     this.email,
@@ -25,7 +25,7 @@ class CustomerModel {
     return CustomerModel(
       customerId: json['customerId'],
       name: json['name'],
-      insertDate: json['insertDate'],
+      createdAt: DateTime.parse(json['createdAt']),
       cpf: json['cpf'],
       gender: json['gender'],
       email: json['email'],

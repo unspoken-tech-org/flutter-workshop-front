@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/extensions/date_time_extension.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/contact_modal_shared.dart';
@@ -40,7 +41,7 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
     isContactTypePersonally =
         inputCustomerContact.contactType == ContactType.pessoalmente.name;
 
-    _dateController.text = widget.contact.lastContact;
+    _dateController.text = widget.contact.lastContact.formatDate();
   }
 
   String? _initialContactTypeDisplayName() {

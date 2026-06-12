@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/extensions/date_time_extension.dart';
 import 'package:flutter_workshop_front/core/extensions/double_extensions.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/widgets/hoverable_card.dart';
@@ -64,7 +65,7 @@ class CustomerDevicePaymentItem extends StatelessWidget {
                               const Icon(Icons.calendar_today, size: 12),
                               const SizedBox(width: 4),
                               Text(
-                                payment.paymentDate,
+                                payment.paymentDate.formatDate(),
                                 style: textTheme.bodySmall?.copyWith(
                                   fontWeight: FontWeight.w500,
                                 ),
