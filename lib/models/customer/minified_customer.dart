@@ -1,7 +1,7 @@
 class MinifiedCustomerModel {
   final int customerId;
   final String name;
-  final String insertDate;
+  final DateTime createdAt;
   final String cpf;
   final String mainPhone;
   final String? email;
@@ -10,7 +10,7 @@ class MinifiedCustomerModel {
   MinifiedCustomerModel({
     required this.customerId,
     required this.name,
-    required this.insertDate,
+    required this.createdAt,
     required this.cpf,
     required this.mainPhone,
     required this.email,
@@ -21,7 +21,7 @@ class MinifiedCustomerModel {
     return MinifiedCustomerModel(
       customerId: json['id'],
       name: json['name'],
-      insertDate: json['insertDate'],
+      createdAt: DateTime.parse(json['createdAt']),
       cpf: json['cpf'],
       mainPhone: json['mainPhone'] ?? '',
       email: json['email'],
