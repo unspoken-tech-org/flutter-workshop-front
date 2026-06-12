@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/extensions/date_time_extension.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/customer_device/minified_customer_device.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
@@ -131,8 +132,8 @@ class _DeviceNameAndProblem extends StatelessWidget {
 }
 
 class _DeviceInAndOutDate extends StatelessWidget {
-  final String inDate;
-  final String? outDate;
+  final DateTime inDate;
+  final DateTime? outDate;
 
   const _DeviceInAndOutDate({
     required this.inDate,
@@ -156,7 +157,7 @@ class _DeviceInAndOutDate extends StatelessWidget {
             child: _RowInfoCell(
               icon: Icons.calendar_today,
               title: 'Data de saída:',
-              value: outDate ?? '',
+              value: outDate!,
             ),
           ),
       ],
@@ -211,7 +212,7 @@ class _ColumnInfoCell extends StatelessWidget {
 class _RowInfoCell extends StatelessWidget {
   final IconData icon;
   final String title;
-  final String value;
+  final DateTime value;
 
   const _RowInfoCell({
     required this.icon,
@@ -241,7 +242,7 @@ class _RowInfoCell extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Text(
-          value,
+          value.formatDate(),
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
