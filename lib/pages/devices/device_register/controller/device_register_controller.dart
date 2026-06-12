@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_workshop_front/core/debouncer.dart';
 import 'package:flutter_workshop_front/models/colors/color_model.dart';
 import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
@@ -29,8 +28,6 @@ class DeviceRegisterController extends ChangeNotifier {
     this._technicianService,
     this._customerRepository,
   );
-
-  final Debouncer _debouncer = Debouncer(milliseconds: 500);
 
   List<ColorModel> allColors = [];
   List<Technician> technicians = [];
@@ -82,23 +79,19 @@ class DeviceRegisterController extends ChangeNotifier {
     }
   }
 
-  Future<void> searchCustomers(String? searchTerm) async {
-    _debouncer.run(() async {
-      try {
-        final filter = CustomerSearchFilter.getCustomerSearchFilter(
-          searchTerm,
-          page: 0,
-          size: 20,
-        );
-        final customersPage = await _customerRepository.searchCustomers(filter);
-        customers = customersPage.content;
-        notifyListeners();
-      } catch (e) {
-        SnackBarUtil().showError('Erro ao buscar o cliente');
-        customers = [];
-        notifyListeners();
-      }
-    });
+  Future<List<MinifiedCustomerModel>> fetchCustomers(String query) async {
+    try {
+      final filter = CustomerSearchFilter.getCustomerSearchFilter(
+        query,
+        page: 0,
+        size: 20,
+      );
+      final customersPage = await _customerRepository.searchCustomers(filter);
+      return customersPage.content;
+    } catch (e) {
+      SnackBarUtil().showError('Erro ao buscar o cliente');
+      return [];
+    }
   }
 
   Future<List<Type>> searchTypes(String query) async {
