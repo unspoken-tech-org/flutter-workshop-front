@@ -20,8 +20,7 @@ class DeviceCustomer extends Equatable {
   final String observation;
   final String? budget;
   final double? serviceValue;
-  final double? laborValue;
-  final bool laborValueCollected;
+  final double? budgetFee;
   final bool hasUrgency;
   final bool revision;
   final List<String> deviceColors;
@@ -53,13 +52,25 @@ class DeviceCustomer extends Equatable {
     this.departureDate,
     this.budget,
     this.serviceValue,
-    this.laborValue,
-    this.laborValueCollected = false,
+    this.budgetFee,
     this.customerContacts = const [],
     this.customerPhones = const [],
     this.otherDevices = const [],
     this.payments = const [],
   });
+
+  double get totalPaidFee {
+    return payments
+        .where((p) => p.category == PaymentCategory.budgetFee)
+        .fold(0.0, (sum, p) => sum + p.paymentValue);
+  }
+
+  bool get computedBudgetFeeCollected {
+    final budgetFee = this.budgetFee ?? 0;
+    if (budgetFee == 0) return false;
+
+    return totalPaidFee >= (budgetFee);
+  }
 
   factory DeviceCustomer.fromJson(Map<String, dynamic> json) {
     return DeviceCustomer(
@@ -76,8 +87,7 @@ class DeviceCustomer extends Equatable {
       observation: json['observation'],
       budget: json['budget'],
       serviceValue: json['serviceValue'],
-      laborValue: json['laborValue'],
-      laborValueCollected: json['laborValueCollected'],
+      budgetFee: json['budgetFee'],
       hasUrgency: json['hasUrgency'],
       revision: json['revision'],
       deviceColors: (json['deviceColors'] as List<dynamic>)
@@ -120,8 +130,7 @@ class DeviceCustomer extends Equatable {
       observation: newDeviceCustomer.observation,
       budget: newDeviceCustomer.budget,
       serviceValue: newDeviceCustomer.serviceValue,
-      laborValue: newDeviceCustomer.laborValue,
-      laborValueCollected: newDeviceCustomer.laborValueCollected,
+      budgetFee: newDeviceCustomer.budgetFee,
       hasUrgency: newDeviceCustomer.hasUrgency,
       revision: newDeviceCustomer.revision,
       deviceColors: newDeviceCustomer.deviceColors,
@@ -149,8 +158,8 @@ class DeviceCustomer extends Equatable {
     String? observation,
     String? budget,
     double? serviceValue,
-    double? laborValue,
-    bool? laborValueCollected,
+    double? budgetFee,
+    bool? budgetFeeCollected,
     bool? hasUrgency,
     bool? revision,
     List<String>? deviceColors,
@@ -176,8 +185,7 @@ class DeviceCustomer extends Equatable {
       observation: observation ?? this.observation,
       budget: budget ?? this.budget,
       serviceValue: serviceValue ?? this.serviceValue,
-      laborValue: laborValue ?? this.laborValue,
-      laborValueCollected: laborValueCollected ?? this.laborValueCollected,
+      budgetFee: budgetFee ?? this.budgetFee,
       hasUrgency: hasUrgency ?? this.hasUrgency,
       revision: revision ?? this.revision,
       deviceColors: deviceColors ?? this.deviceColors,
@@ -206,8 +214,7 @@ class DeviceCustomer extends Equatable {
       'observation': observation,
       'budget': budget,
       'serviceValue': serviceValue,
-      'laborValue': laborValue,
-      'laborValueCollected': laborValueCollected,
+      'budgetFee': budgetFee,
       'hasUrgency': hasUrgency,
       'revision': revision,
       'deviceColors': deviceColors,
@@ -218,28 +225,27 @@ class DeviceCustomer extends Equatable {
 
   @override
   List<Object?> get props => [
-        deviceId,
-        customerId,
-        customerName,
-        deviceStatus,
-        brandName,
-        modelName,
-        typeName,
-        technicianId,
-        technicianName,
-        payments,
-        problem,
-        observation,
-        customerContacts,
-        budget,
-        serviceValue,
-        laborValue,
-        laborValueCollected,
-        hasUrgency,
-        revision,
-        deviceColors,
-        entryDate,
-        departureDate,
-        lastUpdate,
-      ];
+    deviceId,
+    customerId,
+    customerName,
+    deviceStatus,
+    brandName,
+    modelName,
+    typeName,
+    technicianId,
+    technicianName,
+    payments,
+    problem,
+    observation,
+    customerContacts,
+    budget,
+    serviceValue,
+    budgetFee,
+    hasUrgency,
+    revision,
+    deviceColors,
+    entryDate,
+    departureDate,
+    lastUpdate,
+  ];
 }
