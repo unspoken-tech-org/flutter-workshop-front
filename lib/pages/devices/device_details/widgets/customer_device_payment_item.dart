@@ -23,6 +23,8 @@ class CustomerDevicePaymentItem extends StatelessWidget {
     }
   }
 
+  bool get _isBudgetFee => payment.category == PaymentCategory.budgetFee;
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -31,51 +33,80 @@ class CustomerDevicePaymentItem extends StatelessWidget {
         _getPaymentTypeColors(payment.paymentType);
 
     return HoverableCard(
+      padding: const EdgeInsets.all(12),
+      borderRadius: const BorderRadius.all(Radius.circular(12)),
       color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: Colors.grey.shade300),
-      padding: const EdgeInsets.all(16),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final breakLabel = constraints.maxWidth > 230;
-
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  Row(
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: _isBudgetFee
+                          ? Colors.orange.shade50
+                          : colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Icon(
+                      _isBudgetFee ? Icons.receipt_long : Icons.receipt,
+                      color: _isBudgetFee
+                          ? Colors.orange.shade700
+                          : colorScheme.primary,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(Icons.receipt,
-                            color: colorScheme.primary, size: 20),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
                         children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.calendar_today, size: 12),
-                              const SizedBox(width: 4),
-                              Text(
-                                payment.paymentDate.formatDate(),
-                                style: textTheme.bodySmall?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
+                          const Icon(Icons.calendar_today, size: 11),
+                          const SizedBox(width: 4),
+                          Text(
+                            payment.paymentDate.formatDate(),
+                            style: textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                          const SizedBox(height: 4),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        spacing: 6,
+                        children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: _isBudgetFee
+                                  ? Colors.orange.shade100
+                                  : Colors.indigo.shade50,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: _isBudgetFee
+                                    ? Colors.orange.shade300
+                                    : Colors.indigo.shade200,
+                              ),
+                            ),
+                            child: Text(
+                              _isBudgetFee ? 'Taxa' : 'Serviço',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: _isBudgetFee
+                                    ? Colors.orange.shade800
+                                    : Colors.indigo.shade800,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: paymentBackgroundColor,
                               borderRadius: BorderRadius.circular(16),
@@ -92,27 +123,17 @@ class CustomerDevicePaymentItem extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (!breakLabel) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      payment.paymentValue.toBrCurrency,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
                 ],
               ),
-              if (breakLabel)
-                Text(
-                  payment.paymentValue.toBrCurrency,
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
             ],
-          );
-        },
+          ),
+          Text(
+            payment.paymentValue.toBrCurrency,
+            style: textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }
