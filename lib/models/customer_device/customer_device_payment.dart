@@ -42,6 +42,7 @@ class CustomerDevicePayment extends Equatable {
   final PaymentType paymentType;
   final double paymentValue;
   final PaymentCategory category;
+  final String? receivedBy;
 
   const CustomerDevicePayment({
     required this.paymentId,
@@ -49,6 +50,7 @@ class CustomerDevicePayment extends Equatable {
     required this.paymentType,
     required this.paymentValue,
     required this.category,
+    this.receivedBy,
   });
 
   factory CustomerDevicePayment.fromJson(Map<String, dynamic> json) {
@@ -58,6 +60,7 @@ class CustomerDevicePayment extends Equatable {
       paymentType: PaymentType.fromString(json['paymentType']),
       paymentValue: json['paymentValue'],
       category: PaymentCategory.fromString(json['category']),
+      receivedBy: json['receivedBy'],
     );
   }
 
@@ -68,5 +71,6 @@ class CustomerDevicePayment extends Equatable {
     paymentType,
     paymentValue,
     category,
+    receivedBy,
   ];
 }

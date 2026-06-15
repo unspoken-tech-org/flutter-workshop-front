@@ -169,6 +169,24 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
                   return null;
                 },
               ),
+              const SizedBox(height: 16),
+              CustomDropdownButtonFormField(
+                headerLabel: 'Recebido por',
+                hintText: 'Opcional',
+                items: controller.technicians
+                    .map((e) => e.name.capitalizeAllWords)
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null && value.isNotEmpty) {
+                    _inputPayment = _inputPayment.copyWith(receivedBy: value);
+                  }
+                },
+                onSave: (value) {
+                  if (value.isNotEmpty) {
+                    _inputPayment = _inputPayment.copyWith(receivedBy: value);
+                  }
+                },
+              ),
             ],
           ),
         ),
