@@ -18,10 +18,7 @@ class PaymentTotalsWidget extends StatelessWidget {
   }
 
   double get _totalValue {
-    final serviceValue = deviceCustomer.serviceValue ?? 0;
-    final laborValue = deviceCustomer.laborValue ?? 0;
-    if (serviceValue == 0) return serviceValue;
-    return (serviceValue - laborValue);
+    return deviceCustomer.serviceValue ?? 0;
   }
 
   double get _totalToBePaid {
@@ -34,19 +31,19 @@ class PaymentTotalsWidget extends StatelessWidget {
   }
 
   (Color backgroundColor, Color borderColor, Color textColor, Color iconColor)
-      get _totalColors {
+  get _totalColors {
     return _isPaymentPending
         ? (
             Colors.red.shade800,
             Colors.red.shade100,
             Colors.red.shade800,
-            Colors.red.shade800
+            Colors.red.shade800,
           )
         : (
             Colors.green.shade800,
             Colors.green.shade100,
             Colors.green.shade800,
-            Colors.green.shade800
+            Colors.green.shade800,
           );
   }
 
@@ -69,37 +66,25 @@ class PaymentTotalsWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Sub total', style: textTheme.bodyMedium),
+                Text('Total a ser pago', style: textTheme.bodyMedium),
                 Text(
                   (deviceCustomer.serviceValue ?? 0).toBrCurrency,
-                  style: textTheme.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w500),
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
-            if ((deviceCustomer.laborValue ?? 0) > 0)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Orçamento',
-                      style: textTheme.bodyMedium
-                          ?.copyWith(color: Colors.red.shade800)),
-                  Text(
-                    '- ${deviceCustomer.laborValue?.toBrCurrency}',
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: Colors.red.shade800,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
             if (totalPaid > 0)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Pagamento',
-                      style: textTheme.bodyMedium
-                          ?.copyWith(color: Colors.red.shade800)),
+                  Text(
+                    'Total pago',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: Colors.red.shade800,
+                    ),
+                  ),
                   Text(
                     '- ${totalPaid.toBrCurrency}',
                     style: textTheme.bodyMedium?.copyWith(
@@ -142,8 +127,9 @@ class PaymentTotalsWidget extends StatelessWidget {
                           isPaymentPending
                               ? 'Valor a ser pago'
                               : 'Valor total pago',
-                          style:
-                              textTheme.titleMedium?.copyWith(color: textColor),
+                          style: textTheme.titleMedium?.copyWith(
+                            color: textColor,
+                          ),
                         ),
                       ],
                     ),
