@@ -236,6 +236,7 @@ class DeviceCustomerPageController extends ChangeNotifier {
             paymentValue: payment.value,
             paymentDate: payment.paymentDate!,
             paymentType: payment.paymentType!,
+            category: payment.category!,
           ),
         ],
       );
