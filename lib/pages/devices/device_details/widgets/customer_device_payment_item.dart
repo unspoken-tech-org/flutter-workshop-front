@@ -66,12 +66,25 @@ class CustomerDevicePaymentItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 4,
               children: [
-                Row(
+                Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
                   children: [
-                    const Icon(Icons.calendar_today, size: 11),
-                    const SizedBox(width: 4),
+                    Row(
+                      spacing: 4,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.calendar_today, size: 11),
+                        Text(
+                          payment.paymentDate.formatDate(),
+                          style: textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                     Text(
-                      payment.paymentDate.formatDate(),
+                      payment.paymentDate.formatTime(),
                       style: textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.w500,
                       ),
