@@ -121,7 +121,7 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                               const SizedBox(height: 16),
                               CustomDropdownButtonFormField(
                                 headerLabel: 'Tipo de contato',
-                                value: _initialContactTypeDisplayName(),
+                                initialValue: _initialContactTypeDisplayName(),
                                 items: InputCustomerContact.contactTypes
                                     .map((e) => e.displayName)
                                     .toList(),
@@ -147,7 +147,7 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                               const SizedBox(height: 16),
                               CustomDropdownButtonFormField(
                                 headerLabel: 'Contactante',
-                                value: _initialTechnicianName(technicians),
+                                initialValue: _initialTechnicianName(technicians),
                                 items: technicians
                                     .map((e) => e.name)
                                     .toList(),
@@ -169,7 +169,7 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                 key: ValueKey(isContactTypePersonally),
                                 headerLabel: 'Número de telefone',
                                 enabled: !isContactTypePersonally,
-                                value: PhoneUtils.formatPhone(
+                                initialValue: PhoneUtils.formatPhone(
                                   inputCustomerContact.phoneNumber,
                                 ),
                 items: () {
@@ -212,7 +212,7 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                               const SizedBox(height: 16),
                               CustomDropdownButtonFormField(
                                 headerLabel: 'Status do aparelho',
-                                value: widget.contact.deviceStatus.displayName,
+                                initialValue: widget.contact.deviceStatus.displayName,
                                 items: StatusEnum.values
                                     .map((e) => e.displayName)
                                     .toList(),
@@ -234,7 +234,7 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                               const SizedBox(height: 16),
                               CustomDropdownButtonFormField(
                                 headerLabel: 'Status do contato',
-                                value: _initialContactStatusDisplayName(),
+                                initialValue: _initialContactStatusDisplayName(),
                                 items: InputCustomerContact.contactStatuses
                                     .map((e) => e.displayName)
                                     .toList(),

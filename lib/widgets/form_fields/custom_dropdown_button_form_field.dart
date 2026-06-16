@@ -5,7 +5,7 @@ class CustomDropdownButtonFormField extends StatelessWidget {
   final String? fieldLabel;
   final String? hintText;
   final List<String> items;
-  final String? value;
+  final String? initialValue;
   final void Function(String value)? onSave;
   final void Function(String? value)? onChanged;
   final String? Function(String? value)? validator;
@@ -18,7 +18,7 @@ class CustomDropdownButtonFormField extends StatelessWidget {
     this.hintText,
     required this.items,
     this.onSave,
-    this.value,
+    this.initialValue,
     this.validator,
     this.onChanged,
     this.enabled = true,
@@ -42,7 +42,7 @@ class CustomDropdownButtonFormField extends StatelessWidget {
           const SizedBox(height: 8),
         ],
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: initialValue,
           decoration: InputDecoration(
             labelText: fieldLabel,
             hintText: hintText,

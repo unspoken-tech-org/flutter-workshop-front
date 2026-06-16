@@ -53,7 +53,7 @@ class CustomerDeviceTechnicalInfoWidget extends StatelessWidget {
 
               return CustomDropdownButtonFormField(
                 headerLabel: 'Técnico',
-                value: deviceCustomer.technicianName?.capitalizeAllWords,
+                initialValue: deviceCustomer.technicianName?.capitalizeAllWords,
                 items:
                     technicians.map((e) => e.name.capitalizeAllWords).toList(),
                 enabled: isEditing,
