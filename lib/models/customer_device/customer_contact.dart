@@ -9,7 +9,7 @@ class CustomerContact {
   final String? phoneNumber;
   final String type;
   final bool hasMadeContact;
-  final String lastContact;
+  final DateTime lastContact;
   final String? conversation;
   final StatusEnum deviceStatus;
 
@@ -37,7 +37,7 @@ class CustomerContact {
       phoneNumber: json['phoneNumber'],
       type: json['type'],
       hasMadeContact: json['hasMadeContact'],
-      lastContact: json['lastContact'],
+      lastContact: DateTime.parse(json['lastContact']),
       conversation: json['conversation'],
       deviceStatus: StatusEnum.fromDbName(json['deviceStatus']),
     );

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/currency_input_formatter.dart';
 import 'package:flutter_workshop_front/models/colors/color_model.dart';
 import 'package:flutter_workshop_front/models/types_brands_models/types_brands_models.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
-import 'package:flutter_workshop_front/pages/devices/device_register/widgets/autocomplete_form_field.dart';
-import 'package:flutter_workshop_front/pages/devices/device_register/widgets/selected_colors_form_field.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/widgets/type_brand_model_autocomplete_form_field.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/widgets/multi_select_color_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
 import 'package:provider/provider.dart';
 
@@ -24,7 +23,6 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
   final _deviceBrandController = TextEditingController();
   final _deviceModelController = TextEditingController();
   final _deviceBudgetValueController = TextEditingController();
-  final _deviceColorsController = TextEditingController();
 
   @override
   void initState() {
@@ -32,23 +30,13 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
     controller = context.read<DeviceRegisterController>();
   }
 
-  List<ITypeBrandModelColor> _getTypeSuggestions() {
-    var types = controller.typesBrandsModels;
-    return types;
-  }
-
-  List<ITypeBrandModelColor> _getBrandSuggestions() {
-    var brands = controller.selectedType?.brands ?? [];
-    return brands;
-  }
-
-  List<ITypeBrandModelColor> _getModelSuggestions() {
-    var models = controller.selectedBrand?.models ?? [];
-    return models;
-  }
-
-  List<ColorModel> _getColorSuggestions() {
-    return controller.allColors;
+  @override
+  void dispose() {
+    _deviceTypeController.dispose();
+    _deviceBrandController.dispose();
+    _deviceModelController.dispose();
+    _deviceBudgetValueController.dispose();
+    super.dispose();
   }
 
   @override
@@ -78,62 +66,60 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
             spacing: 16,
             children: [
               Expanded(
-                child: AutocompleteFormField(
+                child: TypeBrandModelAutocompleteFormField<Type>(
                   controller: _deviceTypeController,
                   headerLabelText: 'Tipo Aparelho',
                   hintText: 'Ex: Lavadora, Microondas, Ventilador',
-                  suggestions: _getTypeSuggestions(),
-                  onAccept: (id) {
-                    controller.setSelectedType(id);
+                  searchFn: (query) => controller.searchTypes(query),
+                  createFn: (name) => controller.createType(name),
+                  getName: (item) => item.type,
+                  getId: (item) => item.idType,
+                  onAccept: (type) {
+                    controller.setSelectedType(type);
                   },
                   onClear: () {
                     controller.setSelectedType(null);
                     _deviceBrandController.clear();
                     _deviceModelController.clear();
                   },
-                  onSave: (name) {
-                    controller.inputDevice = controller.inputDevice.copyWith(
-                      typeBrandModel: controller.inputDevice.typeBrandModel
-                          ?.copyWith(type: name),
-                    );
-                  },
                   fieldValidator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Selecione um tipo de aparelho ou digite um novo';
+                    if (controller.selectedType == null) {
+                      return 'Selecione um tipo de aparelho';
                     }
                     return null;
                   },
+                  createLabel: 'Criar novo tipo',
+                  createSuccessMessage: 'Tipo criado com sucesso',
                 ),
               ),
-              Selector<DeviceRegisterController, TypeBrandModel?>(
+              Selector<DeviceRegisterController, Type?>(
                 selector: (context, controller) => controller.selectedType,
                 builder: (context, selectedType, child) {
                   return Expanded(
-                    child: AutocompleteFormField(
+                    child: TypeBrandModelAutocompleteFormField<Brand>(
                       controller: _deviceBrandController,
                       headerLabelText: 'Marca Aparelho',
                       hintText: 'Ex: LG, Samsung, Panasonic',
-                      suggestions: _getBrandSuggestions(),
-                      onAccept: (id) {
-                        controller.setSelectedBrand(id);
-                      },
-                      onSave: (name) {
-                        controller.inputDevice =
-                            controller.inputDevice.copyWith(
-                          typeBrandModel: controller.inputDevice.typeBrandModel
-                              ?.copyWith(brand: name),
-                        );
+                      enabled: selectedType != null,
+                      searchFn: (query) => controller.searchBrands(query),
+                      createFn: (name) => controller.createBrand(name),
+                      getName: (item) => item.brand,
+                      getId: (item) => item.idBrand,
+                      onAccept: (brand) {
+                        controller.setSelectedBrand(brand);
                       },
                       onClear: () {
                         controller.setSelectedBrand(null);
                         _deviceModelController.clear();
                       },
                       fieldValidator: (String? value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Selecione uma marca ou digite uma nova';
+                        if (controller.selectedBrand == null) {
+                          return 'Selecione uma marca';
                         }
                         return null;
                       },
+                      createLabel: 'Criar nova marca',
+                      createSuccessMessage: 'Marca criada com sucesso',
                     ),
                   );
                 },
@@ -148,30 +134,29 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
                 selector: (context, controller) => controller.selectedBrand,
                 builder: (context, selectedBrand, child) {
                   return Expanded(
-                    child: AutocompleteFormField(
+                    child: TypeBrandModelAutocompleteFormField<Model>(
                       controller: _deviceModelController,
                       headerLabelText: 'Modelo Aparelho',
                       hintText: 'Ex: 1234567890',
-                      suggestions: _getModelSuggestions(),
-                      onAccept: (id) {
-                        controller.setSelectedModel(id);
+                      enabled: selectedBrand != null,
+                      searchFn: (query) => controller.searchModels(query),
+                      createFn: (name) => controller.createModel(name),
+                      getName: (item) => item.model,
+                      getId: (item) => item.idModel,
+                      onAccept: (model) {
+                        controller.setSelectedModel(model);
                       },
                       onClear: () {
                         controller.setSelectedModel(null);
                       },
-                      onSave: (name) {
-                        controller.inputDevice =
-                            controller.inputDevice.copyWith(
-                          typeBrandModel: controller.inputDevice.typeBrandModel
-                              ?.copyWith(model: name),
-                        );
-                      },
                       fieldValidator: (String? value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Selecione um modelo ou digite um novo';
+                        if (controller.selectedModel == null) {
+                          return 'Selecione um modelo';
                         }
                         return null;
                       },
+                      createLabel: 'Criar novo modelo',
+                      createSuccessMessage: 'Modelo criado com sucesso',
                     ),
                   );
                 },
@@ -181,13 +166,12 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
                   controller: _deviceBudgetValueController,
                   headerLabel: 'Valor Orçamento (Opcional)',
                   hintText: 'Ex: 100,00',
-                  inputFormatters: [
-                    CurrencyInputFormatter(),
-                  ],
+                  inputFormatters: [CurrencyInputFormatter()],
                   onSave: (value) {
                     if (value == null || value.isEmpty) return;
                     final budgetValue = double.parse(
-                        value.replaceAll('R\$', '').replaceAll(',', '.'));
+                      value.replaceAll('R\$', '').replaceAll(',', '.'),
+                    );
                     controller.inputDevice = controller.inputDevice.copyWith(
                       budgetValue: budgetValue,
                     );
@@ -196,57 +180,28 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
               ),
             ],
           ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 16,
-            children: [
-              Expanded(
-                child: AutocompleteFormField(
-                  controller: _deviceColorsController,
-                  headerLabelText: 'Cores',
-                  hintText: 'Ex: Azul, Branco, Preto',
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z]')),
-                  ],
-                  suggestions: _getColorSuggestions(),
-                  suffixIcon: Icon(
-                    Icons.arrow_circle_right_outlined,
-                    size: 20,
-                    color: Colors.grey.shade600,
-                    weight: 100,
-                  ),
-                  suffixIconAction: (name) {
-                    controller.addColor(ColorModel(idColor: null, color: name));
-                    setState(() {});
-                  },
-                  onAccept: (id) {
-                    if (id == null) return;
-                    final color =
-                        controller.allColors.firstWhere((c) => c.idColor == id);
-                    controller.addColor(color);
-                    _deviceColorsController.clear();
-                    setState(() {});
-                  },
-                  onSave: (name) {
-                    controller.inputDevice = controller.inputDevice.copyWith(
-                      colors: controller.selectedColors
-                          .map((c) => c.color)
-                          .toList(),
-                    );
-                  },
-                  onSubmit: (id, name) {
-                    controller.addColor(ColorModel(idColor: null, color: name));
-                    _deviceColorsController.clear();
-                    setState(() {});
-                  },
-                ),
-              ),
-              const Expanded(
-                child: SelectedColorsFormField(
-                  headerLabel: 'Cores selecionadas',
-                ),
-              ),
-            ],
+          Selector<DeviceRegisterController, List<ColorModel>>(
+            selector: (context, controller) => controller.selectedColors,
+            builder: (context, selectedColors, child) {
+              return MultiSelectColorField(
+                headerLabelText: 'Cores',
+                hintText: 'Ex: Azul, Branco, Preto',
+                suggestions: controller.allColors,
+                selectedColors: selectedColors,
+                maxSelections: 4,
+                onCreateColor: (name) async {
+                  return ColorModel(idColor: null, color: name);
+                },
+                onColorAdded: (color) => controller.addColor(color),
+                onColorRemoved: (color) => controller.removeColor(color),
+                fieldValidator: (colors) {
+                  if (colors.isEmpty) {
+                    return 'Selecione ao menos uma cor';
+                  }
+                  return null;
+                },
+              );
+            },
           ),
         ],
       ),

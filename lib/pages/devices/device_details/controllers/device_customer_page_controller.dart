@@ -11,7 +11,6 @@ import 'package:flutter_workshop_front/services/device_data/device_customer_serv
 import 'package:flutter_workshop_front/services/payment/payment_service.dart';
 import 'package:flutter_workshop_front/services/technician/technician_service.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
-import 'package:intl/intl.dart';
 
 class DeviceCustomerPageController extends ChangeNotifier {
   final DeviceCustomerService _deviceCustomerService = DeviceCustomerService();
@@ -26,6 +25,7 @@ class DeviceCustomerPageController extends ChangeNotifier {
   bool isLoading = false;
   bool isUpdating = false;
   bool isCreatingContact = false;
+  bool isEditingContact = false;
   bool isCreatingPayment = false;
 
   Future<void> init(int deviceId) async {
@@ -56,8 +56,9 @@ class DeviceCustomerPageController extends ChangeNotifier {
 
   Future<void> _getCustomerDevice(int deviceId, {bool isNew = false}) async {
     try {
-      final deviceCustomer =
-          await _deviceCustomerService.getCustomerDeviceById(deviceId);
+      final deviceCustomer = await _deviceCustomerService.getCustomerDeviceById(
+        deviceId,
+      );
       this.deviceCustomer = deviceCustomer;
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
@@ -68,8 +69,22 @@ class DeviceCustomerPageController extends ChangeNotifier {
     }
   }
 
+  DeviceCustomer? _editingSnapshot;
+
   void updateNewDeviceCustomer(DeviceCustomer newDeviceCustomer) {
     deviceCustomer = newDeviceCustomer;
+  }
+
+  void onEditingStarted() {
+    _editingSnapshot = deviceCustomer;
+  }
+
+  void onEditingCancelled() {
+    if (_editingSnapshot != null) {
+      deviceCustomer = _editingSnapshot!;
+      _editingSnapshot = null;
+      notifyListeners();
+    }
   }
 
   Future<void> updateDeviceHasUrgency(bool hasUrgency) async {
@@ -77,16 +92,8 @@ class DeviceCustomerPageController extends ChangeNotifier {
     isUpdating = true;
     notifyListeners();
     try {
-      StatusEnum actualStatus = deviceCustomer.deviceStatus;
-      if ([StatusEnum.delivered, StatusEnum.disposed].contains(actualStatus)) {
-        actualStatus = StatusEnum.newDevice;
-      }
-      final updatedDeviceCustomer = deviceCustomer.copyWith(
-        hasUrgency: hasUrgency,
-        deviceStatus: actualStatus,
-      );
       final DeviceCustomer value = await _deviceCustomerService
-          .updateDeviceCustomer(updatedDeviceCustomer);
+          .updateDeviceHasUrgency(deviceCustomer.deviceId, hasUrgency);
       deviceCustomer = value;
       SnackBarUtil().showSuccess(
         'Urgencia do dispositivo atualizada com sucesso',
@@ -95,7 +102,8 @@ class DeviceCustomerPageController extends ChangeNotifier {
       SnackBarUtil().showError(e.message);
     } catch (e) {
       SnackBarUtil().showError(
-          'Erro ao atualizar urgência do dispositivo. Tente novamente.');
+        'Erro ao atualizar urgência do dispositivo. Tente novamente.',
+      );
     } finally {
       isUpdating = false;
       notifyListeners();
@@ -107,15 +115,16 @@ class DeviceCustomerPageController extends ChangeNotifier {
     isUpdating = true;
     notifyListeners();
     try {
-      DeviceCustomer response =
-          await _deviceCustomerService.updateDeviceCustomer(deviceCustomer);
+      DeviceCustomer response = await _deviceCustomerService
+          .updateDeviceCustomer(deviceCustomer);
       deviceCustomer = response;
       SnackBarUtil().showSuccess('Dispositivo atualizado com sucesso');
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
     } catch (e) {
-      SnackBarUtil()
-          .showError('Erro ao atualizar dispositivo. Tente novamente.');
+      SnackBarUtil().showError(
+        'Erro ao atualizar dispositivo. Tente novamente.',
+      );
     } finally {
       isUpdating = false;
       notifyListeners();
@@ -123,7 +132,8 @@ class DeviceCustomerPageController extends ChangeNotifier {
   }
 
   Future<void> createCustomerContact(
-      InputCustomerContact customerContact) async {
+    InputCustomerContact customerContact,
+  ) async {
     if (isCreatingContact) return;
     isCreatingContact = true;
     notifyListeners();
@@ -142,27 +152,48 @@ class DeviceCustomerPageController extends ChangeNotifier {
     }
   }
 
+  Future<void> updateCustomerContact(
+    int contactId,
+    InputCustomerContact customerContact,
+  ) async {
+    if (isEditingContact) return;
+    isEditingContact = true;
+    notifyListeners();
+    try {
+      await _customerContactService.updateCustomerContact(
+        contactId,
+        customerContact,
+      );
+      await _getCustomerDevice(deviceCustomer.deviceId);
+
+      SnackBarUtil().showSuccess('Contato editado com sucesso');
+    } on RequisitionException catch (e) {
+      SnackBarUtil().showError(e.message);
+    } catch (e) {
+      SnackBarUtil().showError('Erro ao editar contato. Tente novamente.');
+    } finally {
+      isEditingContact = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> updateDeviceRevision(bool revision) async {
     if (isUpdating) return;
     isUpdating = true;
     notifyListeners();
     try {
-      StatusEnum actualStatus = deviceCustomer.deviceStatus;
-      if ([StatusEnum.delivered, StatusEnum.disposed].contains(actualStatus)) {
-        actualStatus = StatusEnum.newDevice;
-      }
-      final updatedDeviceCustomer = deviceCustomer.copyWith(
-          revision: revision, deviceStatus: actualStatus);
       final DeviceCustomer value = await _deviceCustomerService
-          .updateDeviceCustomer(updatedDeviceCustomer);
+          .updateDeviceRevision(deviceCustomer.deviceId, revision);
       deviceCustomer = value;
-      SnackBarUtil()
-          .showSuccess('Revisão do dispositivo atualizada com sucesso');
+      SnackBarUtil().showSuccess(
+        'Revisão do dispositivo atualizada com sucesso',
+      );
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
     } catch (e) {
       SnackBarUtil().showError(
-          'Erro ao atualizar revisão do dispositivo. Tente novamente.');
+        'Erro ao atualizar revisão do dispositivo. Tente novamente.',
+      );
     } finally {
       isUpdating = false;
       notifyListeners();
@@ -174,33 +205,18 @@ class DeviceCustomerPageController extends ChangeNotifier {
     isUpdating = true;
     notifyListeners();
     try {
-      bool isUrgency = deviceCustomer.hasUrgency;
-      bool isRevision = deviceCustomer.revision;
-      if ([
-        StatusEnum.approved,
-        StatusEnum.notApproved,
-        StatusEnum.ready,
-        StatusEnum.delivered,
-        StatusEnum.disposed
-      ].contains(status)) {
-        isUrgency = false;
-        isRevision = false;
-      }
-      final updatedDeviceCustomer = deviceCustomer.copyWith(
-        deviceStatus: status,
-        hasUrgency: isUrgency,
-        revision: isRevision,
-      );
       final DeviceCustomer value = await _deviceCustomerService
-          .updateDeviceCustomer(updatedDeviceCustomer);
+          .updateDeviceStatus(deviceCustomer.deviceId, status);
       deviceCustomer = value;
-      SnackBarUtil()
-          .showSuccess('Status do dispositivo atualizada com sucesso');
+      SnackBarUtil().showSuccess(
+        'Status do dispositivo atualizado com sucesso',
+      );
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
     } catch (e) {
       SnackBarUtil().showError(
-          'Erro ao atualizar status do dispositivo. Tente novamente.');
+        'Erro ao atualizar status do dispositivo. Tente novamente.',
+      );
     } finally {
       isUpdating = false;
       notifyListeners();
@@ -218,8 +234,10 @@ class DeviceCustomerPageController extends ChangeNotifier {
           CustomerDevicePayment(
             paymentId: 0,
             paymentValue: payment.value,
-            paymentDate: DateFormat('dd/MM/yyyy').format(payment.paymentDate!),
+            paymentDate: payment.paymentDate!,
             paymentType: payment.paymentType!,
+            category: payment.category!,
+            receivedBy: payment.receivedBy,
           ),
         ],
       );

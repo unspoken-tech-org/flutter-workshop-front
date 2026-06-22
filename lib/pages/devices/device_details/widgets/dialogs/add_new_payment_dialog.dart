@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/double_extensions.dart';
+import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/currency_input_formatter.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
@@ -22,6 +23,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
   final _formKey = GlobalKey<FormState>();
   final _dateController = TextEditingController();
   late InputPayment _inputPayment;
+  PaymentCategory? _selectedCategory;
 
   @override
   void initState() {
@@ -32,12 +34,6 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
   @override
   void dispose() {
     super.dispose();
-  }
-
-  double _parseMoneyValue(String value) {
-    final onlyNumbers =
-        value.replaceAll('R\$', '').replaceAll('.', '').replaceAll(',', '.');
-    return double.parse(onlyNumbers);
   }
 
   String? _formatDate(DateTime? date) {
@@ -63,9 +59,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
 
     return AlertDialog(
       backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -83,6 +77,37 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              CustomDropdownButtonFormField(
+                headerLabel: 'Categoria',
+                items: PaymentCategory.values
+                    .map((e) => e.displayName)
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCategory = PaymentCategory.values.firstWhere(
+                      (e) => e.displayName == value,
+                    );
+                  });
+                },
+                onSave: (value) {
+                  final category = PaymentCategory.values.firstWhere(
+                    (e) => e.displayName == value,
+                  );
+                  _inputPayment = _inputPayment.copyWith(category: category);
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Selecione uma categoria';
+                  }
+                  final budgetFee = controller.deviceCustomer.budgetFee ?? 0;
+                  if (budgetFee <= 0 &&
+                      _selectedCategory == PaymentCategory.budgetFee) {
+                    return 'Taxa de orçamento não definida';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
               CustomDropdownButtonFormField(
                 headerLabel: 'Tipo de Pagamento',
                 items: PaymentType.values.map((e) => e.displayName).toList(),
@@ -107,21 +132,28 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
                 value: _inputPayment.value.toBrCurrency,
                 onSave: (value) {
                   _inputPayment = _inputPayment.copyWith(
-                    value: _parseMoneyValue(value ?? '0'),
+                    value: value?.fromCurrency(),
                   );
                 },
+                errorMaxLines: 2,
                 validator: (value) {
-                  if (value == null ||
-                      value.isEmpty ||
-                      _parseMoneyValue(value) == 0) {
-                    return 'Informe o valor do pagamento';
+                  final inputValue = value?.fromCurrency() ?? 0;
+
+                  if (inputValue == 0) return 'Informe o valor do pagamento';
+
+                  if (_selectedCategory == PaymentCategory.budgetFee) {
+                    final budgetFee = controller.deviceCustomer.budgetFee ?? 0;
+                    final totalPaidFee = controller.deviceCustomer.totalPaidFee;
+                    final remaining = budgetFee - totalPaidFee;
+
+                    if (budgetFee > 0 && inputValue > remaining) {
+                      return 'As taxas já pagas (${totalPaidFee.toBrCurrency}) excedem o valor da taxa de orçamento';
+                    }
                   }
                   return null;
                 },
                 keyboardType: TextInputType.number,
-                inputFormatters: [
-                  CurrencyInputFormatter(),
-                ],
+                inputFormatters: [CurrencyInputFormatter()],
               ),
               const SizedBox(height: 16),
               CustomDateFormField(
@@ -136,7 +168,25 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
                   }
                   return null;
                 },
-              )
+              ),
+              const SizedBox(height: 16),
+              CustomDropdownButtonFormField(
+                headerLabel: 'Recebido por',
+                hintText: 'Opcional',
+                items: controller.technicians
+                    .map((e) => e.name.capitalizeAllWords)
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null && value.isNotEmpty) {
+                    _inputPayment = _inputPayment.copyWith(receivedBy: value);
+                  }
+                },
+                onSave: (value) {
+                  if (value.isNotEmpty) {
+                    _inputPayment = _inputPayment.copyWith(receivedBy: value);
+                  }
+                },
+              ),
             ],
           ),
         ),
@@ -152,10 +202,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
             side: BorderSide(color: Colors.grey.shade300),
             foregroundColor: Colors.black,
           ),
-          child: const Text(
-            'Cancelar',
-            style: TextStyle(color: Colors.black),
-          ),
+          child: const Text('Cancelar', style: TextStyle(color: Colors.black)),
         ),
         ElevatedButton(
           onPressed: () async => await _createNewPayment(context),

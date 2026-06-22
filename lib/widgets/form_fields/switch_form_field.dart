@@ -49,7 +49,7 @@ class _SwitchFormFieldState extends State<SwitchFormField> {
             value ? Colors.black87 : Colors.blueGrey.shade100,
           ),
           hoverColor: Colors.transparent,
-          activeColor: Colors.white,
+          activeThumbColor: Colors.white,
           inactiveTrackColor: Colors.blueGrey.shade100,
           value: field.value ?? false,
           onChanged: (value) {

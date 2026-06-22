@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/extensions/date_time_extension.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
 import 'package:flutter_workshop_front/widgets/hoverable_card.dart';
@@ -6,10 +7,12 @@ import 'package:flutter_workshop_front/widgets/shared/status_cell.dart';
 
 class ContactCard extends StatelessWidget {
   final CustomerContact contact;
+  final VoidCallback? onEdit;
 
   const ContactCard({
     super.key,
     required this.contact,
+    this.onEdit,
   });
 
   (String, Color, Color) _getStatus() {
@@ -24,6 +27,7 @@ class ContactCard extends StatelessWidget {
     final (statusText, statusColor, backgroundColor) = _getStatus();
 
     return HoverableCard(
+      onDoubleTap: onEdit,
       padding: const EdgeInsets.all(16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,7 +57,7 @@ class ContactCard extends StatelessWidget {
                                 'Data: ',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                              Text(contact.lastContact),
+                              Text(contact.lastContact.formatDate()),
                             ],
                           ),
                           const SizedBox(height: 8),

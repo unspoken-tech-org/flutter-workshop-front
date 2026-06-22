@@ -37,70 +37,80 @@ class _CustomerDeviceInfosWidgetState extends State<CustomerDeviceInfosWidget> {
         ],
       ),
       child: Form(
-          key: _formKey,
-          child: Column(
-            spacing: 28,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const CustomerDeviceInfoHeaderWidget(),
-              Row(
-                spacing: 28,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Flexible(
-                    child: Column(
-                      spacing: 28,
-                      children: [
-                        const DeviceDetailsWidget(),
-                        DiagnosticDeviceInfoWidget(isEditing: isEditing),
-                      ],
-                    ),
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const CustomerDeviceInfoHeaderWidget(),
+            Row(
+              spacing: 28,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Flexible(
+                  child: Column(
+                    spacing: 28,
+                    children: [
+                      DeviceDetailsWidget(isEditing: isEditing),
+                      DiagnosticDeviceInfoWidget(isEditing: isEditing),
+                    ],
                   ),
-                  Flexible(
-                    child: Column(
-                      spacing: 28,
-                      children: [
-                        DeviceValuesWidget(isEditing: isEditing),
-                        CustomerDeviceObservationWidget(
-                          isEditing: isEditing,
-                        ),
-                        CustomerDeviceTechnicalInfoWidget(
-                          isEditing: isEditing,
-                        ),
-                      ],
-                    ),
+                ),
+                Flexible(
+                  child: Column(
+                    spacing: 28,
+                    children: [
+                      DeviceValuesWidget(isEditing: isEditing),
+                      CustomerDeviceObservationWidget(isEditing: isEditing),
+                      CustomerDeviceTechnicalInfoWidget(isEditing: isEditing),
+                    ],
                   ),
-                ],
-              ),
-              Divider(color: Colors.grey.shade200, height: 1),
-              Row(
-                spacing: 16,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (isEditing)
-                    DeviceCustomerCancelButton(
-                      onCancel: () {
-                        setState(() => isEditing = false);
-                        _formKey.currentState?.reset();
+                ),
+              ],
+            ),
+            Column(
+              spacing: 28,
+              children: [
+                Divider(color: Colors.grey.shade200, height: 1),
+                Row(
+                  spacing: 16,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (isEditing)
+                      DeviceCustomerCancelButton(
+                        onCancel: () {
+                          context
+                              .read<DeviceCustomerPageController>()
+                              .onEditingCancelled();
+                          setState(() => isEditing = false);
+                          _formKey.currentState?.reset();
+                        },
+                      ),
+                    DeviceCustomerSaveButton(
+                      onSave: () {
+                        if (_formKey.currentState?.validate() ?? false) {
+                          _formKey.currentState?.save();
+                          context
+                              .read<DeviceCustomerPageController>()
+                              .updateDeviceCustomer();
+                          setState(() => isEditing = false);
+                        }
                       },
-                    ),
-                  DeviceCustomerSaveButton(
-                    onSave: () {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        _formKey.currentState?.save();
+                      onEdit: () {
                         context
                             .read<DeviceCustomerPageController>()
-                            .updateDeviceCustomer();
-                        setState(() => isEditing = false);
-                      }
-                    },
-                    onEdit: () => setState(() => isEditing = true),
-                    isEditing: isEditing,
-                  ),
-                ],
-              ),
-            ],
-          )),
+                            .onEditingStarted();
+                        setState(() => isEditing = true);
+                      },
+                      isEditing: isEditing,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

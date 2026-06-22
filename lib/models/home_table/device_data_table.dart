@@ -13,8 +13,8 @@ class DeviceDataTable {
   String? observation;
   bool hasUrgency;
   bool hasRevision;
-  String entryDate;
-  String? departureDate;
+  DateTime entryDate;
+  DateTime? departureDate;
 
   DeviceDataTable({
     required this.deviceId,
@@ -44,9 +44,11 @@ class DeviceDataTable {
       problem: json.toStr('problem')!,
       hasUrgency: json.toBool('hasUrgency', defaultValue: false)!,
       hasRevision: json.toBool('hasRevision', defaultValue: false)!,
-      entryDate: json.toStr('entryDate')!,
+      entryDate: DateTime.parse(json.toStr('entryDate')!),
       observation: json.toStr('observation'),
-      departureDate: json.toStr('departureDate'),
+      departureDate: json.toStr('departureDate') != null
+          ? DateTime.parse(json.toStr('departureDate')!)
+          : null,
     );
   }
 }

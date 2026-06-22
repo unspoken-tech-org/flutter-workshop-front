@@ -8,13 +8,16 @@ class CustomTextField extends StatelessWidget {
   final IconData? icon;
   final TextEditingController? controller;
   final bool readOnly;
+  final bool enabled;
   final List<TextInputFormatter>? inputFormatters;
   final TextInputType? keyboardType;
   final String? prefixText;
   final int? maxLines;
+  final int? errorMaxLines;
   final String? hintText;
   final FocusNode? focusNode;
   final Widget? suffixIcon;
+  final Color? selectedBorderColor;
   final String? Function(String?)? validator;
   final void Function(String?)? onSave;
   final void Function(String)? onFieldSubmitted;
@@ -28,17 +31,20 @@ class CustomTextField extends StatelessWidget {
     this.icon,
     this.controller,
     this.readOnly = false,
+    this.enabled = true,
     this.inputFormatters,
     this.keyboardType,
     this.prefixText,
     this.hintText,
     this.focusNode,
     this.suffixIcon,
+    this.selectedBorderColor,
     this.validator,
     this.onSave,
     this.onFieldSubmitted,
     this.onChanged,
     this.maxLines = 1,
+    this.errorMaxLines = 1,
   });
 
   @override
@@ -61,6 +67,7 @@ class CustomTextField extends StatelessWidget {
         TextFormField(
           controller: controller ?? TextEditingController(text: value),
           readOnly: readOnly,
+          enabled: enabled,
           inputFormatters: inputFormatters,
           keyboardType: keyboardType,
           maxLines: maxLines,
@@ -73,20 +80,25 @@ class CustomTextField extends StatelessWidget {
             labelText: fieldLabel,
             hintText: hintText,
             suffixIcon: suffixIcon,
+            errorMaxLines: errorMaxLines,
             hintStyle: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
             prefixText: prefixText,
             prefixIcon: icon != null
                 ? Icon(icon, size: 20, color: Colors.grey.shade600)
                 : null,
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 12.0,
+              horizontal: 12.0,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(
+                color: selectedBorderColor ?? Colors.grey.shade300,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
@@ -99,10 +111,7 @@ class CustomTextField extends StatelessWidget {
             fillColor: Colors.white,
             filled: true,
           ),
-          style: const TextStyle(
-            color: Color(0xFF1F2937),
-            fontSize: 14,
-          ),
+          style: const TextStyle(color: Color(0xFF1F2937), fontSize: 14),
         ),
       ],
     );

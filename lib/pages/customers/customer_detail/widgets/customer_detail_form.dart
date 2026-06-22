@@ -144,7 +144,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: CustomDropdownButtonFormField(
-                        value: widget.customer.gender.capitalizeFirst,
+                        initialValue: widget.customer.gender.capitalizeFirst,
                         fieldLabel: 'Sexo',
                         items: const ['Masculino', 'Feminino', 'Outro'],
                         onSave: (value) {

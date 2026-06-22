@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/widgets/device_register_form.dart';
+import 'package:flutter_workshop_front/repositories/customer/customer_remote_data_source.dart';
+import 'package:flutter_workshop_front/repositories/types_brands_models/types_brands_models_remote_data_source.dart';
 import 'package:flutter_workshop_front/services/color/color_service.dart';
-import 'package:flutter_workshop_front/services/customer/customer_service.dart';
 import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/widgets/device_register_shimmer.dart';
 import 'package:flutter_workshop_front/services/technician/technician_service.dart';
-import 'package:flutter_workshop_front/services/types_brands_models/type_brand_model_service.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
 import 'package:provider/provider.dart';
 
@@ -15,11 +16,7 @@ class DeviceRegisterPage extends StatelessWidget {
   final int? customerId;
   final String? customerName;
 
-  const DeviceRegisterPage({
-    super.key,
-    this.customerId,
-    this.customerName,
-  });
+  const DeviceRegisterPage({super.key, this.customerId, this.customerName});
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +24,11 @@ class DeviceRegisterPage extends StatelessWidget {
       lazy: false,
       create: (context) {
         return DeviceRegisterController(
-          TypeBrandModelService(),
+          TypesBrandsModelsRemoteDataSource(),
           ColorService(),
           DeviceCustomerService(),
           TechnicianService(),
-          CustomerService(),
+          CustomerRemoteDataSource(),
         )..init(customerId, customerName);
       },
       child: WsScaffold(
@@ -43,9 +40,7 @@ class DeviceRegisterPage extends StatelessWidget {
                 selector: (context, controller) => controller.isLoading,
                 builder: (context, isLoading, child) {
                   if (isLoading) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return const DeviceRegisterShimmer();
                   }
 
                   return const DeviceRegisterForm();

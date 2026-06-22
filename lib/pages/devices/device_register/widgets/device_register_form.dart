@@ -18,21 +18,37 @@ class DeviceRegisterForm extends StatefulWidget {
 class _DeviceRegisterFormState extends State<DeviceRegisterForm> {
   final _formKey = GlobalKey<FormState>();
 
-  @override
-  void dispose() {
-    _formKey.currentState?.dispose();
-    super.dispose();
-  }
-
   Future<void> _createDevice(BuildContext context) async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      _scrollToFirstError(context);
+      return;
+    }
     _formKey.currentState?.save();
 
-    int? deviceId =
-        await context.read<DeviceRegisterController>().createDevice();
+    int? deviceId = await context
+        .read<DeviceRegisterController>()
+        .createDevice();
     if (deviceId != null && context.mounted) {
       WsNavigator.pushDeviceDetails(context, deviceId, replaced: true);
     }
+  }
+
+  void _scrollToFirstError(BuildContext context) {
+    // Encontrar o primeiro FormField com erro e rolar até ele
+    final formState = _formKey.currentState;
+    if (formState == null) return;
+
+    // Usar WidgetsBinding para garantir que o layout foi construído
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      // Rolar para o início do formulário (onde os primeiros erros aparecem)
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   @override
@@ -83,8 +99,11 @@ class _DeviceRegisterFormState extends State<DeviceRegisterForm> {
 class DeviceRegisterActionButtons extends StatelessWidget {
   final VoidCallback onCancel;
   final Future<void> Function() onSave;
-  const DeviceRegisterActionButtons(
-      {super.key, required this.onCancel, required this.onSave});
+  const DeviceRegisterActionButtons({
+    super.key,
+    required this.onCancel,
+    required this.onSave,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -121,10 +140,11 @@ class DeviceRegisterActionButtons extends StatelessWidget {
               selector: (context, controller) => controller.isCreatingDevice,
               builder: (context, isCreatingDevice, child) {
                 return SizedBox(
-                  width: 220,
+                  width: 225,
                   child: ElevatedButton.icon(
-                    onPressed:
-                        isCreatingDevice ? null : () async => await onSave(),
+                    onPressed: isCreatingDevice
+                        ? null
+                        : () async => await onSave(),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 32,
@@ -142,12 +162,13 @@ class DeviceRegisterActionButtons extends StatelessWidget {
                     label: isCreatingDevice
                         ? const Center(
                             child: SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.black87,
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.black87,
+                              ),
                             ),
-                          ))
+                          )
                         : const Text('Cadastrar Aparelho'),
                   ),
                 );

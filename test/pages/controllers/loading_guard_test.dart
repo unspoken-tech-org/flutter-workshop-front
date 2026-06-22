@@ -12,6 +12,7 @@ import 'package:flutter_workshop_front/models/customer/input_customer.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 import 'package:flutter_workshop_front/models/device/device_filter.dart';
+import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
 import 'package:flutter_workshop_front/models/device_brand/device_brand_model.dart';
 import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
@@ -122,6 +123,7 @@ class _BlockingCustomerRepository implements CustomerRepository {
 /// mantendo `isLoading = true` indefinidamente após o construtor.
 class _BlockingAllDevicesRepository implements AllDevicesRepository {
   int filteringCalls = 0;
+  int searchCalls = 0;
   int typesCalls = 0;
   int brandsCalls = 0;
 
@@ -129,6 +131,13 @@ class _BlockingAllDevicesRepository implements AllDevicesRepository {
   Future<Page<DeviceDataTable>> getAllDevicesFiltering([DeviceFilter? filter]) {
     filteringCalls++;
     return Completer<Page<DeviceDataTable>>().future; // nunca completa
+  }
+
+  @override
+  Future<Page<DeviceDataTable>> searchDevices(
+      [DeviceSearchFilter? filter]) {
+    searchCalls++;
+    return Completer<Page<DeviceDataTable>>().future;
   }
 
   @override

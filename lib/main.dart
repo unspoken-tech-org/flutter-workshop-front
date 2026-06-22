@@ -17,21 +17,14 @@ Future<void> main() async {
   // Inicialização da Camada de Segurança
   final authNotifier = AuthNotifier();
   final storage = SecurityStorage();
-  final authService = AuthService(
-    storage: storage,
-    authNotifier: authNotifier,
-  );
+  final authService = AuthService(storage: storage, authNotifier: authNotifier);
   CustomDio.setup(storage, authService.refreshToken, authNotifier);
   authNotifier.setState(AuthRouteState.restoring, notify: false);
   await authService.initializeAuthState();
   final router = buildRouter(authNotifier);
 
   runApp(
-    MyApp(
-      router: router,
-      authNotifier: authNotifier,
-      authService: authService,
-    ),
+    MyApp(router: router, authNotifier: authNotifier, authService: authService),
   );
 }
 
@@ -60,9 +53,7 @@ class MyApp extends StatelessWidget {
         routerConfig: router,
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
         locale: const Locale('pt', 'BR'),
-        supportedLocales: const [
-          Locale('pt', 'BR'),
-        ],
+        supportedLocales: const [Locale('pt', 'BR')],
       ),
     );
   }

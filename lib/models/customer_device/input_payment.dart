@@ -4,13 +4,17 @@ class InputPayment {
   final int deviceId;
   final double value;
   final PaymentType? paymentType;
+  final PaymentCategory? category;
   final DateTime? paymentDate;
+  final String? receivedBy;
 
   InputPayment({
     required this.deviceId,
     required this.value,
     this.paymentType,
+    this.category,
     this.paymentDate,
+    this.receivedBy,
   });
 
   static InputPayment empty(int deviceId) {
@@ -29,13 +33,17 @@ class InputPayment {
     int? deviceId,
     double? value,
     PaymentType? paymentType,
+    PaymentCategory? category,
     DateTime? paymentDate,
+    String? receivedBy,
   }) {
     return InputPayment(
       deviceId: deviceId ?? this.deviceId,
       value: value ?? this.value,
       paymentType: paymentType ?? this.paymentType,
+      category: category ?? this.category,
       paymentDate: paymentDate ?? this.paymentDate,
+      receivedBy: receivedBy ?? this.receivedBy,
     );
   }
 
@@ -44,8 +52,9 @@ class InputPayment {
       'deviceId': deviceId,
       'value': value,
       'paymentType': paymentType?.name,
-      'category': '',
+      'category': category?.dbName,
       'paymentDate': paymentDate?.toIso8601String(),
+      'receivedBy': receivedBy,
     };
   }
 }
