@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer.dart';
+import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controller.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
-class WsScaffold extends StatefulWidget {
+class WsScaffold extends StatelessWidget {
   final Widget child;
   final Color? backgroundColor;
   final Widget? floatingActionButton;
@@ -17,25 +19,27 @@ class WsScaffold extends StatefulWidget {
   });
 
   @override
-  State<WsScaffold> createState() => _WsScaffoldState();
-}
-
-class _WsScaffoldState extends State<WsScaffold> {
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: widget.backgroundColor ?? Colors.white,
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 55),
-            child: widget.child,
-          ),
-          WsDrawer(currentRoute: GoRouterState.of(context).name ?? ''),
-        ],
+      backgroundColor: backgroundColor ?? Colors.white,
+      body: Selector<WsDrawerController, double>(
+        selector: (_, c) => c.isExpanded ? 250 : 50,
+        builder: (context, drawerWidth, _) => Row(
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              width: drawerWidth,
+              child: WsDrawer(
+                currentRoute: GoRouterState.of(context).name ?? '',
+              ),
+            ),
+            Expanded(child: child),
+          ],
+        ),
       ),
-      floatingActionButton: widget.floatingActionButton,
-      floatingActionButtonLocation: widget.floatingActionButtonLocation,
+      floatingActionButton: floatingActionButton,
+      floatingActionButtonLocation: floatingActionButtonLocation,
     );
   }
 }

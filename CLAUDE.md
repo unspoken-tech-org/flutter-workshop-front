@@ -70,6 +70,8 @@
 - Prefer `StatelessWidget` unless state is required.
 - For state, use `ChangeNotifier` + `notifyListeners` as in controllers.
 - Keep UI code declarative and avoid side effects in `build`.
+- Use `Consumer<T>` or `context.watch<T>()` to read controller state from the widget tree.
+- Use `Selector<T, R>` for fine-grained rebuild control when only part of the state matters.
 
 ## Security Architecture
 - O app utiliza `QueuedInterceptor` no `SecurityInterceptor` para serializar requisições e evitar múltiplas chamadas de refresh simultâneas (deduplicação).
@@ -84,6 +86,17 @@
 - Set loading flags before async calls, then reset in `finally` and notify.
 - Keep controllers focused on orchestration, not UI rendering.
 - Initialize services as private fields (e.g., `_deviceStatisticsService`).
+
+### State management com provider
+
+- Use `ChangeNotifierProvider` from the `provider` package to provide controllers to the widget tree.
+- Never use `InheritedWidget` or `InheritedNotifier` directly — always prefer `ChangeNotifierProvider`.
+- Page pattern: wrap the page scaffold with `ChangeNotifierProvider(create: (_) => MyController()..init(), child: ...)`.
+- Use `Selector<T, R>` to optimize rebuilds for expensive computations or loading states (e.g., `Selector<MyController, bool>(selector: (_, c) => c.isLoading, ...)`).
+- Use `Consumer<T>` or `context.watch<T>()` in child widgets to reactively read controller state.
+- Use `context.read<T>()` (listen: false) for one-time reads in callbacks or fire-and-forget operations.
+- Controllers are automatically disposed by `ChangeNotifierProvider` — do not call `dispose()` manually on provided controllers.
+- Reference: `DeviceDetailsPage` (`lib/pages/devices/device_details/device_details_page.dart`) for the canonical pattern.
 
 ## Services and repositories
 - Services encapsulate HTTP calls via `Dio` using `CustomDio`.
