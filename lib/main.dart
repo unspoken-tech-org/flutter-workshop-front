@@ -9,6 +9,7 @@ import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
+import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,6 +47,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<AuthNotifier>.value(value: authNotifier),
         Provider<AuthService>.value(value: authService),
+        ChangeNotifierProvider(create: (_) => WsDrawerController()),
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
