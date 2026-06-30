@@ -5,7 +5,7 @@ class DeviceInput {
   final int? technicianId;
   final String? problem;
   final String? observation;
-  final double? budgetValue;
+  final double? budgetFee;
   final bool hasUrgency;
   final TypeBrandModelInput? typeBrandModel;
   final List<String>? colors;
@@ -16,14 +16,13 @@ class DeviceInput {
     this.observation,
     this.typeBrandModel,
     this.colors,
-    this.budgetValue,
+    this.budgetFee,
     this.technicianId,
     this.hasUrgency = false,
   });
 
-  factory DeviceInput.empty() => DeviceInput(
-        typeBrandModel: TypeBrandModelInput.empty(),
-      );
+  factory DeviceInput.empty() =>
+      DeviceInput(typeBrandModel: TypeBrandModelInput.empty());
 
   DeviceInput copyWith({
     int? customerId,
@@ -32,26 +31,25 @@ class DeviceInput {
     String? observation,
     TypeBrandModelInput? typeBrandModel,
     List<String>? colors,
-    double? budgetValue,
+    double? budgetFee,
     bool? hasUrgency,
-  }) =>
-      DeviceInput(
-        customerId: customerId ?? this.customerId,
-        technicianId: technicianId ?? this.technicianId,
-        problem: problem ?? this.problem,
-        observation: observation ?? this.observation,
-        typeBrandModel: typeBrandModel ?? this.typeBrandModel,
-        colors: colors ?? this.colors,
-        budgetValue: budgetValue ?? this.budgetValue,
-        hasUrgency: hasUrgency ?? this.hasUrgency,
-      );
+  }) => DeviceInput(
+    customerId: customerId ?? this.customerId,
+    technicianId: technicianId ?? this.technicianId,
+    problem: problem ?? this.problem,
+    observation: observation ?? this.observation,
+    typeBrandModel: typeBrandModel ?? this.typeBrandModel,
+    colors: colors ?? this.colors,
+    budgetFee: budgetFee ?? this.budgetFee,
+    hasUrgency: hasUrgency ?? this.hasUrgency,
+  );
 
   Map<String, dynamic> toJson() {
     return {
       'customerId': customerId,
       'problem': problem,
       'observation': observation,
-      'budgetValue': budgetValue,
+      'budgetFee': budgetFee,
       'hasUrgency': hasUrgency,
       'technicianId': technicianId,
       'typeBrandModel': typeBrandModel?.toJson(),
