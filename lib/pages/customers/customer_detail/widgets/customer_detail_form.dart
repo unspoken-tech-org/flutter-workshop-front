@@ -19,13 +19,11 @@ import 'package:flutter_workshop_front/widgets/shared/secondary_phones_widget.da
 class CustomerDetailForm extends StatefulWidget {
   final CustomerModel customer;
   final CustomerDetailController controller;
-  final ValueNotifier<bool> isEditingNotifier;
 
   const CustomerDetailForm({
     super.key,
     required this.customer,
     required this.controller,
-    required this.isEditingNotifier,
   });
 
   @override
@@ -64,7 +62,9 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
   }
 
   void _onSaveSecondaryPhone(
-      CustomerDetailController controller, PhoneFieldParameters? value) {
+    CustomerDetailController controller,
+    PhoneFieldParameters? value,
+  ) {
     controller.updatedCustomerData = controller.updatedCustomerData.copyWith(
       phones: [
         ...controller.updatedCustomerData.phones,
@@ -87,158 +87,157 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.controller.isEditing;
+    final customer = widget.controller.customer ?? widget.customer;
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Form(
         key: _formKey,
-        child: ValueListenableBuilder<bool>(
-          valueListenable: widget.isEditingNotifier,
-          builder: (context, isEditing, _) {
-            return Column(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Detalhes do Cliente', style: WsTextStyles.h1),
+            const SizedBox(height: 16),
+            if (!isEditing) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: () {
+                      WsNavigator.pushDeviceRegister(
+                        context,
+                        customerId: customer.customerId,
+                        customerName: customer.name,
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 18,
+                      ),
+                      backgroundColor: Colors.blue.shade700,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Adicionar aparelho'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+            ],
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Detalhes do Cliente', style: WsTextStyles.h1),
-                const SizedBox(height: 16),
-                if (!isEditing) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton.icon(
-                        onPressed: () {
-                          var customer = widget.customer;
-                          WsNavigator.pushDeviceRegister(
-                            context,
-                            customerId: customer.customerId,
-                            customerName: customer.name,
-                          );
-                        },
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 18,
-                          ),
-                          backgroundColor: Colors.blue.shade700,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                        ),
-                        icon: const Icon(Icons.add),
-                        label: const Text('Adicionar aparelho'),
-                      ),
-                    ],
+                SizedBox(
+                  width: 130,
+                  child: CustomTextField(
+                    fieldLabel: 'Id',
+                    value: customer.customerId.toString(),
+                    readOnly: true,
                   ),
-                  const SizedBox(height: 18),
-                ],
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 130,
-                      child: CustomTextField(
-                        fieldLabel: 'Id',
-                        value: widget.customer.customerId.toString(),
-                        readOnly: true,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: CustomDropdownButtonFormField(
-                        initialValue: widget.customer.gender.capitalizeFirst,
-                        fieldLabel: 'Sexo',
-                        items: const ['Masculino', 'Feminino', 'Outro'],
-                        onSave: (value) {
-                          widget.controller.updatedCustomerData =
-                              widget.controller.updatedCustomerData.copyWith(
-                            gender: value,
-                          );
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, selecione o sexo';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ],
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Flexible(
-                      flex: 2,
-                      child: CustomTextField(
-                        fieldLabel: 'Nome',
-                        readOnly: !isEditing,
-                        value: widget.customer.name.capitalizeAllWords,
-                        keyboardType: TextInputType.name,
-                        onSave: (value) {
-                          widget.controller.updatedCustomerData =
-                              widget.controller.updatedCustomerData.copyWith(
-                            name: value,
-                          );
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, insira um nome';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Flexible(
-                      flex: 1,
-                      child: CustomTextField(
-                        fieldLabel: 'CPF',
-                        readOnly: !isEditing,
-                        value: CpfUtils.formatCpf(widget.customer.cpf),
-                        inputFormatters: [CpfFormatter()],
-                        keyboardType: TextInputType.number,
-                        onSave: (value) {
-                          widget.controller.updatedCustomerData =
-                              widget.controller.updatedCustomerData.copyWith(
-                            cpf: value,
-                          );
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, insira um CPF';
-                          }
-                          if (!CpfValidator.isValid(value)) {
-                            return 'CPF inválido';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ],
+                const SizedBox(width: 16),
+                Expanded(
+                  child: CustomDropdownButtonFormField(
+                    initialValue: customer.gender.capitalizeFirst,
+                    fieldLabel: 'Sexo',
+                    items: const ['Masculino', 'Feminino', 'Outro'],
+                    onSave: (value) {
+                      widget.controller.updatedCustomerData = widget
+                          .controller
+                          .updatedCustomerData
+                          .copyWith(gender: value);
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor, selecione o sexo';
+                      }
+                      return null;
+                    },
+                  ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Flexible(
-                      flex: 1,
-                      child: CustomTextField(
-                        fieldLabel: 'Telefone Principal',
-                        value: PhoneUtils.formatPhone(
-                          widget.customer.phones
-                              .firstWhere((phone) => phone.main)
-                              .number,
-                        ),
-                        readOnly: !isEditing,
-                        inputFormatters: [PhoneNumberFormatter()],
-                        keyboardType: TextInputType.phone,
-                        onSave: (value) {
-                          widget.controller.updatedCustomerData =
-                              widget.controller.updatedCustomerData.copyWith(
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Flexible(
+                  flex: 2,
+                  child: CustomTextField(
+                    fieldLabel: 'Nome',
+                    readOnly: !isEditing,
+                    value: customer.name.capitalizeAllWords,
+                    keyboardType: TextInputType.name,
+                    onSave: (value) {
+                      widget.controller.updatedCustomerData = widget
+                          .controller
+                          .updatedCustomerData
+                          .copyWith(name: value);
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor, insira um nome';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Flexible(
+                  flex: 1,
+                  child: CustomTextField(
+                    fieldLabel: 'CPF',
+                    readOnly: !isEditing,
+                    value: CpfUtils.formatCpf(customer.cpf),
+                    inputFormatters: [CpfFormatter()],
+                    keyboardType: TextInputType.number,
+                    onSave: (value) {
+                      widget.controller.updatedCustomerData = widget
+                          .controller
+                          .updatedCustomerData
+                          .copyWith(cpf: value);
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor, insira um CPF';
+                      }
+                      if (!CpfValidator.isValid(value)) {
+                        return 'CPF inválido';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Flexible(
+                  flex: 1,
+                  child: CustomTextField(
+                    fieldLabel: 'Telefone Principal',
+                    value: PhoneUtils.formatPhone(
+                      customer.phones.firstWhere((phone) => phone.main).number,
+                    ),
+                    readOnly: !isEditing,
+                    inputFormatters: [PhoneNumberFormatter()],
+                    keyboardType: TextInputType.phone,
+                    onSave: (value) {
+                      widget.controller.updatedCustomerData = widget
+                          .controller
+                          .updatedCustomerData
+                          .copyWith(
                             phones: [
                               ...widget.controller.updatedCustomerData.phones,
                               InputCustomerPhone(
-                                id: widget.customer.phones
+                                id: customer.phones
                                     .firstWhere((phone) => phone.main)
                                     .idCellphone,
                                 number: value ?? '',
@@ -246,94 +245,85 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                               ),
                             ],
                           );
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'O telefone principal é obrigatório';
-                          }
-                          final int digitCount =
-                              value.replaceAll(RegExp(r'\D'), '').length;
-                          if (digitCount < 10) {
-                            return 'Telefone incompleto';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Flexible(
-                      flex: 1,
-                      child: CustomTextField(
-                        fieldLabel: 'Email',
-                        readOnly: !isEditing,
-                        value: widget.customer.email,
-                        onSave: (value) {
-                          widget.controller.updatedCustomerData =
-                              widget.controller.updatedCustomerData.copyWith(
-                            email: value,
-                          );
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return null;
-                          }
-                          if (!value.contains('@')) {
-                            return 'O email é inválido';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ],
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'O telefone principal é obrigatório';
+                      }
+                      final int digitCount = value
+                          .replaceAll(RegExp(r'\D'), '')
+                          .length;
+                      if (digitCount < 10) {
+                        return 'Telefone incompleto';
+                      }
+                      return null;
+                    },
+                  ),
                 ),
-                const SizedBox(height: 16),
-                ValueListenableBuilder<CustomerModel?>(
-                  valueListenable: widget.controller.customer,
-                  builder: (context, customer, _) {
-                    return SecondaryPhonesWidget(
-                      key: ValueKey(customer?.phones.hashCode),
-                      initialPhones: customer?.phones
-                          .where((phone) => !phone.main)
-                          .map((phone) => PhoneFieldParameters(
-                                name: phone.name?.capitalizeAllWords,
-                                number: phone.number,
-                              ))
-                          .toList(),
-                      isEditing: isEditing,
-                      onSaved: (value) {
-                        _onSaveSecondaryPhone(widget.controller, value);
-                      },
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-                EditActionButtons(
-                  customerId: widget.customer.customerId,
-                  isEditingNotifier: widget.isEditingNotifier,
-                  onCancel: () {
-                    resetForm();
-                    widget.isEditingNotifier.value = false;
-                  },
-                  onSave: () async {
-                    if (!(_formKey.currentState?.validate() ?? false)) {
-                      return;
-                    }
-                    widget.controller.updatedCustomerData =
-                        InputCustomer.empty();
-
-                    _formKey.currentState?.save();
-
-                    final success = await widget.controller.updateCustomer(
-                      widget.customer.customerId,
-                    );
-                    if (success) {
-                      widget.isEditingNotifier.value = false;
-                    }
-                  },
+                const SizedBox(width: 16),
+                Flexible(
+                  flex: 1,
+                  child: CustomTextField(
+                    fieldLabel: 'Email',
+                    readOnly: !isEditing,
+                    value: customer.email,
+                    onSave: (value) {
+                      widget.controller.updatedCustomerData = widget
+                          .controller
+                          .updatedCustomerData
+                          .copyWith(email: value);
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return null;
+                      }
+                      if (!value.contains('@')) {
+                        return 'O email é inválido';
+                      }
+                      return null;
+                    },
+                  ),
                 ),
               ],
-            );
-          },
+            ),
+            const SizedBox(height: 16),
+            SecondaryPhonesWidget(
+              key: ValueKey(customer.phones.hashCode),
+              initialPhones: customer.phones
+                  .where((phone) => !phone.main)
+                  .map(
+                    (phone) => PhoneFieldParameters(
+                      name: phone.name?.capitalizeAllWords,
+                      number: phone.number,
+                    ),
+                  )
+                  .toList(),
+              isEditing: isEditing,
+              onSaved: (value) {
+                _onSaveSecondaryPhone(widget.controller, value);
+              },
+            ),
+            const SizedBox(height: 16),
+            EditActionButtons(
+              customerId: customer.customerId,
+              onCancel: () {
+                resetForm();
+                widget.controller.setEditing(false);
+              },
+              onSave: () async {
+                if (!(_formKey.currentState?.validate() ?? false)) {
+                  return;
+                }
+                widget.controller.updatedCustomerData = InputCustomer.empty();
+
+                _formKey.currentState?.save();
+
+                await widget.controller.updateCustomer(
+                  widget.customer.customerId,
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

@@ -11,61 +11,53 @@ import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import 'package:flutter_workshop_front/services/update/update_service.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/widgets/ws_drawer_item.dart';
+import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controller.dart';
 import 'package:flutter_workshop_front/widgets/shared/update_dialog.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-class WsDrawer extends StatefulWidget {
+class WsDrawer extends StatelessWidget {
   final String currentRoute;
-  const WsDrawer({
-    super.key,
-    required this.currentRoute,
-  });
-
-  @override
-  State<WsDrawer> createState() => _WsDrawerState();
-}
-
-class _WsDrawerState extends State<WsDrawer> {
-  bool isExpanded = false;
+  const WsDrawer({super.key, required this.currentRoute});
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => isExpanded = true),
-      onExit: (_) => setState(() => isExpanded = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: isExpanded ? 250 : 50,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(
-            right: BorderSide(color: Colors.grey.shade300, width: 1),
-          ),
-          borderRadius: const BorderRadius.only(
-            topRight: Radius.circular(8),
-            bottomRight: Radius.circular(8),
-          ),
+    final isExpanded = context.watch<WsDrawerController>().isExpanded;
+    final controller = context.read<WsDrawerController>();
+    final canPop = GoRouter.of(context).canPop();
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          right: BorderSide(color: Colors.grey.shade300, width: 1),
         ),
+      ),
+      child: ClipRect(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (GoRouter.of(context).canPop()) ...[
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.only(left: 5),
-                height: 36,
-                child: BackButton(
-                  style: ButtonStyle(
-                    backgroundColor:
-                        WidgetStateProperty.all(Colors.transparent),
-                    foregroundColor: WidgetStateProperty.all(Colors.black),
-                  ),
-                  onPressed: () => GoRouter.of(context).pop(),
-                ),
-              )
-            ] else
-              const SizedBox(height: 46),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 36,
+              child: canPop
+                  ? Container(
+                      padding: const EdgeInsets.only(left: 5),
+                      child: BackButton(
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStateProperty.all(
+                            Colors.transparent,
+                          ),
+                          foregroundColor: WidgetStateProperty.all(
+                            Colors.black,
+                          ),
+                        ),
+                        onPressed: () => GoRouter.of(context).pop(),
+                      ),
+                    )
+                  : null,
+            ),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               physics: const NeverScrollableScrollPhysics(),
@@ -73,6 +65,7 @@ class _WsDrawerState extends State<WsDrawer> {
                 height: 70,
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: isExpanded
                       ? MainAxisAlignment.start
                       : MainAxisAlignment.center,
@@ -88,36 +81,71 @@ class _WsDrawerState extends State<WsDrawer> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      IconButton(
+                        tooltip: 'Alternar menu',
+                        onPressed: controller.toggle,
+                        icon: const Icon(Icons.chevron_left, size: 20),
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStateProperty.all(
+                            Colors.transparent,
+                          ),
+                          foregroundColor: WidgetStateProperty.all(
+                            Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
                     ],
                   ],
                 ),
               ),
             ),
+            if (!isExpanded)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: SizedBox(
+                  height: 36,
+                  child: IconButton(
+                    tooltip: 'Alternar menu',
+                    onPressed: controller.toggle,
+                    icon: const Icon(Icons.menu, size: 20),
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(
+                        Colors.transparent,
+                      ),
+                      foregroundColor: WidgetStateProperty.all(
+                        Colors.grey.shade600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             const Divider(),
             WsDrawerItem(
-                currentRoute: widget.currentRoute,
-                isExpanded: isExpanded,
-                icon: Icons.home,
-                title: 'Home',
-                route: const [HomePage.route],
-                onTap: () {
-                  WsNavigator.pushHome(context);
-                }),
+              currentRoute: currentRoute,
+              isExpanded: isExpanded,
+              icon: Icons.home,
+              title: 'Home',
+              route: const [HomePage.route],
+              onTap: () {
+                WsNavigator.pushHome(context);
+              },
+            ),
             WsDrawerItem(
-                currentRoute: widget.currentRoute,
-                isExpanded: isExpanded,
-                icon: Icons.person,
-                title: 'Clientes',
-                route: const [
-                  AllCustomersPage.route,
-                  CustomerRegisterPage.route,
-                  CustomerDetailPage.route
-                ],
-                onTap: () {
-                  WsNavigator.pushCustomers(context);
-                }),
+              currentRoute: currentRoute,
+              isExpanded: isExpanded,
+              icon: Icons.person,
+              title: 'Clientes',
+              route: const [
+                AllCustomersPage.route,
+                CustomerRegisterPage.route,
+                CustomerDetailPage.route,
+              ],
+              onTap: () {
+                WsNavigator.pushCustomers(context);
+              },
+            ),
             WsDrawerItem(
-              currentRoute: widget.currentRoute,
+              currentRoute: currentRoute,
               isExpanded: isExpanded,
               icon: Icons.search,
               title: 'Buscar Aparelhos',
@@ -133,7 +161,7 @@ class _WsDrawerState extends State<WsDrawer> {
             const Spacer(),
             const Divider(),
             WsDrawerItem(
-              currentRoute: widget.currentRoute,
+              currentRoute: currentRoute,
               isExpanded: isExpanded,
               icon: Icons.system_update,
               title: 'Atualizações',
@@ -177,7 +205,7 @@ class _WsDrawerState extends State<WsDrawer> {
               },
             ),
             WsDrawerItem(
-              currentRoute: widget.currentRoute,
+              currentRoute: currentRoute,
               isExpanded: isExpanded,
               icon: Icons.logout,
               title: 'Logout',

@@ -13,7 +13,7 @@ enum PaymentType {
 
   static PaymentType fromString(String value) {
     return PaymentType.values.firstWhere(
-      (e) => e.name == value,
+      (e) => e.name == value.toLowerCase(),
       orElse: () => PaymentType.outro,
     );
   }
@@ -23,14 +23,14 @@ enum PaymentCategory {
   budgetFee('taxa_orcamento', 'Taxa de orçamento'),
   service('servicos', 'Serviços');
 
-  final String displayName;
   final String dbName;
+  final String displayName;
 
   const PaymentCategory(this.dbName, this.displayName);
 
   static PaymentCategory fromString(String value) {
     return PaymentCategory.values.firstWhere(
-      (e) => e.dbName == value,
+      (e) => e.dbName == value.toLowerCase(),
       orElse: () => PaymentCategory.service,
     );
   }

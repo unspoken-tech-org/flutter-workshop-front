@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart' hide Page;
-import 'package:flutter_workshop_front/core/debouncer.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
@@ -10,7 +9,6 @@ import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 class AllCustomerController extends ChangeNotifier {
   final CustomerRepository _customerRepository = CustomerRemoteDataSource();
-  final Debouncer _debouncer = Debouncer(milliseconds: 500);
 
   CustomerSearchFilter? filter;
   List<MinifiedCustomerModel> _customers = [];
@@ -45,26 +43,24 @@ class AllCustomerController extends ChangeNotifier {
       size: 10,
     );
 
-    _debouncer.run(() async {
-      if (_isLoading) return;
-      _isLoading = true;
-      notifyListeners();
+    if (_isLoading) return;
+    _isLoading = true;
+    notifyListeners();
 
-      try {
-        final page = await _customerRepository.searchCustomers(filter);
-        _customers = page.content;
-        _currentPage = page.number;
-        _totalElements = page.totalElements;
-        _hasMore = !page.last;
-      } catch (e) {
-        SnackBarUtil().showError('Erro ao buscar clientes. Tente novamente.');
-        _customers = [];
-        _hasMore = false;
-      } finally {
-        _isLoading = false;
-        notifyListeners();
-      }
-    });
+    try {
+      final page = await _customerRepository.searchCustomers(filter);
+      _customers = page.content;
+      _currentPage = page.number;
+      _totalElements = page.totalElements;
+      _hasMore = !page.last;
+    } catch (e) {
+      SnackBarUtil().showError('Erro ao buscar clientes. Tente novamente.');
+      _customers = [];
+      _hasMore = false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> loadMore() async {
