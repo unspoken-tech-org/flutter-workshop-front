@@ -10,6 +10,13 @@ class SnackBarUtil {
 
   GlobalKey<ScaffoldMessengerState> get scaffoldKey => _scaffoldKey;
 
+  static const _animationStyle = AnimationStyle(
+    curve: Curves.easeOut,
+    reverseCurve: Curves.easeIn,
+    duration: Duration(milliseconds: 600),
+    reverseDuration: Duration(milliseconds: 600),
+  );
+
   void showSuccess(String message) {
     _showSnackBar(
       message,
@@ -52,18 +59,14 @@ class SnackBarUtil {
       width: 300,
       backgroundColor: backgroundColor,
       behavior: SnackBarBehavior.floating,
-      // margin: const EdgeInsets.all(8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       duration: const Duration(seconds: 3),
-      action: SnackBarAction(
-        label: 'OK',
-        textColor: Colors.white,
-        onPressed: () {
-          _scaffoldKey.currentState?.hideCurrentSnackBar();
-        },
-      ),
     );
+
     _scaffoldKey.currentState?.removeCurrentSnackBar();
-    _scaffoldKey.currentState?.showSnackBar(snackBar);
+    _scaffoldKey.currentState?.showSnackBar(
+      snackBar,
+      snackBarAnimationStyle: _animationStyle,
+    );
   }
 }

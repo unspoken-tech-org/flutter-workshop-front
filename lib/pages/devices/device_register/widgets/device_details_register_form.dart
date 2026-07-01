@@ -22,7 +22,7 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
   final _deviceTypeController = TextEditingController();
   final _deviceBrandController = TextEditingController();
   final _deviceModelController = TextEditingController();
-  final _deviceBudgetValueController = TextEditingController();
+  final _deviceBudgetFeeController = TextEditingController();
 
   @override
   void initState() {
@@ -35,7 +35,7 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
     _deviceTypeController.dispose();
     _deviceBrandController.dispose();
     _deviceModelController.dispose();
-    _deviceBudgetValueController.dispose();
+    _deviceBudgetFeeController.dispose();
     super.dispose();
   }
 
@@ -163,17 +163,17 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
               ),
               Expanded(
                 child: CustomTextField(
-                  controller: _deviceBudgetValueController,
+                  controller: _deviceBudgetFeeController,
                   headerLabel: 'Valor Orçamento (Opcional)',
                   hintText: 'Ex: 100,00',
                   inputFormatters: [CurrencyInputFormatter()],
                   onSave: (value) {
                     if (value == null || value.isEmpty) return;
-                    final budgetValue = double.parse(
+                    final budgetFee = double.parse(
                       value.replaceAll('R\$', '').replaceAll(',', '.'),
                     );
                     controller.inputDevice = controller.inputDevice.copyWith(
-                      budgetValue: budgetValue,
+                      budgetFee: budgetFee,
                     );
                   },
                 ),
