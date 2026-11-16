@@ -102,7 +102,16 @@ class _AdapterResult {
   final int statusCode;
   final Object? data;
 
-  const _AdapterResult({required this.statusCode, this.data});
+  /// Corpo cru não-JSON (ex.: página HTML do WAF). Tem precedência sobre [data].
+  final String? rawBody;
+  final String contentType;
+
+  const _AdapterResult({
+    required this.statusCode,
+    this.data,
+    this.rawBody,
+    this.contentType = Headers.jsonContentType,
+  });
 }
 
 class _TestHttpClientAdapter implements HttpClientAdapter {
@@ -117,13 +126,14 @@ class _TestHttpClientAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     final result = await responder(options);
-    final body = result.data == null ? '' : jsonEncode(result.data);
+    final body = result.rawBody ??
+        (result.data == null ? '' : jsonEncode(result.data));
 
     return ResponseBody.fromString(
       body,
       result.statusCode,
       headers: {
-        Headers.contentTypeHeader: [Headers.jsonContentType],
+        Headers.contentTypeHeader: [result.contentType],
       },
     );
   }
@@ -302,7 +312,45 @@ void main() {
       expect(refreshCalls, 1);
     });
 
-    test('deve limpar sessao em 403 e retornar cancel', () async {
+    test('não deve deslogar em 403 de autorização por papel da API', () async {
+      storage.seedTokens(
+        accessToken: validToken,
+        refreshToken: 'rt-1',
+        apiKey: 'api-key-1',
+      );
+
+      // Corpo real do accessDeniedHandler do SecurityConfig da API.
+      dio.httpClientAdapter = _TestHttpClientAdapter(
+        responder: (_) => const _AdapterResult(
+          statusCode: 403,
+          data: {
+            'status': 403,
+            'message': 'Acesso Negado',
+            'error': {
+              'code': 'auth.access.denied',
+              'message': 'Acesso Negado',
+            },
+          },
+        ),
+      );
+
+      dio.interceptors.add(buildInterceptor(onRefresh: () async => null));
+
+      await expectLater(
+        dio.get('/admin-only'),
+        throwsA(
+          isA<DioException>()
+              .having((e) => e.type, 'type', DioExceptionType.badResponse)
+              .having((e) => e.response?.statusCode, 'statusCode', 403),
+        ),
+      );
+      expect(storage.clearProvisioningCalls, 0);
+      expect(storage.clearSessionCalls, 0);
+      expect(await storage.getApiKey(), 'api-key-1');
+      expect(authNotifier.state, isNot(AuthRouteState.needsSetup));
+    });
+
+    test('não deve deslogar em 403 HTML do WAF da Cloudflare', () async {
       storage.seedTokens(
         accessToken: validToken,
         refreshToken: 'rt-1',
@@ -310,22 +358,59 @@ void main() {
       );
 
       dio.httpClientAdapter = _TestHttpClientAdapter(
-        responder: (_) =>
-            const _AdapterResult(statusCode: 403, data: {'error': 'forbidden'}),
+        responder: (_) => const _AdapterResult(
+          statusCode: 403,
+          rawBody: '<!DOCTYPE html><html><body>Access denied</body></html>',
+          contentType: 'text/html; charset=UTF-8',
+        ),
       );
 
       dio.interceptors.add(buildInterceptor(onRefresh: () async => null));
 
       await expectLater(
-        dio.get('/forbidden'),
+        dio.get('/protected'),
+        throwsA(
+          isA<DioException>()
+              .having((e) => e.response?.statusCode, 'statusCode', 403),
+        ),
+      );
+      expect(storage.clearProvisioningCalls, 0);
+      expect(await storage.getApiKey(), 'api-key-1');
+      expect(authNotifier.state, isNot(AuthRouteState.needsSetup));
+    });
+
+    test('deve deslogar quando a API sinaliza credencial revogada', () async {
+      storage.seedTokens(
+        accessToken: validToken,
+        refreshToken: 'rt-1',
+        apiKey: 'api-key-1',
+      );
+
+      dio.httpClientAdapter = _TestHttpClientAdapter(
+        responder: (_) => const _AdapterResult(
+          statusCode: 403,
+          data: {
+            'status': 403,
+            'error': {
+              'code': 'auth.invalid.api.key',
+              'message': 'Invalid API Key',
+            },
+          },
+        ),
+      );
+
+      dio.interceptors.add(buildInterceptor(onRefresh: () async => null));
+
+      await expectLater(
+        dio.get('/protected'),
         throwsA(
           isA<DioException>()
               .having((e) => e.type, 'type', DioExceptionType.cancel),
         ),
       );
       expect(storage.clearProvisioningCalls, 1);
-      expect(storage.clearSessionCalls, 1);
       expect(await storage.getApiKey(), isNull);
+      expect(authNotifier.state, AuthRouteState.needsSetup);
     });
 
     // ── onRequest: fluxo proativo (token expirando) ───────────────────────────

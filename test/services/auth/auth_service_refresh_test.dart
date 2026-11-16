@@ -254,6 +254,149 @@ void main() {
       expect(storage.clearSessionCalls, 1);
     });
 
+    test('nao deve deslogar em 400 Invalid Host Header do gateway', () async {
+      final storage = _MemorySecurityStorage()
+        ..seedTokens(refreshToken: 'rt-1');
+      await storage.saveApiKey('key-1');
+      final authNotifier = AuthNotifier(
+        initialState: AuthRouteState.authenticated,
+      );
+      final dio = _FakeDio({
+        '/api/auth/refresh': (data) async => _response(
+              '/api/auth/refresh',
+              statusCode: 400,
+              data: 'Gateway: Invalid Host Header',
+            ),
+      });
+      final service = AuthService(
+        dio: dio,
+        storage: storage,
+        authNotifier: authNotifier,
+      );
+
+      final token = await service.refreshToken();
+
+      expect(token, isNull);
+      expect(storage.clearSessionCalls, 0);
+      expect(storage.clearProvisioningCalls, 0);
+      expect(await storage.getApiKey(), 'key-1');
+      expect(await storage.getRefreshToken(), 'rt-1');
+      expect(authNotifier.state, AuthRouteState.authenticated);
+    });
+
+    test('nao deve deslogar em 403 HTML do WAF lancado pelo Dio', () async {
+      final storage = _MemorySecurityStorage()
+        ..seedTokens(refreshToken: 'rt-1');
+      await storage.saveApiKey('key-1');
+      final authNotifier = AuthNotifier(
+        initialState: AuthRouteState.authenticated,
+      );
+      final dio = _FakeDio({
+        '/api/auth/refresh': (data) async {
+          throw DioException(
+            requestOptions: RequestOptions(path: '/api/auth/refresh'),
+            response: _response(
+              '/api/auth/refresh',
+              statusCode: 403,
+              data: '<html><body>Access denied</body></html>',
+            ),
+          );
+        },
+      });
+      final service = AuthService(
+        dio: dio,
+        storage: storage,
+        authNotifier: authNotifier,
+      );
+
+      final token = await service.refreshToken();
+
+      expect(token, isNull);
+      expect(storage.clearSessionCalls, 0);
+      expect(storage.clearProvisioningCalls, 0);
+      expect(await storage.getApiKey(), 'key-1');
+      expect(authNotifier.state, AuthRouteState.authenticated);
+    });
+
+    test('deve encerrar sessao quando a API recusa o refresh por chave inativa',
+        () async {
+      final storage = _MemorySecurityStorage()
+        ..seedTokens(refreshToken: 'rt-1');
+      await storage.saveApiKey('key-1');
+      final authNotifier = AuthNotifier(
+        initialState: AuthRouteState.authenticated,
+      );
+      // Corpo real do GlobalExceptionHandler para InvalidTokenException.
+      final dio = _FakeDio({
+        '/api/auth/refresh': (data) async {
+          throw DioException(
+            requestOptions: RequestOptions(path: '/api/auth/refresh'),
+            response: _response(
+              '/api/auth/refresh',
+              statusCode: 401,
+              data: {
+                'status': 401,
+                'title': 'Token Inválido',
+                'error': {
+                  'code': 'auth.invalid.token',
+                  'message': 'Associated API Key is inactive',
+                },
+              },
+            ),
+          );
+        },
+      });
+      final service = AuthService(
+        dio: dio,
+        storage: storage,
+        authNotifier: authNotifier,
+      );
+
+      final token = await service.refreshToken();
+
+      expect(token, isNull);
+      expect(storage.clearSessionCalls, 1);
+      expect(await storage.getRefreshToken(), isNull);
+      expect(authNotifier.state, AuthRouteState.needsSetup);
+    });
+
+    test('deve fazer logout completo quando a API sinaliza API key invalida',
+        () async {
+      final storage = _MemorySecurityStorage()
+        ..seedTokens(refreshToken: 'rt-1');
+      await storage.saveApiKey('key-1');
+      final authNotifier = AuthNotifier(
+        initialState: AuthRouteState.authenticated,
+      );
+      final dio = _FakeDio({
+        '/api/auth/refresh': (data) async => _response(
+              '/api/auth/refresh',
+              statusCode: 400,
+              data: {
+                'status': 400,
+                'error': {
+                  'code': 'auth.invalid.api.key',
+                  'message': 'Invalid API Key',
+                },
+              },
+            ),
+        '/api/auth/revoke': (data) async =>
+            _response('/api/auth/revoke', statusCode: 200),
+      });
+      final service = AuthService(
+        dio: dio,
+        storage: storage,
+        authNotifier: authNotifier,
+      );
+
+      final token = await service.refreshToken();
+
+      expect(token, isNull);
+      expect(storage.clearProvisioningCalls, 1);
+      expect(await storage.getApiKey(), isNull);
+      expect(authNotifier.state, AuthRouteState.needsSetup);
+    });
+
     test('nao deve invalidar sessao em status 500 do refresh', () async {
       final storage = _MemorySecurityStorage()
         ..seedTokens(refreshToken: 'rt-1');
