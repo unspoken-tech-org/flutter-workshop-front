@@ -42,8 +42,7 @@ class CustomerDeviceObservationWidget extends StatelessWidget {
           Selector<DeviceCustomerPageController, DeviceCustomer>(
             selector: (context, controller) => controller.deviceCustomer,
             builder: (context, deviceCustomer, child) => CustomTextField(
-              controller:
-                  TextEditingController(text: deviceCustomer.observation),
+              value: deviceCustomer.observation,
               readOnly: !isEditing,
               hintText: 'Descreva a observação...',
               maxLines: 4,

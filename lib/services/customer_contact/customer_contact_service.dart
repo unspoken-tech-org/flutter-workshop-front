@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_workshop_front/core/http/custom_dio.dart';
+import 'package:flutter_workshop_front/core/http/response_validation.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 
 class CustomerContactService {
@@ -14,7 +15,7 @@ class CustomerContactService {
       '/v1/customer-contact',
       data: json,
     );
-    return response.data;
+    response.ensureSuccess();
   }
 
   Future<void> updateCustomerContact(
@@ -23,9 +24,10 @@ class CustomerContactService {
   ) async {
     final json = customerContact.toJson();
 
-    await _dio.put(
+    final response = await _dio.put(
       '/v1/customer-contact/$id',
       data: json,
     );
+    response.ensureSuccess();
   }
 }

@@ -5,6 +5,7 @@ import '../../core/exceptions/requisition_exception.dart';
 import '../../core/config/config.dart';
 
 import '../../core/http/custom_dio.dart';
+import '../../core/http/response_validation.dart';
 import '../../core/security/auth_notifier.dart';
 import '../../core/security/security_storage.dart';
 import '../../models/auth/token_request.dart';
@@ -74,8 +75,10 @@ class AuthService {
           tokenResponse.refreshToken,
         );
         _authNotifier.setState(AuthRouteState.authenticated);
-      } else if (response.statusCode == 409) {
-        throw RequisitionException.fromJson(response.data['error']);
+      } else {
+        // 409 (conflito de dispositivo) e demais 4xx entregues pelo
+        // validateStatus: o setup não pode marcar sucesso.
+        throw requisitionExceptionFromResponse(response);
       }
     } on DioException catch (e) {
       debugPrint(
