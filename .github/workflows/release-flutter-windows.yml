@@ -99,10 +99,46 @@ jobs:
           $notes | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "EOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
+      # Só tag estável (vX.Y.Z, sem sufixo) vira release "latest". Tag com sufixo
+      # (vX.Y.Z-test, vX.Y.Z-rc.1) ou execução manual fora de tag vira pré-release,
+      # que o UpdateService ignora (/releases/latest não retorna pré-releases).
+      - name: Detect release type
+        id: release_type
+        shell: bash
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+        run: |
+          if [[ "$REF_TYPE" == "tag" && "$REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "PRERELEASE=false" >> "$GITHUB_OUTPUT"
+            echo "SUFFIX=" >> "$GITHUB_OUTPUT"
+          elif [[ "$REF_TYPE" == "tag" && "$REF_NAME" == *-* ]]; then
+            suffix="${REF_NAME#*-}"
+            echo "PRERELEASE=true" >> "$GITHUB_OUTPUT"
+            echo "SUFFIX=-${suffix//[^A-Za-z0-9.]/-}" >> "$GITHUB_OUTPUT"
+          else
+            echo "PRERELEASE=true" >> "$GITHUB_OUTPUT"
+            echo "SUFFIX=-dev-${SHA:0:7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # O instalador de pré-release não pode ter o mesmo nome do estável.
+      - name: Rename pre-release installer
+        if: steps.release_type.outputs.PRERELEASE == 'true'
+        shell: bash
+        env:
+          SUFFIX: ${{ steps.release_type.outputs.SUFFIX }}
+        run: |
+          shopt -s nullglob
+          for exe in output/*.exe; do
+            mv "$exe" "${exe%.exe}${SUFFIX}.exe"
+          done
+          ls output
+
       - name: Create GitHub Release and upload installer
         uses: softprops/action-gh-release@v1
         with:
-          name: Release ${{ steps.get_version.outputs.VERSION }}
+          name: Release ${{ steps.get_version.outputs.VERSION }}${{ steps.release_type.outputs.SUFFIX }}
           body: |
             ## v${{ steps.get_version.outputs.VERSION }}
 
@@ -111,4 +147,4 @@ jobs:
             ${{ steps.get_release_notes.outputs.NOTES }}
           files: ./output/*.exe
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.release_type.outputs.PRERELEASE == 'true' }}
