@@ -8,7 +8,7 @@
 - Flutter frontend app targeting mobile/desktop/web.
 - Core code lives in `lib/` with `pages/`, `widgets/`, `services/`, `models/`, and `core/`.
 - Tests are in `test/` using `flutter_test`.
-- Assets are listed in `pubspec.yaml` and include `.env` and `assets/images/`.
+- Assets are listed in `pubspec.yaml` and include `assets/images/` (never `.env`).
 - No Cursor rules found in `.cursor/rules/` or `.cursorrules`.
 - No Copilot rules found in `.github/copilot-instructions.md`.
 
@@ -16,10 +16,10 @@
 - Install Flutter SDK matching `pubspec.yaml` SDK constraint (Dart ^3.5.3).
 - Run `flutter pub get` after pulling dependencies or editing `pubspec.yaml`.
 - Configure environment files via `bash scripts/set_env.sh local` or `bash scripts/set_env.sh prd`.
-- `.env` is packaged as an asset, so keep it updated when running locally.
+- `.env` is not versioned nor packaged: values reach the app via `--dart-define-from-file=.env` (see `.vscode/launch.json`); copy `.env.example` or use `set_env.sh`.
 
 ## Common build commands
-- Debug run: `flutter run`.
+- Debug run: `flutter run --dart-define-from-file=.env`.
 - Run on a specific device: `flutter run -d <device-id>`.
 - Android APK: `flutter build apk`.
 - iOS (macOS only): `flutter build ios`.

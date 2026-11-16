@@ -52,3 +52,5 @@ specs/
 opencode.json
 package-lock.json
 package.json
+# Local env (values go in via --dart-define-from-file=.env; never commit)
+.env

@@ -12,7 +12,8 @@
       "program": "lib/main.dart",
       "args": [
         "-d",
-        "brave"
+        "brave",
+        "--dart-define-from-file=.env"
       ]
     },
     {
@@ -23,7 +24,8 @@
       "program": "lib/main.dart",
       "args": [
         "-d",
-        "windows"
+        "windows",
+        "--dart-define-from-file=.env"
       ]
     },
     {
@@ -34,7 +36,8 @@
       "program": "lib/main.dart",
       "args": [
         "-d",
-        "linux"
+        "linux",
+        "--dart-define-from-file=.env"
       ]
     }
   ]
