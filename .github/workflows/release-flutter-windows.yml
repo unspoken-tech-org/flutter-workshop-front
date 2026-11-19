@@ -34,17 +34,32 @@ jobs:
       - name: Enable Windows Desktop
         run: flutter config --enable-windows-desktop
 
-      # Os valores entram por --dart-define; nenhum .env vai para o bundle.
-      - name: Build Windows Release
-        run: flutter build windows --release --dart-define-from-file=.env-prd
-
-      - name: Extract version from pubspec.yaml
+      # A versão vem da tag (vX.Y.Z ou vX.Y.Z-rc.N -> X.Y.Z); o pubspec.yaml não é
+      # atualizado. Execução manual fora de tag usa a versão do pubspec.yaml.
+      - name: Resolve version
         id: get_version
-        shell: pwsh
+        shell: bash
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          $content = Get-Content pubspec.yaml -Raw
-          $version = ($content | Select-String -Pattern 'version:\s*(\d+\.\d+\.\d+)').Matches.Groups[1].Value
-          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          if [[ "$REF_TYPE" == "tag" ]]; then
+            [[ "$REF_NAME" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)(-.+)?$ ]] || {
+              echo "::error::tag $REF_NAME is not vX.Y.Z or vX.Y.Z-<suffix>"
+              exit 1
+            }
+            version="${BASH_REMATCH[1]}"
+          else
+            version="$(sed -nE 's/^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' pubspec.yaml)"
+          fi
+          [[ -n "$version" ]] || { echo "::error::could not resolve the version"; exit 1; }
+          echo "VERSION=$version" >> "$GITHUB_OUTPUT"
+
+      # Os valores entram por --dart-define; nenhum .env vai para o bundle.
+      # --build-name grava a versão no executável: o UpdateService compara
+      # PackageInfo.version com a tag de /releases/latest.
+      - name: Build Windows Release
+        run: flutter build windows --release --dart-define-from-file=.env-prd --build-name=${{ steps.get_version.outputs.VERSION }}
 
       - name: Download and Install Inno Setup
         shell: pwsh
