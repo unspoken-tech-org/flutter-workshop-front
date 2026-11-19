@@ -87,8 +87,21 @@ class _CustomTextFieldState extends State<CustomTextField> {
     final valueChanged = widget.value != oldWidget.value;
     final editingEnded = widget.readOnly && !oldWidget.readOnly;
     if (valueChanged || editingEnded) {
-      _internalController!.text = widget.value ?? '';
+      _syncTextAfterBuild();
     }
+  }
+
+  // Alterar o texto notifica o TextFormField, que avisa o Form ancestral
+  // (setState). Fazer isso dentro de didUpdateWidget dispara
+  // "setState() called during build"; por isso a sincronização vai para
+  // depois do frame.
+  void _syncTextAfterBuild() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final controller = _internalController;
+      if (!mounted || controller == null) return;
+      final text = widget.value ?? '';
+      if (controller.text != text) controller.text = text;
+    });
   }
 
   @override

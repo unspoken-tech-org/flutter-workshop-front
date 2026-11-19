@@ -6,8 +6,9 @@ Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
 
 void main() {
   group('CustomTextField sem controller externo', () {
-    testWidgets('preserva o texto digitado após rebuild com o mesmo valor',
-        (tester) async {
+    testWidgets('preserva o texto digitado após rebuild com o mesmo valor', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(const CustomTextField(value: 'original', readOnly: false)),
       );
@@ -21,16 +22,20 @@ void main() {
       expect(find.text('rascunho'), findsOneWidget);
     });
 
-    testWidgets('atualiza o texto quando o valor de origem muda',
-        (tester) async {
+    testWidgets('atualiza o texto quando o valor de origem muda', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(const CustomTextField(value: 'a')));
       await tester.pumpWidget(_wrap(const CustomTextField(value: 'b')));
+      // A sincronização do texto ocorre após o frame.
+      await tester.pump();
 
       expect(find.text('b'), findsOneWidget);
     });
 
-    testWidgets('volta ao valor de origem quando sai do modo edição',
-        (tester) async {
+    testWidgets('volta ao valor de origem quando sai do modo edição', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(const CustomTextField(value: 'original', readOnly: false)),
       );
@@ -39,8 +44,25 @@ void main() {
       await tester.pumpWidget(
         _wrap(const CustomTextField(value: 'original', readOnly: true)),
       );
+      await tester.pump();
 
       expect(find.text('original'), findsOneWidget);
     });
+
+    testWidgets(
+      'dentro de um Form, mudar o valor não chama setState no build',
+      (tester) async {
+        await tester.pumpWidget(
+          _wrap(const Form(child: CustomTextField(value: 'a'))),
+        );
+        await tester.pumpWidget(
+          _wrap(const Form(child: CustomTextField(value: 'b'))),
+        );
+        await tester.pump();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('b'), findsOneWidget);
+      },
+    );
   });
 }
