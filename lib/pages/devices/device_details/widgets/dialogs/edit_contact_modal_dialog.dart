@@ -45,6 +45,12 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
     _dateController.text = widget.contact.lastContact.formatDate();
   }
 
+  @override
+  void dispose() {
+    _dateController.dispose();
+    super.dispose();
+  }
+
   String? _initialContactTypeDisplayName() {
     return ContactType.values
         .firstWhereOrNull((e) => e.name == inputCustomerContact.contactType)
@@ -79,12 +85,15 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
             child:
                 Selector<
                   DeviceCustomerPageController,
-                  (DeviceCustomer?, List<Technician>)
+                  (DeviceCustomer?, List<Technician>, bool)
                 >(
-                  selector: (context, controller) =>
-                      (controller.deviceCustomer, controller.technicians),
+                  selector: (context, controller) => (
+                    controller.deviceCustomer,
+                    controller.technicians,
+                    controller.isEditingContact,
+                  ),
                   builder: (context, values, child) {
-                    final (deviceCustomer, technicians) = values;
+                    final (deviceCustomer, technicians, isSaving) = values;
                     if (deviceCustomer == null) return const SizedBox.shrink();
                     final initialTechName = _initialTechnicianName(technicians);
                     return Column(
@@ -332,12 +341,11 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                         ActionButtonsWidget(
                           formKey: _formKey,
                           dateController: _dateController,
-                          onSave: () async {
-                            await controller.updateCustomerContact(
-                              widget.contact.id,
-                              inputCustomerContact,
-                            );
-                          },
+                          isSaving: isSaving,
+                          onSave: () => controller.updateCustomerContact(
+                            widget.contact.id,
+                            inputCustomerContact,
+                          ),
                         ),
                       ],
                     );

@@ -5,13 +5,15 @@ import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 class ActionButtonsWidget extends StatelessWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController dateController;
-  final void Function() onSave;
+  final Future<bool> Function() onSave;
+  final bool isSaving;
 
   const ActionButtonsWidget({
     super.key,
     required this.formKey,
     required this.dateController,
     required this.onSave,
+    this.isSaving = false,
   });
 
   @override
@@ -20,10 +22,12 @@ class ActionButtonsWidget extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         OutlinedButton(
-          onPressed: () {
-            formKey.currentState?.reset();
-            dateController.clear();
-          },
+          onPressed: isSaving
+              ? null
+              : () {
+                  formKey.currentState?.reset();
+                  dateController.clear();
+                },
           child: const Text('Limpar'),
         ),
         const SizedBox(width: 16),
@@ -32,14 +36,27 @@ class ActionButtonsWidget extends StatelessWidget {
             backgroundColor: WsColors.dark,
             foregroundColor: Colors.white,
           ),
-          onPressed: () {
-            if (formKey.currentState?.validate() ?? false) {
-              formKey.currentState?.save();
-              onSave();
-              Navigator.of(context).pop();
-            }
-          },
-          child: const Text('Salvar'),
+          onPressed: isSaving
+              ? null
+              : () async {
+                  if (formKey.currentState?.validate() ?? false) {
+                    formKey.currentState?.save();
+                    final saved = await onSave();
+                    if (saved && context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  }
+                },
+          child: isSaving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Salvar'),
         ),
       ],
     );

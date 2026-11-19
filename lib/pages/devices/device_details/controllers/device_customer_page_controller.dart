@@ -176,11 +176,11 @@ class DeviceCustomerPageController extends ChangeNotifier {
     }
   }
 
-  Future<void> createCustomerContact(
+  Future<bool> createCustomerContact(
     InputCustomerContact customerContact,
   ) async {
     final current = deviceCustomer;
-    if (current == null || isCreatingContact) return;
+    if (current == null || isCreatingContact) return false;
     isCreatingContact = true;
     notifyListeners();
     try {
@@ -188,22 +188,25 @@ class DeviceCustomerPageController extends ChangeNotifier {
       await _getCustomerDevice(current.deviceId);
 
       SnackBarUtil().showSuccess('Contato criado com sucesso');
+      return true;
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
+      return false;
     } catch (e) {
       SnackBarUtil().showError('Erro ao criar contato. Tente novamente.');
+      return false;
     } finally {
       isCreatingContact = false;
       notifyListeners();
     }
   }
 
-  Future<void> updateCustomerContact(
+  Future<bool> updateCustomerContact(
     int contactId,
     InputCustomerContact customerContact,
   ) async {
     final current = deviceCustomer;
-    if (current == null || isEditingContact) return;
+    if (current == null || isEditingContact) return false;
     isEditingContact = true;
     notifyListeners();
     try {
@@ -214,10 +217,13 @@ class DeviceCustomerPageController extends ChangeNotifier {
       await _getCustomerDevice(current.deviceId);
 
       SnackBarUtil().showSuccess('Contato editado com sucesso');
+      return true;
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
+      return false;
     } catch (e) {
       SnackBarUtil().showError('Erro ao editar contato. Tente novamente.');
+      return false;
     } finally {
       isEditingContact = false;
       notifyListeners();
