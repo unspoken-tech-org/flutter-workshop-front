@@ -30,7 +30,12 @@ Future<void> main() async {
     onCredentialRejected: authService.forceLogout,
   );
   authNotifier.setState(AuthRouteState.restoring, notify: false);
-  await authService.initializeAuthState();
+  try {
+    await authService.initializeAuthState();
+  } catch (e, st) {
+    debugPrint('[AuthDebug] Unexpected bootstrap error: $e\n$st');
+    authNotifier.setState(AuthRouteState.storageError, notify: false);
+  }
   final router = buildRouter(authNotifier);
 
   runApp(

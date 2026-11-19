@@ -14,6 +14,13 @@ import '../../core/security/security_storage.dart';
 import '../../models/auth/token_request.dart';
 import '../../models/auth/token_response.dart';
 
+enum SessionRestoreResult {
+  restored,
+  invalidCredentials,
+  transientError,
+  noApiKey,
+}
+
 class AuthService {
   final Dio _dio;
   final SecurityStorage _storage;
@@ -84,7 +91,12 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        final tokenResponse = TokenResponse.fromJson(response.data);
+        if (response.data is! Map<String, dynamic>) {
+          throw const FormatException('Invalid token response');
+        }
+        final tokenResponse = TokenResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
 
         debugPrint('[AuthDebug] Authenticate successful. Saving tokens...');
         await _storageLock.synchronized(() async {
@@ -156,25 +168,36 @@ class AuthService {
     }
   }
 
-  Future<bool> restoreSessionFromStoredApiKey() async {
+  Future<SessionRestoreResult> restoreSessionFromStoredApiKey() async {
     final apiKey = await _storage.getApiKey();
     if (apiKey == null || apiKey.isEmpty) {
-      return false;
+      return SessionRestoreResult.noApiKey;
     }
 
     if (await hasSession) {
-      return true;
+      return SessionRestoreResult.restored;
     }
 
     try {
       await authenticate(apiKey);
-      return true;
-    } on DioException {
-      return false;
-    } on RequisitionException {
-      return false;
-    } catch (_) {
-      return false;
+      return SessionRestoreResult.restored;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401 ||
+          ApiAuthError.isCredentialRejected(e.response)) {
+        return SessionRestoreResult.invalidCredentials;
+      }
+      return SessionRestoreResult.transientError;
+    } on RequisitionException catch (e) {
+      if (e.code == ApiAuthError.invalidApiKey ||
+          e.code == ApiAuthError.invalidToken ||
+          e.code == '409' ||
+          e.code == 'DEVICE_BOUND') {
+        await _clearProvisioningAndResetState();
+        return SessionRestoreResult.invalidCredentials;
+      }
+      return SessionRestoreResult.transientError;
+    } on FormatException {
+      return SessionRestoreResult.transientError;
     }
   }
 
@@ -387,41 +410,55 @@ class AuthService {
   }
 
   Future<AuthRouteState> initializeAuthState() async {
-    final alreadyHasSession = await hasSession;
-    if (alreadyHasSession) {
-      _authNotifier.setState(AuthRouteState.authenticated);
-      return AuthRouteState.authenticated;
-    }
+    try {
+      final alreadyHasSession = await hasSession;
+      if (alreadyHasSession) {
+        _authNotifier.setState(AuthRouteState.authenticated);
+        return AuthRouteState.authenticated;
+      }
 
-    final hasStoredApiKey = await hasApiKey;
-    if (!hasStoredApiKey) {
-      if (kDebugMode) {
-        try {
-          final devApiKey = Config.devApiKey;
-          if (devApiKey.isNotEmpty) {
-            await authenticate(devApiKey);
+      final hasStoredApiKey = await hasApiKey;
+      if (!hasStoredApiKey) {
+        if (kDebugMode) {
+          try {
+            final devApiKey = Config.devApiKey;
+            if (devApiKey.isNotEmpty) {
+              await authenticate(devApiKey);
+              _authNotifier.setState(AuthRouteState.authenticated);
+              return AuthRouteState.authenticated;
+            }
+          } catch (_) {
+            // If DEV key fails or env is unavailable, keep setup flow.
+          }
+        }
+
+        _authNotifier.setState(AuthRouteState.needsSetup);
+        return AuthRouteState.needsSetup;
+      }
+
+      final result = await restoreSessionFromStoredApiKey();
+      switch (result) {
+        case SessionRestoreResult.restored:
+          final stillHasApiKey = await hasApiKey;
+          final hasValidSessionAfterRestore = await hasSession;
+          if (stillHasApiKey && hasValidSessionAfterRestore) {
             _authNotifier.setState(AuthRouteState.authenticated);
             return AuthRouteState.authenticated;
           }
-        } catch (_) {
-          // If DEV key fails or env is unavailable, keep setup flow.
-        }
+          _authNotifier.setState(AuthRouteState.needsSetup);
+          return AuthRouteState.needsSetup;
+        case SessionRestoreResult.invalidCredentials:
+        case SessionRestoreResult.noApiKey:
+          _authNotifier.setState(AuthRouteState.needsSetup);
+          return AuthRouteState.needsSetup;
+        case SessionRestoreResult.transientError:
+          _authNotifier.setState(AuthRouteState.offline);
+          return AuthRouteState.offline;
       }
-
-      _authNotifier.setState(AuthRouteState.needsSetup);
-      return AuthRouteState.needsSetup;
+    } catch (e) {
+      debugPrint('[AuthDebug] Bootstrap/storage error: $e');
+      _authNotifier.setState(AuthRouteState.storageError);
+      return AuthRouteState.storageError;
     }
-
-    final restored = await restoreSessionFromStoredApiKey();
-    final stillHasApiKey = await hasApiKey;
-    final hasValidSessionAfterRestore = await hasSession;
-
-    if (restored && stillHasApiKey && hasValidSessionAfterRestore) {
-      _authNotifier.setState(AuthRouteState.authenticated);
-      return AuthRouteState.authenticated;
-    }
-
-    _authNotifier.setState(AuthRouteState.needsSetup);
-    return AuthRouteState.needsSetup;
   }
 }
