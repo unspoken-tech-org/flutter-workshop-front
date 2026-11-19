@@ -23,7 +23,12 @@ Future<void> main() async {
   final authNotifier = AuthNotifier();
   final storage = SecurityStorage();
   final authService = AuthService(storage: storage, authNotifier: authNotifier);
-  CustomDio.setup(storage, authService.refreshToken, authNotifier);
+  CustomDio.setup(
+    storage,
+    authService.refreshToken,
+    authNotifier,
+    onCredentialRejected: authService.forceLogout,
+  );
   authNotifier.setState(AuthRouteState.restoring, notify: false);
   await authService.initializeAuthState();
   final router = buildRouter(authNotifier);

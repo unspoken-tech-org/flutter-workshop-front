@@ -172,12 +172,14 @@ void main() {
     /// Monta um SecurityInterceptor conectado ao [dio] e [retryDio] fornecidos.
     SecurityInterceptor buildInterceptor({
       required Future<RefreshResult> Function() onRefresh,
+      Future<void> Function()? onCredentialRejected,
     }) {
       return SecurityInterceptor(
         storage: storage,
         retryDio: retryDio,
         authNotifier: authNotifier,
         onRefresh: onRefresh,
+        onCredentialRejected: onCredentialRejected,
       );
     }
 
@@ -376,8 +378,17 @@ void main() {
         ),
       );
 
+      final authService = AuthService(
+        dio: Dio(),
+        storage: storage,
+        authNotifier: authNotifier,
+      );
+
       dio.interceptors.add(
-        buildInterceptor(onRefresh: () async => const RefreshSessionExpired()),
+        buildInterceptor(
+          onRefresh: () async => const RefreshSessionExpired(),
+          onCredentialRejected: authService.forceLogout,
+        ),
       );
 
       await expectLater(
@@ -409,8 +420,17 @@ void main() {
         ),
       );
 
+      final authService = AuthService(
+        dio: Dio(),
+        storage: storage,
+        authNotifier: authNotifier,
+      );
+
       dio.interceptors.add(
-        buildInterceptor(onRefresh: () async => const RefreshSessionExpired()),
+        buildInterceptor(
+          onRefresh: () async => const RefreshSessionExpired(),
+          onCredentialRejected: authService.forceLogout,
+        ),
       );
 
       await expectLater(
@@ -448,8 +468,17 @@ void main() {
         ),
       );
 
+      final authService = AuthService(
+        dio: Dio(),
+        storage: storage,
+        authNotifier: authNotifier,
+      );
+
       dio.interceptors.add(
-        buildInterceptor(onRefresh: () async => const RefreshSessionExpired()),
+        buildInterceptor(
+          onRefresh: () async => const RefreshSessionExpired(),
+          onCredentialRejected: authService.forceLogout,
+        ),
       );
 
       await expectLater(
@@ -649,6 +678,7 @@ void main() {
         dio.interceptors.add(
           buildInterceptor(
             onRefresh: () async => const RefreshSessionExpired(),
+            onCredentialRejected: () async => storage.clearProvisioning(),
           ),
         );
 
@@ -685,6 +715,7 @@ void main() {
         dio.interceptors.add(
           buildInterceptor(
             onRefresh: () async => const RefreshSessionExpired(),
+            onCredentialRejected: () async => storage.clearProvisioning(),
           ),
         );
 
@@ -729,6 +760,7 @@ void main() {
         dio.interceptors.add(
           buildInterceptor(
             onRefresh: () async => const RefreshSessionExpired(),
+            onCredentialRejected: () async => storage.clearProvisioning(),
           ),
         );
 

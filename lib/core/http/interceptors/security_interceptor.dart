@@ -22,6 +22,7 @@ class SecurityInterceptor extends Interceptor {
 
   final Future<RefreshResult> Function() _onRefresh;
   final AuthNotifier _authNotifier;
+  final Future<void> Function()? _onCredentialRejected;
 
   /// Garante que apenas um refresh ocorre por vez entre requests concorrentes.
   final Lock _lock = Lock();
@@ -31,10 +32,12 @@ class SecurityInterceptor extends Interceptor {
     required Dio retryDio,
     required Future<RefreshResult> Function() onRefresh,
     required AuthNotifier authNotifier,
+    Future<void> Function()? onCredentialRejected,
   }) : _storage = storage,
        _retryDio = retryDio,
        _onRefresh = onRefresh,
-       _authNotifier = authNotifier;
+       _authNotifier = authNotifier,
+       _onCredentialRejected = onCredentialRejected;
 
   // ── onRequest: verificação PROATIVA ──────────────────────────────────────
 
@@ -178,7 +181,9 @@ class SecurityInterceptor extends Interceptor {
           '[AuthDebug][$requestId] Credential rejected by API. Clearing provisioning (Forced Logout).',
         );
         try {
-          await _storage.clearProvisioning();
+          if (_onCredentialRejected != null) {
+            await _onCredentialRejected();
+          }
         } catch (e) {
           debugPrint(
             '[AuthDebug][$requestId] Failed clearing provisioning on forced logout: $e',

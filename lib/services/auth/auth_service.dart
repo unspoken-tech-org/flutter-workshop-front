@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:synchronized/synchronized.dart';
 import '../../core/exceptions/requisition_exception.dart';
 import '../../core/config/config.dart';
 
@@ -17,6 +18,8 @@ class AuthService {
   final Dio _dio;
   final SecurityStorage _storage;
   final AuthNotifier _authNotifier;
+  final Lock _storageLock = Lock();
+  int _sessionEpoch = 0;
 
   AuthService({
     Dio? dio,
@@ -30,10 +33,23 @@ class AuthService {
   Future<bool> get hasApiKey async => (await apiKey) != null;
 
   Future<bool> get hasSession async {
-    final accessToken = await _storage.getAccessToken();
     final refreshToken = await _storage.getRefreshToken();
-    return (accessToken != null && accessToken.isNotEmpty) ||
-        (refreshToken != null && refreshToken.isNotEmpty);
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      return true;
+    }
+    final accessToken = await _storage.getAccessToken();
+    if (accessToken == null || accessToken.isEmpty) {
+      return false;
+    }
+    return !_isTokenExpired(accessToken);
+  }
+
+  bool _isTokenExpired(String token) {
+    try {
+      return JwtDecoder.isExpired(token);
+    } catch (_) {
+      return true;
+    }
   }
 
   /// RBAC: Checks if user has ADMIN role by decoding the current JWT.
@@ -53,6 +69,7 @@ class AuthService {
 
   /// Performs initial authentication exchanging API Key for JWT tokens.
   Future<void> authenticate(String apiKey) async {
+    final epochAtStart = ++_sessionEpoch;
     try {
       final boundDeviceId = await _storage.getBoundDeviceId();
       final appVersion = await Config.appVersion;
@@ -70,27 +87,57 @@ class AuthService {
         final tokenResponse = TokenResponse.fromJson(response.data);
 
         debugPrint('[AuthDebug] Authenticate successful. Saving tokens...');
-        // Save API Key only if authentication succeeds
-        await _storage.saveApiKey(apiKey);
-        await _storage.saveTokens(
-          tokenResponse.accessToken,
-          tokenResponse.refreshToken,
-        );
-        _authNotifier.setState(AuthRouteState.authenticated);
+        await _storageLock.synchronized(() async {
+          if (_sessionEpoch != epochAtStart) {
+            return;
+          }
+          // Save API Key only if authentication succeeds
+          await _storage.saveApiKey(apiKey);
+          await _storage.saveTokens(
+            tokenResponse.accessToken,
+            tokenResponse.refreshToken,
+          );
+          _authNotifier.setState(AuthRouteState.authenticated);
+        });
       } else {
         // 409 (conflito de dispositivo) e demais 4xx entregues pelo
         // validateStatus: o setup não pode marcar sucesso.
+        if (ApiAuthError.isCredentialRejected(response)) {
+          await _storageLock.synchronized(() async {
+            if (_sessionEpoch == epochAtStart) {
+              try {
+                await _storage.clearProvisioning();
+              } finally {
+                _authNotifier.setState(AuthRouteState.needsSetup);
+              }
+            }
+          });
+        }
         throw requisitionExceptionFromResponse(response);
       }
     } on DioException catch (e) {
       debugPrint(
         '[AuthDebug] Authenticate failed with status ${e.response?.statusCode}: $e',
       );
-      if (e.response?.statusCode == 401) {
-        await _storage.clearProvisioning();
-        _authNotifier.setState(AuthRouteState.needsSetup);
+      if (e.response?.statusCode == 401 ||
+          ApiAuthError.isCredentialRejected(e.response)) {
+        await _storageLock.synchronized(() async {
+          if (_sessionEpoch == epochAtStart) {
+            try {
+              await _storage.clearProvisioning();
+            } finally {
+              _authNotifier.setState(AuthRouteState.needsSetup);
+            }
+          }
+        });
       } else {
-        await _storage.clearSession();
+        await _storageLock.synchronized(() async {
+          if (_sessionEpoch == epochAtStart) {
+            try {
+              await _storage.clearSession();
+            } catch (_) {}
+          }
+        });
       }
       rethrow;
     } on RequisitionException {
@@ -98,8 +145,13 @@ class AuthService {
     } catch (e) {
       debugPrint('[AuthDebug] Authenticate failed: $e');
       // If initial auth fails, ensure session is cleared but preserve boundDeviceId
-      await _storage.clearSession();
-      _authNotifier.setState(AuthRouteState.needsSetup);
+      await _storageLock.synchronized(() async {
+        if (_sessionEpoch == epochAtStart) {
+          try {
+            await _storage.clearSession();
+          } catch (_) {}
+        }
+      });
       rethrow;
     }
   }
@@ -129,6 +181,7 @@ class AuthService {
   /// Performs silent Access Token refresh.
   Future<RefreshResult> refreshToken() async {
     debugPrint('[AuthDebug] Starting refreshToken flow...');
+    final epochAtStart = _sessionEpoch;
     final String? currentRefreshToken;
     try {
       currentRefreshToken = await _storage.getRefreshToken();
@@ -145,6 +198,11 @@ class AuthService {
       return const RefreshSessionExpired();
     }
 
+    if (_sessionEpoch != epochAtStart) {
+      debugPrint('[AuthDebug] Session epoch changed before refresh request.');
+      return const RefreshSessionExpired();
+    }
+
     try {
       final response = await _dio.post(
         '/api/auth/refresh',
@@ -155,12 +213,17 @@ class AuthService {
       final statusCode = response.statusCode ?? 0;
       if (statusCode != 200 && statusCode != 201) {
         debugPrint('[AuthDebug] Unexpected refresh status: $statusCode');
-        return await _handleRefreshRejection(response);
+        return await _handleRefreshRejection(
+          response,
+          epochAtStart: epochAtStart,
+        );
       }
 
       if (response.data is! Map<String, dynamic>) {
         debugPrint('[AuthDebug] Invalid refresh payload format.');
-        await logout();
+        if (_sessionEpoch == epochAtStart) {
+          await logout();
+        }
         return const RefreshSessionExpired();
       }
 
@@ -169,30 +232,53 @@ class AuthService {
 
       if (newAccessToken == null || newAccessToken.isEmpty) {
         debugPrint('[AuthDebug] Invalid refresh payload: missing accessToken.');
-        await logout();
+        if (_sessionEpoch == epochAtStart) {
+          await logout();
+        }
         return const RefreshSessionExpired();
       }
 
       final newRefreshToken = payload['refreshToken'] as String?;
 
-      if (newRefreshToken != null && newRefreshToken.isNotEmpty) {
-        debugPrint(
-          '[AuthDebug] Refresh successful. Rotating access and refresh tokens.',
-        );
-        await _storage.saveTokens(newAccessToken, newRefreshToken);
-      } else {
-        debugPrint('[AuthDebug] Refresh successful. Saving new access token.');
-        await _storage.saveAccessToken(newAccessToken);
-      }
+      return await _storageLock.synchronized(() async {
+        if (_sessionEpoch != epochAtStart) {
+          debugPrint(
+            '[AuthDebug] Session epoch changed while refresh was in flight. Discarding token.',
+          );
+          return const RefreshSessionExpired();
+        }
 
-      return RefreshSuccess(newAccessToken);
+        try {
+          if (newRefreshToken != null && newRefreshToken.isNotEmpty) {
+            debugPrint(
+              '[AuthDebug] Refresh successful. Rotating access and refresh tokens.',
+            );
+            await _storage.saveTokens(newAccessToken, newRefreshToken);
+          } else {
+            debugPrint(
+              '[AuthDebug] Refresh successful. Saving new access token.',
+            );
+            await _storage.saveAccessToken(newAccessToken);
+          }
+          return RefreshSuccess(newAccessToken);
+        } catch (e) {
+          debugPrint('[AuthDebug] Failed saving refreshed token: $e');
+          return RefreshTransientFailure(
+            errorType: DioExceptionType.unknown,
+            error: e,
+          );
+        }
+      });
     } on DioException catch (e) {
       debugPrint(
         '[AuthDebug] Refresh failed with status ${e.response?.statusCode}',
       );
       if (e.response?.statusCode == 401 ||
           ApiAuthError.isCredentialRejected(e.response)) {
-        return await _handleRefreshRejection(e.response);
+        return await _handleRefreshRejection(
+          e.response,
+          epochAtStart: epochAtStart,
+        );
       }
       return RefreshTransientFailure(
         errorType: e.type,
@@ -215,17 +301,31 @@ class AuthService {
   /// (gateway "Invalid Host Header", WAF) e falhas de rede são transitórios:
   /// mantêm a sessão para a próxima tentativa.
   Future<RefreshResult> _handleRefreshRejection(
-    Response<dynamic>? response,
-  ) async {
+    Response<dynamic>? response, {
+    required int epochAtStart,
+  }) async {
     if (response?.statusCode == 401) {
       // Refresh token recusado: preserva API key para facilitar re-login.
-      debugPrint('[AuthDebug] Refresh token rejected. Clearing session only.');
-      await _storage.clearSession();
-      _authNotifier.setState(AuthRouteState.needsSetup);
-      return const RefreshSessionExpired();
+      return await _storageLock.synchronized(() async {
+        if (_sessionEpoch != epochAtStart) {
+          return const RefreshSessionExpired();
+        }
+        debugPrint(
+          '[AuthDebug] Refresh token rejected. Clearing session only.',
+        );
+        try {
+          await _storage.clearSession();
+        } finally {
+          _authNotifier.setState(AuthRouteState.needsSetup);
+        }
+        return const RefreshSessionExpired();
+      });
     } else if (ApiAuthError.isCredentialRejected(response)) {
+      if (_sessionEpoch != epochAtStart) {
+        return const RefreshSessionExpired();
+      }
       debugPrint('[AuthDebug] Credential rejected on refresh. Logging out...');
-      await logout();
+      await forceLogout();
       return const RefreshSessionExpired();
     } else {
       debugPrint(
@@ -241,24 +341,49 @@ class AuthService {
   /// Revokes token on backend and clears local storage.
   Future<void> logout() async {
     debugPrint('[AuthDebug] Starting logout flow...');
+    _sessionEpoch++;
     try {
       final refreshToken = await _storage.getRefreshToken();
       if (refreshToken != null) {
-        await _dio.post(
-          '/api/auth/revoke',
-          data: {'refreshToken': refreshToken},
-          options: Options(extra: {'silent': true}),
-        );
+        await _dio
+            .post(
+              '/api/auth/revoke',
+              data: {'refreshToken': refreshToken},
+              options: Options(
+                extra: {'silent': true},
+                sendTimeout: const Duration(seconds: 3),
+                receiveTimeout: const Duration(seconds: 3),
+              ),
+            )
+            .timeout(const Duration(seconds: 3));
         debugPrint('[AuthDebug] Token revoked on backend.');
       }
     } catch (e) {
       debugPrint('[AuthDebug] Revoke on backend failed (silent): $e');
       // Network logout failed, but proceeding with local cleanup
     } finally {
-      debugPrint('[AuthDebug] Clearing local secure storage.');
-      await _storage.clearProvisioning();
-      _authNotifier.setState(AuthRouteState.needsSetup);
+      await _clearProvisioningAndResetState();
     }
+  }
+
+  /// Clears local provisioning immediately without calling the backend.
+  Future<void> forceLogout() async {
+    debugPrint('[AuthDebug] Starting forceLogout flow...');
+    _sessionEpoch++;
+    await _clearProvisioningAndResetState();
+  }
+
+  Future<void> _clearProvisioningAndResetState() async {
+    await _storageLock.synchronized(() async {
+      try {
+        debugPrint('[AuthDebug] Clearing local secure storage.');
+        await _storage.clearProvisioning();
+      } catch (e) {
+        debugPrint('[AuthDebug] Failed clearing local secure storage: $e');
+      } finally {
+        _authNotifier.setState(AuthRouteState.needsSetup);
+      }
+    });
   }
 
   Future<AuthRouteState> initializeAuthState() async {
