@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:synchronized/synchronized.dart';
 import '../../security/auth_notifier.dart';
+import '../api_auth_error.dart';
 import '../../security/security_storage.dart';
 
 class SecurityInterceptor extends Interceptor {
@@ -133,10 +134,11 @@ class SecurityInterceptor extends Interceptor {
         debugPrint('[AuthDebug][$requestId] Retry failed: $retryErr');
         return handler.next(retryErr);
       }
-    } else if (err.response?.statusCode == 403) {
-      // API Key inválida ou usuário bloqueado: logout forçado.
+    } else if (ApiAuthError.isCredentialRejected(err.response)) {
+      // Só a API diz que a credencial foi revogada/é inválida: logout forçado.
+      // 403 genérico (papel, WAF da Cloudflare) segue para o chamador.
       debugPrint(
-        '[AuthDebug][$requestId] 403 Forbidden detected. Clearing provisioning (Forced Logout).',
+        '[AuthDebug][$requestId] Credential rejected by API. Clearing provisioning (Forced Logout).',
       );
       await _storage.clearProvisioning();
       _authNotifier.setState(AuthRouteState.needsSetup);

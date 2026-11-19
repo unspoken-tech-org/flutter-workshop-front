@@ -4,6 +4,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import '../../core/exceptions/requisition_exception.dart';
 import '../../core/config/config.dart';
 
+import '../../core/http/api_auth_error.dart';
 import '../../core/http/custom_dio.dart';
 import '../../core/security/auth_notifier.dart';
 import '../../core/security/security_storage.dart';
@@ -139,16 +140,7 @@ class AuthService {
       final statusCode = response.statusCode ?? 0;
       if (statusCode != 200 && statusCode != 201) {
         debugPrint('[AuthDebug] Unexpected refresh status: $statusCode');
-        if (statusCode == 401) {
-          // Refresh token expirado: preserva API key para facilitar re-login.
-          debugPrint(
-            '[AuthDebug] Refresh token expired. Clearing session only.',
-          );
-          await _storage.clearSession();
-          _authNotifier.setState(AuthRouteState.needsSetup);
-        } else if (statusCode == 400 || statusCode == 403) {
-          await logout();
-        }
+        await _handleRefreshRejection(response);
         return null;
       }
 
@@ -184,20 +176,33 @@ class AuthService {
       debugPrint(
         '[AuthDebug] Refresh failed with status ${e.response?.statusCode}',
       );
-      if (e.response?.statusCode == 401) {
-        // Refresh token expirado: preserva API key para facilitar re-login.
-        debugPrint('[AuthDebug] Refresh token expired. Clearing session only.');
-        await _storage.clearSession();
-        _authNotifier.setState(AuthRouteState.needsSetup);
-      } else if (e.response?.statusCode == 403) {
-        // API key inválida/bloqueada: logout completo.
-        debugPrint('[AuthDebug] API key invalid on refresh. Logging out...');
-        await logout();
-      }
+      await _handleRefreshRejection(e.response);
       return null;
     } catch (e) {
       debugPrint('[AuthDebug] Unexpected error on refresh: $e');
       return null;
+    }
+  }
+
+  /// Decide se a falha do refresh encerra a sessão.
+  ///
+  /// A API responde 401 (`auth.invalid.token`) para refresh token inválido,
+  /// revogado, expirado ou API key inativa. 400/403 sem código de credencial
+  /// (gateway "Invalid Host Header", WAF) e falhas de rede são transitórios:
+  /// mantêm a sessão para a próxima tentativa.
+  Future<void> _handleRefreshRejection(Response<dynamic>? response) async {
+    if (response?.statusCode == 401) {
+      // Refresh token recusado: preserva API key para facilitar re-login.
+      debugPrint('[AuthDebug] Refresh token rejected. Clearing session only.');
+      await _storage.clearSession();
+      _authNotifier.setState(AuthRouteState.needsSetup);
+    } else if (ApiAuthError.isCredentialRejected(response)) {
+      debugPrint('[AuthDebug] Credential rejected on refresh. Logging out...');
+      await logout();
+    } else {
+      debugPrint(
+        '[AuthDebug] Transient refresh failure (${response?.statusCode}). Keeping session.',
+      );
     }
   }
 
