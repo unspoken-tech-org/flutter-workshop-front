@@ -2,7 +2,6 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
@@ -157,10 +156,6 @@ class _BlockingAllDevicesRepository implements AllDevicesRepository {
 // ---------------------------------------------------------------------------
 
 void main() {
-  setUpAll(() {
-    dotenv.testLoad(fileInput: 'BASE_URL=https://test.example.com\n');
-  });
-
   // -------------------------------------------------------------------------
   group('SetupController — guard de autenticação', () {
     test(

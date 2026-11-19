@@ -34,12 +34,9 @@ jobs:
       - name: Enable Windows Desktop
         run: flutter config --enable-windows-desktop
 
-      - name: Change .env to production
-        run: |
-          cp .env-prd .env
-
+      # Os valores entram por --dart-define; nenhum .env vai para o bundle.
       - name: Build Windows Release
-        run: flutter build windows --release
+        run: flutter build windows --release --dart-define-from-file=.env-prd
 
       - name: Extract version from pubspec.yaml
         id: get_version

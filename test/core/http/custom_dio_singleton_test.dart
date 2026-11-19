@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/http/custom_dio.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
@@ -115,10 +114,6 @@ class _TestHttpClientAdapter implements HttpClientAdapter {
 
 void main() {
   group('CustomDio singleton', () {
-    setUpAll(() {
-      dotenv.testLoad(fileInput: 'BASE_URL=https://example.test\n');
-    });
-
     setUp(CustomDio.resetForTest);
     tearDown(CustomDio.resetForTest);
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_workshop_front/app_route.dart';
+import 'package:flutter_workshop_front/core/config/config.dart';
 import 'package:flutter_workshop_front/core/http/custom_dio.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
@@ -13,7 +13,11 @@ import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controll
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
+  if (Config.baseUrl.isEmpty) {
+    throw StateError(
+      'BASE_URL ausente: rode com --dart-define-from-file=.env (ver .env.example).',
+    );
+  }
 
   // Inicialização da Camada de Segurança
   final authNotifier = AuthNotifier();
