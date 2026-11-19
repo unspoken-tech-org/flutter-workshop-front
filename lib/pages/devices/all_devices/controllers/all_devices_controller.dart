@@ -106,13 +106,13 @@ class AllDevicesController extends ChangeNotifier {
 
     var search = FilterUtils(searchTerm);
     if (search.isName) {
-      filter.customerName = search.term;
+      filter.customerName = search.text;
     } else if (search.isCpf) {
-      filter.customerCpf = search.term;
+      filter.customerCpf = search.digits;
     } else if (search.isPhoneOrCellPhone) {
-      filter.customerPhone = search.term;
+      filter.customerPhone = search.digits;
     } else if (search.isId) {
-      filter.deviceId = int.parse(search.term);
+      filter.deviceId = int.parse(search.digits);
     }
     fetchAllDevicesFiltering();
   }

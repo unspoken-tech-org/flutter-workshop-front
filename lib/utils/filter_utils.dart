@@ -1,71 +1,52 @@
+import 'package:flutter_workshop_front/utils/validators/cpf_validator.dart';
+
 class FilterUtils {
-  final String _term;
+  final String _rawTerm;
+  final String _digitsOnly;
 
   FilterUtils(String term)
-    : _term = term.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+    : _rawTerm = term.trim().replaceAll(RegExp(r'\s+'), ' '),
+      _digitsOnly = term.replaceAll(RegExp(r'\D'), '');
 
-  String get term => _term;
+  String get text => _rawTerm;
 
-  bool get _isNumber {
-    // Define a RegEx para números
-    final regex = RegExp(r'^[0-9]+$');
-    return regex.hasMatch(_term);
-  }
+  String get digits => _digitsOnly;
 
   bool get isCpf {
-    final cpf = _term.replaceAll(RegExp(r'[^0-9]'), '');
-
-    if (cpf.length != 11) {
+    if (!RegExp(r'^[\d.\-\s]+$').hasMatch(_rawTerm)) {
       return false;
     }
 
-    List<int> numbers = cpf.split('').map(int.parse).toList();
-    int firstSum = 0;
-
-    for (int i = 0; i < 9; i++) {
-      firstSum += numbers[i] * (10 - i);
-    }
-
-    int firstDigit = (firstSum % 11 < 2) ? 0 : 11 - (firstSum % 11);
-
-    if (firstDigit != numbers[9]) {
+    if (_digitsOnly.length != 11) {
       return false;
     }
 
-    int secondSum = 0;
-
-    for (int i = 0; i < 10; i++) {
-      secondSum += numbers[i] * (11 - i);
-    }
-
-    int secondDigit = (secondSum % 11 < 2) ? 0 : 11 - (secondSum % 11);
-
-    if (secondDigit != numbers[10]) {
-      return false;
-    }
-
-    return true;
+    return CpfValidator.isValid(_digitsOnly);
   }
 
   bool get isName {
-    // Define uma RegEx para letras (maiúsculas e minúsculas)
-    final regex = RegExp(r'^[a-zA-Z]+$');
-    return regex.hasMatch(_term);
+    if (_rawTerm.isEmpty || isEmail) {
+      return false;
+    }
+
+    return RegExp(r'\p{L}', unicode: true).hasMatch(_rawTerm);
   }
 
   bool get isEmail {
     final regex = RegExp(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$');
-    return regex.hasMatch(_term);
+    return regex.hasMatch(_rawTerm);
   }
 
   bool get isId {
-    return _isNumber && _term.length <= 7;
+    return RegExp(r'^\d{1,7}$').hasMatch(_rawTerm);
   }
 
   bool get isPhoneOrCellPhone {
-    final isNumber = _isNumber;
-    final isLength = _term.length >= 8 && _term.length <= 11;
+    if (!RegExp(r'^[\d\s()\-+]+$').hasMatch(_rawTerm)) {
+      return false;
+    }
 
-    return isNumber && isLength;
+    final isLength = _digitsOnly.length >= 8 && _digitsOnly.length <= 11;
+    return isLength && !isCpf;
   }
 }

@@ -73,20 +73,21 @@ class SearchDevicesController extends ChangeNotifier {
     filter.customerPhone = null;
     filter.deviceId = null;
 
-    if (searchTerm.isEmpty) {
+    final trimmed = searchTerm.trim();
+    if (trimmed.isEmpty) {
       searchDevices();
       return;
     }
 
-    var search = FilterUtils(searchTerm);
+    var search = FilterUtils(trimmed);
     if (search.isCpf) {
-      filter.customerCpf = search.term;
+      filter.customerCpf = search.digits;
     } else if (search.isPhoneOrCellPhone) {
-      filter.customerPhone = search.term;
+      filter.customerPhone = search.digits;
     } else if (search.isId) {
-      filter.deviceId = int.parse(search.term);
+      filter.deviceId = int.parse(search.digits);
     } else {
-      filter = filter.withSearchQuery(searchTerm);
+      filter = filter.withSearchQuery(search.text);
     }
     searchDevices();
   }
