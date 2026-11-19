@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
@@ -55,10 +54,6 @@ class _FakeDeviceCustomerService implements DeviceCustomerService {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-
-  setUpAll(() {
-    dotenv.testLoad(fileInput: 'BASE_URL=https://test.example.com\n');
-  });
 
   group('DeviceCustomerPageController.updateDeviceCustomer', () {
     test('retorna true e aplica a resposta quando o servidor confirma', () async {
