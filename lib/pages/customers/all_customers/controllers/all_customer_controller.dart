@@ -8,6 +8,8 @@ import 'package:flutter_workshop_front/repositories/customer/customer_repository
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 class AllCustomerController extends ChangeNotifier {
+  static const int _pageSize = 10;
+
   final CustomerRepository _customerRepository;
 
   CustomerSearchFilter? filter;
@@ -42,11 +44,13 @@ class AllCustomerController extends ChangeNotifier {
     _hasMore = true;
     _loadMoreFailed = false;
 
-    filter = CustomerSearchFilter.getCustomerSearchFilter(
-      searchTerm,
-      page: _currentPage,
-      size: 10,
-    );
+    filter =
+        CustomerSearchFilter.getCustomerSearchFilter(
+          searchTerm,
+          page: _currentPage,
+          size: _pageSize,
+        ) ??
+        CustomerSearchFilter(page: _currentPage, size: _pageSize);
 
     if (_isLoading) return;
     _isLoading = true;
@@ -77,7 +81,7 @@ class AllCustomerController extends ChangeNotifier {
       notifyListeners();
 
       _currentPage++;
-      filter = (filter ?? CustomerSearchFilter(size: 10)).copyWith(
+      filter = (filter ?? CustomerSearchFilter(size: _pageSize)).copyWith(
         page: _currentPage,
       );
 

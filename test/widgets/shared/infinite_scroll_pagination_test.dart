@@ -51,13 +51,17 @@ DeviceDataTable _device(int id) => DeviceDataTable(
 
 class _FakeCustomerRepository implements CustomerRepository {
   final Future<Page<MinifiedCustomerModel>> Function(int page) onSearch;
+  final List<CustomerSearchFilter?> receivedFilters = [];
 
   _FakeCustomerRepository(this.onSearch);
 
   @override
   Future<Page<MinifiedCustomerModel>> searchCustomers(
     CustomerSearchFilter? filter,
-  ) => onSearch(filter?.page ?? 0);
+  ) {
+    receivedFilters.add(filter);
+    return onSearch(filter?.page ?? 0);
+  }
 
   @override
   Future<CustomerModel> createCustomer(InputCustomer customer) =>
@@ -164,6 +168,10 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(requestedPages, [0, 1]);
+        expect(repo.receivedFilters.map((f) => (f?.page, f?.size)), [
+          (0, 10),
+          (1, 10),
+        ]);
         expect(controller.customers.length, 4);
         expect(controller.hasMore, isFalse);
       },
