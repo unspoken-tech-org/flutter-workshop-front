@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/double_extensions.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
@@ -59,7 +60,10 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
 
   @override
   Widget build(BuildContext context) {
-    _inputPayment = InputPayment.empty(controller.deviceCustomer.deviceId);
+    final deviceCustomer = controller.deviceCustomer;
+    if (deviceCustomer == null) return const SizedBox.shrink();
+
+    _inputPayment = InputPayment.empty(deviceCustomer.deviceId);
     _dateController.text = _formatDate(_inputPayment.paymentDate) ?? '';
 
     return AlertDialog(
@@ -89,22 +93,24 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
                     .toList(),
                 onChanged: (value) {
                   setState(() {
-                    _selectedCategory = PaymentCategory.values.firstWhere(
+                    _selectedCategory = PaymentCategory.values.firstWhereOrNull(
                       (e) => e.displayName == value,
                     );
                   });
                 },
                 onSave: (value) {
-                  final category = PaymentCategory.values.firstWhere(
+                  final category = PaymentCategory.values.firstWhereOrNull(
                     (e) => e.displayName == value,
                   );
-                  _inputPayment = _inputPayment.copyWith(category: category);
+                  if (category != null) {
+                    _inputPayment = _inputPayment.copyWith(category: category);
+                  }
                 },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Selecione uma categoria';
                   }
-                  final budgetFee = controller.deviceCustomer.budgetFee ?? 0;
+                  final budgetFee = controller.deviceCustomer?.budgetFee ?? 0;
                   if (budgetFee <= 0 &&
                       _selectedCategory == PaymentCategory.budgetFee) {
                     return 'Taxa de orçamento não definida';
@@ -117,12 +123,14 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
                 headerLabel: 'Tipo de Pagamento',
                 items: PaymentType.values.map((e) => e.displayName).toList(),
                 onSave: (value) {
-                  final paymentType = PaymentType.values.firstWhere(
+                  final paymentType = PaymentType.values.firstWhereOrNull(
                     (e) => e.displayName == value,
                   );
-                  _inputPayment = _inputPayment.copyWith(
-                    paymentType: paymentType,
-                  );
+                  if (paymentType != null) {
+                    _inputPayment = _inputPayment.copyWith(
+                      paymentType: paymentType,
+                    );
+                  }
                 },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -147,8 +155,9 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
                   if (inputValue == 0) return 'Informe o valor do pagamento';
 
                   if (_selectedCategory == PaymentCategory.budgetFee) {
-                    final budgetFee = controller.deviceCustomer.budgetFee ?? 0;
-                    final totalPaidFee = controller.deviceCustomer.totalPaidFee;
+                    final budgetFee = controller.deviceCustomer?.budgetFee ?? 0;
+                    final totalPaidFee =
+                        controller.deviceCustomer?.totalPaidFee ?? 0;
                     final remaining = budgetFee - totalPaidFee;
 
                     if (budgetFee > 0 && inputValue > remaining) {

@@ -101,7 +101,7 @@ class ContactCard extends StatelessWidget {
                   ),
                   child: SingleChildScrollView(
                     child: Text(
-                      contact.conversation!,
+                      contact.conversation ?? '',
                       style: TextStyle(color: Colors.grey[700]),
                     ),
                   ),

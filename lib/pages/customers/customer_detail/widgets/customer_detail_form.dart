@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
@@ -221,42 +222,50 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
               children: [
                 Flexible(
                   flex: 1,
-                  child: CustomTextField(
-                    fieldLabel: 'Telefone Principal',
-                    value: PhoneUtils.formatPhone(
-                      customer.phones.firstWhere((phone) => phone.main).number,
-                    ),
-                    readOnly: !isEditing,
-                    inputFormatters: [PhoneNumberFormatter()],
-                    keyboardType: TextInputType.phone,
-                    onSave: (value) {
-                      widget.controller.updatedCustomerData = widget
-                          .controller
-                          .updatedCustomerData
-                          .copyWith(
-                            phones: [
-                              ...widget.controller.updatedCustomerData.phones,
-                              InputCustomerPhone(
-                                id: customer.phones
-                                    .firstWhere((phone) => phone.main)
-                                    .idCellphone,
-                                number: value ?? '',
-                                isPrimary: true,
-                              ),
-                            ],
-                          );
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'O telefone principal é obrigatório';
-                      }
-                      final int digitCount = value
-                          .replaceAll(RegExp(r'\D'), '')
-                          .length;
-                      if (digitCount < 10) {
-                        return 'Telefone incompleto';
-                      }
-                      return null;
+                  child: Builder(
+                    builder: (context) {
+                      final mainPhone =
+                          customer.phones.firstWhereOrNull(
+                            (phone) => phone.main,
+                          ) ??
+                          customer.phones.firstOrNull;
+                      return CustomTextField(
+                        fieldLabel: 'Telefone Principal',
+                        value: PhoneUtils.formatPhone(mainPhone?.number ?? ''),
+                        readOnly: !isEditing,
+                        inputFormatters: [PhoneNumberFormatter()],
+                        keyboardType: TextInputType.phone,
+                        onSave: (value) {
+                          widget.controller.updatedCustomerData = widget
+                              .controller
+                              .updatedCustomerData
+                              .copyWith(
+                                phones: [
+                                  ...widget
+                                      .controller
+                                      .updatedCustomerData
+                                      .phones,
+                                  InputCustomerPhone(
+                                    id: mainPhone?.idCellphone,
+                                    number: value ?? '',
+                                    isPrimary: true,
+                                  ),
+                                ],
+                              );
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'O telefone principal é obrigatório';
+                          }
+                          final int digitCount = value
+                              .replaceAll(RegExp(r'\D'), '')
+                              .length;
+                          if (digitCount < 10) {
+                            return 'Telefone incompleto';
+                          }
+                          return null;
+                        },
+                      );
                     },
                   ),
                 ),

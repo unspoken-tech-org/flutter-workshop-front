@@ -25,9 +25,10 @@ class DeviceDetailsWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
-      child: Selector<DeviceCustomerPageController, DeviceCustomer>(
+      child: Selector<DeviceCustomerPageController, DeviceCustomer?>(
         selector: (context, controller) => controller.deviceCustomer,
         builder: (context, deviceCustomer, child) {
+          if (deviceCustomer == null) return const SizedBox.shrink();
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -80,24 +81,27 @@ class DeviceDetailsWidget extends StatelessWidget {
                         return null;
                       },
                       onSelected: (date, _) {
-                        final updated = controller.deviceCustomer.copyWith(
-                          entryDate: date,
-                        );
+                        final current = controller.deviceCustomer;
+                        if (current == null) return;
+                        final updated = current.copyWith(entryDate: date);
                         controller.updateNewDeviceCustomer(updated);
                       },
                       onSave: (value) {
-                        final updated = controller.deviceCustomer.copyWith(
+                        final current = controller.deviceCustomer;
+                        if (current == null) return;
+                        final updated = current.copyWith(
                           entryDate: DateFormat('dd/MM/yyyy').parse(value),
                         );
                         controller.updateNewDeviceCustomer(updated);
                       },
                     ),
                   ),
-                  if (controller.deviceCustomer.departureDate != null ||
+                  if (deviceCustomer.departureDate != null ||
                       (isEditing &&
-                          [StatusEnum.delivered, StatusEnum.disposed].contains(
-                            controller.deviceCustomer.deviceStatus,
-                          ))) ...[
+                          [
+                            StatusEnum.delivered,
+                            StatusEnum.disposed,
+                          ].contains(deviceCustomer.deviceStatus))) ...[
                     const SizedBox(width: 16),
                     Expanded(
                       child: CustomDateFormField(
@@ -106,16 +110,18 @@ class DeviceDetailsWidget extends StatelessWidget {
                         value: deviceCustomer.departureDate?.formatDate() ?? '',
                         errorMaxLines: 2,
                         validator: (value) {
+                          final current = controller.deviceCustomer;
+                          if (current == null) return null;
                           if ([
                             StatusEnum.delivered,
                             StatusEnum.disposed,
-                          ].contains(controller.deviceCustomer.deviceStatus)) {
+                          ].contains(current.deviceStatus)) {
                             if (value == null || value.isEmpty) {
                               return 'Saída obrigatoria para entregue/descartado';
                             }
                           }
                           if (value != null && value.isNotEmpty) {
-                            final entry = controller.deviceCustomer.entryDate;
+                            final entry = current.entryDate;
                             final departure = DateFormat(
                               'dd/MM/yyyy',
                             ).parse(value);
@@ -126,13 +132,15 @@ class DeviceDetailsWidget extends StatelessWidget {
                           return null;
                         },
                         onSelected: (date, _) {
-                          final updated = controller.deviceCustomer.copyWith(
-                            departureDate: date,
-                          );
+                          final current = controller.deviceCustomer;
+                          if (current == null) return;
+                          final updated = current.copyWith(departureDate: date);
                           controller.updateNewDeviceCustomer(updated);
                         },
                         onSave: (value) {
-                          final updated = controller.deviceCustomer.copyWith(
+                          final current = controller.deviceCustomer;
+                          if (current == null) return;
+                          final updated = current.copyWith(
                             departureDate: value.isEmpty
                                 ? null
                                 : DateFormat('dd/MM/yyyy').parse(value),

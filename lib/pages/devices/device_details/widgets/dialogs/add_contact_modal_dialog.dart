@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_colors.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
@@ -32,7 +33,7 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
     super.initState();
     controller = context.read<DeviceCustomerPageController>();
     inputCustomerContact = InputCustomerContact.empty(
-      controller.deviceCustomer.deviceId,
+      controller.deviceCustomer?.deviceId ?? 0,
     );
     _dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
   }
@@ -53,12 +54,13 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
             child:
                 Selector<
                   DeviceCustomerPageController,
-                  (DeviceCustomer, List<Technician>)
+                  (DeviceCustomer?, List<Technician>)
                 >(
                   selector: (context, controller) =>
                       (controller.deviceCustomer, controller.technicians),
                   builder: (context, values, child) {
                     final (deviceCustomer, technicians) = values;
+                    if (deviceCustomer == null) return const SizedBox.shrink();
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,10 +112,12 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                         .map((e) => e.name)
                                         .toList(),
                                     onSave: (value) {
-                                      inputCustomerContact
-                                          .technicianId = technicians
-                                          .firstWhere((e) => e.name == value)
-                                          .id;
+                                      inputCustomerContact.technicianId =
+                                          technicians
+                                              .firstWhereOrNull(
+                                                (e) => e.name == value,
+                                              )
+                                              ?.id;
                                     },
                                     validator: (value) {
                                       if (value == null) {
@@ -159,11 +163,13 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                         .toList(),
                                     onSave: (value) {
                                       final statusValue = StatusEnum.values
-                                          .firstWhere(
+                                          .firstWhereOrNull(
                                             (e) => e.displayName == value,
                                           );
-                                      inputCustomerContact.deviceStatus =
-                                          statusValue.dbName;
+                                      if (statusValue != null) {
+                                        inputCustomerContact.deviceStatus =
+                                            statusValue.dbName;
+                                      }
                                     },
                                     validator: (value) {
                                       if (value == null) {

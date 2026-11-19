@@ -37,21 +37,27 @@ class CustomerDeviceObservationWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          Selector<DeviceCustomerPageController, DeviceCustomer>(
+          Selector<DeviceCustomerPageController, DeviceCustomer?>(
             selector: (context, controller) => controller.deviceCustomer,
-            builder: (context, deviceCustomer, child) => CustomTextField(
-              value: deviceCustomer.observation,
-              readOnly: !isEditing,
-              hintText: 'Descreva a observação...',
-              maxLines: 4,
-              onSave: (value) {
-                final controller = context.read<DeviceCustomerPageController>();
-                final newDeviceCustomer = controller.deviceCustomer.copyWith(
-                  observation: value,
-                );
-                controller.updateNewDeviceCustomer(newDeviceCustomer);
-              },
-            ),
+            builder: (context, deviceCustomer, child) {
+              if (deviceCustomer == null) return const SizedBox.shrink();
+              return CustomTextField(
+                value: deviceCustomer.observation,
+                readOnly: !isEditing,
+                hintText: 'Descreva a observação...',
+                maxLines: 4,
+                onSave: (value) {
+                  final controller = context
+                      .read<DeviceCustomerPageController>();
+                  final current = controller.deviceCustomer;
+                  if (current == null) return;
+                  final newDeviceCustomer = current.copyWith(
+                    observation: value,
+                  );
+                  controller.updateNewDeviceCustomer(newDeviceCustomer);
+                },
+              );
+            },
           ),
         ],
       ),

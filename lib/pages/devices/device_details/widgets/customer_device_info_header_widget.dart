@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
@@ -23,10 +24,15 @@ class _CustomerDeviceInfoHeaderWidgetState
     extends State<CustomerDeviceInfoHeaderWidget> {
   bool isHoveringCustomer = false;
 
-  String getMainPhone(List<CustomerPhones> customerPhones) =>
-      PhoneUtils.formatPhone(
-        customerPhones.firstWhere((phone) => phone.isMain).number,
-      );
+  String getMainPhone(List<CustomerPhones> customerPhones) {
+    final mainPhone =
+        customerPhones.firstWhereOrNull((phone) => phone.isMain) ??
+        customerPhones.firstOrNull;
+    if (mainPhone == null || mainPhone.number.isEmpty) {
+      return 'Não informado';
+    }
+    return PhoneUtils.formatPhone(mainPhone.number);
+  }
 
   Future<void> _executeUpdateOrShowDialog(
     BuildContext context, {
@@ -66,13 +72,14 @@ class _CustomerDeviceInfoHeaderWidgetState
 
   @override
   Widget build(BuildContext context) {
-    return Selector<DeviceCustomerPageController, (DeviceCustomer, bool)>(
+    return Selector<DeviceCustomerPageController, (DeviceCustomer?, bool)>(
       selector: (context, controller) => (
         controller.deviceCustomer,
         controller.isUpdating || controller.isSaving,
       ),
       builder: (context, values, child) {
         final (deviceCustomer, isUpdating) = values;
+        if (deviceCustomer == null) return const SizedBox.shrink();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

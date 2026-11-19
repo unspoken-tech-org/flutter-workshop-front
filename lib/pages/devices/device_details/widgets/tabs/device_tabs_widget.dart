@@ -65,19 +65,24 @@ class DeviceTabsWidget extends StatelessWidget {
                 child: TabBarView(
                   children: [
                     const CustomerContactsTab(),
-                    Visibility(
-                      visible:
-                          controller.deviceCustomer.otherDevices.isNotEmpty,
-                      replacement: const EmptyListWidget(
-                        message:
-                            'Não foram encontrado outros aparelhos para este cliente',
-                      ),
-                      child: CustomerDevicesList(
-                        customerDevices: controller.deviceCustomer.otherDevices,
-                        onTap: (id) {
-                          WsNavigator.pushDeviceDetails(context, id);
-                        },
-                      ),
+                    Builder(
+                      builder: (context) {
+                        final otherDevices =
+                            controller.deviceCustomer?.otherDevices ?? const [];
+                        return Visibility(
+                          visible: otherDevices.isNotEmpty,
+                          replacement: const EmptyListWidget(
+                            message:
+                                'Não foram encontrado outros aparelhos para este cliente',
+                          ),
+                          child: CustomerDevicesList(
+                            customerDevices: otherDevices,
+                            onTap: (id) {
+                              WsNavigator.pushDeviceDetails(context, id);
+                            },
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),

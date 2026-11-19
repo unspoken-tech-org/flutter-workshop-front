@@ -27,9 +27,10 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
       color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Selector<DeviceCustomerPageController, DeviceCustomer>(
+        child: Selector<DeviceCustomerPageController, DeviceCustomer?>(
           selector: (context, controller) => controller.deviceCustomer,
           builder: (context, deviceCustomer, child) {
+            if (deviceCustomer == null) return const SizedBox.shrink();
             final List<CustomerDevicePayment> devicePayments =
                 deviceCustomer.payments;
 
