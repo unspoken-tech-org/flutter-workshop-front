@@ -134,6 +134,37 @@ jobs:
             echo "SUFFIX=-dev-${SHA:0:7}" >> "$GITHUB_OUTPUT"
           fi
 
+      # A release final mostra ao usuário a mensagem da tag em pt-BR: o
+      # UpdateService exibe o body de /releases/latest no diálogo de atualização.
+      # Pré-release de tag (vX.Y.Z-rc.N) não chega ao app; ela leva as notas
+      # geradas pelo GitHub desde a última tag final.
+      - name: Build release body
+        id: body
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          PRERELEASE: ${{ steps.release_type.outputs.PRERELEASE }}
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+          NOTES: ${{ steps.get_release_notes.outputs.NOTES }}
+        run: |
+          if [[ "$REF_TYPE" == "tag" && "$PRERELEASE" == "true" ]]; then
+            # Última vX.Y.Z abaixo de v$VERSION.
+            prev="$( { git tag --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | grep -vx "v$VERSION"; echo "v$VERSION"; } \
+              | sort -V | grep -B1 -x "v$VERSION" | grep -vx "v$VERSION" || true)"
+            args=(-f "tag_name=$REF_NAME" -f "target_commitish=$GITHUB_SHA")
+            [[ -n "$prev" ]] && args+=(-f "previous_tag_name=$prev")
+            body="$(gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" "${args[@]}" --jq .body)"
+          else
+            body="$(printf '## v%s\n\n### Novidades\n\n%s\n' "$VERSION" "$NOTES")"
+          fi
+          {
+            echo "BODY<<RELEASE_BODY_EOF"
+            echo "$body"
+            echo "RELEASE_BODY_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       # O instalador de pré-release não pode ter o mesmo nome do estável.
       - name: Rename pre-release installer
         if: steps.release_type.outputs.PRERELEASE == 'true'
@@ -151,12 +182,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           name: Release ${{ steps.get_version.outputs.VERSION }}${{ steps.release_type.outputs.SUFFIX }}
-          body: |
-            ## v${{ steps.get_version.outputs.VERSION }}
-
-            ### Novidades
-
-            ${{ steps.get_release_notes.outputs.NOTES }}
+          body: ${{ steps.body.outputs.BODY }}
           files: ./output/*.exe
           draft: false
           prerelease: ${{ steps.release_type.outputs.PRERELEASE == 'true' }}
