@@ -1,0 +1,56 @@
+# Checks every PR into main, release/* and feature/*, and every push to those
+# branches: formatting, static analysis and tests. Builds and releases stay in
+# release-flutter-windows.yml.
+
+name: CI
+
+on:
+  # No paths filter: "Format, Analyze & Test" is meant to be a required check,
+  # and a workflow that does not trigger leaves it stuck as "Expected".
+  pull_request:
+    branches:
+      - main
+      - 'release/**'
+      - 'feature/**'
+  push:
+    branches:
+      - main
+      - 'release/**'
+      - 'feature/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Format, Analyze & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Same version as release-flutter-windows.yml.
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.4"
+          channel: "stable"
+          cache: true
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test

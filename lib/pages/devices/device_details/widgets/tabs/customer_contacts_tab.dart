@@ -23,10 +23,11 @@ class _CustomerContactsTabState extends State<CustomerContactsTab> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-                child: CustomerContactsListWidget(
-              scrollController: _scrollController,
-              customerContacts: deviceCustomer.customerContacts,
-            )),
+              child: CustomerContactsListWidget(
+                scrollController: _scrollController,
+                customerContacts: deviceCustomer.customerContacts,
+              ),
+            ),
           ],
         );
       },

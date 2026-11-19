@@ -54,9 +54,9 @@ class QuickActionsWidget extends StatelessWidget {
                       WsNavigator.pushCustomerRegister(context);
                     },
                   ),
-                )
+                ),
               ],
-            )
+            ),
           ],
         ),
       ),

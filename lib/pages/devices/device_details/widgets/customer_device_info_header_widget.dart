@@ -12,9 +12,7 @@ import 'package:flutter_workshop_front/widgets/customer_device/urgency_chip.dart
 import 'package:provider/provider.dart';
 
 class CustomerDeviceInfoHeaderWidget extends StatefulWidget {
-  const CustomerDeviceInfoHeaderWidget({
-    super.key,
-  });
+  const CustomerDeviceInfoHeaderWidget({super.key});
 
   @override
   State<CustomerDeviceInfoHeaderWidget> createState() =>
@@ -27,7 +25,8 @@ class _CustomerDeviceInfoHeaderWidgetState
 
   String getMainPhone(List<CustomerPhones> customerPhones) =>
       PhoneUtils.formatPhone(
-          customerPhones.firstWhere((phone) => phone.isMain).number);
+        customerPhones.firstWhere((phone) => phone.isMain).number,
+      );
 
   Future<void> _executeUpdateOrShowDialog(
     BuildContext context, {
@@ -46,10 +45,7 @@ class _CustomerDeviceInfoHeaderWidgetState
         height: 100,
         child: AlertDialog(
           title: const Text('Aviso'),
-          content: SizedBox(
-            width: 300,
-            child: Text(message),
-          ),
+          content: SizedBox(width: 300, child: Text(message)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -71,148 +67,148 @@ class _CustomerDeviceInfoHeaderWidgetState
   @override
   Widget build(BuildContext context) {
     return Selector<DeviceCustomerPageController, (DeviceCustomer, bool)>(
-      selector: (context, controller) =>
-          (
-            controller.deviceCustomer,
-            controller.isUpdating || controller.isSaving,
-          ),
+      selector: (context, controller) => (
+        controller.deviceCustomer,
+        controller.isUpdating || controller.isSaving,
+      ),
       builder: (context, values, child) {
         final (deviceCustomer, isUpdating) = values;
         return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'ID do aparelho # ${deviceCustomer.deviceId}',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineMedium
-                    ?.copyWith(fontWeight: FontWeight.w500),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                spacing: 8,
-                children: [
-                  UrgencyChip(
-                    hasUrgency: deviceCustomer.hasUrgency,
-                    onTap: isUpdating
-                        ? null
-                        : () async {
-                            await _executeUpdateOrShowDialog(
-                              context,
-                              actualStatus: deviceCustomer.deviceStatus,
-                              message:
-                                  'Alterar o status de urgência fara com que o status do aparelho seja alterado para "Novo". Deseja Prosseguir?',
-                              onConfirm: () async {
-                                await context
-                                    .read<DeviceCustomerPageController>()
-                                    .updateDeviceHasUrgency(
-                                      !deviceCustomer.hasUrgency,
-                                    );
-                                setState(() {});
-                              },
-                            );
-                          },
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'ID do aparelho # ${deviceCustomer.deviceId}',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
                   ),
-                  RevisionChip(
-                    revision: deviceCustomer.revision,
-                    onTap: isUpdating
-                        ? null
-                        : () async {
-                            await _executeUpdateOrShowDialog(
-                              context,
-                              actualStatus: deviceCustomer.deviceStatus,
-                              message:
-                                  'Alterar o status de revisão fara com que o status do aparelho seja alterado para "Novo". Deseja Prosseguir?',
-                              onConfirm: () async {
-                                await context
-                                    .read<DeviceCustomerPageController>()
-                                    .updateDeviceRevision(
-                                        !deviceCustomer.revision);
-                                setState(() {});
-                              },
-                            );
-                          },
-                  ),
-                  DeviceStatusChip(
-                    key: GlobalKey(),
-                    status: deviceCustomer.deviceStatus,
-                    onSelect: isUpdating
-                        ? null
-                        : (status) async {
-                            await context
-                                .read<DeviceCustomerPageController>()
-                                .updateDeviceStatus(status);
-                            setState(() {});
-                          },
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            spacing: 32,
-            children: [
-              MouseRegion(
-                cursor: SystemMouseCursors.click,
-                onHover: (event) {
-                  setState(() {
-                    isHoveringCustomer = true;
-                  });
-                },
-                onExit: (event) {
-                  setState(() {
-                    isHoveringCustomer = false;
-                  });
-                },
-                child: GestureDetector(
-                  onTap: () {
-                    WsNavigator.pushCustomerDetail(
-                      context,
-                      deviceCustomer.customerId,
-                    );
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  spacing: 8,
+                  children: [
+                    UrgencyChip(
+                      hasUrgency: deviceCustomer.hasUrgency,
+                      onTap: isUpdating
+                          ? null
+                          : () async {
+                              await _executeUpdateOrShowDialog(
+                                context,
+                                actualStatus: deviceCustomer.deviceStatus,
+                                message:
+                                    'Alterar o status de urgência fara com que o status do aparelho seja alterado para "Novo". Deseja Prosseguir?',
+                                onConfirm: () async {
+                                  await context
+                                      .read<DeviceCustomerPageController>()
+                                      .updateDeviceHasUrgency(
+                                        !deviceCustomer.hasUrgency,
+                                      );
+                                  setState(() {});
+                                },
+                              );
+                            },
+                    ),
+                    RevisionChip(
+                      revision: deviceCustomer.revision,
+                      onTap: isUpdating
+                          ? null
+                          : () async {
+                              await _executeUpdateOrShowDialog(
+                                context,
+                                actualStatus: deviceCustomer.deviceStatus,
+                                message:
+                                    'Alterar o status de revisão fara com que o status do aparelho seja alterado para "Novo". Deseja Prosseguir?',
+                                onConfirm: () async {
+                                  await context
+                                      .read<DeviceCustomerPageController>()
+                                      .updateDeviceRevision(
+                                        !deviceCustomer.revision,
+                                      );
+                                  setState(() {});
+                                },
+                              );
+                            },
+                    ),
+                    DeviceStatusChip(
+                      key: GlobalKey(),
+                      status: deviceCustomer.deviceStatus,
+                      onSelect: isUpdating
+                          ? null
+                          : (status) async {
+                              await context
+                                  .read<DeviceCustomerPageController>()
+                                  .updateDeviceStatus(status);
+                              setState(() {});
+                            },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              spacing: 32,
+              children: [
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  onHover: (event) {
+                    setState(() {
+                      isHoveringCustomer = true;
+                    });
                   },
+                  onExit: (event) {
+                    setState(() {
+                      isHoveringCustomer = false;
+                    });
+                  },
+                  child: GestureDetector(
+                    onTap: () {
+                      WsNavigator.pushCustomerDetail(
+                        context,
+                        deviceCustomer.customerId,
+                      );
+                    },
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        Icon(
+                          Icons.person_outline,
+                          color: isHoveringCustomer
+                              ? Colors.lightBlueAccent
+                              : Colors.black,
+                        ),
+                        Text(
+                          'Cliente: ${deviceCustomer.customerName.capitalizeAllWords}',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: isHoveringCustomer
+                                    ? Colors.lightBlueAccent
+                                    : Colors.black,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
                   child: Row(
                     spacing: 8,
                     children: [
-                      Icon(
-                        Icons.person_outline,
-                        color: isHoveringCustomer
-                            ? Colors.lightBlueAccent
-                            : Colors.black,
-                      ),
-                      Text(
-                        'Cliente: ${deviceCustomer.customerName.capitalizeAllWords}',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: isHoveringCustomer
-                                  ? Colors.lightBlueAccent
-                                  : Colors.black,
-                            ),
+                      const Icon(Icons.phone_outlined),
+                      Expanded(
+                        child: SelectableText(
+                          'Telefone principal: ${getMainPhone(deviceCustomer.customerPhones)}',
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ),
-              Expanded(
-                child: Row(
-                  spacing: 8,
-                  children: [
-                    const Icon(Icons.phone_outlined),
-                    Expanded(
-                      child: SelectableText(
-                        'Telefone principal: ${getMainPhone(deviceCustomer.customerPhones)}',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      );
+              ],
+            ),
+          ],
+        );
       },
     );
   }

@@ -138,27 +138,39 @@ class _DeviceDetailsShimmer extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: ShimmerContainer(width: double.infinity, height: 74)),
+              Expanded(
+                child: ShimmerContainer(width: double.infinity, height: 74),
+              ),
               SizedBox(width: 16),
-              Expanded(child: ShimmerContainer(width: double.infinity, height: 74)),
+              Expanded(
+                child: ShimmerContainer(width: double.infinity, height: 74),
+              ),
             ],
           ),
           SizedBox(height: 16),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: ShimmerContainer(width: double.infinity, height: 74)),
+              Expanded(
+                child: ShimmerContainer(width: double.infinity, height: 74),
+              ),
               SizedBox(width: 16),
-              Expanded(child: ShimmerContainer(width: double.infinity, height: 74)),
+              Expanded(
+                child: ShimmerContainer(width: double.infinity, height: 74),
+              ),
             ],
           ),
           SizedBox(height: 16),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: ShimmerContainer(width: double.infinity, height: 74)),
+              Expanded(
+                child: ShimmerContainer(width: double.infinity, height: 74),
+              ),
               SizedBox(width: 16),
-              Expanded(child: ShimmerContainer(width: double.infinity, height: 74)),
+              Expanded(
+                child: ShimmerContainer(width: double.infinity, height: 74),
+              ),
             ],
           ),
         ],

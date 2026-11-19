@@ -1,16 +1,12 @@
 import 'package:flutter/foundation.dart';
 
-enum AuthRouteState {
-  restoring,
-  authenticated,
-  needsSetup,
-}
+enum AuthRouteState { restoring, authenticated, needsSetup }
 
 class AuthNotifier extends ChangeNotifier {
   AuthRouteState _state;
 
   AuthNotifier({AuthRouteState initialState = AuthRouteState.restoring})
-      : _state = initialState;
+    : _state = initialState;
 
   AuthRouteState get state => _state;
 

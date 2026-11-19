@@ -23,22 +23,21 @@ class InputCustomer extends Equatable {
     String? cpf,
     String? gender,
     List<InputCustomerPhone>? phones,
-  }) =>
-      InputCustomer(
-        name: name ?? this.name,
-        email: email ?? this.email,
-        cpf: cpf ?? this.cpf,
-        gender: gender ?? this.gender,
-        phones: phones ?? this.phones,
-      );
+  }) => InputCustomer(
+    name: name ?? this.name,
+    email: email ?? this.email,
+    cpf: cpf ?? this.cpf,
+    gender: gender ?? this.gender,
+    phones: phones ?? this.phones,
+  );
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'email': email,
-        'cpf': cpf,
-        'gender': gender,
-        'phones': phones.map((phone) => phone.toJson()).toList(),
-      };
+    'name': name,
+    'email': email,
+    'cpf': cpf,
+    'gender': gender,
+    'phones': phones.map((phone) => phone.toJson()).toList(),
+  };
 
   @override
   List<Object?> get props => [name, email, cpf, gender, phones];
@@ -58,9 +57,9 @@ class InputCustomerPhone {
   }) : number = number.replaceAll(RegExp(r'\D'), '');
 
   Map<String, dynamic> toJson() => {
-        if (id != null) 'id': id,
-        'number': number,
-        if (name != null) 'name': name,
-        'isPrimary': isPrimary,
-      };
+    if (id != null) 'id': id,
+    'number': number,
+    if (name != null) 'name': name,
+    'isPrimary': isPrimary,
+  };
 }

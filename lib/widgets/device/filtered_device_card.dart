@@ -28,9 +28,13 @@ class FilteredDeviceCard extends StatelessWidget {
                 Row(
                   spacing: 16,
                   children: [
-                    Text('#${device.deviceId}',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w700)),
+                    Text(
+                      '#${device.deviceId}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     RevisionUrgencyChip(
                       isUrgent: device.hasUrgency,
                       isRevision: device.hasRevision,
@@ -47,17 +51,23 @@ class FilteredDeviceCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.person_outline_rounded, size: 16),
-                        Text(device.customerName.capitalizeAllWords,
-                            style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.w700)),
+                        Text(
+                          device.customerName.capitalizeAllWords,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ],
                     ),
                     Text(
-                        '${device.type.capitalizeAllWords} - ${device.brand.capitalizeAllWords} ${device.model.capitalizeAllWords}',
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87)),
+                      '${device.type.capitalizeAllWords} - ${device.brand.capitalizeAllWords} ${device.model.capitalizeAllWords}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
                     Row(
                       spacing: 18,
                       mainAxisSize: MainAxisSize.min,
@@ -74,7 +84,7 @@ class FilteredDeviceCard extends StatelessWidget {
           StatusCell(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
             status: device.status,
-          )
+          ),
         ],
       ),
     );

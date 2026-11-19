@@ -40,12 +40,14 @@ class WsDataTable extends StatelessWidget {
       'Modelo',
       'Status',
       'Urgencia',
-      'Entrada'
+      'Entrada',
     ].map((e) => DataColumn(label: Expanded(child: Text(e)))).toList();
   }
 
   List<DataRow> _genereteRows(
-      List<DeviceDataTable> data, BuildContext context) {
+    List<DeviceDataTable> data,
+    BuildContext context,
+  ) {
     return data.map((e) {
       return DataRow(
         cells: [

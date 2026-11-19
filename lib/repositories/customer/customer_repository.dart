@@ -9,5 +9,6 @@ abstract class CustomerRepository {
   Future<CustomerModel> getCustomer(int customerId);
   Future<CustomerModel> updateCustomer(int customerId, InputCustomer customer);
   Future<Page<MinifiedCustomerModel>> searchCustomers(
-      CustomerSearchFilter? filter);
+    CustomerSearchFilter? filter,
+  );
 }

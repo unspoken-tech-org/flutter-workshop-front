@@ -21,9 +21,8 @@ class _CustomerRegisterPageState extends State<CustomerRegisterPage> {
 
     return ChangeNotifierProvider(
       lazy: false,
-      create: (context) => CustomerRegisterController(
-        CustomerRemoteDataSource(),
-      ),
+      create: (context) =>
+          CustomerRegisterController(CustomerRemoteDataSource()),
       child: WsScaffold(
         backgroundColor: const Color(0xFFF5F5F5),
         child: Center(

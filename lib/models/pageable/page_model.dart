@@ -22,7 +22,9 @@ class Page<T> {
   });
 
   factory Page.fromJson(
-      Map<String, dynamic> json, T Function(dynamic) fromJson) {
+    Map<String, dynamic> json,
+    T Function(dynamic) fromJson,
+  ) {
     return Page<T>(
       content: (json['content'] as List).map(fromJson).toList(),
       last: json['last'] as bool,

@@ -7,8 +7,7 @@ import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 
 abstract class AllDevicesRepository {
   Future<Page<DeviceDataTable>> getAllDevicesFiltering([DeviceFilter? filter]);
-  Future<Page<DeviceDataTable>> searchDevices(
-      [DeviceSearchFilter? filter]);
+  Future<Page<DeviceDataTable>> searchDevices([DeviceSearchFilter? filter]);
   Future<List<DeviceType>> getAllDeviceTypes([String? name]);
   Future<List<DeviceBrand>> getAllDeviceBrands([String? name]);
 }

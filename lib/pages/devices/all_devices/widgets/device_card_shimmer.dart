@@ -24,10 +24,7 @@ class DeviceCardShimmer extends StatelessWidget {
                 const Row(
                   spacing: 16,
                   children: [
-                    ShimmerContainer(
-                      width: 24.0,
-                      height: 24.0,
-                    ),
+                    ShimmerContainer(width: 24.0, height: 24.0),
                     ShimmerContainer(
                       width: 60.0,
                       height: 24.0,
@@ -39,25 +36,13 @@ class DeviceCardShimmer extends StatelessWidget {
                   spacing: 20,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ShimmerContainer(
-                      width: width * 0.2,
-                      height: 12.0,
-                    ),
-                    ShimmerContainer(
-                      width: width * 0.2,
-                      height: 12.0,
-                    ),
+                    ShimmerContainer(width: width * 0.2, height: 12.0),
+                    ShimmerContainer(width: width * 0.2, height: 12.0),
                     Row(
                       spacing: 8,
                       children: [
-                        ShimmerContainer(
-                          width: width * 0.1,
-                          height: 12.0,
-                        ),
-                        ShimmerContainer(
-                          width: width * 0.1,
-                          height: 12.0,
-                        ),
+                        ShimmerContainer(width: width * 0.1, height: 12.0),
+                        ShimmerContainer(width: width * 0.1, height: 12.0),
                       ],
                     ),
                   ],

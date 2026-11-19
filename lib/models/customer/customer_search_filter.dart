@@ -4,16 +4,10 @@ class Ordenation {
   final String orderByField;
   final String orderByDirection;
 
-  Ordenation({
-    this.orderByField = 'name',
-    this.orderByDirection = 'ASC',
-  });
+  Ordenation({this.orderByField = 'name', this.orderByDirection = 'ASC'});
 
   Map<String, dynamic> toJson() {
-    return {
-      'orderByField': orderByField,
-      'orderByDirection': orderByDirection,
-    };
+    return {'orderByField': orderByField, 'orderByDirection': orderByDirection};
   }
 }
 
@@ -60,8 +54,11 @@ class CustomerSearchFilter {
     );
   }
 
-  static CustomerSearchFilter? getCustomerSearchFilter(String? searchTerm,
-      {int? page, int? size}) {
+  static CustomerSearchFilter? getCustomerSearchFilter(
+    String? searchTerm, {
+    int? page,
+    int? size,
+  }) {
     FilterUtils filterUtils = FilterUtils(searchTerm ?? '');
 
     if (filterUtils.isId) {
@@ -71,11 +68,7 @@ class CustomerSearchFilter {
         size: size,
       );
     } else if (filterUtils.isCpf) {
-      return CustomerSearchFilter(
-        cpf: searchTerm,
-        page: page,
-        size: size,
-      );
+      return CustomerSearchFilter(cpf: searchTerm, page: page, size: size);
     } else if (filterUtils.isEmail) {
       return CustomerSearchFilter(
         searchEmail: searchTerm,
@@ -83,11 +76,7 @@ class CustomerSearchFilter {
         size: size,
       );
     } else if (filterUtils.isPhoneOrCellPhone) {
-      return CustomerSearchFilter(
-        phone: searchTerm,
-        page: page,
-        size: size,
-      );
+      return CustomerSearchFilter(phone: searchTerm, page: page, size: size);
     } else if (filterUtils.isName) {
       return CustomerSearchFilter(
         searchName: searchTerm,

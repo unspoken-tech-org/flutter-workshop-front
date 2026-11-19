@@ -6,8 +6,11 @@ import 'package:provider/provider.dart';
 class SearchOrderByItemView extends StatelessWidget {
   final OrderBy orderBy;
   final OrderDirection? orderDirection;
-  const SearchOrderByItemView(
-      {super.key, required this.orderBy, this.orderDirection});
+  const SearchOrderByItemView({
+    super.key,
+    required this.orderBy,
+    this.orderDirection,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +21,7 @@ class SearchOrderByItemView extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         side: BorderSide(color: Colors.grey.shade300),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
       label: Text(
         orderBy.displayName,

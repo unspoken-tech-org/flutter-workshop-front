@@ -26,6 +26,7 @@ class DeviceCustomerPageController extends ChangeNotifier {
   late List<Technician> technicians;
 
   bool isLoading = false;
+
   /// Guard das ações rápidas do cabeçalho (urgência, revisão e status).
   bool isUpdating = false;
 

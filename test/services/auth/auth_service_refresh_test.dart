@@ -133,105 +133,108 @@ Response<dynamic> _response(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const MethodChannel channel =
-      MethodChannel('dev.fluttercommunity.plus/package_info');
+  const MethodChannel channel = MethodChannel(
+    'dev.fluttercommunity.plus/package_info',
+  );
 
   setUpAll(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-      channel,
-      (MethodCall methodCall) async {
-        if (methodCall.method == 'getAll') {
-          return <String, dynamic>{
-            'appName': 'flutter_workshop_front',
-            'packageName': 'com.example.flutter_workshop_front',
-            'version': '1.1.1',
-            'buildNumber': '1',
-          };
-        }
-        return null;
-      },
-    );
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+          if (methodCall.method == 'getAll') {
+            return <String, dynamic>{
+              'appName': 'flutter_workshop_front',
+              'packageName': 'com.example.flutter_workshop_front',
+              'version': '1.1.1',
+              'buildNumber': '1',
+            };
+          }
+          return null;
+        });
   });
 
   group('AuthService.refreshToken', () {
-    test('deve salvar access e refresh quando backend rotaciona token',
-        () async {
-      final storage = _MemorySecurityStorage()
-        ..seedTokens(refreshToken: 'rt-1');
-      final dio = _FakeDio({
-        '/api/auth/refresh': (data) async => _response(
-              '/api/auth/refresh',
-              statusCode: 200,
-              data: {'accessToken': 'at-2', 'refreshToken': 'rt-2'},
-            ),
-      });
-      final service = AuthService(
-        dio: dio,
-        storage: storage,
-        authNotifier: AuthNotifier(),
-      );
+    test(
+      'deve salvar access e refresh quando backend rotaciona token',
+      () async {
+        final storage = _MemorySecurityStorage()
+          ..seedTokens(refreshToken: 'rt-1');
+        final dio = _FakeDio({
+          '/api/auth/refresh': (data) async => _response(
+            '/api/auth/refresh',
+            statusCode: 200,
+            data: {'accessToken': 'at-2', 'refreshToken': 'rt-2'},
+          ),
+        });
+        final service = AuthService(
+          dio: dio,
+          storage: storage,
+          authNotifier: AuthNotifier(),
+        );
 
-      final token = await service.refreshToken();
+        final token = await service.refreshToken();
 
-      expect(token, 'at-2');
-      expect(await storage.getAccessToken(), 'at-2');
-      expect(await storage.getRefreshToken(), 'rt-2');
-      expect(storage.saveTokensCalls, 1);
-      expect(storage.saveAccessTokenCalls, 0);
-    });
+        expect(token, 'at-2');
+        expect(await storage.getAccessToken(), 'at-2');
+        expect(await storage.getRefreshToken(), 'rt-2');
+        expect(storage.saveTokensCalls, 1);
+        expect(storage.saveAccessTokenCalls, 0);
+      },
+    );
 
     test(
-        'deve salvar apenas access token quando refresh token nao vem na resposta',
-        () async {
-      final storage = _MemorySecurityStorage()
-        ..seedTokens(refreshToken: 'rt-1');
-      final dio = _FakeDio({
-        '/api/auth/refresh': (data) async => _response(
-              '/api/auth/refresh',
-              statusCode: 200,
-              data: {'accessToken': 'at-2'},
-            ),
-      });
-      final service = AuthService(
-        dio: dio,
-        storage: storage,
-        authNotifier: AuthNotifier(),
-      );
+      'deve salvar apenas access token quando refresh token nao vem na resposta',
+      () async {
+        final storage = _MemorySecurityStorage()
+          ..seedTokens(refreshToken: 'rt-1');
+        final dio = _FakeDio({
+          '/api/auth/refresh': (data) async => _response(
+            '/api/auth/refresh',
+            statusCode: 200,
+            data: {'accessToken': 'at-2'},
+          ),
+        });
+        final service = AuthService(
+          dio: dio,
+          storage: storage,
+          authNotifier: AuthNotifier(),
+        );
 
-      final token = await service.refreshToken();
+        final token = await service.refreshToken();
 
-      expect(token, 'at-2');
-      expect(await storage.getAccessToken(), 'at-2');
-      expect(await storage.getRefreshToken(), 'rt-1');
-      expect(storage.saveTokensCalls, 0);
-      expect(storage.saveAccessTokenCalls, 1);
-    });
+        expect(token, 'at-2');
+        expect(await storage.getAccessToken(), 'at-2');
+        expect(await storage.getRefreshToken(), 'rt-1');
+        expect(storage.saveTokensCalls, 0);
+        expect(storage.saveAccessTokenCalls, 1);
+      },
+    );
 
-    test('deve invalidar sessao quando payload de refresh for invalido',
-        () async {
-      final storage = _MemorySecurityStorage()
-        ..seedTokens(refreshToken: 'rt-1');
-      final dio = _FakeDio({
-        '/api/auth/refresh': (data) async => _response(
-              '/api/auth/refresh',
-              statusCode: 200,
-              data: {'unexpected': true},
-            ),
-        '/api/auth/revoke': (data) async =>
-            _response('/api/auth/revoke', statusCode: 200),
-      });
-      final service = AuthService(
-        dio: dio,
-        storage: storage,
-        authNotifier: AuthNotifier(),
-      );
+    test(
+      'deve invalidar sessao quando payload de refresh for invalido',
+      () async {
+        final storage = _MemorySecurityStorage()
+          ..seedTokens(refreshToken: 'rt-1');
+        final dio = _FakeDio({
+          '/api/auth/refresh': (data) async => _response(
+            '/api/auth/refresh',
+            statusCode: 200,
+            data: {'unexpected': true},
+          ),
+          '/api/auth/revoke': (data) async =>
+              _response('/api/auth/revoke', statusCode: 200),
+        });
+        final service = AuthService(
+          dio: dio,
+          storage: storage,
+          authNotifier: AuthNotifier(),
+        );
 
-      final token = await service.refreshToken();
+        final token = await service.refreshToken();
 
-      expect(token, isNull);
-      expect(storage.clearSessionCalls, 1);
-    });
+        expect(token, isNull);
+        expect(storage.clearSessionCalls, 1);
+      },
+    );
 
     test('deve invalidar sessao em status 401 do refresh', () async {
       final storage = _MemorySecurityStorage()
@@ -263,10 +266,10 @@ void main() {
       );
       final dio = _FakeDio({
         '/api/auth/refresh': (data) async => _response(
-              '/api/auth/refresh',
-              statusCode: 400,
-              data: 'Gateway: Invalid Host Header',
-            ),
+          '/api/auth/refresh',
+          statusCode: 400,
+          data: 'Gateway: Invalid Host Header',
+        ),
       });
       final service = AuthService(
         dio: dio,
@@ -318,84 +321,88 @@ void main() {
       expect(authNotifier.state, AuthRouteState.authenticated);
     });
 
-    test('deve encerrar sessao quando a API recusa o refresh por chave inativa',
-        () async {
-      final storage = _MemorySecurityStorage()
-        ..seedTokens(refreshToken: 'rt-1');
-      await storage.saveApiKey('key-1');
-      final authNotifier = AuthNotifier(
-        initialState: AuthRouteState.authenticated,
-      );
-      // Corpo real do GlobalExceptionHandler para InvalidTokenException.
-      final dio = _FakeDio({
-        '/api/auth/refresh': (data) async {
-          throw DioException(
-            requestOptions: RequestOptions(path: '/api/auth/refresh'),
-            response: _response(
-              '/api/auth/refresh',
-              statusCode: 401,
-              data: {
-                'status': 401,
-                'title': 'Token Inválido',
-                'error': {
-                  'code': 'auth.invalid.token',
-                  'message': 'Associated API Key is inactive',
+    test(
+      'deve encerrar sessao quando a API recusa o refresh por chave inativa',
+      () async {
+        final storage = _MemorySecurityStorage()
+          ..seedTokens(refreshToken: 'rt-1');
+        await storage.saveApiKey('key-1');
+        final authNotifier = AuthNotifier(
+          initialState: AuthRouteState.authenticated,
+        );
+        // Corpo real do GlobalExceptionHandler para InvalidTokenException.
+        final dio = _FakeDio({
+          '/api/auth/refresh': (data) async {
+            throw DioException(
+              requestOptions: RequestOptions(path: '/api/auth/refresh'),
+              response: _response(
+                '/api/auth/refresh',
+                statusCode: 401,
+                data: {
+                  'status': 401,
+                  'title': 'Token Inválido',
+                  'error': {
+                    'code': 'auth.invalid.token',
+                    'message': 'Associated API Key is inactive',
+                  },
                 },
+              ),
+            );
+          },
+        });
+        final service = AuthService(
+          dio: dio,
+          storage: storage,
+          authNotifier: authNotifier,
+        );
+
+        final token = await service.refreshToken();
+
+        expect(token, isNull);
+        expect(storage.clearSessionCalls, 1);
+        expect(await storage.getRefreshToken(), isNull);
+        expect(authNotifier.state, AuthRouteState.needsSetup);
+      },
+    );
+
+    test(
+      'deve fazer logout completo quando a API sinaliza API key invalida',
+      () async {
+        final storage = _MemorySecurityStorage()
+          ..seedTokens(refreshToken: 'rt-1');
+        await storage.saveApiKey('key-1');
+        final authNotifier = AuthNotifier(
+          initialState: AuthRouteState.authenticated,
+        );
+        final dio = _FakeDio({
+          '/api/auth/refresh': (data) async => _response(
+            '/api/auth/refresh',
+            statusCode: 400,
+            data: {
+              'status': 400,
+              'error': {
+                'code': 'auth.invalid.api.key',
+                'message': 'Invalid API Key',
               },
-            ),
-          );
-        },
-      });
-      final service = AuthService(
-        dio: dio,
-        storage: storage,
-        authNotifier: authNotifier,
-      );
+            },
+          ),
+          '/api/auth/revoke': (data) async =>
+              _response('/api/auth/revoke', statusCode: 200),
+        });
+        final service = AuthService(
+          dio: dio,
+          storage: storage,
+          authNotifier: authNotifier,
+        );
 
-      final token = await service.refreshToken();
+        final token = await service.refreshToken();
 
-      expect(token, isNull);
-      expect(storage.clearSessionCalls, 1);
-      expect(await storage.getRefreshToken(), isNull);
-      expect(authNotifier.state, AuthRouteState.needsSetup);
-    });
-
-    test('deve fazer logout completo quando a API sinaliza API key invalida',
-        () async {
-      final storage = _MemorySecurityStorage()
-        ..seedTokens(refreshToken: 'rt-1');
-      await storage.saveApiKey('key-1');
-      final authNotifier = AuthNotifier(
-        initialState: AuthRouteState.authenticated,
-      );
-      final dio = _FakeDio({
-        '/api/auth/refresh': (data) async => _response(
-              '/api/auth/refresh',
-              statusCode: 400,
-              data: {
-                'status': 400,
-                'error': {
-                  'code': 'auth.invalid.api.key',
-                  'message': 'Invalid API Key',
-                },
-              },
-            ),
-        '/api/auth/revoke': (data) async =>
-            _response('/api/auth/revoke', statusCode: 200),
-      });
-      final service = AuthService(
-        dio: dio,
-        storage: storage,
-        authNotifier: authNotifier,
-      );
-
-      final token = await service.refreshToken();
-
-      expect(token, isNull);
-      expect(storage.clearProvisioningCalls, 1);
-      expect(await storage.getApiKey(), isNull);
-      expect(authNotifier.state, AuthRouteState.needsSetup);
-    });
+        expect(token, isNull);
+        expect(storage.clearProvisioningCalls, 1);
+        expect(await storage.getApiKey(), isNull);
+        expect(authNotifier.state, AuthRouteState.needsSetup);
+      },
+    );
 
     test('nao deve invalidar sessao em status 500 do refresh', () async {
       final storage = _MemorySecurityStorage()
@@ -424,130 +431,140 @@ void main() {
       authNotifier = AuthNotifier(initialState: AuthRouteState.restoring);
     });
 
-    test('deve restaurar sessao via api key salva quando nao ha tokens',
-        () async {
-      final storage = _MemorySecurityStorage();
-      await storage.saveApiKey('key-1');
-      final dio = _FakeDio({
-        '/api/auth/token': (data) async => _response(
-              '/api/auth/token',
-              statusCode: 200,
-              data: {
-                'accessToken': 'at-1',
-                'refreshToken': 'rt-1',
-                'tokenType': 'Bearer',
-                'expiresIn': 3600,
-                'refreshExpiresIn': 86400,
-              },
-            ),
-      });
-      final service = AuthService(
-        dio: dio,
-        storage: storage,
-        authNotifier: authNotifier,
-      );
+    test(
+      'deve restaurar sessao via api key salva quando nao ha tokens',
+      () async {
+        final storage = _MemorySecurityStorage();
+        await storage.saveApiKey('key-1');
+        final dio = _FakeDio({
+          '/api/auth/token': (data) async => _response(
+            '/api/auth/token',
+            statusCode: 200,
+            data: {
+              'accessToken': 'at-1',
+              'refreshToken': 'rt-1',
+              'tokenType': 'Bearer',
+              'expiresIn': 3600,
+              'refreshExpiresIn': 86400,
+            },
+          ),
+        });
+        final service = AuthService(
+          dio: dio,
+          storage: storage,
+          authNotifier: authNotifier,
+        );
 
-      final restored = await service.restoreSessionFromStoredApiKey();
+        final restored = await service.restoreSessionFromStoredApiKey();
 
-      expect(restored, isTrue);
-      expect(await storage.getAccessToken(), 'at-1');
-      expect(await storage.getRefreshToken(), 'rt-1');
-    });
+        expect(restored, isTrue);
+        expect(await storage.getAccessToken(), 'at-1');
+        expect(await storage.getRefreshToken(), 'rt-1');
+      },
+    );
 
-    test('deve limpar provisioning quando authenticate falha com 401',
-        () async {
-      final storage = _MemorySecurityStorage();
-      await storage.saveApiKey('invalid-key');
-      final dio = _FakeDio({
-        '/api/auth/token': (data) async {
-          throw DioException(
-            requestOptions: RequestOptions(path: '/api/auth/token'),
-            response: _response('/api/auth/token', statusCode: 401),
-          );
-        },
-      });
-      final service = AuthService(
-        dio: dio,
-        storage: storage,
-        authNotifier: authNotifier,
-      );
+    test(
+      'deve limpar provisioning quando authenticate falha com 401',
+      () async {
+        final storage = _MemorySecurityStorage();
+        await storage.saveApiKey('invalid-key');
+        final dio = _FakeDio({
+          '/api/auth/token': (data) async {
+            throw DioException(
+              requestOptions: RequestOptions(path: '/api/auth/token'),
+              response: _response('/api/auth/token', statusCode: 401),
+            );
+          },
+        });
+        final service = AuthService(
+          dio: dio,
+          storage: storage,
+          authNotifier: authNotifier,
+        );
 
-      await expectLater(
-        service.authenticate('invalid-key'),
-        throwsA(isA<DioException>()),
-      );
+        await expectLater(
+          service.authenticate('invalid-key'),
+          throwsA(isA<DioException>()),
+        );
 
-      expect(storage.clearProvisioningCalls, 1);
-      expect(await storage.getApiKey(), isNull);
-      expect(await storage.getAccessToken(), isNull);
-      expect(await storage.getRefreshToken(), isNull);
-    });
+        expect(storage.clearProvisioningCalls, 1);
+        expect(await storage.getApiKey(), isNull);
+        expect(await storage.getAccessToken(), isNull);
+        expect(await storage.getRefreshToken(), isNull);
+      },
+    );
 
-    test('deve falhar restore e limpar provisioning em api key invalida',
-        () async {
-      final storage = _MemorySecurityStorage();
-      await storage.saveApiKey('invalid-key');
-      final dio = _FakeDio({
-        '/api/auth/token': (data) async {
-          throw DioException(
-            requestOptions: RequestOptions(path: '/api/auth/token'),
-            response: _response('/api/auth/token', statusCode: 401),
-          );
-        },
-      });
-      final service = AuthService(
-        dio: dio,
-        storage: storage,
-        authNotifier: authNotifier,
-      );
+    test(
+      'deve falhar restore e limpar provisioning em api key invalida',
+      () async {
+        final storage = _MemorySecurityStorage();
+        await storage.saveApiKey('invalid-key');
+        final dio = _FakeDio({
+          '/api/auth/token': (data) async {
+            throw DioException(
+              requestOptions: RequestOptions(path: '/api/auth/token'),
+              response: _response('/api/auth/token', statusCode: 401),
+            );
+          },
+        });
+        final service = AuthService(
+          dio: dio,
+          storage: storage,
+          authNotifier: authNotifier,
+        );
 
-      final restored = await service.restoreSessionFromStoredApiKey();
+        final restored = await service.restoreSessionFromStoredApiKey();
 
-      expect(restored, isFalse);
-      expect(storage.clearProvisioningCalls, 1);
-      expect(await storage.getApiKey(), isNull);
-    });
+        expect(restored, isFalse);
+        expect(storage.clearProvisioningCalls, 1);
+        expect(await storage.getApiKey(), isNull);
+      },
+    );
 
-    test('initializeAuthState deve autenticar quando sessao ja existe',
-        () async {
-      final storage = _MemorySecurityStorage()
-        ..seedTokens(accessToken: 'at-1', refreshToken: 'rt-1');
-      final dio = _FakeDio({});
-      final service = AuthService(
-        dio: dio,
-        storage: storage,
-        authNotifier: authNotifier,
-      );
+    test(
+      'initializeAuthState deve autenticar quando sessao ja existe',
+      () async {
+        final storage = _MemorySecurityStorage()
+          ..seedTokens(accessToken: 'at-1', refreshToken: 'rt-1');
+        final dio = _FakeDio({});
+        final service = AuthService(
+          dio: dio,
+          storage: storage,
+          authNotifier: authNotifier,
+        );
 
-      final state = await service.initializeAuthState();
+        final state = await service.initializeAuthState();
 
-      expect(state, AuthRouteState.authenticated);
-      expect(authNotifier.state, AuthRouteState.authenticated);
-    });
+        expect(state, AuthRouteState.authenticated);
+        expect(authNotifier.state, AuthRouteState.authenticated);
+      },
+    );
 
-    test('initializeAuthState deve ir para setup em erro de rede no bootstrap',
-        () async {
-      final storage = _MemorySecurityStorage();
-      await storage.saveApiKey('key-1');
-      final dio = _FakeDio({
-        '/api/auth/token': (data) async {
-          throw DioException(
-            requestOptions: RequestOptions(path: '/api/auth/token'),
-            type: DioExceptionType.connectionTimeout,
-          );
-        },
-      });
-      final service = AuthService(
-        dio: dio,
-        storage: storage,
-        authNotifier: authNotifier,
-      );
+    test(
+      'initializeAuthState deve ir para setup em erro de rede no bootstrap',
+      () async {
+        final storage = _MemorySecurityStorage();
+        await storage.saveApiKey('key-1');
+        final dio = _FakeDio({
+          '/api/auth/token': (data) async {
+            throw DioException(
+              requestOptions: RequestOptions(path: '/api/auth/token'),
+              type: DioExceptionType.connectionTimeout,
+            );
+          },
+        });
+        final service = AuthService(
+          dio: dio,
+          storage: storage,
+          authNotifier: authNotifier,
+        );
 
-      final state = await service.initializeAuthState();
+        final state = await service.initializeAuthState();
 
-      expect(state, AuthRouteState.needsSetup);
-      expect(authNotifier.state, AuthRouteState.needsSetup);
-      expect(await storage.getApiKey(), 'key-1');
-    });
+        expect(state, AuthRouteState.needsSetup);
+        expect(authNotifier.state, AuthRouteState.needsSetup);
+        expect(await storage.getApiKey(), 'key-1');
+      },
+    );
   });
 }

@@ -38,10 +38,7 @@ class DataStatisticCardWidget extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                   Container(
                     padding: const EdgeInsets.all(8),
@@ -68,10 +65,7 @@ class DataStatisticCardWidget extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     '+$change este mês',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ],
               ),

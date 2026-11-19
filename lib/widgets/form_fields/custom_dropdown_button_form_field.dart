@@ -65,21 +65,20 @@ class CustomDropdownButtonFormField extends StatelessWidget {
           isExpanded: true,
           borderRadius: BorderRadius.circular(8),
           items: items
-              .map((item) => DropdownMenuItem(
-                    value: item,
-                    child: Text(
-                      item,
-                      style: const TextStyle(
-                        color: Color(0xFF1F2937),
-                        fontSize: 14,
-                      ),
+              .map(
+                (item) => DropdownMenuItem(
+                  value: item,
+                  child: Text(
+                    item,
+                    style: const TextStyle(
+                      color: Color(0xFF1F2937),
+                      fontSize: 14,
                     ),
-                  ))
+                  ),
+                ),
+              )
               .toList(),
-          style: const TextStyle(
-            color: Color(0xFF1F2937),
-            fontSize: 14,
-          ),
+          style: const TextStyle(color: Color(0xFF1F2937), fontSize: 14),
           onChanged: !enabled ? null : (onChanged ?? (value) {}),
           validator: validator,
           onSaved: (value) {

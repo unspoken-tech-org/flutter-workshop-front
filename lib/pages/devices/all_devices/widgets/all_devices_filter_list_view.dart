@@ -108,9 +108,11 @@ class AllDevicesFilterListView extends StatelessWidget {
                       searchFn: (query) async {
                         if (query.isEmpty) return deviceTypes;
                         return deviceTypes
-                            .where((e) => e.typeName
-                                .toLowerCase()
-                                .contains(query.toLowerCase()))
+                            .where(
+                              (e) => e.typeName.toLowerCase().contains(
+                                query.toLowerCase(),
+                              ),
+                            )
                             .toList();
                       },
                       getName: (item) => item.typeName,
@@ -132,9 +134,11 @@ class AllDevicesFilterListView extends StatelessWidget {
                       searchFn: (query) async {
                         if (query.isEmpty) return deviceBrands;
                         return deviceBrands
-                            .where((e) => e.brand
-                                .toLowerCase()
-                                .contains(query.toLowerCase()))
+                            .where(
+                              (e) => e.brand.toLowerCase().contains(
+                                query.toLowerCase(),
+                              ),
+                            )
                             .toList();
                       },
                       getName: (item) => item.brand,

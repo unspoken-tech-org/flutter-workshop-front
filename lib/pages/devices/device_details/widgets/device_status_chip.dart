@@ -8,11 +8,7 @@ class DeviceStatusChip extends StatefulWidget {
   final StatusEnum status;
   final Function(StatusEnum status)? onSelect;
 
-  const DeviceStatusChip({
-    super.key,
-    required this.status,
-    this.onSelect,
-  });
+  const DeviceStatusChip({super.key, required this.status, this.onSelect});
 
   @override
   State<DeviceStatusChip> createState() => _DeviceStatusChipState();
@@ -68,8 +64,10 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
               elevation: 4,
               borderRadius: BorderRadius.circular(8),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 16,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
@@ -108,8 +106,9 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
                           const SizedBox(width: 8),
                           Text(
                             status.displayName,
-                            style:
-                                WsTextStyles.body2.copyWith(color: textColor),
+                            style: WsTextStyles.body2.copyWith(
+                              color: textColor,
+                            ),
                           ),
                         ],
                       ),
@@ -148,8 +147,10 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
           ),
           child: Text(
             currentStatus.displayName,
-            style: WsTextStyles.body2
-                .copyWith(color: textColor, fontWeight: FontWeight.w700),
+            style: WsTextStyles.body2.copyWith(
+              color: textColor,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ),

@@ -7,23 +7,21 @@ import 'bound_device_id_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const MethodChannel channel =
-      MethodChannel('dev.fluttercommunity.plus/package_info');
+  const MethodChannel channel = MethodChannel(
+    'dev.fluttercommunity.plus/package_info',
+  );
 
   setUpAll(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-      channel,
-      (MethodCall methodCall) async {
-        if (methodCall.method == 'getAll') {
-          return <String, dynamic>{
-            'appName': 'flutter_workshop_front',
-            'version': '1.1.1',
-          };
-        }
-        return null;
-      },
-    );
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+          if (methodCall.method == 'getAll') {
+            return <String, dynamic>{
+              'appName': 'flutter_workshop_front',
+              'version': '1.1.1',
+            };
+          }
+          return null;
+        });
   });
 
   group('BoundDeviceId Reset Unit Tests', () {
@@ -43,8 +41,11 @@ void main() {
       await authService.logout();
 
       expect(await storage.getApiKey(), isNull);
-      expect(await storage.getBoundDeviceId(), equals('original-device-id'),
-          reason: 'O boundDeviceId deve ser preservado após logout');
+      expect(
+        await storage.getBoundDeviceId(),
+        equals('original-device-id'),
+        reason: 'O boundDeviceId deve ser preservado após logout',
+      );
     });
   });
 }

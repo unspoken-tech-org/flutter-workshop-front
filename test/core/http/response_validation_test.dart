@@ -12,7 +12,11 @@ class _FixedAdapter implements HttpClientAdapter {
   final String body;
   final String contentType;
 
-  _FixedAdapter(this.status, this.body, {this.contentType = 'application/json'});
+  _FixedAdapter(
+    this.status,
+    this.body, {
+    this.contentType = 'application/json',
+  });
 
   @override
   Future<ResponseBody> fetch(
@@ -36,12 +40,13 @@ class _FixedAdapter implements HttpClientAdapter {
 /// Mesmo validateStatus do CustomDio: 4xx (exceto 401/403) chega como sucesso.
 Dio _dioReturning(int status, String body, {String? contentType}) {
   return Dio(
-    BaseOptions(
-      baseUrl: 'https://test.example.com',
-      validateStatus: (status) =>
-          status! < 500 && status != 401 && status != 403,
-    ),
-  )..httpClientAdapter = _FixedAdapter(
+      BaseOptions(
+        baseUrl: 'https://test.example.com',
+        validateStatus: (status) =>
+            status! < 500 && status != 401 && status != 403,
+      ),
+    )
+    ..httpClientAdapter = _FixedAdapter(
       status,
       body,
       contentType: contentType ?? 'application/json',
@@ -56,45 +61,60 @@ void main() {
       expect(response.ensureSuccess(), same(response));
     });
 
-    test('4xx com corpo padrão da API lança RequisitionException com a mensagem',
-        () async {
-      final body = jsonEncode({
-        'status': 400,
-        'error': {'message': 'Valor do pagamento inválido', 'code': 'BAD_REQUEST'},
-      });
-      final response = await _dioReturning(400, body).post('/v1/payment');
+    test(
+      '4xx com corpo padrão da API lança RequisitionException com a mensagem',
+      () async {
+        final body = jsonEncode({
+          'status': 400,
+          'error': {
+            'message': 'Valor do pagamento inválido',
+            'code': 'BAD_REQUEST',
+          },
+        });
+        final response = await _dioReturning(400, body).post('/v1/payment');
 
-      expect(
-        () => response.ensureSuccess(),
-        throwsA(
-          isA<RequisitionException>()
-              .having((e) => e.message, 'message', 'Valor do pagamento inválido')
-              .having((e) => e.code, 'code', 'BAD_REQUEST'),
-        ),
-      );
-    });
+        expect(
+          () => response.ensureSuccess(),
+          throwsA(
+            isA<RequisitionException>()
+                .having(
+                  (e) => e.message,
+                  'message',
+                  'Valor do pagamento inválido',
+                )
+                .having((e) => e.code, 'code', 'BAD_REQUEST'),
+          ),
+        );
+      },
+    );
 
-    test('429 com corpo em texto lança RequisitionException genérica', () async {
-      final response = await _dioReturning(
-        429,
-        'Too Many Requests',
-        contentType: 'text/plain',
-      ).get('/v1/colors');
+    test(
+      '429 com corpo em texto lança RequisitionException genérica',
+      () async {
+        final response = await _dioReturning(
+          429,
+          'Too Many Requests',
+          contentType: 'text/plain',
+        ).get('/v1/colors');
 
-      expect(
-        () => response.ensureSuccess(),
-        throwsA(
-          isA<RequisitionException>()
-              .having((e) => e.message, 'message', contains('429'))
-              .having((e) => e.code, 'code', '429'),
-        ),
-      );
-    });
+        expect(
+          () => response.ensureSuccess(),
+          throwsA(
+            isA<RequisitionException>()
+                .having((e) => e.message, 'message', contains('429'))
+                .having((e) => e.code, 'code', '429'),
+          ),
+        );
+      },
+    );
 
     test('404 sem corpo lança RequisitionException', () async {
       final response = await _dioReturning(404, '').get('/v1/technician');
 
-      expect(() => response.ensureSuccess(), throwsA(isA<RequisitionException>()));
+      expect(
+        () => response.ensureSuccess(),
+        throwsA(isA<RequisitionException>()),
+      );
     });
   });
 }

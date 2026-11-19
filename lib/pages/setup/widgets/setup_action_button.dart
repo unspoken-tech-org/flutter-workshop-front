@@ -23,14 +23,16 @@ class SetupActionButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed:
             (controller.isLoading || apiKeyController.text.isEmpty || isSuccess)
-                ? null
-                : onPressed,
+            ? null
+            : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: isSuccess ? Colors.green : const Color(0xFF2563EB),
-          disabledBackgroundColor:
-              isSuccess ? Colors.green : Colors.grey.shade200,
-          disabledForegroundColor:
-              isSuccess ? Colors.white : Colors.grey.shade500,
+          disabledBackgroundColor: isSuccess
+              ? Colors.green
+              : Colors.grey.shade200,
+          disabledForegroundColor: isSuccess
+              ? Colors.white
+              : Colors.grey.shade500,
           elevation: (controller.isLoading || isSuccess) ? 0 : 4,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(100),
@@ -53,28 +55,25 @@ class SetupActionButton extends StatelessWidget {
                 ],
               )
             : isSuccess
-                ? const Text(
-                    'Conectado',
+            ? const Text(
+                'Conectado',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              )
+            : const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Conectar ao Servidor',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
+                      color: Colors.white,
                     ),
-                  )
-                : const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Conectar ao Servidor',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward, size: 20, color: Colors.white),
-                    ],
                   ),
+                  SizedBox(width: 8),
+                  Icon(Icons.arrow_forward, size: 20, color: Colors.white),
+                ],
+              ),
       ),
     );
   }

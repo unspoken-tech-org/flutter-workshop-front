@@ -25,7 +25,8 @@ class GlobalErrorInterceptor extends Interceptor {
     // Suppress generic UI errors during transition.
     if (err.response?.statusCode == 401 || err.response?.statusCode == 403) {
       debugPrint(
-          '[GlobalError] Auth error handled. Suppressing UI error during redirect.');
+        '[GlobalError] Auth error handled. Suppressing UI error during redirect.',
+      );
       return handler.next(err);
     }
 

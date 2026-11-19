@@ -23,10 +23,7 @@ class StatusCell extends StatelessWidget {
       child: Text(
         status.displayName,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          color: textColor,
-        ),
+        style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
       ),
     );
   }

@@ -32,10 +32,7 @@ class WsDrawerItem extends StatelessWidget {
           height: 50,
           child: Row(
             children: [
-              SizedBox(
-                width: 50,
-                child: Icon(icon, color: iconColor),
-              ),
+              SizedBox(width: 50, child: Icon(icon, color: iconColor)),
               const SizedBox(width: 16),
               if (isExpanded)
                 Text(
@@ -43,8 +40,9 @@ class WsDrawerItem extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: iconColor,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
                 ),
             ],

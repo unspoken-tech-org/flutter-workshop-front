@@ -116,21 +116,23 @@ void main() {
       );
     });
 
-    test('AuthService: Should identify ADMIN correctly via JWT (Simulated)',
-        () async {
-      // Simulated Token JWT (payload base64) with ADMIN role
+    test(
+      'AuthService: Should identify ADMIN correctly via JWT (Simulated)',
+      () async {
+        // Simulated Token JWT (payload base64) with ADMIN role
 
-      // Header: {"alg":"HS256","typ":"JWT"} -> eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+        // Header: {"alg":"HS256","typ":"JWT"} -> eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
 
-      // Payload: {"roles":["ADMIN"],"exp":9999999999} -> eyJyb2xlcyI6WyJBRE1JTiJdLCJleHAiOjk5OTk5OTk5OTl9.signature
+        // Payload: {"roles":["ADMIN"],"exp":9999999999} -> eyJyb2xlcyI6WyJBRE1JTiJdLCJleHAiOjk5OTk5OTk5OTl9.signature
 
-      const adminToken =
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlcyI6WyJBRE1JTiJdLCJleHAiOjk5OTk5OTk5OTl9.signature';
+        const adminToken =
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlcyI6WyJBRE1JTiJdLCJleHAiOjk5OTk5OTk5OTl9.signature';
 
-      await storage.saveAccessToken(adminToken);
+        await storage.saveAccessToken(adminToken);
 
-      expect(await authService.isAdmin, isTrue);
-    });
+        expect(await authService.isAdmin, isTrue);
+      },
+    );
 
     test('AuthService: Should identify standard USER correctly', () async {
       // Payload: {"roles":["USER"],"exp":9999999999}

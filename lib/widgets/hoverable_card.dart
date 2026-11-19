@@ -62,10 +62,7 @@ class _HoverableCardState extends State<HoverableCard> {
             borderRadius: widget.borderRadius,
             side: widget.borderSide,
           ),
-          child: Padding(
-            padding: widget.padding,
-            child: widget.child,
-          ),
+          child: Padding(padding: widget.padding, child: widget.child),
         ),
       ),
     );

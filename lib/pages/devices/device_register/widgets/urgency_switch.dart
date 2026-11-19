@@ -4,10 +4,7 @@ import 'package:flutter_workshop_front/widgets/form_fields/switch_form_field.dar
 class UrgencySwitch extends StatelessWidget {
   final void Function(bool?)? onSaved;
 
-  const UrgencySwitch({
-    super.key,
-    required this.onSaved,
-  });
+  const UrgencySwitch({super.key, required this.onSaved});
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +25,7 @@ class UrgencySwitch extends StatelessWidget {
                 ),
                 Text(
                   'Urgência',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
               ],
             ),

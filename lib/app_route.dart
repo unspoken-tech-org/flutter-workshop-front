@@ -81,8 +81,9 @@ List<RouteBase> _routes = [
     path: '/device/register',
     name: DeviceRegisterPage.route,
     builder: (context, state) {
-      var customerId =
-          int.tryParse(state.uri.queryParameters['customerId'] ?? '');
+      var customerId = int.tryParse(
+        state.uri.queryParameters['customerId'] ?? '',
+      );
       var customerName = state.uri.queryParameters['customerName'];
 
       return DeviceRegisterPage(

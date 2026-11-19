@@ -39,8 +39,9 @@ class SecondaryPhoneFormField extends StatelessWidget {
           initialValue: PhoneFieldParameters(name: name, number: number),
           onSaved: onSaved,
           validator: (value) {
-            final int digitCount =
-                (value?.number ?? '').replaceAll(RegExp(r'\D'), '').length;
+            final int digitCount = (value?.number ?? '')
+                .replaceAll(RegExp(r'\D'), '')
+                .length;
             if (value?.number?.isNotEmpty == true && digitCount < 10) {
               return 'Telefone incompleto';
             }
@@ -60,7 +61,9 @@ class SecondaryPhoneFormField extends StatelessWidget {
                     decoration: InputDecoration(
                       labelText: 'Nome secundário (opcional)',
                       contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12.0, horizontal: 12.0),
+                        vertical: 12.0,
+                        horizontal: 12.0,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
                         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -71,8 +74,10 @@ class SecondaryPhoneFormField extends StatelessWidget {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
-                        borderSide:
-                            BorderSide(color: Colors.blue.shade300, width: 1.5),
+                        borderSide: BorderSide(
+                          color: Colors.blue.shade300,
+                          width: 1.5,
+                        ),
                       ),
                       disabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
@@ -86,10 +91,12 @@ class SecondaryPhoneFormField extends StatelessWidget {
                       fontSize: 14,
                     ),
                     onChanged: (value) {
-                      state.didChange(PhoneFieldParameters(
-                        name: value,
-                        number: state.value?.number,
-                      ));
+                      state.didChange(
+                        PhoneFieldParameters(
+                          name: value,
+                          number: state.value?.number,
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -107,7 +114,9 @@ class SecondaryPhoneFormField extends StatelessWidget {
                         decoration: InputDecoration(
                           labelText: 'Telefone',
                           contentPadding: const EdgeInsets.symmetric(
-                              vertical: 12.0, horizontal: 12.0),
+                            vertical: 12.0,
+                            horizontal: 12.0,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8.0),
                             borderSide: BorderSide(color: Colors.grey.shade300),
@@ -119,7 +128,9 @@ class SecondaryPhoneFormField extends StatelessWidget {
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8.0),
                             borderSide: BorderSide(
-                                color: Colors.blue.shade300, width: 1.5),
+                              color: Colors.blue.shade300,
+                              width: 1.5,
+                            ),
                           ),
                           disabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8.0),
@@ -133,10 +144,12 @@ class SecondaryPhoneFormField extends StatelessWidget {
                           fontSize: 14,
                         ),
                         onChanged: (value) {
-                          state.didChange(PhoneFieldParameters(
-                            name: state.value?.name,
-                            number: value,
-                          ));
+                          state.didChange(
+                            PhoneFieldParameters(
+                              name: state.value?.name,
+                              number: value,
+                            ),
+                          );
                         },
                       ),
                       if (state.hasError)
@@ -156,7 +169,7 @@ class SecondaryPhoneFormField extends StatelessWidget {
               ],
             );
           },
-        )
+        ),
       ],
     );
   }
@@ -166,8 +179,5 @@ class PhoneFieldParameters {
   final String? name;
   final String? number;
 
-  PhoneFieldParameters({
-    this.name,
-    this.number,
-  });
+  PhoneFieldParameters({this.name, this.number});
 }

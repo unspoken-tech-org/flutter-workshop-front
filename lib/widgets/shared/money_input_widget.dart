@@ -20,11 +20,7 @@ class MoneyInputWidget extends StatefulWidget {
     this.padding = const EdgeInsets.all(8),
     this.width = 200,
     this.boxShadow = const [
-      BoxShadow(
-        color: Colors.grey,
-        spreadRadius: 1,
-        blurRadius: 2,
-      ),
+      BoxShadow(color: Colors.grey, spreadRadius: 1, blurRadius: 2),
     ],
     this.backgroundColor = Colors.white,
     this.borderColor = Colors.grey,

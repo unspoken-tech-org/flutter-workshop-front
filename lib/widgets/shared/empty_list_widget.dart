@@ -20,18 +20,14 @@ class EmptyListWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset(
-            imagePath,
-            width: imageWidth,
-            height: imageHeight,
-          ),
+          Image.asset(imagePath, width: imageWidth, height: imageHeight),
           const SizedBox(height: 24),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.grey[600],
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(color: Colors.grey[600]),
           ),
         ],
       ),

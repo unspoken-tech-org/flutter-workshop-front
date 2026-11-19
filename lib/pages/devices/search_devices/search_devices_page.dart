@@ -13,10 +13,8 @@ class SearchDevicesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => SearchDevicesController(
-        AllDevicesRemoteDataSource(),
-        filter: filter,
-      ),
+      create: (context) =>
+          SearchDevicesController(AllDevicesRemoteDataSource(), filter: filter),
       child: const SearchDevicesView(),
     );
   }

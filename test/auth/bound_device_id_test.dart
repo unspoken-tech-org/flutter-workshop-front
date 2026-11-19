@@ -26,13 +26,15 @@ class MockDioSuccess extends MockDio {
     return Response(
       requestOptions: RequestOptions(path: path),
       statusCode: 200,
-      data: {
-        'accessToken': 'at',
-        'refreshToken': 'rt',
-        'tokenType': 'Bearer',
-        'expiresIn': 3600,
-        'refreshExpiresIn': 86400,
-      } as T,
+      data:
+          {
+                'accessToken': 'at',
+                'refreshToken': 'rt',
+                'tokenType': 'Bearer',
+                'expiresIn': 3600,
+                'refreshExpiresIn': 86400,
+              }
+              as T,
     );
   }
 }
@@ -40,25 +42,23 @@ class MockDioSuccess extends MockDio {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const MethodChannel channel =
-      MethodChannel('dev.fluttercommunity.plus/package_info');
+  const MethodChannel channel = MethodChannel(
+    'dev.fluttercommunity.plus/package_info',
+  );
 
   setUpAll(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-      channel,
-      (MethodCall methodCall) async {
-        if (methodCall.method == 'getAll') {
-          return <String, dynamic>{
-            'appName': 'flutter_workshop_front',
-            'packageName': 'com.example.flutter_workshop_front',
-            'version': '1.1.1',
-            'buildNumber': '1',
-          };
-        }
-        return null;
-      },
-    );
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+          if (methodCall.method == 'getAll') {
+            return <String, dynamic>{
+              'appName': 'flutter_workshop_front',
+              'packageName': 'com.example.flutter_workshop_front',
+              'version': '1.1.1',
+              'buildNumber': '1',
+            };
+          }
+          return null;
+        });
   });
 
   group('BoundDeviceId Unit Tests', () {

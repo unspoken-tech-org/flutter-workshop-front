@@ -35,8 +35,9 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
     _inputCustomer = _inputCustomer.copyWith(phones: []);
     _formKey.currentState?.save();
 
-    final newCustomerId =
-        await customerController.createCustomer(_inputCustomer);
+    final newCustomerId = await customerController.createCustomer(
+      _inputCustomer,
+    );
 
     if (newCustomerId != null && context.mounted) {
       _formKey.currentState?.reset();
@@ -124,10 +125,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
                 _inputCustomer = _inputCustomer.copyWith(
                   phones: [
                     ..._inputCustomer.phones,
-                    InputCustomerPhone(
-                      number: value ?? '',
-                      isPrimary: true,
-                    ),
+                    InputCustomerPhone(number: value ?? '', isPrimary: true),
                   ],
                 );
               },
@@ -135,8 +133,9 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
                 if (value == null || value.isEmpty) {
                   return 'O telefone principal é obrigatório';
                 }
-                final int digitCount =
-                    value.replaceAll(RegExp(r'\D'), '').length;
+                final int digitCount = value
+                    .replaceAll(RegExp(r'\D'), '')
+                    .length;
                 if (digitCount < 10) {
                   return 'Telefone incompleto';
                 }
@@ -205,12 +204,13 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
                           child: isCreatingCustomer
                               ? const Center(
                                   child: SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.black87,
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.black87,
+                                    ),
                                   ),
-                                ))
+                                )
                               : const Text('Cadastrar'),
                         ),
                       );

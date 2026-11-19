@@ -14,10 +14,7 @@ class NotFoundPage extends StatelessWidget {
           children: [
             Image.asset('assets/images/not_found.png'),
             const SizedBox(height: 16),
-            Text(
-              'Página não encontrada',
-              style: WsTextStyles.h3,
-            ),
+            Text('Página não encontrada', style: WsTextStyles.h3),
             const SizedBox(height: 8),
             Text(
               'O conteúdo que você está procurando não existe.',
