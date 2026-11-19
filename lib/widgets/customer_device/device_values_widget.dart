@@ -1,22 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/core/extensions/double_extensions.dart';
-import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
+import 'package:flutter_workshop_front/core/money/money.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/currency_input_formatter.dart';
-import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class DeviceValuesWidget extends StatelessWidget {
   final bool isEditing;
 
   const DeviceValuesWidget({super.key, this.isEditing = false});
-
-  String formatValue(double value) {
-    return NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(value);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +53,8 @@ class DeviceValuesWidget extends StatelessWidget {
                       headerLabel: 'Taxa de orçamento',
                       maxLines: 1,
                       errorMaxLines: 2,
-                      value: formatValue(deviceCustomer.budgetFee ?? 0),
+                      value:
+                          (deviceCustomer.budgetFee ?? Money.zero).toBrCurrency,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
@@ -68,12 +62,9 @@ class DeviceValuesWidget extends StatelessWidget {
                       readOnly: !isEditing,
                       validator: (value) {
                         if (value == null || value.isEmpty) return null;
-                        final parsedValue = value.fromCurrency();
-                        final sumPaid = deviceCustomer.payments
-                            .where(
-                              (p) => p.category == PaymentCategory.budgetFee,
-                            )
-                            .fold(0.0, (sum, p) => sum + p.paymentValue);
+                        final parsedValue = Money.tryParseBr(value);
+                        if (parsedValue == null) return 'Valor inválido';
+                        final sumPaid = deviceCustomer.totalPaidFee;
                         if (parsedValue < sumPaid) {
                           return 'Valor mínimo: ${sumPaid.toBrCurrency}';
                         }
@@ -83,7 +74,7 @@ class DeviceValuesWidget extends StatelessWidget {
                         final current = controller.deviceCustomer;
                         if (current == null) return;
                         final newDeviceCustomer = current.copyWith(
-                          budgetFee: value?.fromCurrency() ?? 0,
+                          budgetFee: Money.tryParseBr(value) ?? Money.zero,
                         );
                         controller.updateNewDeviceCustomer(newDeviceCustomer);
                       },
@@ -94,17 +85,25 @@ class DeviceValuesWidget extends StatelessWidget {
                     child: CustomTextField(
                       headerLabel: 'Valor do serviço',
                       maxLines: 1,
-                      value: formatValue(deviceCustomer.serviceValue ?? 0),
+                      value: (deviceCustomer.serviceValue ?? Money.zero)
+                          .toBrCurrency,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
                       inputFormatters: [CurrencyInputFormatter()],
                       readOnly: !isEditing,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return null;
+                        if (Money.tryParseBr(value) == null) {
+                          return 'Valor inválido';
+                        }
+                        return null;
+                      },
                       onSave: (value) {
                         final current = controller.deviceCustomer;
                         if (current == null) return;
                         final newDeviceCustomer = current.copyWith(
-                          serviceValue: value?.fromCurrency(),
+                          serviceValue: Money.tryParseBr(value) ?? Money.zero,
                         );
 
                         controller.updateNewDeviceCustomer(newDeviceCustomer);

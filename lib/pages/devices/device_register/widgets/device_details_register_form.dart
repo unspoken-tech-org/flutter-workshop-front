@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
+import 'package:flutter_workshop_front/core/money/money.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/currency_input_formatter.dart';
 import 'package:flutter_workshop_front/models/colors/color_model.dart';
 import 'package:flutter_workshop_front/models/types_brands_models/types_brands_models.dart';
@@ -168,9 +168,17 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
                   headerLabel: 'Valor Orçamento (Opcional)',
                   hintText: 'Ex: 100,00',
                   inputFormatters: [CurrencyInputFormatter()],
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return null;
+                    if (Money.tryParseBr(value) == null) {
+                      return 'Valor inválido';
+                    }
+                    return null;
+                  },
                   onSave: (value) {
                     if (value == null || value.isEmpty) return;
-                    final budgetFee = value.fromCurrency();
+                    final budgetFee = Money.tryParseBr(value);
+                    if (budgetFee == null) return;
                     controller.inputDevice = controller.inputDevice.copyWith(
                       budgetFee: budgetFee,
                     );

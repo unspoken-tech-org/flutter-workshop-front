@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/core/extensions/double_extensions.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
+import 'package:flutter_workshop_front/core/money/money.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/currency_input_formatter.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
@@ -114,8 +114,9 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
                   if (value == null || value.isEmpty) {
                     return 'Selecione uma categoria';
                   }
-                  final budgetFee = controller.deviceCustomer?.budgetFee ?? 0;
-                  if (budgetFee <= 0 &&
+                  final budgetFee =
+                      controller.deviceCustomer?.budgetFee ?? Money.zero;
+                  if (!budgetFee.isPositive &&
                       _selectedCategory == PaymentCategory.budgetFee) {
                     return 'Taxa de orçamento não definida';
                   }
@@ -148,23 +149,32 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
                 headerLabel: 'Valor',
                 controller: _valueController,
                 onSave: (value) {
-                  _inputPayment = _inputPayment.copyWith(
-                    value: value?.fromCurrency(),
-                  );
+                  final parsed = Money.tryParseBr(value);
+                  if (parsed != null) {
+                    _inputPayment = _inputPayment.copyWith(value: parsed);
+                  }
                 },
                 errorMaxLines: 2,
                 validator: (value) {
-                  final inputValue = value?.fromCurrency() ?? 0;
+                  final parsed = Money.tryParseBr(value);
+                  if (parsed == null) {
+                    return value != null && value.trim().isNotEmpty
+                        ? 'Valor inválido'
+                        : 'Informe o valor do pagamento';
+                  }
 
-                  if (inputValue == 0) return 'Informe o valor do pagamento';
+                  if (parsed <= Money.zero) {
+                    return 'Informe o valor do pagamento';
+                  }
 
                   if (_selectedCategory == PaymentCategory.budgetFee) {
-                    final budgetFee = controller.deviceCustomer?.budgetFee ?? 0;
+                    final budgetFee =
+                        controller.deviceCustomer?.budgetFee ?? Money.zero;
                     final totalPaidFee =
-                        controller.deviceCustomer?.totalPaidFee ?? 0;
+                        controller.deviceCustomer?.totalPaidFee ?? Money.zero;
                     final remaining = budgetFee - totalPaidFee;
 
-                    if (budgetFee > 0 && inputValue > remaining) {
+                    if (budgetFee.isPositive && parsed > remaining) {
                       return 'As taxas já pagas (${totalPaidFee.toBrCurrency}) excedem o valor da taxa de orçamento';
                     }
                   }

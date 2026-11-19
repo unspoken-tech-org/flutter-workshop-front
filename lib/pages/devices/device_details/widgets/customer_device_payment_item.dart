@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/date_time_extension.dart';
-import 'package:flutter_workshop_front/core/extensions/double_extensions.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/widgets/hoverable_card.dart';
 

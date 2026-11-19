@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/money/money.dart';
 import 'package:flutter_workshop_front/models/types_brands_models/type_brand_model_input.dart';
 
 class DeviceInput {
@@ -5,7 +6,7 @@ class DeviceInput {
   final int? technicianId;
   final String? problem;
   final String? observation;
-  final double? budgetFee;
+  final Money? budgetFee;
   final bool hasUrgency;
   final TypeBrandModelInput? typeBrandModel;
   final List<String>? colors;
@@ -31,7 +32,7 @@ class DeviceInput {
     String? observation,
     TypeBrandModelInput? typeBrandModel,
     List<String>? colors,
-    double? budgetFee,
+    Money? budgetFee,
     bool? hasUrgency,
   }) => DeviceInput(
     customerId: customerId ?? this.customerId,
@@ -49,7 +50,7 @@ class DeviceInput {
       'customerId': customerId,
       'problem': problem,
       'observation': observation,
-      'budgetFee': budgetFee,
+      'budgetFee': budgetFee?.toJson(),
       'hasUrgency': hasUrgency,
       'technicianId': technicianId,
       'typeBrandModel': typeBrandModel?.toJson(),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/core/extensions/double_extensions.dart';
+import 'package:flutter_workshop_front/core/money/money.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 
@@ -13,21 +13,24 @@ class PaymentTotalsWidget extends StatelessWidget {
     required this.devicePayments,
   });
 
-  double get _totalPayments {
-    return devicePayments.fold(0, (sum, payment) => sum + payment.paymentValue);
+  Money get _totalPayments {
+    return devicePayments.fold(
+      Money.zero,
+      (sum, payment) => sum + payment.paymentValue,
+    );
   }
 
-  double get _totalValue {
-    return deviceCustomer.serviceValue ?? 0;
+  Money get _totalValue {
+    return deviceCustomer.serviceValue ?? Money.zero;
   }
 
-  double get _totalToBePaid {
+  Money get _totalToBePaid {
     return _totalValue - _totalPayments;
   }
 
   bool get _isPaymentPending {
     if (devicePayments.isEmpty) return true;
-    return _totalToBePaid > 0;
+    return _totalToBePaid.isPositive;
   }
 
   (Color backgroundColor, Color borderColor, Color textColor, Color iconColor)
@@ -68,14 +71,14 @@ class PaymentTotalsWidget extends StatelessWidget {
               children: [
                 Text('Total a ser pago', style: textTheme.bodyMedium),
                 Text(
-                  (deviceCustomer.serviceValue ?? 0).toBrCurrency,
+                  (deviceCustomer.serviceValue ?? Money.zero).toBrCurrency,
                   style: textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
-            if (totalPaid > 0)
+            if (totalPaid.isPositive)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

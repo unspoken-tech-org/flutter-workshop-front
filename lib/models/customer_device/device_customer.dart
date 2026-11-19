@@ -1,4 +1,5 @@
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
+import 'package:flutter_workshop_front/core/money/money.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_phones.dart';
@@ -19,8 +20,8 @@ class DeviceCustomer extends Equatable {
   final String problem;
   final String observation;
   final String? budget;
-  final double? serviceValue;
-  final double? budgetFee;
+  final Money? serviceValue;
+  final Money? budgetFee;
   final bool hasUrgency;
   final bool revision;
   final List<String> deviceColors;
@@ -59,17 +60,17 @@ class DeviceCustomer extends Equatable {
     this.payments = const [],
   });
 
-  double get totalPaidFee {
+  Money get totalPaidFee {
     return payments
         .where((p) => p.category == PaymentCategory.budgetFee)
-        .fold(0.0, (sum, p) => sum + p.paymentValue);
+        .fold(Money.zero, (sum, p) => sum + p.paymentValue);
   }
 
   bool get computedBudgetFeeCollected {
-    final budgetFee = this.budgetFee ?? 0;
-    if (budgetFee == 0) return false;
+    final fee = budgetFee ?? Money.zero;
+    if (!fee.isPositive) return false;
 
-    return totalPaidFee >= (budgetFee);
+    return totalPaidFee >= fee;
   }
 
   factory DeviceCustomer.fromJson(Map<String, dynamic> json) {
@@ -86,8 +87,12 @@ class DeviceCustomer extends Equatable {
       problem: json['problem'],
       observation: json['observation'],
       budget: json['budget'],
-      serviceValue: json['serviceValue'],
-      budgetFee: json['budgetFee'],
+      serviceValue: json['serviceValue'] != null
+          ? Money.fromJson(json['serviceValue'])
+          : null,
+      budgetFee: json['budgetFee'] != null
+          ? Money.fromJson(json['budgetFee'])
+          : null,
       hasUrgency: json['hasUrgency'],
       revision: json['revision'],
       deviceColors: (json['deviceColors'] as List<dynamic>)
@@ -157,8 +162,8 @@ class DeviceCustomer extends Equatable {
     String? problem,
     String? observation,
     String? budget,
-    double? serviceValue,
-    double? budgetFee,
+    Money? serviceValue,
+    Money? budgetFee,
     bool? budgetFeeCollected,
     bool? hasUrgency,
     bool? revision,
@@ -213,8 +218,8 @@ class DeviceCustomer extends Equatable {
       'problem': problem,
       'observation': observation,
       'budget': budget,
-      'serviceValue': serviceValue,
-      'budgetFee': budgetFee,
+      'serviceValue': serviceValue?.toJson(),
+      'budgetFee': budgetFee?.toJson(),
       'hasUrgency': hasUrgency,
       'revision': revision,
       'deviceColors': deviceColors,
