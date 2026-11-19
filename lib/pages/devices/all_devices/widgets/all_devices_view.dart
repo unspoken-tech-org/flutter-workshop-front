@@ -86,70 +86,75 @@ class _AllDevicesViewState extends State<AllDevicesView> {
                 ),
                 const SizedBox(height: 18),
                 Expanded(
-                  child: Selector<AllDevicesController,
-                      (bool, List<DeviceDataTable>, bool, bool)>(
-                    selector: (context, controller) => (
-                      controller.isLoading,
-                      controller.devices,
-                      controller.hasMore,
-                      controller.isLoadingMore
-                    ),
-                    builder: (context, values, _) {
-                      final (isLoading, devices, hasMore, isLoadingMore) =
-                          values;
+                  child:
+                      Selector<
+                        AllDevicesController,
+                        (bool, List<DeviceDataTable>, bool, bool)
+                      >(
+                        selector: (context, controller) => (
+                          controller.isLoading,
+                          controller.devices,
+                          controller.hasMore,
+                          controller.isLoadingMore,
+                        ),
+                        builder: (context, values, _) {
+                          final (isLoading, devices, hasMore, isLoadingMore) =
+                              values;
 
-                      if (isLoading) {
-                        return ListView.builder(
-                          itemCount: 10,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemBuilder: (context, index) {
-                            return const DeviceCardShimmer();
-                          },
-                        );
-                      }
-
-                      if (devices.isEmpty) {
-                        return const Center(
-                          child: EmptyListWidget(
-                            message: 'Nenhum aparelho encontrado',
-                          ),
-                        );
-                      }
-
-                      return ListView.builder(
-                        controller: _scrollController,
-                        itemCount: devices.length + (hasMore ? 1 : 0),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemBuilder: (context, index) {
-                          if (index == devices.length) {
-                            return Column(
-                              children: [
-                                ...List.generate(
-                                    2, (index) => const DeviceCardShimmer()),
-                              ],
+                          if (isLoading) {
+                            return ListView.builder(
+                              itemCount: 10,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              itemBuilder: (context, index) {
+                                return const DeviceCardShimmer();
+                              },
                             );
                           }
-                          return FilteredDeviceCard(
-                            device: devices[index],
-                            onTap: () {
-                              WsNavigator.pushDeviceDetails(
-                                context,
-                                devices[index].deviceId,
-                              ).then(
-                                (_) {
-                                  if (context.mounted) {
-                                    context
-                                        .read<AllDevicesController>()
-                                        .fetchAllDevicesFiltering();
-                                  }
+
+                          if (devices.isEmpty) {
+                            return const Center(
+                              child: EmptyListWidget(
+                                message: 'Nenhum aparelho encontrado',
+                              ),
+                            );
+                          }
+
+                          return ListView.builder(
+                            controller: _scrollController,
+                            itemCount: devices.length + (hasMore ? 1 : 0),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemBuilder: (context, index) {
+                              if (index == devices.length) {
+                                return Column(
+                                  children: [
+                                    ...List.generate(
+                                      2,
+                                      (index) => const DeviceCardShimmer(),
+                                    ),
+                                  ],
+                                );
+                              }
+                              return FilteredDeviceCard(
+                                device: devices[index],
+                                onTap: () {
+                                  WsNavigator.pushDeviceDetails(
+                                    context,
+                                    devices[index].deviceId,
+                                  ).then((_) {
+                                    if (context.mounted) {
+                                      context
+                                          .read<AllDevicesController>()
+                                          .fetchAllDevicesFiltering();
+                                    }
+                                  });
                                 },
                               );
                             },
                           );
                         },
-                      );
-                    },
-                  ),
+                      ),
                 ),
               ],
             ),

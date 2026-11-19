@@ -28,47 +28,47 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: SetupPage(controller: mockController),
-      ),
+      MaterialApp(home: SetupPage(controller: mockController)),
     );
   }
 
   testWidgets(
-      'Should preserve boundDeviceId after reset and allow reauthentication',
-      (WidgetTester tester) async {
-    final originalOnError = FlutterError.onError;
-    FlutterError.onError = (FlutterErrorDetails details) {
-      if (details.exceptionAsString().contains('overflowed')) {
-        return;
+    'Should preserve boundDeviceId after reset and allow reauthentication',
+    (WidgetTester tester) async {
+      final originalOnError = FlutterError.onError;
+      FlutterError.onError = (FlutterErrorDetails details) {
+        if (details.exceptionAsString().contains('overflowed')) {
+          return;
+        }
+        FlutterError.presentError(details);
+      };
+
+      try {
+        // Simular que já existe um boundDeviceId armazenado de uma sessão anterior
+        mockStorage.storage['bound_device_id'] = 'existing-device-uuid-123';
+
+        await pumpSetupPage(tester);
+
+        // Preencher API Key válida
+        await tester.enterText(find.byType(TextField), 'valid-api-key-789');
+        await tester.pump();
+
+        // Tentar fazer login novamente
+        await tester.tap(find.byType(ElevatedButton));
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Verificar que o boundDeviceId foi preservado (não foi gerado um novo)
+        final preservedBoundDeviceId = await mockStorage.getBoundDeviceId();
+        expect(preservedBoundDeviceId, 'existing-device-uuid-123');
+      } finally {
+        FlutterError.onError = originalOnError;
       }
-      FlutterError.presentError(details);
-    };
+    },
+  );
 
-    try {
-      // Simular que já existe um boundDeviceId armazenado de uma sessão anterior
-      mockStorage.storage['bound_device_id'] = 'existing-device-uuid-123';
-
-      await pumpSetupPage(tester);
-
-      // Preencher API Key válida
-      await tester.enterText(find.byType(TextField), 'valid-api-key-789');
-      await tester.pump();
-
-      // Tentar fazer login novamente
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pump(const Duration(milliseconds: 300));
-
-      // Verificar que o boundDeviceId foi preservado (não foi gerado um novo)
-      final preservedBoundDeviceId = await mockStorage.getBoundDeviceId();
-      expect(preservedBoundDeviceId, 'existing-device-uuid-123');
-    } finally {
-      FlutterError.onError = originalOnError;
-    }
-  });
-
-  testWidgets('Should allow reauthentication after failed attempt',
-      (WidgetTester tester) async {
+  testWidgets('Should allow reauthentication after failed attempt', (
+    WidgetTester tester,
+  ) async {
     final originalOnError = FlutterError.onError;
     FlutterError.onError = (FlutterErrorDetails details) {
       if (details.exceptionAsString().contains('overflowed')) {

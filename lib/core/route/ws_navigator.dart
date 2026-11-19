@@ -20,14 +20,21 @@ class WsNavigator {
     context.pushNamed(AllCustomersPage.route);
   }
 
-  static void pushCustomerDetail(BuildContext context, int customerId,
-      {bool replaced = false}) {
+  static void pushCustomerDetail(
+    BuildContext context,
+    int customerId, {
+    bool replaced = false,
+  }) {
     if (replaced) {
-      context.pushReplacementNamed(CustomerDetailPage.route,
-          pathParameters: {'id': customerId.toString()});
+      context.pushReplacementNamed(
+        CustomerDetailPage.route,
+        pathParameters: {'id': customerId.toString()},
+      );
     } else {
-      context.pushNamed(CustomerDetailPage.route,
-          pathParameters: {'id': customerId.toString()});
+      context.pushNamed(
+        CustomerDetailPage.route,
+        pathParameters: {'id': customerId.toString()},
+      );
     }
   }
 
@@ -35,19 +42,29 @@ class WsNavigator {
     context.pushNamed(CustomerRegisterPage.route);
   }
 
-  static Future<void> pushDeviceDetails(BuildContext context, int deviceId,
-      {bool replaced = false}) async {
+  static Future<void> pushDeviceDetails(
+    BuildContext context,
+    int deviceId, {
+    bool replaced = false,
+  }) async {
     if (replaced) {
-      context.pushReplacementNamed(DeviceDetailsPage.route,
-          pathParameters: {'id': deviceId.toString()});
+      context.pushReplacementNamed(
+        DeviceDetailsPage.route,
+        pathParameters: {'id': deviceId.toString()},
+      );
     } else {
-      await context.pushNamed(DeviceDetailsPage.route,
-          pathParameters: {'id': deviceId.toString()});
+      await context.pushNamed(
+        DeviceDetailsPage.route,
+        pathParameters: {'id': deviceId.toString()},
+      );
     }
   }
 
-  static Future<void> pushAllDevices(BuildContext context,
-      {bool replaced = false, DeviceFilter? filter}) async {
+  static Future<void> pushAllDevices(
+    BuildContext context, {
+    bool replaced = false,
+    DeviceFilter? filter,
+  }) async {
     if (replaced) {
       context.pushReplacementNamed(AllDevicesPage.route, extra: filter);
     } else {
@@ -55,8 +72,11 @@ class WsNavigator {
     }
   }
 
-  static Future<void> pushSearchDevices(BuildContext context,
-      {bool replaced = false, DeviceSearchFilter? filter}) async {
+  static Future<void> pushSearchDevices(
+    BuildContext context, {
+    bool replaced = false,
+    DeviceSearchFilter? filter,
+  }) async {
     if (replaced) {
       context.pushReplacementNamed(SearchDevicesPage.route, extra: filter);
     } else {
@@ -64,11 +84,17 @@ class WsNavigator {
     }
   }
 
-  static void pushDeviceRegister(BuildContext context,
-      {int? customerId, String? customerName}) {
-    context.pushNamed(DeviceRegisterPage.route, queryParameters: {
-      'customerId': customerId.toString(),
-      'customerName': customerName,
-    });
+  static void pushDeviceRegister(
+    BuildContext context, {
+    int? customerId,
+    String? customerName,
+  }) {
+    context.pushNamed(
+      DeviceRegisterPage.route,
+      queryParameters: {
+        'customerId': customerId.toString(),
+        'customerName': customerName,
+      },
+    );
   }
 }

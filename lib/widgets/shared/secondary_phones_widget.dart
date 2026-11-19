@@ -48,8 +48,9 @@ class _SecondaryPhonesWidgetState extends State<SecondaryPhonesWidget> {
     widget.initialPhones?.forEach((phone) {
       _secondaryPhoneFields.add(
         SecondaryPhoneFormField(
-          key:
-              ValueKey('phone_field_name_${phone.name}_number_${phone.number}'),
+          key: ValueKey(
+            'phone_field_name_${phone.name}_number_${phone.number}',
+          ),
           name: phone.name,
           number: PhoneUtils.formatPhone(phone.number),
           readOnly: !widget.isEditing,
@@ -76,15 +77,13 @@ class _SecondaryPhonesWidgetState extends State<SecondaryPhonesWidget> {
                   if (widget.isEditing)
                     IconButton(
                       icon: const Icon(Icons.delete),
-                      style: IconButton.styleFrom(
-                        iconSize: 32,
-                      ),
+                      style: IconButton.styleFrom(iconSize: 32),
                       onPressed: () {
                         setState(() {
                           _secondaryPhoneFields.removeAt(index);
                         });
                       },
-                    )
+                    ),
                 ],
               ),
             ],

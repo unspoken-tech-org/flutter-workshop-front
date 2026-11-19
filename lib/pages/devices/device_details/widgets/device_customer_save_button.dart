@@ -23,8 +23,10 @@ class DeviceCustomerSaveButton extends StatelessWidget {
         backgroundColor: isEditing ? Colors.blueAccent : Colors.grey,
         iconColor: Colors.white,
       ),
-      label: Text(isEditing ? 'Salvar' : 'Editar',
-          style: WsTextStyles.body1.copyWith(color: Colors.white)),
+      label: Text(
+        isEditing ? 'Salvar' : 'Editar',
+        style: WsTextStyles.body1.copyWith(color: Colors.white),
+      ),
     );
   }
 }

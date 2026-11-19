@@ -19,13 +19,17 @@ void main() {
       expect(formatted.text.fromCurrency(), 1500.0);
     });
 
-    test('converte o texto gerado pelo NumberFormat pt_BR (espaço não separável)',
-        () {
-      final formatted =
-          NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(1500);
+    test(
+      'converte o texto gerado pelo NumberFormat pt_BR (espaço não separável)',
+      () {
+        final formatted = NumberFormat.currency(
+          locale: 'pt_BR',
+          symbol: 'R\$',
+        ).format(1500);
 
-      expect(formatted.fromCurrency(), 1500.0);
-    });
+        expect(formatted.fromCurrency(), 1500.0);
+      },
+    );
 
     test('campo vazio vira 0 sem lançar', () {
       expect(''.fromCurrency(), 0);

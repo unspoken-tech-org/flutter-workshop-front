@@ -19,38 +19,39 @@ class MockDioConflict extends MockDio {
     void Function(int, int)? onReceiveProgress,
   }) async {
     return Response(
-      requestOptions: RequestOptions(path: path),
-      statusCode: 409,
-      data: {
-        'error': {
-          'message': 'API Key já vinculada a outro dispositivo.',
-          'code': 'DEVICE_BOUND'
-        }
-      } as dynamic,
-    ) as Response<T>;
+          requestOptions: RequestOptions(path: path),
+          statusCode: 409,
+          data:
+              {
+                    'error': {
+                      'message': 'API Key já vinculada a outro dispositivo.',
+                      'code': 'DEVICE_BOUND',
+                    },
+                  }
+                  as dynamic,
+        )
+        as Response<T>;
   }
 }
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const MethodChannel channel =
-      MethodChannel('dev.fluttercommunity.plus/package_info');
+  const MethodChannel channel = MethodChannel(
+    'dev.fluttercommunity.plus/package_info',
+  );
 
   setUpAll(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-      channel,
-      (MethodCall methodCall) async {
-        if (methodCall.method == 'getAll') {
-          return <String, dynamic>{
-            'appName': 'flutter_workshop_front',
-            'version': '1.1.1',
-          };
-        }
-        return null;
-      },
-    );
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+          if (methodCall.method == 'getAll') {
+            return <String, dynamic>{
+              'appName': 'flutter_workshop_front',
+              'version': '1.1.1',
+            };
+          }
+          return null;
+        });
   });
 
   group('Device Conflict Unit Tests', () {

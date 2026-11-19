@@ -21,9 +21,7 @@ extension ReadJsonData on Map<String, dynamic> {
       return value;
     } else if (value is String) {
       try {
-        return double.parse(
-          value,
-        );
+        return double.parse(value);
       } catch (e) {
         return defaultValue;
       }
@@ -80,8 +78,11 @@ extension ReadJsonData on Map<String, dynamic> {
 }
 
 extension ReadJsonObject on Map<String, dynamic> {
-  T? toModel<T>(String key, T Function(Map<String, dynamic>) fromJson,
-      {T? defaultValue}) {
+  T? toModel<T>(
+    String key,
+    T Function(Map<String, dynamic>) fromJson, {
+    T? defaultValue,
+  }) {
     if (this[key] == null) return defaultValue;
     return fromJson(this[key]);
   }

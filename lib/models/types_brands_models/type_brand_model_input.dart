@@ -9,17 +9,10 @@ class TypeBrandModelInput {
     required this.model,
   });
 
-  factory TypeBrandModelInput.empty() => TypeBrandModelInput(
-        type: '',
-        brand: '',
-        model: '',
-      );
+  factory TypeBrandModelInput.empty() =>
+      TypeBrandModelInput(type: '', brand: '', model: '');
 
-  TypeBrandModelInput copyWith({
-    String? type,
-    String? brand,
-    String? model,
-  }) =>
+  TypeBrandModelInput copyWith({String? type, String? brand, String? model}) =>
       TypeBrandModelInput(
         type: type ?? this.type,
         brand: brand ?? this.brand,
@@ -27,10 +20,6 @@ class TypeBrandModelInput {
       );
 
   Map<String, dynamic> toJson() {
-    return {
-      'type': type,
-      'brand': brand,
-      'model': model,
-    };
+    return {'type': type, 'brand': brand, 'model': model};
   }
 }

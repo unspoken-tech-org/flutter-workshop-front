@@ -24,10 +24,7 @@ class CustomerDevicePageShimmer extends StatelessWidget {
               ),
             ),
             SizedBox(height: 16),
-            SizedBox(
-              height: 750,
-              child: _DeviceTabsShimmer(),
-            ),
+            SizedBox(height: 750, child: _DeviceTabsShimmer()),
           ],
         ),
       ),
@@ -91,7 +88,7 @@ class _CustomerDeviceInfosShimmer extends StatelessWidget {
             children: [
               ShimmerContainer(width: 120, height: 40, borderRadius: 8),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -149,11 +146,13 @@ class _DeviceDetailsShimmer extends StatelessWidget {
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            ShimmerContainer(width: 24, height: 24),
-            SizedBox(width: 12),
-            ShimmerContainer(width: 200, height: 18),
-          ]),
+          Row(
+            children: [
+              ShimmerContainer(width: 24, height: 24),
+              SizedBox(width: 12),
+              ShimmerContainer(width: 200, height: 18),
+            ],
+          ),
           SizedBox(height: 24),
           ShimmerContainer(width: double.infinity, height: 50),
           SizedBox(height: 16),
@@ -180,11 +179,13 @@ class _DiagnosticDeviceInfoShimmer extends StatelessWidget {
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            ShimmerContainer(width: 24, height: 24),
-            SizedBox(width: 12),
-            ShimmerContainer(width: 150, height: 18),
-          ]),
+          Row(
+            children: [
+              ShimmerContainer(width: 24, height: 24),
+              SizedBox(width: 12),
+              ShimmerContainer(width: 150, height: 18),
+            ],
+          ),
           SizedBox(height: 24),
           ShimmerContainer(width: double.infinity, height: 80),
           SizedBox(height: 16),
@@ -235,11 +236,13 @@ class _CustomerDeviceObservationShimmer extends StatelessWidget {
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            ShimmerContainer(width: 24, height: 24),
-            SizedBox(width: 12),
-            ShimmerContainer(width: 150, height: 18),
-          ]),
+          Row(
+            children: [
+              ShimmerContainer(width: 24, height: 24),
+              SizedBox(width: 12),
+              ShimmerContainer(width: 150, height: 18),
+            ],
+          ),
           SizedBox(height: 24),
           ShimmerContainer(width: double.infinity, height: 128),
         ],
@@ -326,7 +329,7 @@ class _PaymentItemShimmer extends StatelessWidget {
                   SizedBox(height: 6),
                   ShimmerContainer(width: 60, height: 16, borderRadius: 16),
                 ],
-              )
+              ),
             ],
           ),
           ShimmerContainer(width: 90, height: 20),
@@ -371,11 +374,7 @@ class _PaymentTotalsShimmer extends StatelessWidget {
           ],
         ),
         SizedBox(height: 16),
-        ShimmerContainer(
-          width: double.infinity,
-          height: 60,
-          borderRadius: 8,
-        ),
+        ShimmerContainer(width: double.infinity, height: 60, borderRadius: 8),
       ],
     );
   }
@@ -423,9 +422,7 @@ class _CustomerContactsShimmer extends StatelessWidget {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            ShimmerContainer(width: 180, height: 40, borderRadius: 8),
-          ],
+          children: [ShimmerContainer(width: 180, height: 40, borderRadius: 8)],
         ),
         SizedBox(height: 16),
         Expanded(
@@ -488,7 +485,7 @@ class _ContactCardShimmer extends StatelessWidget {
               SizedBox(height: 8),
               ShimmerContainer(width: 90, height: 24, borderRadius: 4),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -509,10 +506,7 @@ class HoverableCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: Colors.grey.shade300),
       ),
-      child: Padding(
-        padding: padding ?? const EdgeInsets.all(0),
-        child: child,
-      ),
+      child: Padding(padding: padding ?? const EdgeInsets.all(0), child: child),
     );
   }
 }

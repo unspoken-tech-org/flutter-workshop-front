@@ -28,11 +28,12 @@ class UrgencyChip extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
-              hasUrgency
-                  ? Icons.hourglass_bottom_outlined
-                  : Icons.hourglass_disabled,
-              color: color,
-              size: 16),
+            hasUrgency
+                ? Icons.hourglass_bottom_outlined
+                : Icons.hourglass_disabled,
+            color: color,
+            size: 16,
+          ),
         ),
       ),
     );

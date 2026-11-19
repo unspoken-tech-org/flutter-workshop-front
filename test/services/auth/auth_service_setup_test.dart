@@ -36,7 +36,11 @@ class _FixedAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-Dio _authDio(int status, String body, {String contentType = 'application/json'}) {
+Dio _authDio(
+  int status,
+  String body, {
+  String contentType = 'application/json',
+}) {
   return Dio(
     BaseOptions(
       baseUrl: 'https://test.example.com',
@@ -54,59 +58,67 @@ void main() {
   setUpAll(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
-      if (call.method == 'getAll') {
-        return <String, dynamic>{
-          'appName': 'flutter_workshop_front',
-          'version': '1.1.1',
-        };
-      }
-      return null;
-    });
+          if (call.method == 'getAll') {
+            return <String, dynamic>{
+              'appName': 'flutter_workshop_front',
+              'version': '1.1.1',
+            };
+          }
+          return null;
+        });
   });
 
   group('AuthService.authenticate — status fora de 200/409', () {
     for (final status in [400, 404, 429]) {
-      test('$status lança RequisitionException e não salva a API key', () async {
-        final storage = MockSecurityStorageWithBoundId();
-        final notifier = AuthNotifier();
-        final service = AuthService(
-          dio: _authDio(
-            status,
-            jsonEncode({
-              'error': {'message': 'Falha $status', 'code': 'E$status'},
-            }),
-          ),
-          storage: storage,
-          authNotifier: notifier,
-        );
+      test(
+        '$status lança RequisitionException e não salva a API key',
+        () async {
+          final storage = MockSecurityStorageWithBoundId();
+          final notifier = AuthNotifier();
+          final service = AuthService(
+            dio: _authDio(
+              status,
+              jsonEncode({
+                'error': {'message': 'Falha $status', 'code': 'E$status'},
+              }),
+            ),
+            storage: storage,
+            authNotifier: notifier,
+          );
 
-        await expectLater(
-          service.authenticate('key'),
-          throwsA(
-            isA<RequisitionException>()
-                .having((e) => e.message, 'message', 'Falha $status'),
-          ),
-        );
-        expect(await storage.getApiKey(), isNull);
-        expect(notifier.state, isNot(AuthRouteState.authenticated));
-      });
+          await expectLater(
+            service.authenticate('key'),
+            throwsA(
+              isA<RequisitionException>().having(
+                (e) => e.message,
+                'message',
+                'Falha $status',
+              ),
+            ),
+          );
+          expect(await storage.getApiKey(), isNull);
+          expect(notifier.state, isNot(AuthRouteState.authenticated));
+        },
+      );
     }
 
-    test('SetupController não marca sucesso e exibe a mensagem em 429 sem JSON',
-        () async {
-      final controller = SetupController(
-        authService: AuthService(
-          dio: _authDio(429, 'Too Many Requests', contentType: 'text/plain'),
-          storage: MockSecurityStorageWithBoundId(),
-          authNotifier: AuthNotifier(),
-        ),
-      );
+    test(
+      'SetupController não marca sucesso e exibe a mensagem em 429 sem JSON',
+      () async {
+        final controller = SetupController(
+          authService: AuthService(
+            dio: _authDio(429, 'Too Many Requests', contentType: 'text/plain'),
+            storage: MockSecurityStorageWithBoundId(),
+            authNotifier: AuthNotifier(),
+          ),
+        );
 
-      final result = await controller.authenticate('key');
+        final result = await controller.authenticate('key');
 
-      expect(result, isFalse);
-      expect(controller.isSuccess, isFalse);
-      expect(controller.errorMessage, contains('429'));
-    });
+        expect(result, isFalse);
+        expect(controller.isSuccess, isFalse);
+        expect(controller.errorMessage, contains('429'));
+      },
+    );
   });
 }

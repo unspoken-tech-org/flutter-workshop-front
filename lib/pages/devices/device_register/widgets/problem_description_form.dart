@@ -4,9 +4,7 @@ import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dar
 import 'package:provider/provider.dart';
 
 class ProblemDescriptionForm extends StatelessWidget {
-  const ProblemDescriptionForm({
-    super.key,
-  });
+  const ProblemDescriptionForm({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +41,9 @@ class ProblemDescriptionForm extends StatelessWidget {
               return null;
             },
             onSave: (value) {
-              controller.inputDevice =
-                  controller.inputDevice.copyWith(problem: value);
+              controller.inputDevice = controller.inputDevice.copyWith(
+                problem: value,
+              );
             },
           ),
           CustomTextField(
@@ -52,8 +51,9 @@ class ProblemDescriptionForm extends StatelessWidget {
             hintText: 'Observações adicionais...',
             maxLines: 3,
             onSave: (value) {
-              controller.inputDevice =
-                  controller.inputDevice.copyWith(observation: value);
+              controller.inputDevice = controller.inputDevice.copyWith(
+                observation: value,
+              );
             },
           ),
         ],

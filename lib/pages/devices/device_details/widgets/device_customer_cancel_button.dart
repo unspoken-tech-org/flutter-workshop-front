@@ -16,8 +16,10 @@ class DeviceCustomerCancelButton extends StatelessWidget {
         backgroundColor: Colors.grey.shade500,
         iconColor: Colors.white,
       ),
-      label: Text('Cancelar',
-          style: WsTextStyles.body1.copyWith(color: Colors.white)),
+      label: Text(
+        'Cancelar',
+        style: WsTextStyles.body1.copyWith(color: Colors.white),
+      ),
     );
   }
 }

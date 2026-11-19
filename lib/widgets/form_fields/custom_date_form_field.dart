@@ -2,10 +2,7 @@ import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-enum DatePickerType {
-  single,
-  range,
-}
+enum DatePickerType { single, range }
 
 class CustomDateFormField extends StatefulWidget {
   final TextEditingController? dateController;
@@ -54,7 +51,8 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
   @override
   void didUpdateWidget(CustomDateFormField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.dateController == null && dateController.text != (widget.value ?? '')) {
+    if (widget.dateController == null &&
+        dateController.text != (widget.value ?? '')) {
       dateController.text = widget.value ?? '';
     }
   }
@@ -155,10 +153,7 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
                     .map((e) => DateFormat('dd/MM/yyyy').format(e))
                     .join(' - ');
 
-                widget.onSelected?.call(
-                  dates[0],
-                  dates[1],
-                );
+                widget.onSelected?.call(dates[0], dates[1]);
                 setState(() {});
               }
             }

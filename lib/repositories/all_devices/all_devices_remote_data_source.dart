@@ -15,14 +15,16 @@ class AllDevicesRemoteDataSource implements AllDevicesRepository {
   final DeviceBrandService _deviceBrandService = DeviceBrandService();
 
   @override
-  Future<Page<DeviceDataTable>> getAllDevicesFiltering(
-      [DeviceFilter? filter]) async {
+  Future<Page<DeviceDataTable>> getAllDevicesFiltering([
+    DeviceFilter? filter,
+  ]) async {
     return _deviceCustomerService.getAllDevicesFiltering(filter);
   }
 
   @override
-  Future<Page<DeviceDataTable>> searchDevices(
-      [DeviceSearchFilter? filter]) async {
+  Future<Page<DeviceDataTable>> searchDevices([
+    DeviceSearchFilter? filter,
+  ]) async {
     return _deviceCustomerService.searchDevices(filter);
   }
 

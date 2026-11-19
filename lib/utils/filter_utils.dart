@@ -2,7 +2,7 @@ class FilterUtils {
   final String _term;
 
   FilterUtils(String term)
-      : _term = term.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+    : _term = term.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
 
   String get term => _term;
 

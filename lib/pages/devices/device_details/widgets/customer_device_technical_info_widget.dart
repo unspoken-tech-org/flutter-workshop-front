@@ -8,10 +8,7 @@ import 'package:provider/provider.dart';
 
 class CustomerDeviceTechnicalInfoWidget extends StatelessWidget {
   final bool isEditing;
-  const CustomerDeviceTechnicalInfoWidget({
-    super.key,
-    this.isEditing = false,
-  });
+  const CustomerDeviceTechnicalInfoWidget({super.key, this.isEditing = false});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +18,8 @@ class CustomerDeviceTechnicalInfoWidget extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-            color: isEditing ? Colors.blue.shade300 : const Color(0xFFE5E7EB)),
+          color: isEditing ? Colors.blue.shade300 : const Color(0xFFE5E7EB),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,8 +42,10 @@ class CustomerDeviceTechnicalInfoWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          Selector<DeviceCustomerPageController,
-              (DeviceCustomer, List<Technician>)>(
+          Selector<
+            DeviceCustomerPageController,
+            (DeviceCustomer, List<Technician>)
+          >(
             selector: (context, controller) =>
                 (controller.deviceCustomer, controller.technicians),
             builder: (context, values, child) {
@@ -54,8 +54,9 @@ class CustomerDeviceTechnicalInfoWidget extends StatelessWidget {
               return CustomDropdownButtonFormField(
                 headerLabel: 'Técnico',
                 initialValue: deviceCustomer.technicianName?.capitalizeAllWords,
-                items:
-                    technicians.map((e) => e.name.capitalizeAllWords).toList(),
+                items: technicians
+                    .map((e) => e.name.capitalizeAllWords)
+                    .toList(),
                 enabled: isEditing,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -67,8 +68,8 @@ class CustomerDeviceTechnicalInfoWidget extends StatelessWidget {
                   final technician = technicians.firstWhere(
                     (e) => e.name.capitalizeAllWords == value,
                   );
-                  final controller =
-                      context.read<DeviceCustomerPageController>();
+                  final controller = context
+                      .read<DeviceCustomerPageController>();
                   final newDeviceCustomer = controller.deviceCustomer.copyWith(
                     technicianId: technician.id,
                     technicianName: technician.name,

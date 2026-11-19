@@ -13,8 +13,10 @@ import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 class SearchDevicesController extends ChangeNotifier {
   final AllDevicesRepository _allDevicesRepository;
 
-  SearchDevicesController(this._allDevicesRepository,
-      {DeviceSearchFilter? filter}) {
+  SearchDevicesController(
+    this._allDevicesRepository, {
+    DeviceSearchFilter? filter,
+  }) {
     this.filter = filter ?? DeviceSearchFilter();
     searchDevices();
   }
@@ -44,8 +46,8 @@ class SearchDevicesController extends ChangeNotifier {
       devices = [];
       notifyListeners();
       await Future.delayed(const Duration(milliseconds: 200));
-      final Page<DeviceDataTable> result =
-          await _allDevicesRepository.searchDevices(filter);
+      final Page<DeviceDataTable> result = await _allDevicesRepository
+          .searchDevices(filter);
       devices = result.content;
       _totalElements = result.totalElements;
       _totalPages = result.totalPages;
@@ -148,8 +150,8 @@ class SearchDevicesController extends ChangeNotifier {
       _currentPage++;
       filter.page = _currentPage;
 
-      final Page<DeviceDataTable> result =
-          await _allDevicesRepository.searchDevices(filter);
+      final Page<DeviceDataTable> result = await _allDevicesRepository
+          .searchDevices(filter);
       devices.addAll(result.content);
       _totalPages = result.totalPages;
       _hasMore = !result.last;

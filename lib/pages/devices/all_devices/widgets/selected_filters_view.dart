@@ -4,10 +4,7 @@ import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all
 import 'package:provider/provider.dart';
 
 class SelectedFiltersView extends StatelessWidget {
-  const SelectedFiltersView({
-    super.key,
-    required this.controller,
-  });
+  const SelectedFiltersView({super.key, required this.controller});
 
   final AllDevicesController controller;
 

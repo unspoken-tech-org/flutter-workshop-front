@@ -45,7 +45,8 @@ class TechnicianAndUrgencyForm extends StatelessWidget {
                   onSave: (value) {
                     final technicianId = controller.technicians
                         .firstWhereOrNull(
-                            (t) => t.name.toLowerCase() == value.toLowerCase())
+                          (t) => t.name.toLowerCase() == value.toLowerCase(),
+                        )
                         ?.id;
 
                     controller.inputDevice = controller.inputDevice.copyWith(
@@ -54,11 +55,15 @@ class TechnicianAndUrgencyForm extends StatelessWidget {
                   },
                 ),
               ),
-              Flexible(child: UrgencySwitch(onSaved: (value) {
-                controller.inputDevice = controller.inputDevice.copyWith(
-                  hasUrgency: value,
-                );
-              })),
+              Flexible(
+                child: UrgencySwitch(
+                  onSaved: (value) {
+                    controller.inputDevice = controller.inputDevice.copyWith(
+                      hasUrgency: value,
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ],

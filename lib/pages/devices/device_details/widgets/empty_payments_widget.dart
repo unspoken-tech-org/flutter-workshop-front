@@ -8,17 +8,14 @@ class EmptyPaymentsWidget extends StatelessWidget {
     return Column(
       children: [
         const SizedBox(height: 30),
-        Image.asset(
-          'assets/images/empty_pockets.png',
-          height: 180,
-        ),
+        Image.asset('assets/images/empty_pockets.png', height: 180),
         const SizedBox(height: 16),
         Text(
           'Não há pagamentos para este aparelho',
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Colors.grey[600],
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(color: Colors.grey[600]),
         ),
       ],
     );

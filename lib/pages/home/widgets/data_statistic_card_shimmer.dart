@@ -23,34 +23,18 @@ class DataStatisticCardShimmer extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  ShimmerContainer(
-                    width: 120.0,
-                    height: 14.0,
-                  ),
-                  ShimmerContainer(
-                    width: 40.0,
-                    height: 40.0,
-                    borderRadius: 8,
-                  ),
+                  ShimmerContainer(width: 120.0, height: 14.0),
+                  ShimmerContainer(width: 40.0, height: 40.0, borderRadius: 8),
                 ],
               ),
               SizedBox(height: 8),
-              ShimmerContainer(
-                width: 80.0,
-                height: 24.0,
-              ),
+              ShimmerContainer(width: 80.0, height: 24.0),
               SizedBox(height: 4),
               Row(
                 children: [
-                  ShimmerContainer(
-                    width: 12.0,
-                    height: 12.0,
-                  ),
+                  ShimmerContainer(width: 12.0, height: 12.0),
                   SizedBox(width: 4),
-                  ShimmerContainer(
-                    width: 100.0,
-                    height: 12.0,
-                  ),
+                  ShimmerContainer(width: 100.0, height: 12.0),
                 ],
               ),
             ],

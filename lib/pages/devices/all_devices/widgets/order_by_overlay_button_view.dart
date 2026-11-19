@@ -27,11 +27,14 @@ class _OrderByButtonViewState extends State<OrderByButtonView>
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
-    fadeAnimation =
-        Tween<double>(begin: 0, end: 1).animate(animationController);
-    slideAnimation =
-        Tween<Offset>(begin: const Offset(0, -0.1), end: Offset.zero)
-            .animate(animationController);
+    fadeAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(animationController);
+    slideAnimation = Tween<Offset>(
+      begin: const Offset(0, -0.1),
+      end: Offset.zero,
+    ).animate(animationController);
   }
 
   @override
@@ -96,8 +99,10 @@ class _OrderByButtonViewState extends State<OrderByButtonView>
             child: OutlinedButton.icon(
               onPressed: toggleOverlay,
               style: OutlinedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 side: BorderSide(color: Colors.grey.shade300),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),

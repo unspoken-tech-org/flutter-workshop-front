@@ -27,8 +27,9 @@ class DeviceStatistics {
   factory DeviceStatistics.fromJson(Map<String, dynamic> json) {
     return DeviceStatistics(
       novo: StatisticsCount.fromJson(json[StatusEnum.newDevice.dbName]),
-      aguardando:
-          StatisticsCount.fromJson(json[StatusEnum.waitingApproval.dbName]),
+      aguardando: StatisticsCount.fromJson(
+        json[StatusEnum.waitingApproval.dbName],
+      ),
       emAndamento: StatisticsCount.fromJson(json[StatusEnum.inProgress.dbName]),
       pronto: StatisticsCount.fromJson(json[StatusEnum.ready.dbName]),
       entregue: StatisticsCount.fromJson(json[StatusEnum.delivered.dbName]),

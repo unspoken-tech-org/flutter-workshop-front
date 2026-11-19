@@ -79,9 +79,7 @@ class _RoundedFilterBarState extends State<RoundedFilterBar> {
             child: TextField(
               controller: _controller,
               decoration: InputDecoration(
-                border: const OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
+                border: const OutlineInputBorder(borderSide: BorderSide.none),
                 hintText: widget.hintText,
                 hintStyle: widget.textStyle,
               ),
@@ -100,7 +98,7 @@ class _RoundedFilterBarState extends State<RoundedFilterBar> {
               icon: const Icon(Icons.close, color: WsColors.danger),
             )
           else
-            widget.trailingIcon
+            widget.trailingIcon,
         ],
       ),
     );

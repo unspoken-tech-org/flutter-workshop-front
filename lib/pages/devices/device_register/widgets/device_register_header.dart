@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
 class DeviceRegisterHeader extends StatelessWidget {
-  const DeviceRegisterHeader({
-    super.key,
-  });
+  const DeviceRegisterHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,10 +16,7 @@ class DeviceRegisterHeader extends StatelessWidget {
             Icon(Icons.local_laundry_service, size: 32),
             Text(
               'Cadastro de Aparelho',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
             ),
           ],
         ),

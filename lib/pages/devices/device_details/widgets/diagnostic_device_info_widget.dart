@@ -7,10 +7,7 @@ import 'package:provider/provider.dart';
 class DiagnosticDeviceInfoWidget extends StatelessWidget {
   final bool isEditing;
 
-  const DiagnosticDeviceInfoWidget({
-    super.key,
-    this.isEditing = false,
-  });
+  const DiagnosticDeviceInfoWidget({super.key, this.isEditing = false});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +19,8 @@ class DiagnosticDeviceInfoWidget extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-            color: isEditing ? Colors.blue.shade300 : const Color(0xFFE5E7EB)),
+          color: isEditing ? Colors.blue.shade300 : const Color(0xFFE5E7EB),
+        ),
       ),
       child: Selector<DeviceCustomerPageController, DeviceCustomer>(
         selector: (context, controller) => controller.deviceCustomer,
@@ -51,8 +49,9 @@ class DiagnosticDeviceInfoWidget extends StatelessWidget {
               hintText: 'Descreva o problema relatado pelo cliente...',
               maxLines: 4,
               onSave: (value) {
-                final newDeviceCustomer =
-                    controller.deviceCustomer.copyWith(problem: value);
+                final newDeviceCustomer = controller.deviceCustomer.copyWith(
+                  problem: value,
+                );
                 controller.updateNewDeviceCustomer(newDeviceCustomer);
               },
               validator: (value) {
@@ -70,8 +69,9 @@ class DiagnosticDeviceInfoWidget extends StatelessWidget {
               hintText: 'Descreva o orçamento para o conserto...',
               maxLines: 4,
               onSave: (value) {
-                final newDeviceCustomer =
-                    controller.deviceCustomer.copyWith(budget: value);
+                final newDeviceCustomer = controller.deviceCustomer.copyWith(
+                  budget: value,
+                );
                 controller.updateNewDeviceCustomer(newDeviceCustomer);
               },
             ),

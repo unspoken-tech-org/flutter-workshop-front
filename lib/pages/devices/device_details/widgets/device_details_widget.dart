@@ -29,120 +29,122 @@ class DeviceDetailsWidget extends StatelessWidget {
         selector: (context, controller) => controller.deviceCustomer,
         builder: (context, deviceCustomer, child) {
           return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              children: [
-                Icon(Icons.build_outlined, color: Color(0xFF4B5563)),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Detalhes do Aparelho',
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1F2937),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.build_outlined, color: Color(0xFF4B5563)),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Detalhes do Aparelho',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1F2937),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            CustomTextField(
-              headerLabel: 'Aparelho',
-              readOnly: true,
-              maxLines: 1,
-              value:
-                  '${deviceCustomer.typeName} ${deviceCustomer.brandName} | ${deviceCustomer.modelName}'
-                      .capitalizeAllWords,
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              headerLabel: 'Cores',
-              readOnly: true,
-              value: deviceCustomer.deviceColors.join(', '),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: CustomDateFormField(
-                    enabled: isEditing,
-                    errorMaxLines: 2,
-                    headerLabel: 'Data de entrada',
-                    value: deviceCustomer.entryDate.formatDate(),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Data de entrada é obrigatória';
-                      }
-                      return null;
-                    },
-                    onSelected: (date, _) {
-                      final updated = controller.deviceCustomer.copyWith(
-                        entryDate: date,
-                      );
-                      controller.updateNewDeviceCustomer(updated);
-                    },
-                    onSave: (value) {
-                      final updated = controller.deviceCustomer.copyWith(
-                        entryDate: DateFormat('dd/MM/yyyy').parse(value),
-                      );
-                      controller.updateNewDeviceCustomer(updated);
-                    },
-                  ),
-                ),
-                if (controller.deviceCustomer.departureDate != null ||
-                    (isEditing &&
-                        [StatusEnum.delivered, StatusEnum.disposed].contains(
-                          controller.deviceCustomer.deviceStatus,
-                        ))) ...[
-                  const SizedBox(width: 16),
+                ],
+              ),
+              const SizedBox(height: 24),
+              CustomTextField(
+                headerLabel: 'Aparelho',
+                readOnly: true,
+                maxLines: 1,
+                value:
+                    '${deviceCustomer.typeName} ${deviceCustomer.brandName} | ${deviceCustomer.modelName}'
+                        .capitalizeAllWords,
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                headerLabel: 'Cores',
+                readOnly: true,
+                value: deviceCustomer.deviceColors.join(', '),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Expanded(
                     child: CustomDateFormField(
                       enabled: isEditing,
-                      headerLabel: 'Data de saída',
-                      value: deviceCustomer.departureDate?.formatDate() ?? '',
                       errorMaxLines: 2,
+                      headerLabel: 'Data de entrada',
+                      value: deviceCustomer.entryDate.formatDate(),
                       validator: (value) {
-                        if ([
-                          StatusEnum.delivered,
-                          StatusEnum.disposed,
-                        ].contains(controller.deviceCustomer.deviceStatus)) {
-                          if (value == null || value.isEmpty) {
-                            return 'Saída obrigatoria para entregue/descartado';
-                          }
-                        }
-                        if (value != null && value.isNotEmpty) {
-                          final entry = controller.deviceCustomer.entryDate;
-                          final departure = DateFormat('dd/MM/yyyy').parse(value);
-                          if (!departure.isAfter(entry)) {
-                            return 'Data de saída deve ser posterior à entrada';
-                          }
+                        if (value == null || value.isEmpty) {
+                          return 'Data de entrada é obrigatória';
                         }
                         return null;
                       },
                       onSelected: (date, _) {
                         final updated = controller.deviceCustomer.copyWith(
-                          departureDate: date,
+                          entryDate: date,
                         );
                         controller.updateNewDeviceCustomer(updated);
                       },
                       onSave: (value) {
                         final updated = controller.deviceCustomer.copyWith(
-                          departureDate: value.isEmpty
-                              ? null
-                              : DateFormat('dd/MM/yyyy').parse(value),
+                          entryDate: DateFormat('dd/MM/yyyy').parse(value),
                         );
                         controller.updateNewDeviceCustomer(updated);
                       },
                     ),
                   ),
+                  if (controller.deviceCustomer.departureDate != null ||
+                      (isEditing &&
+                          [StatusEnum.delivered, StatusEnum.disposed].contains(
+                            controller.deviceCustomer.deviceStatus,
+                          ))) ...[
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: CustomDateFormField(
+                        enabled: isEditing,
+                        headerLabel: 'Data de saída',
+                        value: deviceCustomer.departureDate?.formatDate() ?? '',
+                        errorMaxLines: 2,
+                        validator: (value) {
+                          if ([
+                            StatusEnum.delivered,
+                            StatusEnum.disposed,
+                          ].contains(controller.deviceCustomer.deviceStatus)) {
+                            if (value == null || value.isEmpty) {
+                              return 'Saída obrigatoria para entregue/descartado';
+                            }
+                          }
+                          if (value != null && value.isNotEmpty) {
+                            final entry = controller.deviceCustomer.entryDate;
+                            final departure = DateFormat(
+                              'dd/MM/yyyy',
+                            ).parse(value);
+                            if (!departure.isAfter(entry)) {
+                              return 'Data de saída deve ser posterior à entrada';
+                            }
+                          }
+                          return null;
+                        },
+                        onSelected: (date, _) {
+                          final updated = controller.deviceCustomer.copyWith(
+                            departureDate: date,
+                          );
+                          controller.updateNewDeviceCustomer(updated);
+                        },
+                        onSave: (value) {
+                          final updated = controller.deviceCustomer.copyWith(
+                            departureDate: value.isEmpty
+                                ? null
+                                : DateFormat('dd/MM/yyyy').parse(value),
+                          );
+                          controller.updateNewDeviceCustomer(updated);
+                        },
+                      ),
+                    ),
+                  ],
                 ],
-              ],
-            ),
-          ],
+              ),
+            ],
           );
         },
       ),

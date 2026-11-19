@@ -9,11 +9,7 @@ class ContactCard extends StatelessWidget {
   final CustomerContact contact;
   final VoidCallback? onEdit;
 
-  const ContactCard({
-    super.key,
-    required this.contact,
-    this.onEdit,
-  });
+  const ContactCard({super.key, required this.contact, this.onEdit});
 
   (String, Color, Color) _getStatus() {
     if (contact.hasMadeContact) {

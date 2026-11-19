@@ -73,8 +73,8 @@ class AllCustomerController extends ChangeNotifier {
       _currentPage++;
       filter = filter?.copyWith(page: _currentPage);
 
-      final Page<MinifiedCustomerModel> result =
-          await _customerRepository.searchCustomers(filter);
+      final Page<MinifiedCustomerModel> result = await _customerRepository
+          .searchCustomers(filter);
       _customers.addAll(result.content);
       _totalElements = result.totalElements;
       _hasMore = !result.last;

@@ -22,8 +22,9 @@ class WsSearchBarWidget extends StatefulWidget {
 
 class _WsSearchBarWidgetState extends State<WsSearchBarWidget> {
   final TextEditingController _searchController = TextEditingController();
-  late final Debouncer _debouncer =
-      Debouncer(milliseconds: widget.debounceTime);
+  late final Debouncer _debouncer = Debouncer(
+    milliseconds: widget.debounceTime,
+  );
 
   @override
   void dispose() {
@@ -44,24 +45,15 @@ class _WsSearchBarWidgetState extends State<WsSearchBarWidget> {
       },
       decoration: InputDecoration(
         labelText: widget.labelText,
-        labelStyle: WsTextStyles.body1.copyWith(
-          color: Colors.grey.shade400,
-        ),
-        prefixIcon: Icon(
-          Icons.search,
-          color: Colors.grey.shade400,
-        ),
+        labelStyle: WsTextStyles.body1.copyWith(color: Colors.grey.shade400),
+        prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),
-          borderSide: BorderSide(
-            color: Colors.grey.shade400,
-          ),
+          borderSide: BorderSide(color: Colors.grey.shade400),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),
-          borderSide: BorderSide(
-            color: Colors.blue.shade700,
-          ),
+          borderSide: BorderSide(color: Colors.blue.shade700),
         ),
         suffixIcon: _searchController.text.isNotEmpty
             ? IconButton(

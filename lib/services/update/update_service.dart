@@ -45,14 +45,15 @@ class UpdateService {
   final Dio _dio;
 
   UpdateService({Dio? dio})
-      : _dio = dio ??
-            Dio(
-              BaseOptions(
-                connectTimeout: const Duration(seconds: 10),
-                receiveTimeout: const Duration(seconds: 10),
-                headers: const {'Accept': 'application/vnd.github.v3+json'},
-              ),
-            );
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
+              connectTimeout: const Duration(seconds: 10),
+              receiveTimeout: const Duration(seconds: 10),
+              headers: const {'Accept': 'application/vnd.github.v3+json'},
+            ),
+          );
 
   Future<UpdateInfo?> checkForUpdates() async {
     final owner = EnvConfig.githubOwner;
@@ -119,8 +120,10 @@ class UpdateService {
     result = result.replaceAll(RegExp(r'^#{1,6}\s+', multiLine: true), '');
 
     // Remove bold (**texto** ou __texto__)
-    result =
-        result.replaceAllMapped(RegExp(r'\*\*(.+?)\*\*'), (m) => m.group(1)!);
+    result = result.replaceAllMapped(
+      RegExp(r'\*\*(.+?)\*\*'),
+      (m) => m.group(1)!,
+    );
     result = result.replaceAllMapped(RegExp(r'__(.+?)__'), (m) => m.group(1)!);
 
     // Remove italic (*texto* ou _texto_)
@@ -128,12 +131,16 @@ class UpdateService {
     result = result.replaceAllMapped(RegExp(r'_(.+?)_'), (m) => m.group(1)!);
 
     // Remove horizontal rules
-    result =
-        result.replaceAll(RegExp(r'^[\-\*_]{3,}\s*$', multiLine: true), '');
+    result = result.replaceAll(
+      RegExp(r'^[\-\*_]{3,}\s*$', multiLine: true),
+      '',
+    );
 
     // Remove links [texto](url) -> texto
     result = result.replaceAllMapped(
-        RegExp(r'\[([^\]]+)\]\([^\)]+\)'), (m) => m.group(1)!);
+      RegExp(r'\[([^\]]+)\]\([^\)]+\)'),
+      (m) => m.group(1)!,
+    );
 
     // Remove inline code `código`
     result = result.replaceAllMapped(RegExp(r'`([^`]+)`'), (m) => m.group(1)!);

@@ -6,10 +6,7 @@ import 'package:provider/provider.dart';
 
 class CustomerDeviceObservationWidget extends StatelessWidget {
   final bool isEditing;
-  const CustomerDeviceObservationWidget({
-    super.key,
-    this.isEditing = false,
-  });
+  const CustomerDeviceObservationWidget({super.key, this.isEditing = false});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +16,8 @@ class CustomerDeviceObservationWidget extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-            color: isEditing ? Colors.blue.shade300 : const Color(0xFFE5E7EB)),
+          color: isEditing ? Colors.blue.shade300 : const Color(0xFFE5E7EB),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,8 +46,9 @@ class CustomerDeviceObservationWidget extends StatelessWidget {
               maxLines: 4,
               onSave: (value) {
                 final controller = context.read<DeviceCustomerPageController>();
-                final newDeviceCustomer =
-                    controller.deviceCustomer.copyWith(observation: value);
+                final newDeviceCustomer = controller.deviceCustomer.copyWith(
+                  observation: value,
+                );
                 controller.updateNewDeviceCustomer(newDeviceCustomer);
               },
             ),

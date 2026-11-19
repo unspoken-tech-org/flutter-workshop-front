@@ -48,10 +48,7 @@ class SearchOrderByView extends StatelessWidget {
                       color: Colors.black,
                     ),
                   ),
-                  icon: const Icon(
-                    Icons.close,
-                    color: Colors.black,
-                  ),
+                  icon: const Icon(Icons.close, color: Colors.black),
                 ),
               ),
             ],

@@ -13,14 +13,19 @@ class DateText extends StatelessWidget {
     return Row(
       spacing: 6,
       children: [
-        Icon(Icons.calendar_today_outlined,
-            size: 14, color: Colors.grey.shade500),
-        Text('$label: ${d.formatDate()}',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey.shade500,
-            )),
+        Icon(
+          Icons.calendar_today_outlined,
+          size: 14,
+          color: Colors.grey.shade500,
+        ),
+        Text(
+          '$label: ${d.formatDate()}',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade500,
+          ),
+        ),
       ],
     );
   }

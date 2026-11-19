@@ -53,8 +53,9 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
                               const SizedBox(width: 8),
                               Text(
                                 'Pagamentos',
-                                style: textTheme.titleLarge
-                                    ?.copyWith(fontWeight: FontWeight.w500),
+                                style: textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ],
                           ),

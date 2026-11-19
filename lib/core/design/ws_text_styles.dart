@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 class WsTextStyles {
-//generate a text style design for application
+  //generate a text style design for application
   static TextStyle h1 = const TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.bold,
@@ -32,32 +32,20 @@ class WsTextStyles {
     fontWeight: FontWeight.bold,
   );
 
-  static TextStyle subtitle1 = const TextStyle(
-    fontSize: 16,
-  );
+  static TextStyle subtitle1 = const TextStyle(fontSize: 16);
 
-  static TextStyle subtitle2 = const TextStyle(
-    fontSize: 14,
-  );
+  static TextStyle subtitle2 = const TextStyle(fontSize: 14);
 
-  static TextStyle body1 = const TextStyle(
-    fontSize: 16,
-  );
+  static TextStyle body1 = const TextStyle(fontSize: 16);
 
-  static TextStyle body2 = const TextStyle(
-    fontSize: 14,
-  );
+  static TextStyle body2 = const TextStyle(fontSize: 14);
 
   static TextStyle button = const TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.bold,
   );
 
-  static TextStyle caption = const TextStyle(
-    fontSize: 12,
-  );
+  static TextStyle caption = const TextStyle(fontSize: 12);
 
-  static TextStyle overline = const TextStyle(
-    fontSize: 10,
-  );
+  static TextStyle overline = const TextStyle(fontSize: 10);
 }

@@ -4,10 +4,7 @@ import 'package:flutter_workshop_front/pages/devices/search_devices/controllers/
 import 'package:provider/provider.dart';
 
 class SearchSelectedFiltersView extends StatelessWidget {
-  const SearchSelectedFiltersView({
-    super.key,
-    required this.controller,
-  });
+  const SearchSelectedFiltersView({super.key, required this.controller});
 
   final SearchDevicesController controller;
 

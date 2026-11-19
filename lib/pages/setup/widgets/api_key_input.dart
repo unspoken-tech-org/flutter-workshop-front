@@ -33,8 +33,8 @@ class ApiKeyInput extends StatelessWidget {
                   color: hasError
                       ? Colors.red
                       : isSuccess
-                          ? Colors.green
-                          : const Color(0xFF79747E),
+                      ? Colors.green
+                      : const Color(0xFF79747E),
                   width: hasError || isSuccess ? 2 : 1,
                 ),
               ),

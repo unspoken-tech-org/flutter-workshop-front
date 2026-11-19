@@ -13,10 +13,8 @@ class AllDevicesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => AllDevicesController(
-        AllDevicesRemoteDataSource(),
-        filter: filter,
-      ),
+      create: (context) =>
+          AllDevicesController(AllDevicesRemoteDataSource(), filter: filter),
       child: const AllDevicesView(),
     );
   }

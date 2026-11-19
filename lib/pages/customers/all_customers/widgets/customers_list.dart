@@ -44,7 +44,8 @@ class _CustomersListState extends State<CustomersList> {
 
   @override
   Widget build(BuildContext context) {
-    final itemCount = widget.customers.length +
+    final itemCount =
+        widget.customers.length +
         (widget.controller.isLoadingMore || widget.controller.hasMore ? 1 : 0);
 
     return ListView.separated(
@@ -61,10 +62,7 @@ class _CustomersListState extends State<CustomersList> {
         }
 
         final customer = widget.customers[index];
-        return CustomerCard(
-          customer: customer,
-          onTap: widget.onTap,
-        );
+        return CustomerCard(customer: customer, onTap: widget.onTap);
       },
       separatorBuilder: (context, index) => const SizedBox(height: 8),
     );

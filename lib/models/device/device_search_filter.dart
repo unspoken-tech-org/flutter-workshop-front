@@ -52,7 +52,7 @@ class DeviceSearchFilter {
       hasSearchQuery,
       hasStatusFilters,
       hasDateFilters,
-      hasRevisionUrgencyFilters
+      hasRevisionUrgencyFilters,
     ].where((filter) => filter).length;
   }
 
@@ -71,18 +71,19 @@ class DeviceSearchFilter {
     int? size,
   }) {
     return DeviceSearchFilter(
-      searchQuery:
-          searchQuery == null ? this.searchQuery : searchQuery.value,
+      searchQuery: searchQuery == null ? this.searchQuery : searchQuery.value,
       deviceId: deviceId == null ? this.deviceId : deviceId.value,
-      customerPhone:
-          customerPhone == null ? this.customerPhone : customerPhone.value,
+      customerPhone: customerPhone == null
+          ? this.customerPhone
+          : customerPhone.value,
       customerCpf: customerCpf == null ? this.customerCpf : customerCpf.value,
       status: status ?? this.status,
       initialEntryDate: initialEntryDate == null
           ? this.initialEntryDate
           : initialEntryDate.value,
-      finalEntryDate:
-          finalEntryDate == null ? this.finalEntryDate : finalEntryDate.value,
+      finalEntryDate: finalEntryDate == null
+          ? this.finalEntryDate
+          : finalEntryDate.value,
       orderBy: orderBy ?? this.orderBy,
       hasUrgency: hasUrgency == null ? this.hasUrgency : hasUrgency.value,
       hasRevision: hasRevision == null ? this.hasRevision : hasRevision.value,
@@ -92,9 +93,7 @@ class DeviceSearchFilter {
   }
 
   DeviceSearchFilter withSearchQuery(String? query) {
-    return copyWith(
-      searchQuery: Nullable.of(query),
-    );
+    return copyWith(searchQuery: Nullable.of(query));
   }
 
   DeviceSearchFilter withToggledStatus(StatusEnum status) {
@@ -109,16 +108,12 @@ class DeviceSearchFilter {
 
   DeviceSearchFilter withToggledUrgency() {
     final urgency = hasUrgency == true ? null : true;
-    return copyWith(
-      hasUrgency: Nullable.of(urgency),
-    );
+    return copyWith(hasUrgency: Nullable.of(urgency));
   }
 
   DeviceSearchFilter withToggledRevision() {
     final revision = hasRevision == true ? null : true;
-    return copyWith(
-      hasRevision: Nullable.of(revision),
-    );
+    return copyWith(hasRevision: Nullable.of(revision));
   }
 
   DeviceSearchFilter withRangeDate(DateTime? initialDate, DateTime? endDate) {
@@ -129,14 +124,10 @@ class DeviceSearchFilter {
   }
 
   DeviceSearchFilter clearSearchQuery() {
-    return copyWith(
-      searchQuery: Nullable.empty(),
-    );
+    return copyWith(searchQuery: Nullable.empty());
   }
 
-  DeviceSearchFilter withToggledOrderBy(
-    OrderBy orderBy,
-  ) {
+  DeviceSearchFilter withToggledOrderBy(OrderBy orderBy) {
     final newMap = this.orderBy.map((key, value) {
       if (key == orderBy) {
         switch (value) {

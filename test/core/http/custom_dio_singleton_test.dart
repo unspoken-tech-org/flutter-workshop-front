@@ -10,8 +10,9 @@ import 'package:flutter_workshop_front/core/security/security_storage.dart';
 
 /// Gera um JWT minimalista com o timestamp de expiração informado.
 String _makeJwt(int expEpochSeconds) {
-  final header =
-      base64Url.encode(utf8.encode('{"alg":"HS256","typ":"JWT"}')).replaceAll('=', '');
+  final header = base64Url
+      .encode(utf8.encode('{"alg":"HS256","typ":"JWT"}'))
+      .replaceAll('=', '');
   final payload = base64Url
       .encode(utf8.encode('{"sub":"test","exp":$expEpochSeconds}'))
       .replaceAll('=', '');
@@ -137,15 +138,11 @@ void main() {
         ..seedTokens(accessToken: oldToken, refreshToken: 'rt-1');
       var refreshCalls = 0;
 
-      CustomDio.setup(
-        storage,
-        () async {
-          refreshCalls += 1;
-          await storage.saveAccessToken(newToken);
-          return newToken;
-        },
-        AuthNotifier(),
-      );
+      CustomDio.setup(storage, () async {
+        refreshCalls += 1;
+        await storage.saveAccessToken(newToken);
+        return newToken;
+      }, AuthNotifier());
 
       final dioA = CustomDio.dioInstance();
       final dioB = CustomDio.dioInstance();

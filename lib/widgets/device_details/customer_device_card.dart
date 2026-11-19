@@ -75,9 +75,10 @@ class _OtherDeviceHeaderCard extends StatelessWidget {
               TextSpan(
                 text: 'Id: $id',
                 style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
             ],
           ),
@@ -90,7 +91,7 @@ class _OtherDeviceHeaderCard extends StatelessWidget {
         const Spacer(),
         UrgencyChip(hasUrgency: hasUrgency),
         const SizedBox(width: 8),
-        RevisionChip(revision: revision)
+        RevisionChip(revision: revision),
       ],
     );
   }
@@ -112,9 +113,10 @@ class _DeviceNameAndProblem extends StatelessWidget {
       children: [
         Expanded(
           child: _ColumnInfoCell(
-              icon: Icons.microwave_outlined,
-              title: 'Aparelho:',
-              value: deviceName),
+            icon: Icons.microwave_outlined,
+            title: 'Aparelho:',
+            value: deviceName,
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -133,10 +135,7 @@ class _DeviceInAndOutDate extends StatelessWidget {
   final DateTime inDate;
   final DateTime? outDate;
 
-  const _DeviceInAndOutDate({
-    required this.inDate,
-    required this.outDate,
-  });
+  const _DeviceInAndOutDate({required this.inDate, required this.outDate});
 
   @override
   Widget build(BuildContext context) {
@@ -146,9 +145,10 @@ class _DeviceInAndOutDate extends StatelessWidget {
       children: [
         Expanded(
           child: _RowInfoCell(
-              icon: Icons.calendar_today_outlined,
-              title: 'Data de entrada:',
-              value: inDate),
+            icon: Icons.calendar_today_outlined,
+            title: 'Data de entrada:',
+            value: inDate,
+          ),
         ),
         if (outDate != null)
           Expanded(
@@ -197,10 +197,7 @@ class _ColumnInfoCell extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
       ],
     );
@@ -241,10 +238,7 @@ class _RowInfoCell extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           value.formatDate(),
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
       ],
     );

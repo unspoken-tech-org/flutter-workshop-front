@@ -66,8 +66,10 @@ class CustomerContactsListWidget extends StatelessWidget {
               thumbVisibility: true,
               child: ListView.separated(
                 controller: scrollController,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 16,
+                ),
                 itemBuilder: (context, index) {
                   final contact = customerContacts[index];
                   return ContactCard(

@@ -98,8 +98,9 @@ class CustomDio {
       authNotifier: _authNotifier!,
     );
 
-    final globalErrorIndex = dio.interceptors
-        .indexWhere((interceptor) => interceptor is GlobalErrorInterceptor);
+    final globalErrorIndex = dio.interceptors.indexWhere(
+      (interceptor) => interceptor is GlobalErrorInterceptor,
+    );
     if (globalErrorIndex >= 0) {
       dio.interceptors.insert(globalErrorIndex, securityInterceptor);
     } else {

@@ -49,8 +49,8 @@ class AllDevicesController extends ChangeNotifier {
       devices = [];
       notifyListeners();
       await Future.delayed(const Duration(milliseconds: 200));
-      final Page<DeviceDataTable> result =
-          await _allDevicesRepository.getAllDevicesFiltering(filter);
+      final Page<DeviceDataTable> result = await _allDevicesRepository
+          .getAllDevicesFiltering(filter);
       devices = result.content;
       _totalElements = result.totalElements;
       _totalPages = result.totalPages;
@@ -72,12 +72,14 @@ class AllDevicesController extends ChangeNotifier {
       notifyListeners();
       final (resultTypes, resultBrands) = await (
         _allDevicesRepository.getAllDeviceTypes(),
-        _allDevicesRepository.getAllDeviceBrands()
+        _allDevicesRepository.getAllDeviceBrands(),
       ).wait;
       deviceTypes = resultTypes;
       deviceBrands = resultBrands;
-    } on ParallelWaitError<(List<DeviceType>?, List<DeviceBrand>?),
-        (AsyncError?, AsyncError?)> catch (e) {
+    } on ParallelWaitError<
+      (List<DeviceType>?, List<DeviceBrand>?),
+      (AsyncError?, AsyncError?)
+    > catch (e) {
       final error = e.errors.$1?.error ?? e.errors.$2?.error;
       SnackBarUtil().showError(
         error is RequisitionException
@@ -183,8 +185,8 @@ class AllDevicesController extends ChangeNotifier {
       _currentPage++;
       filter.page = _currentPage;
 
-      final Page<DeviceDataTable> result =
-          await _allDevicesRepository.getAllDevicesFiltering(filter);
+      final Page<DeviceDataTable> result = await _allDevicesRepository
+          .getAllDevicesFiltering(filter);
       devices.addAll(result.content);
       _totalPages = result.totalPages;
       _hasMore = !result.last;

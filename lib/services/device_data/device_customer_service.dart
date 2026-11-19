@@ -13,8 +13,9 @@ import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 class DeviceCustomerService {
   final Dio dio = CustomDio.dioInstance();
 
-  Future<Page<DeviceDataTable>> getAllDevicesFiltering(
-      [DeviceFilter? filter]) async {
+  Future<Page<DeviceDataTable>> getAllDevicesFiltering([
+    DeviceFilter? filter,
+  ]) async {
     var body = filter?.toJson();
     Response response = await dio.post('/v1/device/filter', data: body);
 
@@ -23,11 +24,14 @@ class DeviceCustomerService {
     }
 
     return Page.fromJson(
-        response.data, (json) => DeviceDataTable.fromJson(json));
+      response.data,
+      (json) => DeviceDataTable.fromJson(json),
+    );
   }
 
-  Future<Page<DeviceDataTable>> searchDevices(
-      [DeviceSearchFilter? filter]) async {
+  Future<Page<DeviceDataTable>> searchDevices([
+    DeviceSearchFilter? filter,
+  ]) async {
     var body = filter?.toJson();
     Response response = await dio.post('/v1/device/search', data: body);
 
@@ -36,7 +40,9 @@ class DeviceCustomerService {
     }
 
     return Page.fromJson(
-        response.data, (json) => DeviceDataTable.fromJson(json));
+      response.data,
+      (json) => DeviceDataTable.fromJson(json),
+    );
   }
 
   Future<DeviceCustomer> getCustomerDeviceById(int id) async {
@@ -50,7 +56,8 @@ class DeviceCustomerService {
   }
 
   Future<DeviceCustomer> updateDeviceCustomer(
-      DeviceCustomer deviceCustomer) async {
+    DeviceCustomer deviceCustomer,
+  ) async {
     var json = deviceCustomer.toJson();
 
     Response response = await dio.put('/v1/device/update', data: json);
@@ -63,7 +70,9 @@ class DeviceCustomerService {
   }
 
   Future<DeviceCustomer> updateDeviceStatus(
-      int deviceId, StatusEnum status) async {
+    int deviceId,
+    StatusEnum status,
+  ) async {
     Response response = await dio.put(
       '/v1/device/update/$deviceId/status',
       data: {'deviceStatus': status.dbName},
@@ -77,7 +86,9 @@ class DeviceCustomerService {
   }
 
   Future<DeviceCustomer> updateDeviceHasUrgency(
-      int deviceId, bool hasUrgency) async {
+    int deviceId,
+    bool hasUrgency,
+  ) async {
     Response response = await dio.put(
       '/v1/device/update/$deviceId/urgency',
       data: {'hasUrgency': hasUrgency},
@@ -91,7 +102,9 @@ class DeviceCustomerService {
   }
 
   Future<DeviceCustomer> updateDeviceRevision(
-      int deviceId, bool revision) async {
+    int deviceId,
+    bool revision,
+  ) async {
     Response response = await dio.put(
       '/v1/device/update/$deviceId/revision',
       data: {'revision': revision},
@@ -105,7 +118,8 @@ class DeviceCustomerService {
   }
 
   Future<CreateDeviceCustomerResponse> createDeviceCustomer(
-      DeviceInput device) async {
+    DeviceInput device,
+  ) async {
     var json = device.toJson();
 
     Response response = await dio.post('/v1/device/create', data: json);

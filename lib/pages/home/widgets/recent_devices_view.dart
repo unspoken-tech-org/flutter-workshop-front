@@ -23,9 +23,9 @@ class RecentDevicesView extends StatelessWidget {
         spacing: 24,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0).copyWith(
-              top: 16,
-            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+            ).copyWith(top: 16),
             child: const Row(
               children: [
                 Icon(Icons.history, size: 20),
@@ -42,7 +42,7 @@ class RecentDevicesView extends StatelessWidget {
             child: Selector<HomeController, (bool, List<DeviceDataTable>)>(
               selector: (context, controller) => (
                 controller.isLoading,
-                controller.deviceStatistics?.lastViewedDevices ?? []
+                controller.deviceStatistics?.lastViewedDevices ?? [],
               ),
               builder: (context, values, child) {
                 final (isLoading, devices) = values;
@@ -61,15 +61,16 @@ class RecentDevicesView extends StatelessWidget {
                 }
                 return ListView.builder(
                   itemCount: devices.length,
-                  padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(
-                    bottom: 16,
-                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                  ).copyWith(bottom: 16),
                   itemBuilder: (context, index) => FilteredDeviceCard(
                     device: devices[index],
                     onTap: () {
                       WsNavigator.pushDeviceDetails(
-                              context, devices[index].deviceId)
-                          .then((value) {
+                        context,
+                        devices[index].deviceId,
+                      ).then((value) {
                         if (context.mounted) {
                           context.read<HomeController>().getDeviceStatistics();
                         }

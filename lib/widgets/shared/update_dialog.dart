@@ -55,7 +55,11 @@ class UpdateDialog extends StatelessWidget {
         children: [
           const Icon(Icons.system_update, color: Colors.blue, size: 28),
           const SizedBox(width: 12),
-          Text(updateInfo.hasUpdate ? 'Atualização Disponível' : 'Você está atualizado'),
+          Text(
+            updateInfo.hasUpdate
+                ? 'Atualização Disponível'
+                : 'Você está atualizado',
+          ),
         ],
       ),
       content: SizedBox(
@@ -107,8 +111,12 @@ class UpdateVersionInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = updateInfo.hasUpdate ? Colors.blue.shade50 : Colors.green.shade50;
-    final border = updateInfo.hasUpdate ? Colors.blue.shade200 : Colors.green.shade200;
+    final bg = updateInfo.hasUpdate
+        ? Colors.blue.shade50
+        : Colors.green.shade50;
+    final border = updateInfo.hasUpdate
+        ? Colors.blue.shade200
+        : Colors.green.shade200;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -160,19 +168,23 @@ class _VersionColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Column(
-      crossAxisAlignment: alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: alignEnd
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.grey.shade600),
+          style: Theme.of(
+            context,
+          ).textTheme.labelMedium?.copyWith(color: Colors.grey.shade600),
         ),
         const SizedBox(height: 4),
         Text(
           value,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: valueColor ?? cs.onSurface,
-              ),
+            fontWeight: FontWeight.bold,
+            color: valueColor ?? cs.onSurface,
+          ),
         ),
       ],
     );
@@ -191,7 +203,9 @@ class UpdateReleaseNotesSection extends StatelessWidget {
       children: [
         Text(
           'Novidades',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         Container(
@@ -223,7 +237,9 @@ class UpdatePublishDateRow extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           'Publicado em ${df.format(updateInfo.publishedAt)}',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
         ),
       ],
     );
