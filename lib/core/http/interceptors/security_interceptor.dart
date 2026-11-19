@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:synchronized/synchronized.dart';
 import '../../security/auth_notifier.dart';
+import '../../security/refresh_result.dart';
 import '../api_auth_error.dart';
 import '../../security/security_storage.dart';
 
@@ -19,7 +20,7 @@ class SecurityInterceptor extends Interceptor {
   /// Dio sem SecurityInterceptor — evita deadlock no retry.
   final Dio _retryDio;
 
-  final Future<String?> Function() _onRefresh;
+  final Future<RefreshResult> Function() _onRefresh;
   final AuthNotifier _authNotifier;
 
   /// Garante que apenas um refresh ocorre por vez entre requests concorrentes.
@@ -28,7 +29,7 @@ class SecurityInterceptor extends Interceptor {
   SecurityInterceptor({
     required SecurityStorage storage,
     required Dio retryDio,
-    required Future<String?> Function() onRefresh,
+    required Future<RefreshResult> Function() onRefresh,
     required AuthNotifier authNotifier,
   }) : _storage = storage,
        _retryDio = retryDio,
@@ -57,20 +58,26 @@ class SecurityInterceptor extends Interceptor {
         );
         // Passa o token lido antes do lock como referência:
         // se outro request já renovou, o valor no storage será diferente.
-        final newToken = await _refreshUnderLock(requestId, knownToken: token);
-        if (newToken == null) {
-          debugPrint(
-            '[AuthDebug][$requestId] Proactive refresh failed. Aborting request.',
-          );
-          return handler.reject(
-            DioException(
-              requestOptions: options,
-              type: DioExceptionType.cancel,
-              error: 'Sessão expirada',
-            ),
-          );
+        final result = await _refreshUnderLock(requestId, knownToken: token);
+        switch (result) {
+          case RefreshSuccess(:final accessToken):
+            options.headers['Authorization'] = 'Bearer $accessToken';
+          case RefreshSessionExpired():
+            debugPrint(
+              '[AuthDebug][$requestId] Proactive refresh failed. Aborting request.',
+            );
+            return handler.reject(
+              _buildRefreshFailureException(options, result),
+            );
+          case RefreshTransientFailure():
+            debugPrint(
+              '[AuthDebug][$requestId] Proactive refresh failed transiently. Forwarding error.',
+            );
+            return handler.reject(
+              _buildRefreshFailureException(options, result),
+              true,
+            );
         }
-        options.headers['Authorization'] = 'Bearer $newToken';
       } else if (token != null) {
         options.headers['Authorization'] = 'Bearer $token';
       }
@@ -119,21 +126,24 @@ class SecurityInterceptor extends Interceptor {
             ? authHeader!.substring(7)
             : null;
 
-        final newToken = await _refreshUnderLock(
+        final result = await _refreshUnderLock(
           requestId,
           knownToken: sentToken,
         );
-        if (newToken == null) {
-          debugPrint(
-            '[AuthDebug][$requestId] Refresh returned null. Cannot retry.',
-          );
-          return handler.reject(
-            DioException(
-              requestOptions: options,
-              type: DioExceptionType.cancel,
-              error: 'Sessão expirada',
-            ),
-          );
+        final String newToken;
+        switch (result) {
+          case RefreshSuccess(:final accessToken):
+            newToken = accessToken;
+          case RefreshSessionExpired():
+            debugPrint('[AuthDebug][$requestId] Refresh failed. Cannot retry.');
+            return handler.reject(
+              _buildRefreshFailureException(options, result),
+            );
+          case RefreshTransientFailure():
+            debugPrint(
+              '[AuthDebug][$requestId] Refresh failed transiently. Forwarding error.',
+            );
+            return handler.next(_buildRefreshFailureException(options, result));
         }
 
         debugPrint('[AuthDebug][$requestId] Retrying with new token...');
@@ -208,7 +218,10 @@ class SecurityInterceptor extends Interceptor {
   ///
   /// Se após adquirir o lock o token no storage for diferente de [knownToken],
   /// outro request já realizou o refresh → retorna o token atual sem chamar o backend.
-  Future<String?> _refreshUnderLock(String requestId, {String? knownToken}) {
+  Future<RefreshResult> _refreshUnderLock(
+    String requestId, {
+    String? knownToken,
+  }) {
     return _lock.synchronized(() async {
       final String? currentToken;
       try {
@@ -217,7 +230,10 @@ class SecurityInterceptor extends Interceptor {
         debugPrint(
           '[AuthDebug][$requestId] Failed reading access token under lock: $e',
         );
-        rethrow;
+        return RefreshTransientFailure(
+          errorType: DioExceptionType.unknown,
+          error: e,
+        );
       }
 
       // Guard: se o token no storage mudou desde que este request leu,
@@ -228,7 +244,7 @@ class SecurityInterceptor extends Interceptor {
         debugPrint(
           '[AuthDebug][$requestId] Token already refreshed by another request. Reusing...',
         );
-        return currentToken;
+        return RefreshSuccess(currentToken);
       }
 
       debugPrint(
@@ -236,14 +252,47 @@ class SecurityInterceptor extends Interceptor {
       );
       try {
         return await _onRefresh().timeout(const Duration(seconds: 10));
-      } on TimeoutException catch (_) {
+      } on TimeoutException catch (e) {
         debugPrint('[AuthDebug][$requestId] Refresh timed out after 10s.');
-        return null;
+        return RefreshTransientFailure(
+          errorType: DioExceptionType.connectionTimeout,
+          error: e,
+        );
       } catch (e) {
         debugPrint('[AuthDebug][$requestId] Refresh threw: $e');
-        return null;
+        return RefreshTransientFailure(
+          errorType: DioExceptionType.unknown,
+          error: e,
+        );
       }
     });
+  }
+
+  DioException _buildRefreshFailureException(
+    RequestOptions options,
+    RefreshResult result,
+  ) {
+    return switch (result) {
+      RefreshSessionExpired() => DioException(
+        requestOptions: options,
+        type: DioExceptionType.cancel,
+        error: 'Sessão expirada',
+      ),
+      RefreshTransientFailure(
+        :final errorType,
+        :final response,
+        :final error,
+      ) =>
+        DioException(
+          requestOptions: options,
+          type: errorType,
+          response: response,
+          error: error,
+        ),
+      RefreshSuccess() => throw StateError(
+        'Unexpected RefreshSuccess when building failure exception',
+      ),
+    };
   }
 
   bool _isExpiredOrExpiringSoon(String token) {

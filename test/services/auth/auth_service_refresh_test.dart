@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
+import 'package:flutter_workshop_front/core/security/refresh_result.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 
@@ -79,6 +80,7 @@ class _FakeDio implements Dio {
   BaseOptions options = BaseOptions();
 
   final Map<String, _PostHandler> handlers;
+  final Map<String, Options?> recordedOptions = {};
 
   _FakeDio(this.handlers);
 
@@ -98,6 +100,7 @@ class _FakeDio implements Dio {
     void Function(int, int)? onSendProgress,
     void Function(int, int)? onReceiveProgress,
   }) async {
+    recordedOptions[path] = options;
     final handler = handlers[path];
     if (handler == null) {
       return Response<T>(
@@ -171,9 +174,20 @@ void main() {
           authNotifier: AuthNotifier(),
         );
 
-        final token = await service.refreshToken();
+        final result = await service.refreshToken();
 
-        expect(token, 'at-2');
+        expect(
+          result,
+          isA<RefreshSuccess>().having(
+            (r) => r.accessToken,
+            'accessToken',
+            'at-2',
+          ),
+        );
+        expect(
+          dio.recordedOptions['/api/auth/refresh']?.extra?['silent'],
+          isTrue,
+        );
         expect(await storage.getAccessToken(), 'at-2');
         expect(await storage.getRefreshToken(), 'rt-2');
         expect(storage.saveTokensCalls, 1);
@@ -199,9 +213,16 @@ void main() {
           authNotifier: AuthNotifier(),
         );
 
-        final token = await service.refreshToken();
+        final result = await service.refreshToken();
 
-        expect(token, 'at-2');
+        expect(
+          result,
+          isA<RefreshSuccess>().having(
+            (r) => r.accessToken,
+            'accessToken',
+            'at-2',
+          ),
+        );
         expect(await storage.getAccessToken(), 'at-2');
         expect(await storage.getRefreshToken(), 'rt-1');
         expect(storage.saveTokensCalls, 0);
@@ -229,9 +250,13 @@ void main() {
           authNotifier: AuthNotifier(),
         );
 
-        final token = await service.refreshToken();
+        final result = await service.refreshToken();
 
-        expect(token, isNull);
+        expect(result, isA<RefreshSessionExpired>());
+        expect(
+          dio.recordedOptions['/api/auth/revoke']?.extra?['silent'],
+          isTrue,
+        );
         expect(storage.clearSessionCalls, 1);
       },
     );
@@ -251,9 +276,9 @@ void main() {
         authNotifier: AuthNotifier(),
       );
 
-      final token = await service.refreshToken();
+      final result = await service.refreshToken();
 
-      expect(token, isNull);
+      expect(result, isA<RefreshSessionExpired>());
       expect(storage.clearSessionCalls, 1);
     });
 
@@ -277,9 +302,18 @@ void main() {
         authNotifier: authNotifier,
       );
 
-      final token = await service.refreshToken();
+      final result = await service.refreshToken();
 
-      expect(token, isNull);
+      expect(
+        result,
+        isA<RefreshTransientFailure>()
+            .having(
+              (r) => r.errorType,
+              'errorType',
+              DioExceptionType.badResponse,
+            )
+            .having((r) => r.response?.statusCode, 'statusCode', 400),
+      );
       expect(storage.clearSessionCalls, 0);
       expect(storage.clearProvisioningCalls, 0);
       expect(await storage.getApiKey(), 'key-1');
@@ -298,6 +332,7 @@ void main() {
         '/api/auth/refresh': (data) async {
           throw DioException(
             requestOptions: RequestOptions(path: '/api/auth/refresh'),
+            type: DioExceptionType.badResponse,
             response: _response(
               '/api/auth/refresh',
               statusCode: 403,
@@ -312,9 +347,18 @@ void main() {
         authNotifier: authNotifier,
       );
 
-      final token = await service.refreshToken();
+      final result = await service.refreshToken();
 
-      expect(token, isNull);
+      expect(
+        result,
+        isA<RefreshTransientFailure>()
+            .having(
+              (r) => r.errorType,
+              'errorType',
+              DioExceptionType.badResponse,
+            )
+            .having((r) => r.response?.statusCode, 'statusCode', 403),
+      );
       expect(storage.clearSessionCalls, 0);
       expect(storage.clearProvisioningCalls, 0);
       expect(await storage.getApiKey(), 'key-1');
@@ -356,9 +400,9 @@ void main() {
           authNotifier: authNotifier,
         );
 
-        final token = await service.refreshToken();
+        final result = await service.refreshToken();
 
-        expect(token, isNull);
+        expect(result, isA<RefreshSessionExpired>());
         expect(storage.clearSessionCalls, 1);
         expect(await storage.getRefreshToken(), isNull);
         expect(authNotifier.state, AuthRouteState.needsSetup);
@@ -395,9 +439,9 @@ void main() {
           authNotifier: authNotifier,
         );
 
-        final token = await service.refreshToken();
+        final result = await service.refreshToken();
 
-        expect(token, isNull);
+        expect(result, isA<RefreshSessionExpired>());
         expect(storage.clearProvisioningCalls, 1);
         expect(await storage.getApiKey(), isNull);
         expect(authNotifier.state, AuthRouteState.needsSetup);
@@ -417,11 +461,65 @@ void main() {
         authNotifier: AuthNotifier(),
       );
 
-      final token = await service.refreshToken();
+      final result = await service.refreshToken();
 
-      expect(token, isNull);
+      expect(
+        result,
+        isA<RefreshTransientFailure>()
+            .having(
+              (r) => r.errorType,
+              'errorType',
+              DioExceptionType.badResponse,
+            )
+            .having((r) => r.response?.statusCode, 'statusCode', 500),
+      );
       expect(storage.clearSessionCalls, 0);
     });
+
+    test(
+      'deve retornar RefreshTransientFailure preservando tipo de erro de rede',
+      () async {
+        for (final type in [
+          DioExceptionType.connectionError,
+          DioExceptionType.connectionTimeout,
+          DioExceptionType.receiveTimeout,
+          DioExceptionType.sendTimeout,
+        ]) {
+          final storage = _MemorySecurityStorage()
+            ..seedTokens(refreshToken: 'rt-1');
+          final authNotifier = AuthNotifier(
+            initialState: AuthRouteState.authenticated,
+          );
+          final dio = _FakeDio({
+            '/api/auth/refresh': (data) async {
+              throw DioException(
+                requestOptions: RequestOptions(path: '/api/auth/refresh'),
+                type: type,
+                error: 'network issue',
+              );
+            },
+          });
+          final service = AuthService(
+            dio: dio,
+            storage: storage,
+            authNotifier: authNotifier,
+          );
+
+          final result = await service.refreshToken();
+
+          expect(
+            result,
+            isA<RefreshTransientFailure>().having(
+              (r) => r.errorType,
+              'errorType',
+              type,
+            ),
+          );
+          expect(storage.clearSessionCalls, 0);
+          expect(authNotifier.state, AuthRouteState.authenticated);
+        }
+      },
+    );
   });
 
   group('AuthService bootstrap/session', () {

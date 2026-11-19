@@ -8,6 +8,7 @@ import '../../core/http/api_auth_error.dart';
 import '../../core/http/custom_dio.dart';
 import '../../core/http/response_validation.dart';
 import '../../core/security/auth_notifier.dart';
+import '../../core/security/refresh_result.dart';
 import '../../core/security/security_storage.dart';
 import '../../models/auth/token_request.dart';
 import '../../models/auth/token_response.dart';
@@ -126,31 +127,41 @@ class AuthService {
   }
 
   /// Performs silent Access Token refresh.
-  Future<String?> refreshToken() async {
+  Future<RefreshResult> refreshToken() async {
     debugPrint('[AuthDebug] Starting refreshToken flow...');
-    final currentRefreshToken = await _storage.getRefreshToken();
-    if (currentRefreshToken == null) {
+    final String? currentRefreshToken;
+    try {
+      currentRefreshToken = await _storage.getRefreshToken();
+    } catch (e) {
+      debugPrint('[AuthDebug] Failed reading refresh token: $e');
+      return RefreshTransientFailure(
+        errorType: DioExceptionType.unknown,
+        error: e,
+      );
+    }
+
+    if (currentRefreshToken == null || currentRefreshToken.isEmpty) {
       debugPrint('[AuthDebug] No refresh token found.');
-      return null;
+      return const RefreshSessionExpired();
     }
 
     try {
       final response = await _dio.post(
         '/api/auth/refresh',
         data: {'refreshToken': currentRefreshToken},
+        options: Options(extra: {'silent': true}),
       );
 
       final statusCode = response.statusCode ?? 0;
       if (statusCode != 200 && statusCode != 201) {
         debugPrint('[AuthDebug] Unexpected refresh status: $statusCode');
-        await _handleRefreshRejection(response);
-        return null;
+        return await _handleRefreshRejection(response);
       }
 
       if (response.data is! Map<String, dynamic>) {
         debugPrint('[AuthDebug] Invalid refresh payload format.');
         await logout();
-        return null;
+        return const RefreshSessionExpired();
       }
 
       final payload = response.data as Map<String, dynamic>;
@@ -159,7 +170,7 @@ class AuthService {
       if (newAccessToken == null || newAccessToken.isEmpty) {
         debugPrint('[AuthDebug] Invalid refresh payload: missing accessToken.');
         await logout();
-        return null;
+        return const RefreshSessionExpired();
       }
 
       final newRefreshToken = payload['refreshToken'] as String?;
@@ -174,16 +185,26 @@ class AuthService {
         await _storage.saveAccessToken(newAccessToken);
       }
 
-      return newAccessToken;
+      return RefreshSuccess(newAccessToken);
     } on DioException catch (e) {
       debugPrint(
         '[AuthDebug] Refresh failed with status ${e.response?.statusCode}',
       );
-      await _handleRefreshRejection(e.response);
-      return null;
+      if (e.response?.statusCode == 401 ||
+          ApiAuthError.isCredentialRejected(e.response)) {
+        return await _handleRefreshRejection(e.response);
+      }
+      return RefreshTransientFailure(
+        errorType: e.type,
+        response: e.response,
+        error: e.error ?? e,
+      );
     } catch (e) {
       debugPrint('[AuthDebug] Unexpected error on refresh: $e');
-      return null;
+      return RefreshTransientFailure(
+        errorType: DioExceptionType.unknown,
+        error: e,
+      );
     }
   }
 
@@ -193,18 +214,26 @@ class AuthService {
   /// revogado, expirado ou API key inativa. 400/403 sem código de credencial
   /// (gateway "Invalid Host Header", WAF) e falhas de rede são transitórios:
   /// mantêm a sessão para a próxima tentativa.
-  Future<void> _handleRefreshRejection(Response<dynamic>? response) async {
+  Future<RefreshResult> _handleRefreshRejection(
+    Response<dynamic>? response,
+  ) async {
     if (response?.statusCode == 401) {
       // Refresh token recusado: preserva API key para facilitar re-login.
       debugPrint('[AuthDebug] Refresh token rejected. Clearing session only.');
       await _storage.clearSession();
       _authNotifier.setState(AuthRouteState.needsSetup);
+      return const RefreshSessionExpired();
     } else if (ApiAuthError.isCredentialRejected(response)) {
       debugPrint('[AuthDebug] Credential rejected on refresh. Logging out...');
       await logout();
+      return const RefreshSessionExpired();
     } else {
       debugPrint(
         '[AuthDebug] Transient refresh failure (${response?.statusCode}). Keeping session.',
+      );
+      return RefreshTransientFailure(
+        errorType: DioExceptionType.badResponse,
+        response: response,
       );
     }
   }
@@ -218,6 +247,7 @@ class AuthService {
         await _dio.post(
           '/api/auth/revoke',
           data: {'refreshToken': refreshToken},
+          options: Options(extra: {'silent': true}),
         );
         debugPrint('[AuthDebug] Token revoked on backend.');
       }

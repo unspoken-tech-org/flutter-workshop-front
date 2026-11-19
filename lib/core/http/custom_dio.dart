@@ -4,11 +4,12 @@ import 'package:flutter_workshop_front/core/config/config.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/global_error_interceptor.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/security_interceptor.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
+import 'package:flutter_workshop_front/core/security/refresh_result.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
 
 class CustomDio {
   static SecurityStorage? _storage;
-  static Future<String?> Function()? _onRefresh;
+  static Future<RefreshResult> Function()? _onRefresh;
   static AuthNotifier? _authNotifier;
   static Dio? _appDio;
   static Dio? _authDio;
@@ -18,7 +19,7 @@ class CustomDio {
   /// Configures global dependencies for the security interceptor.
   static void setup(
     SecurityStorage storage,
-    Future<String?> Function() onRefresh,
+    Future<RefreshResult> Function() onRefresh,
     AuthNotifier authNotifier,
   ) {
     _storage = storage;
