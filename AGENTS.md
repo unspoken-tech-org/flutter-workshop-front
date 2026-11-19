@@ -161,7 +161,7 @@ Read the matching file before the task (load it only then):
 ## Do and don’t
 - Do keep file/module boundaries (models, services, widgets).
 - Do keep changes minimal and aligned with surrounding patterns.
-- Do run `flutter analyze` before handing off changes.
+- Do run `dart format .`, `flutter analyze` and `flutter test` before handing off changes; CI fails on any of them.
 - Don’t introduce new dependencies without a strong reason.
 - Don’t swallow exceptions silently unless documented (see `logout`).
 - Don’t add unused assets or unused imports.
