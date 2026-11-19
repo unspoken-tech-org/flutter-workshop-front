@@ -121,6 +121,10 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                           ).name;
                                     },
                                     onChanged: (value) {
+                                      if (value != null) {
+                                        inputCustomerContact.contactType =
+                                            ContactType.tryParse(value)?.name;
+                                      }
                                       isContactTypePersonally =
                                           value ==
                                           ContactType.pessoalmente.displayName;
@@ -133,6 +137,18 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                       return null;
                                     },
                                   ),
+                                  if (inputCustomerContact.contactType ==
+                                          null &&
+                                      widget.contact.type.isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Tipo atual: ${widget.contact.type} — selecione uma opção',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.amber.shade800,
+                                      ),
+                                    ),
+                                  ],
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
                                     headerLabel: 'Contactante',
