@@ -46,7 +46,7 @@ class DiagnosticDeviceInfoWidget extends StatelessWidget {
             const SizedBox(height: 24),
             CustomTextField(
               headerLabel: 'Problema',
-              controller: TextEditingController(text: deviceCustomer.problem),
+              value: deviceCustomer.problem,
               readOnly: !isEditing,
               hintText: 'Descreva o problema relatado pelo cliente...',
               maxLines: 4,
@@ -65,7 +65,7 @@ class DiagnosticDeviceInfoWidget extends StatelessWidget {
             const SizedBox(height: 16),
             CustomTextField(
               headerLabel: 'Orçamento',
-              controller: TextEditingController(text: deviceCustomer.budget),
+              value: deviceCustomer.budget,
               readOnly: !isEditing,
               hintText: 'Descreva o orçamento para o conserto...',
               maxLines: 4,

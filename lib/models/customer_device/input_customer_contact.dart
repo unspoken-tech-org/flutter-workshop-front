@@ -74,7 +74,9 @@ class InputCustomerContact {
       technicianId: contact.technicianId,
       phoneNumber: contact.phoneNumber ?? contact.phone,
       message: contact.conversation,
-      contactStatus: contact.hasMadeContact ? 'contatado' : 'pendente',
+      contactStatus: contact.hasMadeContact
+          ? ContactStatus.realizado.name
+          : ContactStatus.pendente.name,
       deviceStatus: contact.deviceStatus.dbName,
       contactDate: parsedDate,
     );
@@ -86,7 +88,7 @@ class InputCustomerContact {
     'technicianId': technicianId,
     'phoneNumber': phoneNumber,
     'message': message,
-    'contactStatus': contactStatus?.toLowerCase() == 'contatado' ? true : false,
+    'contactStatus': contactStatus == ContactStatus.realizado.name,
     'deviceStatus': deviceStatus,
     'contactDate': contactDate?.toIso8601String(),
   };

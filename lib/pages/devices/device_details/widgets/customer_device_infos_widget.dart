@@ -87,12 +87,17 @@ class _CustomerDeviceInfosWidgetState extends State<CustomerDeviceInfosWidget> {
                         },
                       ),
                     DeviceCustomerSaveButton(
-                      onSave: () {
-                        if (_formKey.currentState?.validate() ?? false) {
-                          _formKey.currentState?.save();
-                          context
-                              .read<DeviceCustomerPageController>()
-                              .updateDeviceCustomer();
+                      onSave: () async {
+                        if (!(_formKey.currentState?.validate() ?? false)) {
+                          return;
+                        }
+                        _formKey.currentState?.save();
+                        final saved = await context
+                            .read<DeviceCustomerPageController>()
+                            .updateDeviceCustomer();
+                        // Só sai do modo edição quando o servidor confirma;
+                        // em erro, o rascunho continua nos campos.
+                        if (saved && mounted) {
                           setState(() => isEditing = false);
                         }
                       },

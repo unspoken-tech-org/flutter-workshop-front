@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/currency_input_formatter.dart';
 import 'package:flutter_workshop_front/models/colors/color_model.dart';
 import 'package:flutter_workshop_front/models/types_brands_models/types_brands_models.dart';
@@ -169,9 +170,7 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
                   inputFormatters: [CurrencyInputFormatter()],
                   onSave: (value) {
                     if (value == null || value.isEmpty) return;
-                    final budgetFee = double.parse(
-                      value.replaceAll('R\$', '').replaceAll(',', '.'),
-                    );
+                    final budgetFee = value.fromCurrency();
                     controller.inputDevice = controller.inputDevice.copyWith(
                       budgetFee: budgetFee,
                     );

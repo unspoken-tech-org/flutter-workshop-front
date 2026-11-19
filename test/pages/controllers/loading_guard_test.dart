@@ -343,16 +343,17 @@ void main() {
     // a serviços ou campos late (deviceCustomer, technicians).
 
     test(
-      'updateDeviceCustomer retorna sem side effects quando isUpdating=true',
+      'updateDeviceCustomer retorna sem side effects quando isSaving=true',
       () async {
         final controller = DeviceCustomerPageController();
-        controller.isUpdating = true;
+        controller.isSaving = true;
         int notifyCount = 0;
         controller.addListener(() => notifyCount++);
 
-        await controller.updateDeviceCustomer();
+        final saved = await controller.updateDeviceCustomer();
 
-        expect(controller.isUpdating, true);
+        expect(saved, false);
+        expect(controller.isSaving, true);
         expect(notifyCount, 0);
       },
     );

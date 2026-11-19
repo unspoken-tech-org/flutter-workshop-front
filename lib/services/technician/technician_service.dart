@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_workshop_front/core/http/custom_dio.dart';
+import 'package:flutter_workshop_front/core/http/response_validation.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 
 class TechnicianService {
@@ -7,6 +8,7 @@ class TechnicianService {
 
   Future<List<Technician>> getTechnicians() async {
     Response result = await dio.get('/v1/technician');
+    result.ensureSuccess();
     return (result.data as List).map((e) => Technician.fromJson(e)).toList();
   }
 }

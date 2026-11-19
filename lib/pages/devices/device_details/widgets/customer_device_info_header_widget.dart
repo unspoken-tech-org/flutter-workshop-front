@@ -72,7 +72,10 @@ class _CustomerDeviceInfoHeaderWidgetState
   Widget build(BuildContext context) {
     return Selector<DeviceCustomerPageController, (DeviceCustomer, bool)>(
       selector: (context, controller) =>
-          (controller.deviceCustomer, controller.isUpdating),
+          (
+            controller.deviceCustomer,
+            controller.isUpdating || controller.isSaving,
+          ),
       builder: (context, values, child) {
         final (deviceCustomer, isUpdating) = values;
         return Column(

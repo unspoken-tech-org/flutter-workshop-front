@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 import 'package:flutter_workshop_front/models/colors/color_model.dart';
 import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
@@ -65,6 +66,8 @@ class DeviceRegisterController extends ChangeNotifier {
     try {
       final colors = await _colorService.getColors();
       allColors = colors;
+    } on RequisitionException catch (e) {
+      SnackBarUtil().showError(e.message);
     } catch (e) {
       SnackBarUtil().showError('Erro ao buscar as cores');
     }
@@ -74,6 +77,8 @@ class DeviceRegisterController extends ChangeNotifier {
     try {
       final technicians = await _technicianService.getTechnicians();
       this.technicians = technicians;
+    } on RequisitionException catch (e) {
+      SnackBarUtil().showError(e.message);
     } catch (e) {
       SnackBarUtil().showError('Erro ao buscar os técnicos');
     }

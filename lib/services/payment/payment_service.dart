@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_workshop_front/core/http/custom_dio.dart';
+import 'package:flutter_workshop_front/core/http/response_validation.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
 
 class PaymentService {
@@ -13,6 +14,6 @@ class PaymentService {
     };
 
     final response = await _dio.post('/v1/payment', data: json);
-    return response.data;
+    response.ensureSuccess();
   }
 }

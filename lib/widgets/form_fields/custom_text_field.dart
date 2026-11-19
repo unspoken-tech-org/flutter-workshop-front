@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class CustomTextField extends StatelessWidget {
+class CustomTextField extends StatefulWidget {
   final String? headerLabel;
   final String? fieldLabel;
   final String? value;
@@ -48,13 +48,77 @@ class CustomTextField extends StatelessWidget {
   });
 
   @override
+  State<CustomTextField> createState() => _CustomTextFieldState();
+}
+
+class _CustomTextFieldState extends State<CustomTextField> {
+  // Controller próprio, de vida longa, usado quando o pai não fornece um.
+  // Criar o controller no build apagava o texto digitado a cada rebuild.
+  TextEditingController? _internalController;
+
+  TextEditingController get _effectiveController =>
+      widget.controller ?? _internalController!;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.controller == null) {
+      _internalController = TextEditingController(text: widget.value);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant CustomTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller == null && _internalController == null) {
+      _internalController = TextEditingController(text: widget.value);
+      return;
+    }
+    if (widget.controller != null && _internalController != null) {
+      _internalController!.dispose();
+      _internalController = null;
+      return;
+    }
+    if (_internalController == null) return;
+
+    // Só sobrescreve o texto quando o valor de origem muda ou quando o campo
+    // sai do modo de edição (ex.: cancelar); rebuilds comuns preservam o
+    // rascunho digitado.
+    final valueChanged = widget.value != oldWidget.value;
+    final editingEnded = widget.readOnly && !oldWidget.readOnly;
+    if (valueChanged || editingEnded) {
+      _syncTextAfterBuild();
+    }
+  }
+
+  // Alterar o texto notifica o TextFormField, que avisa o Form ancestral
+  // (setState). Fazer isso dentro de didUpdateWidget dispara
+  // "setState() called during build"; por isso a sincronização vai para
+  // depois do frame.
+  void _syncTextAfterBuild() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final controller = _internalController;
+      if (!mounted || controller == null) return;
+      final text = widget.value ?? '';
+      if (controller.text != text) controller.text = text;
+    });
+  }
+
+  @override
+  void dispose() {
+    _internalController?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final headerLabel = widget.headerLabel;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (headerLabel != null) ...[
           Text(
-            headerLabel!,
+            headerLabel,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFF374151),
@@ -65,26 +129,26 @@ class CustomTextField extends StatelessWidget {
           const SizedBox(height: 8),
         ],
         TextFormField(
-          controller: controller ?? TextEditingController(text: value),
-          readOnly: readOnly,
-          enabled: enabled,
-          inputFormatters: inputFormatters,
-          keyboardType: keyboardType,
-          maxLines: maxLines,
-          focusNode: focusNode,
-          validator: validator,
-          onSaved: onSave,
-          onFieldSubmitted: onFieldSubmitted,
-          onChanged: onChanged,
+          controller: _effectiveController,
+          readOnly: widget.readOnly,
+          enabled: widget.enabled,
+          inputFormatters: widget.inputFormatters,
+          keyboardType: widget.keyboardType,
+          maxLines: widget.maxLines,
+          focusNode: widget.focusNode,
+          validator: widget.validator,
+          onSaved: widget.onSave,
+          onFieldSubmitted: widget.onFieldSubmitted,
+          onChanged: widget.onChanged,
           decoration: InputDecoration(
-            labelText: fieldLabel,
-            hintText: hintText,
-            suffixIcon: suffixIcon,
-            errorMaxLines: errorMaxLines,
+            labelText: widget.fieldLabel,
+            hintText: widget.hintText,
+            suffixIcon: widget.suffixIcon,
+            errorMaxLines: widget.errorMaxLines,
             hintStyle: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
-            prefixText: prefixText,
-            prefixIcon: icon != null
-                ? Icon(icon, size: 20, color: Colors.grey.shade600)
+            prefixText: widget.prefixText,
+            prefixIcon: widget.icon != null
+                ? Icon(widget.icon, size: 20, color: Colors.grey.shade600)
                 : null,
             contentPadding: const EdgeInsets.symmetric(
               vertical: 12.0,
@@ -97,7 +161,7 @@ class CustomTextField extends StatelessWidget {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(
-                color: selectedBorderColor ?? Colors.grey.shade300,
+                color: widget.selectedBorderColor ?? Colors.grey.shade300,
               ),
             ),
             focusedBorder: OutlineInputBorder(

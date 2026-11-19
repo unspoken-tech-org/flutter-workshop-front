@@ -13,17 +13,25 @@ import 'package:flutter_workshop_front/services/technician/technician_service.da
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 class DeviceCustomerPageController extends ChangeNotifier {
-  final DeviceCustomerService _deviceCustomerService = DeviceCustomerService();
+  final DeviceCustomerService _deviceCustomerService;
   final TechnicianService _technicianService = TechnicianService();
   final CustomerContactService _customerContactService =
       CustomerContactService();
   final PaymentService _paymentService = PaymentService();
 
+  DeviceCustomerPageController({DeviceCustomerService? deviceCustomerService})
+    : _deviceCustomerService = deviceCustomerService ?? DeviceCustomerService();
+
   late DeviceCustomer deviceCustomer;
   late List<Technician> technicians;
 
   bool isLoading = false;
+  /// Guard das ações rápidas do cabeçalho (urgência, revisão e status).
   bool isUpdating = false;
+
+  /// Guard do salvamento da edição. Separado de [isUpdating] para que uma
+  /// ação rápida em andamento não descarte o save em silêncio.
+  bool isSaving = false;
   bool isCreatingContact = false;
   bool isEditingContact = false;
   bool isCreatingPayment = false;
@@ -79,6 +87,16 @@ class DeviceCustomerPageController extends ChangeNotifier {
     _editingSnapshot = deviceCustomer;
   }
 
+  /// Aplica a resposta de uma ação rápida. Se houver edição em andamento,
+  /// atualiza também o snapshot, para que cancelar não reverta o que o
+  /// servidor já gravou (o rascunho fica nos campos do formulário).
+  void _applyQuickActionResponse(DeviceCustomer value) {
+    deviceCustomer = value;
+    if (_editingSnapshot != null) {
+      _editingSnapshot = value;
+    }
+  }
+
   void onEditingCancelled() {
     if (_editingSnapshot != null) {
       deviceCustomer = _editingSnapshot!;
@@ -88,13 +106,13 @@ class DeviceCustomerPageController extends ChangeNotifier {
   }
 
   Future<void> updateDeviceHasUrgency(bool hasUrgency) async {
-    if (isUpdating) return;
+    if (isUpdating || isSaving) return;
     isUpdating = true;
     notifyListeners();
     try {
       final DeviceCustomer value = await _deviceCustomerService
           .updateDeviceHasUrgency(deviceCustomer.deviceId, hasUrgency);
-      deviceCustomer = value;
+      _applyQuickActionResponse(value);
       SnackBarUtil().showSuccess(
         'Urgencia do dispositivo atualizada com sucesso',
       );
@@ -110,23 +128,29 @@ class DeviceCustomerPageController extends ChangeNotifier {
     }
   }
 
-  Future<void> updateDeviceCustomer() async {
-    if (isUpdating) return;
-    isUpdating = true;
+  /// Salva a edição e retorna `true` só quando o servidor confirma. Em erro,
+  /// o chamador deve manter o modo de edição (e o rascunho).
+  Future<bool> updateDeviceCustomer() async {
+    if (isSaving) return false;
+    isSaving = true;
     notifyListeners();
     try {
       DeviceCustomer response = await _deviceCustomerService
           .updateDeviceCustomer(deviceCustomer);
       deviceCustomer = response;
+      _editingSnapshot = null;
       SnackBarUtil().showSuccess('Dispositivo atualizado com sucesso');
+      return true;
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
+      return false;
     } catch (e) {
       SnackBarUtil().showError(
         'Erro ao atualizar dispositivo. Tente novamente.',
       );
+      return false;
     } finally {
-      isUpdating = false;
+      isSaving = false;
       notifyListeners();
     }
   }
@@ -178,13 +202,13 @@ class DeviceCustomerPageController extends ChangeNotifier {
   }
 
   Future<void> updateDeviceRevision(bool revision) async {
-    if (isUpdating) return;
+    if (isUpdating || isSaving) return;
     isUpdating = true;
     notifyListeners();
     try {
       final DeviceCustomer value = await _deviceCustomerService
           .updateDeviceRevision(deviceCustomer.deviceId, revision);
-      deviceCustomer = value;
+      _applyQuickActionResponse(value);
       SnackBarUtil().showSuccess(
         'Revisão do dispositivo atualizada com sucesso',
       );
@@ -201,13 +225,13 @@ class DeviceCustomerPageController extends ChangeNotifier {
   }
 
   Future<void> updateDeviceStatus(StatusEnum status) async {
-    if (isUpdating) return;
+    if (isUpdating || isSaving) return;
     isUpdating = true;
     notifyListeners();
     try {
       final DeviceCustomer value = await _deviceCustomerService
           .updateDeviceStatus(deviceCustomer.deviceId, status);
-      deviceCustomer = value;
+      _applyQuickActionResponse(value);
       SnackBarUtil().showSuccess(
         'Status do dispositivo atualizado com sucesso',
       );

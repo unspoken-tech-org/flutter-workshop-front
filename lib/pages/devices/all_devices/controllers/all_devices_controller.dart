@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 import 'package:flutter_workshop_front/models/device/device_filter.dart';
@@ -74,6 +76,14 @@ class AllDevicesController extends ChangeNotifier {
       ).wait;
       deviceTypes = resultTypes;
       deviceBrands = resultBrands;
+    } on ParallelWaitError<(List<DeviceType>?, List<DeviceBrand>?),
+        (AsyncError?, AsyncError?)> catch (e) {
+      final error = e.errors.$1?.error ?? e.errors.$2?.error;
+      SnackBarUtil().showError(
+        error is RequisitionException
+            ? error.message
+            : "Erro ao carregar filtros",
+      );
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
     } on Exception catch (_) {

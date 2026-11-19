@@ -58,9 +58,7 @@ class DeviceValuesWidget extends StatelessWidget {
                     headerLabel: 'Taxa de orçamento',
                     maxLines: 1,
                     errorMaxLines: 2,
-                    controller: TextEditingController(
-                      text: formatValue(deviceCustomer.budgetFee ?? 0),
-                    ),
+                    value: formatValue(deviceCustomer.budgetFee ?? 0),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
@@ -68,14 +66,7 @@ class DeviceValuesWidget extends StatelessWidget {
                     readOnly: !isEditing,
                     validator: (value) {
                       if (value == null || value.isEmpty) return null;
-                      final parsedValue =
-                          double.tryParse(
-                            value
-                                .replaceAll('R\$', '')
-                                .replaceAll('.', '')
-                                .replaceAll(',', '.'),
-                          ) ??
-                          0;
+                      final parsedValue = value.fromCurrency();
                       final sumPaid = deviceCustomer.payments
                           .where((p) => p.category == PaymentCategory.budgetFee)
                           .fold(0.0, (sum, p) => sum + p.paymentValue);
@@ -85,11 +76,8 @@ class DeviceValuesWidget extends StatelessWidget {
                       return null;
                     },
                     onSave: (value) {
-                      String normalizedValue =
-                          value?.replaceAll('R\$', '').replaceAll(',', '.') ??
-                          '0';
                       final newDeviceCustomer = controller.deviceCustomer
-                          .copyWith(budgetFee: double.parse(normalizedValue));
+                          .copyWith(budgetFee: value?.fromCurrency() ?? 0);
                       controller.updateNewDeviceCustomer(newDeviceCustomer);
                     },
                   ),
@@ -99,9 +87,7 @@ class DeviceValuesWidget extends StatelessWidget {
                   child: CustomTextField(
                     headerLabel: 'Valor do serviço',
                     maxLines: 1,
-                    controller: TextEditingController(
-                      text: formatValue(deviceCustomer.serviceValue ?? 0),
-                    ),
+                    value: formatValue(deviceCustomer.serviceValue ?? 0),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
