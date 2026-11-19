@@ -23,6 +23,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
   late DeviceCustomerPageController controller;
   final _formKey = GlobalKey<FormState>();
   final _dateController = TextEditingController();
+  final _valueController = TextEditingController();
   late InputPayment _inputPayment;
   PaymentCategory? _selectedCategory;
 
@@ -30,10 +31,16 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
   void initState() {
     super.initState();
     controller = context.read<DeviceCustomerPageController>();
+    final deviceId = controller.deviceCustomer?.deviceId ?? 0;
+    _inputPayment = InputPayment.empty(deviceId);
+    _dateController.text = _formatDate(_inputPayment.paymentDate) ?? '';
+    _valueController.text = _inputPayment.value.toBrCurrency;
   }
 
   @override
   void dispose() {
+    _dateController.dispose();
+    _valueController.dispose();
     super.dispose();
   }
 
@@ -62,9 +69,6 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
   Widget build(BuildContext context) {
     final deviceCustomer = controller.deviceCustomer;
     if (deviceCustomer == null) return const SizedBox.shrink();
-
-    _inputPayment = InputPayment.empty(deviceCustomer.deviceId);
-    _dateController.text = _formatDate(_inputPayment.paymentDate) ?? '';
 
     return AlertDialog(
       backgroundColor: Colors.white,
@@ -142,7 +146,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
               const SizedBox(height: 16),
               CustomTextField(
                 headerLabel: 'Valor',
-                value: _inputPayment.value.toBrCurrency,
+                controller: _valueController,
                 onSave: (value) {
                   _inputPayment = _inputPayment.copyWith(
                     value: value?.fromCurrency(),

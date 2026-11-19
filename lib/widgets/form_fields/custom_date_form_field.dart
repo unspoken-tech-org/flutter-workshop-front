@@ -59,7 +59,9 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
 
   @override
   void dispose() {
-    dateController.dispose();
+    if (widget.dateController == null) {
+      dateController.dispose();
+    }
     super.dispose();
   }
 
