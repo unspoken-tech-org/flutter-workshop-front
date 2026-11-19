@@ -147,7 +147,7 @@
 - Use `expect` with clear matcher semantics.
 
 ## Git
-Never push to `main` or `feature/*` directly, never squash or rebase a shared branch, and never create a tag unless the user asks: a tag publishes a release that every installed app downloads.
+Never push to `main` or `release/*` directly, never squash or rebase a shared branch, and never create a tag unless the user asks: a tag publishes a release that every installed app downloads.
 
 Read the matching file before the task (load it only then):
 
