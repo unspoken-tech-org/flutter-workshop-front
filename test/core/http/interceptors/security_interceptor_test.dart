@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/security_interceptor.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
@@ -39,6 +39,9 @@ class _MemorySecurityStorage implements SecurityStorage {
   final Map<String, String> _storage = {};
   int clearSessionCalls = 0;
   int clearProvisioningCalls = 0;
+  int getAccessTokenCalls = 0;
+  Object? Function(int callIndex)? getAccessTokenErrorOnCall;
+  Object? clearProvisioningError;
 
   void seedTokens({String? accessToken, String? refreshToken, String? apiKey}) {
     if (accessToken != null) _storage['access_token'] = accessToken;
@@ -59,6 +62,9 @@ class _MemorySecurityStorage implements SecurityStorage {
   @override
   Future<void> clearProvisioning({bool removeBoundDeviceId = false}) async {
     clearProvisioningCalls += 1;
+    if (clearProvisioningError != null) {
+      throw clearProvisioningError!;
+    }
     await clearSession();
     _storage.remove('api_key');
     if (removeBoundDeviceId) {
@@ -67,7 +73,12 @@ class _MemorySecurityStorage implements SecurityStorage {
   }
 
   @override
-  Future<String?> getAccessToken() async => _storage['access_token'];
+  Future<String?> getAccessToken() async {
+    getAccessTokenCalls += 1;
+    final err = getAccessTokenErrorOnCall?.call(getAccessTokenCalls);
+    if (err != null) throw err;
+    return _storage['access_token'];
+  }
 
   @override
   Future<String?> getApiKey() async => _storage['api_key'];
@@ -608,5 +619,136 @@ void main() {
         expect(refreshCalls, 1);
       },
     );
+
+    // ── Resiliência contra exceções de storage / retry ──────────────────────
+
+    test(
+      'não pendura request quando storage lança PlatformException em onRequest',
+      () async {
+        storage.getAccessTokenErrorOnCall = (_) =>
+            PlatformException(code: 'READ_ERR', message: 'Keystore locked');
+
+        dio.httpClientAdapter = _TestHttpClientAdapter(
+          responder: (_) =>
+              const _AdapterResult(statusCode: 200, data: {'ok': true}),
+        );
+        dio.interceptors.add(buildInterceptor(onRefresh: () async => null));
+
+        await expectLater(
+          dio.get('/protected').timeout(const Duration(seconds: 2)),
+          throwsA(
+            isA<DioException>().having(
+              (e) => e.error,
+              'error',
+              isA<PlatformException>(),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'não pendura request quando storage lança PlatformException dentro de _refreshUnderLock',
+      () async {
+        storage.seedTokens(
+          accessToken: validToken,
+          refreshToken: 'rt-1',
+          apiKey: 'api-key-1',
+        );
+        // 1a chamada (onRequest) ok; 2a chamada (onError -> _refreshUnderLock) lança.
+        storage.getAccessTokenErrorOnCall = (call) => call >= 2
+            ? PlatformException(code: 'READ_ERR', message: 'Keystore locked')
+            : null;
+
+        dio.httpClientAdapter = _TestHttpClientAdapter(
+          responder: (_) =>
+              const _AdapterResult(statusCode: 401, data: {'error': 'expired'}),
+        );
+        dio.interceptors.add(buildInterceptor(onRefresh: () async => null));
+
+        await expectLater(
+          dio.get('/protected').timeout(const Duration(seconds: 2)),
+          throwsA(
+            isA<DioException>().having(
+              (e) => e.error,
+              'error',
+              isA<PlatformException>(),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'não pendura request e atualiza authNotifier quando clearProvisioning falha em onError',
+      () async {
+        storage.seedTokens(
+          accessToken: validToken,
+          refreshToken: 'rt-1',
+          apiKey: 'api-key-1',
+        );
+        storage.clearProvisioningError = PlatformException(
+          code: 'DEL_ERR',
+          message: 'Delete failed',
+        );
+
+        dio.httpClientAdapter = _TestHttpClientAdapter(
+          responder: (_) => const _AdapterResult(
+            statusCode: 403,
+            data: {
+              'status': 403,
+              'error': {
+                'code': 'auth.invalid.api.key',
+                'message': 'Invalid API Key',
+              },
+            },
+          ),
+        );
+        dio.interceptors.add(buildInterceptor(onRefresh: () async => null));
+
+        await expectLater(
+          dio.get('/protected').timeout(const Duration(seconds: 2)),
+          throwsA(
+            isA<DioException>().having(
+              (e) => e.type,
+              'type',
+              DioExceptionType.cancel,
+            ),
+          ),
+        );
+        expect(authNotifier.state, AuthRouteState.needsSetup);
+      },
+    );
+
+    test('não pendura request quando retryDio lança exceção não-Dio', () async {
+      final newToken = validToken;
+      storage.seedTokens(
+        accessToken: validToken,
+        refreshToken: 'rt-1',
+        apiKey: 'api-key-1',
+      );
+
+      dio.httpClientAdapter = _TestHttpClientAdapter(
+        responder: (_) =>
+            const _AdapterResult(statusCode: 401, data: {'error': 'expired'}),
+      );
+      retryDio.httpClientAdapter = _TestHttpClientAdapter(
+        responder: (_) => throw StateError('Unexpected adapter crash'),
+      );
+
+      dio.interceptors.add(
+        buildInterceptor(
+          onRefresh: () async {
+            await storage.saveAccessToken(newToken);
+            return newToken;
+          },
+        ),
+      );
+
+      await expectLater(
+        dio.get('/protected').timeout(const Duration(seconds: 2)),
+        throwsA(isA<DioException>()),
+      );
+    });
   });
 }

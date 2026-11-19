@@ -42,40 +42,54 @@ class SecurityInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    options.extra[_kRequestId] ??= _buildRequestId(options);
-    final requestId = options.extra[_kRequestId] as String;
+    try {
+      options.extra[_kRequestId] ??= _buildRequestId(options);
+      final requestId = options.extra[_kRequestId] as String;
 
-    // Endpoints de autenticação não precisam de token.
-    if (_isAuthPath(options.path)) return handler.next(options);
+      // Endpoints de autenticação não precisam de token.
+      if (_isAuthPath(options.path)) return handler.next(options);
 
-    final token = await _storage.getAccessToken();
+      final token = await _storage.getAccessToken();
 
-    if (token != null && _isExpiredOrExpiringSoon(token)) {
-      debugPrint(
-        '[AuthDebug][$requestId] Token expiring soon. Proactive refresh...',
-      );
-      // Passa o token lido antes do lock como referência:
-      // se outro request já renovou, o valor no storage será diferente.
-      final newToken = await _refreshUnderLock(requestId, knownToken: token);
-      if (newToken == null) {
+      if (token != null && _isExpiredOrExpiringSoon(token)) {
         debugPrint(
-          '[AuthDebug][$requestId] Proactive refresh failed. Aborting request.',
+          '[AuthDebug][$requestId] Token expiring soon. Proactive refresh...',
         );
-        return handler.reject(
-          DioException(
-            requestOptions: options,
-            type: DioExceptionType.cancel,
-            error: 'Sessão expirada',
-          ),
-        );
+        // Passa o token lido antes do lock como referência:
+        // se outro request já renovou, o valor no storage será diferente.
+        final newToken = await _refreshUnderLock(requestId, knownToken: token);
+        if (newToken == null) {
+          debugPrint(
+            '[AuthDebug][$requestId] Proactive refresh failed. Aborting request.',
+          );
+          return handler.reject(
+            DioException(
+              requestOptions: options,
+              type: DioExceptionType.cancel,
+              error: 'Sessão expirada',
+            ),
+          );
+        }
+        options.headers['Authorization'] = 'Bearer $newToken';
+      } else if (token != null) {
+        options.headers['Authorization'] = 'Bearer $token';
       }
-      options.headers['Authorization'] = 'Bearer $newToken';
-    } else if (token != null) {
-      options.headers['Authorization'] = 'Bearer $token';
-    }
 
-    debugPrint('[AuthDebug][$requestId] Injecting token into ${options.path}');
-    handler.next(options);
+      debugPrint(
+        '[AuthDebug][$requestId] Injecting token into ${options.path}',
+      );
+      handler.next(options);
+    } catch (e, st) {
+      debugPrint('[AuthDebug] Unexpected error in onRequest: $e');
+      handler.reject(
+        DioException(
+          requestOptions: options,
+          type: DioExceptionType.unknown,
+          error: e,
+          stackTrace: st,
+        ),
+      );
+    }
   }
 
   // ── onError: verificação REATIVA (fallback para 401 inesperado) ───────────
@@ -83,76 +97,106 @@ class SecurityInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     final options = err.requestOptions;
-    options.extra[_kRequestId] ??= _buildRequestId(options);
-    final requestId = options.extra[_kRequestId] as String;
+    try {
+      options.extra[_kRequestId] ??= _buildRequestId(options);
+      final requestId = options.extra[_kRequestId] as String;
 
-    debugPrint(
-      '[AuthDebug][$requestId] Error ${err.response?.statusCode} on ${options.path}',
-    );
-
-    if (err.response?.statusCode == 401) {
-      // Não tenta refresh em endpoints de autenticação (evita loop infinito).
-      if (_isAuthPath(options.path)) {
-        debugPrint('[AuthDebug][$requestId] 401 on auth path. No retry.');
-        return handler.next(err);
-      }
-
-      // Extrai o token enviado na requisição original como referência para a guard.
-      // Se outro request já trocou o token no storage, o valor será diferente → reusa.
-      final authHeader = options.headers['Authorization'] as String?;
-      final sentToken = authHeader?.startsWith('Bearer ') == true
-          ? authHeader!.substring(7)
-          : null;
-
-      final newToken = await _refreshUnderLock(
-        requestId,
-        knownToken: sentToken,
+      debugPrint(
+        '[AuthDebug][$requestId] Error ${err.response?.statusCode} on ${options.path}',
       );
-      if (newToken == null) {
-        debugPrint(
-          '[AuthDebug][$requestId] Refresh returned null. Cannot retry.',
+
+      if (err.response?.statusCode == 401) {
+        // Não tenta refresh em endpoints de autenticação (evita loop infinito).
+        if (_isAuthPath(options.path)) {
+          debugPrint('[AuthDebug][$requestId] 401 on auth path. No retry.');
+          return handler.next(err);
+        }
+
+        // Extrai o token enviado na requisição original como referência para a guard.
+        // Se outro request já trocou o token no storage, o valor será diferente → reusa.
+        final authHeader = options.headers['Authorization'] as String?;
+        final sentToken = authHeader?.startsWith('Bearer ') == true
+            ? authHeader!.substring(7)
+            : null;
+
+        final newToken = await _refreshUnderLock(
+          requestId,
+          knownToken: sentToken,
         );
+        if (newToken == null) {
+          debugPrint(
+            '[AuthDebug][$requestId] Refresh returned null. Cannot retry.',
+          );
+          return handler.reject(
+            DioException(
+              requestOptions: options,
+              type: DioExceptionType.cancel,
+              error: 'Sessão expirada',
+            ),
+          );
+        }
+
+        debugPrint('[AuthDebug][$requestId] Retrying with new token...');
+        final retryOptions = options.copyWith(
+          headers: {...options.headers, 'Authorization': 'Bearer $newToken'},
+        );
+
+        try {
+          // _retryDio NÃO tem SecurityInterceptor: sem deadlock de fila.
+          final response = await _retryDio.fetch(retryOptions);
+          return handler.resolve(response);
+        } on DioException catch (retryErr) {
+          debugPrint('[AuthDebug][$requestId] Retry failed: $retryErr');
+          return handler.next(retryErr);
+        } catch (retryErr, st) {
+          debugPrint(
+            '[AuthDebug][$requestId] Retry failed unexpectedly: $retryErr',
+          );
+          return handler.reject(
+            DioException(
+              requestOptions: options,
+              type: DioExceptionType.unknown,
+              error: retryErr,
+              stackTrace: st,
+            ),
+          );
+        }
+      } else if (ApiAuthError.isCredentialRejected(err.response)) {
+        // Só a API diz que a credencial foi revogada/é inválida: logout forçado.
+        // 403 genérico (papel, WAF da Cloudflare) segue para o chamador.
+        debugPrint(
+          '[AuthDebug][$requestId] Credential rejected by API. Clearing provisioning (Forced Logout).',
+        );
+        try {
+          await _storage.clearProvisioning();
+        } catch (e) {
+          debugPrint(
+            '[AuthDebug][$requestId] Failed clearing provisioning on forced logout: $e',
+          );
+        }
+        _authNotifier.setState(AuthRouteState.needsSetup);
+
         return handler.reject(
           DioException(
-            requestOptions: options,
+            requestOptions: err.requestOptions,
             type: DioExceptionType.cancel,
-            error: 'Sessão expirada',
+            error: 'Sessão encerrada',
           ),
         );
       }
 
-      debugPrint('[AuthDebug][$requestId] Retrying with new token...');
-      final retryOptions = options.copyWith(
-        headers: {...options.headers, 'Authorization': 'Bearer $newToken'},
-      );
-
-      try {
-        // _retryDio NÃO tem SecurityInterceptor: sem deadlock de fila.
-        final response = await _retryDio.fetch(retryOptions);
-        return handler.resolve(response);
-      } on DioException catch (retryErr) {
-        debugPrint('[AuthDebug][$requestId] Retry failed: $retryErr');
-        return handler.next(retryErr);
-      }
-    } else if (ApiAuthError.isCredentialRejected(err.response)) {
-      // Só a API diz que a credencial foi revogada/é inválida: logout forçado.
-      // 403 genérico (papel, WAF da Cloudflare) segue para o chamador.
-      debugPrint(
-        '[AuthDebug][$requestId] Credential rejected by API. Clearing provisioning (Forced Logout).',
-      );
-      await _storage.clearProvisioning();
-      _authNotifier.setState(AuthRouteState.needsSetup);
-
-      return handler.reject(
+      handler.next(err);
+    } catch (e, st) {
+      debugPrint('[AuthDebug] Unexpected error in onError: $e');
+      handler.reject(
         DioException(
-          requestOptions: err.requestOptions,
-          type: DioExceptionType.cancel,
-          error: 'Sessão encerrada',
+          requestOptions: options,
+          type: DioExceptionType.unknown,
+          error: e,
+          stackTrace: st,
         ),
       );
     }
-
-    handler.next(err);
   }
 
   // ── Internals ─────────────────────────────────────────────────────────────
@@ -166,7 +210,15 @@ class SecurityInterceptor extends Interceptor {
   /// outro request já realizou o refresh → retorna o token atual sem chamar o backend.
   Future<String?> _refreshUnderLock(String requestId, {String? knownToken}) {
     return _lock.synchronized(() async {
-      final currentToken = await _storage.getAccessToken();
+      final String? currentToken;
+      try {
+        currentToken = await _storage.getAccessToken();
+      } catch (e) {
+        debugPrint(
+          '[AuthDebug][$requestId] Failed reading access token under lock: $e',
+        );
+        rethrow;
+      }
 
       // Guard: se o token no storage mudou desde que este request leu,
       // outro request concorrente já fez o refresh — reutiliza.
