@@ -30,6 +30,8 @@ class SearchDevicesController extends ChangeNotifier {
   bool get isLoadingMore => _isLoadingMore;
   bool _hasMore = true;
   bool get hasMore => _hasMore;
+  bool _loadMoreFailed = false;
+  bool get loadMoreFailed => _loadMoreFailed;
 
   int _currentPage = 0;
   int _totalElements = 0;
@@ -41,6 +43,7 @@ class SearchDevicesController extends ChangeNotifier {
     if (isLoading) return;
     try {
       isLoading = true;
+      _loadMoreFailed = false;
       _currentPage = 0;
       filter.page = _currentPage;
       devices = [];
@@ -142,10 +145,11 @@ class SearchDevicesController extends ChangeNotifier {
   }
 
   Future<void> loadMore() async {
-    if (_isLoadingMore || !_hasMore) return;
+    if (_isLoadingMore || !_hasMore || _loadMoreFailed) return;
 
     try {
       _isLoadingMore = true;
+      _loadMoreFailed = false;
       notifyListeners();
 
       _currentPage++;
@@ -158,13 +162,21 @@ class SearchDevicesController extends ChangeNotifier {
       _hasMore = !result.last;
     } on RequisitionException catch (e) {
       _currentPage--;
+      _loadMoreFailed = true;
       SnackBarUtil().showError(e.message);
     } on Exception catch (_) {
       _currentPage--;
+      _loadMoreFailed = true;
       SnackBarUtil().showError("Erro ao buscar mais aparelhos");
     } finally {
       _isLoadingMore = false;
       notifyListeners();
     }
+  }
+
+  Future<void> retryLoadMore() {
+    _loadMoreFailed = false;
+    notifyListeners();
+    return loadMore();
   }
 }

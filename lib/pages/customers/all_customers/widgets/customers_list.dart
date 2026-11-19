@@ -3,6 +3,7 @@ import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers/controllers/all_customer_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers/widgets/customer_card.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers/widgets/customer_card_shimmer.dart';
+import 'package:flutter_workshop_front/widgets/shared/infinite_scroll_listener.dart';
 
 class CustomersList extends StatefulWidget {
   final AllCustomerController controller;
@@ -24,19 +25,6 @@ class _CustomersListState extends State<CustomersList> {
   final ScrollController _scrollController = ScrollController();
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollController.addListener(() {
-        if (_scrollController.position.maxScrollExtent ==
-            _scrollController.offset) {
-          widget.controller.loadMore();
-        }
-      });
-    });
-  }
-
-  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
@@ -48,23 +36,38 @@ class _CustomersListState extends State<CustomersList> {
         widget.customers.length +
         (widget.controller.isLoadingMore || widget.controller.hasMore ? 1 : 0);
 
-    return ListView.separated(
-      controller: _scrollController,
-      itemCount: itemCount,
-      padding: const EdgeInsets.all(8),
-      itemBuilder: (context, index) {
-        if (index == widget.customers.length) {
-          return Column(
-            children: [
-              ...List.generate(2, (index) => const CustomerCardShimmer()),
-            ],
-          );
-        }
+    return InfiniteScrollListener(
+      scrollController: _scrollController,
+      hasMore: widget.controller.hasMore,
+      isLoading: widget.controller.isLoading,
+      isLoadingMore: widget.controller.isLoadingMore,
+      loadMoreFailed: widget.controller.loadMoreFailed,
+      onLoadMore: widget.controller.loadMore,
+      child: ListView.separated(
+        controller: _scrollController,
+        itemCount: itemCount,
+        padding: const EdgeInsets.all(8),
+        itemBuilder: (context, index) {
+          if (index == widget.customers.length) {
+            if (widget.controller.loadMoreFailed &&
+                !widget.controller.isLoadingMore) {
+              return LoadMoreErrorFooter(
+                message: 'Erro ao carregar mais clientes.',
+                onRetry: widget.controller.retryLoadMore,
+              );
+            }
+            return Column(
+              children: [
+                ...List.generate(2, (index) => const CustomerCardShimmer()),
+              ],
+            );
+          }
 
-        final customer = widget.customers[index];
-        return CustomerCard(customer: customer, onTap: widget.onTap);
-      },
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
+          final customer = widget.customers[index];
+          return CustomerCard(customer: customer, onTap: widget.onTap);
+        },
+        separatorBuilder: (context, index) => const SizedBox(height: 8),
+      ),
     );
   }
 }
