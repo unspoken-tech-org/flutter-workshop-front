@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/http/custom_dio.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
+import 'package:flutter_workshop_front/core/security/refresh_result.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
 
 /// Gera um JWT minimalista com o timestamp de expiração informado.
@@ -120,7 +121,11 @@ void main() {
 
     test('deve reutilizar a mesma instancia para chamadas autenticadas', () {
       final storage = _MemorySecurityStorage();
-      CustomDio.setup(storage, () async => null, AuthNotifier());
+      CustomDio.setup(
+        storage,
+        () async => const RefreshSessionExpired(),
+        AuthNotifier(),
+      );
 
       final first = CustomDio.dioInstance();
       final second = CustomDio.dioInstance();
@@ -141,7 +146,7 @@ void main() {
       CustomDio.setup(storage, () async {
         refreshCalls += 1;
         await storage.saveAccessToken(newToken);
-        return newToken;
+        return RefreshSuccess(newToken);
       }, AuthNotifier());
 
       final dioA = CustomDio.dioInstance();

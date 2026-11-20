@@ -36,7 +36,8 @@ class GlobalErrorInterceptor extends Interceptor {
     String errorMessage = 'Ocorreu um erro inesperado de conexão.';
 
     if (err.type == DioExceptionType.connectionTimeout ||
-        err.type == DioExceptionType.receiveTimeout) {
+        err.type == DioExceptionType.receiveTimeout ||
+        err.type == DioExceptionType.sendTimeout) {
       errorMessage = 'Tempo de conexão esgotado. Verifique sua internet.';
       shouldShowGlobalError = true;
     } else if (err.type == DioExceptionType.connectionError) {

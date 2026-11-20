@@ -1,12 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_workshop_front/core/http/interceptors/global_error_interceptor.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/security_interceptor.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
+import 'package:flutter_workshop_front/core/security/refresh_result.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
+import 'package:flutter_workshop_front/services/auth/auth_service.dart';
+import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -39,6 +44,9 @@ class _MemorySecurityStorage implements SecurityStorage {
   final Map<String, String> _storage = {};
   int clearSessionCalls = 0;
   int clearProvisioningCalls = 0;
+  int getAccessTokenCalls = 0;
+  Object? Function(int callIndex)? getAccessTokenErrorOnCall;
+  Object? clearProvisioningError;
 
   void seedTokens({String? accessToken, String? refreshToken, String? apiKey}) {
     if (accessToken != null) _storage['access_token'] = accessToken;
@@ -59,6 +67,9 @@ class _MemorySecurityStorage implements SecurityStorage {
   @override
   Future<void> clearProvisioning({bool removeBoundDeviceId = false}) async {
     clearProvisioningCalls += 1;
+    if (clearProvisioningError != null) {
+      throw clearProvisioningError!;
+    }
     await clearSession();
     _storage.remove('api_key');
     if (removeBoundDeviceId) {
@@ -67,7 +78,12 @@ class _MemorySecurityStorage implements SecurityStorage {
   }
 
   @override
-  Future<String?> getAccessToken() async => _storage['access_token'];
+  Future<String?> getAccessToken() async {
+    getAccessTokenCalls += 1;
+    final err = getAccessTokenErrorOnCall?.call(getAccessTokenCalls);
+    if (err != null) throw err;
+    return _storage['access_token'];
+  }
 
   @override
   Future<String?> getApiKey() async => _storage['api_key'];
@@ -155,13 +171,15 @@ void main() {
 
     /// Monta um SecurityInterceptor conectado ao [dio] e [retryDio] fornecidos.
     SecurityInterceptor buildInterceptor({
-      required Future<String?> Function() onRefresh,
+      required Future<RefreshResult> Function() onRefresh,
+      Future<void> Function()? onCredentialRejected,
     }) {
       return SecurityInterceptor(
         storage: storage,
         retryDio: retryDio,
         authNotifier: authNotifier,
         onRefresh: onRefresh,
+        onCredentialRejected: onCredentialRejected,
       );
     }
 
@@ -205,7 +223,7 @@ void main() {
           onRefresh: () async {
             refreshCalls += 1;
             await storage.saveAccessToken(newToken);
-            return newToken;
+            return RefreshSuccess(newToken);
           },
         ),
       );
@@ -244,7 +262,7 @@ void main() {
             onRefresh: () async {
               refreshCalls += 1;
               await storage.saveAccessToken(newToken);
-              return newToken;
+              return RefreshSuccess(newToken);
             },
           ),
         );
@@ -286,7 +304,7 @@ void main() {
           onRefresh: () async {
             refreshCalls += 1;
             await storage.saveAccessToken(newToken);
-            return newToken;
+            return RefreshSuccess(newToken);
           },
         ),
       );
@@ -304,39 +322,42 @@ void main() {
       expect(refreshCalls, 1);
     });
 
-    test('deve retornar cancel quando refresh retorna null em 401', () async {
-      storage.seedTokens(
-        accessToken: validToken,
-        refreshToken: 'rt-1',
-        apiKey: 'api-key-1',
-      );
+    test(
+      'deve retornar cancel quando refresh retorna RefreshSessionExpired em 401',
+      () async {
+        storage.seedTokens(
+          accessToken: validToken,
+          refreshToken: 'rt-1',
+          apiKey: 'api-key-1',
+        );
 
-      dio.httpClientAdapter = _TestHttpClientAdapter(
-        responder: (_) =>
-            const _AdapterResult(statusCode: 401, data: {'error': 'expired'}),
-      );
+        dio.httpClientAdapter = _TestHttpClientAdapter(
+          responder: (_) =>
+              const _AdapterResult(statusCode: 401, data: {'error': 'expired'}),
+        );
 
-      dio.interceptors.add(
-        buildInterceptor(
-          onRefresh: () async {
-            refreshCalls += 1;
-            return null;
-          },
-        ),
-      );
-
-      await expectLater(
-        dio.get('/protected'),
-        throwsA(
-          isA<DioException>().having(
-            (e) => e.type,
-            'type',
-            DioExceptionType.cancel,
+        dio.interceptors.add(
+          buildInterceptor(
+            onRefresh: () async {
+              refreshCalls += 1;
+              return const RefreshSessionExpired();
+            },
           ),
-        ),
-      );
-      expect(refreshCalls, 1);
-    });
+        );
+
+        await expectLater(
+          dio.get('/protected'),
+          throwsA(
+            isA<DioException>().having(
+              (e) => e.type,
+              'type',
+              DioExceptionType.cancel,
+            ),
+          ),
+        );
+        expect(refreshCalls, 1);
+      },
+    );
 
     test('não deve deslogar em 403 de autorização por papel da API', () async {
       storage.seedTokens(
@@ -357,7 +378,18 @@ void main() {
         ),
       );
 
-      dio.interceptors.add(buildInterceptor(onRefresh: () async => null));
+      final authService = AuthService(
+        dio: Dio(),
+        storage: storage,
+        authNotifier: authNotifier,
+      );
+
+      dio.interceptors.add(
+        buildInterceptor(
+          onRefresh: () async => const RefreshSessionExpired(),
+          onCredentialRejected: authService.forceLogout,
+        ),
+      );
 
       await expectLater(
         dio.get('/admin-only'),
@@ -388,7 +420,18 @@ void main() {
         ),
       );
 
-      dio.interceptors.add(buildInterceptor(onRefresh: () async => null));
+      final authService = AuthService(
+        dio: Dio(),
+        storage: storage,
+        authNotifier: authNotifier,
+      );
+
+      dio.interceptors.add(
+        buildInterceptor(
+          onRefresh: () async => const RefreshSessionExpired(),
+          onCredentialRejected: authService.forceLogout,
+        ),
+      );
 
       await expectLater(
         dio.get('/protected'),
@@ -425,7 +468,18 @@ void main() {
         ),
       );
 
-      dio.interceptors.add(buildInterceptor(onRefresh: () async => null));
+      final authService = AuthService(
+        dio: Dio(),
+        storage: storage,
+        authNotifier: authNotifier,
+      );
+
+      dio.interceptors.add(
+        buildInterceptor(
+          onRefresh: () async => const RefreshSessionExpired(),
+          onCredentialRejected: authService.forceLogout,
+        ),
+      );
 
       await expectLater(
         dio.get('/protected'),
@@ -473,7 +527,7 @@ void main() {
             onRefresh: () async {
               refreshCalls += 1;
               await storage.saveAccessToken(newToken);
-              return newToken;
+              return RefreshSuccess(newToken);
             },
           ),
         );
@@ -504,7 +558,7 @@ void main() {
           buildInterceptor(
             onRefresh: () async {
               refreshCalls += 1;
-              return null; // refresh falhou
+              return const RefreshSessionExpired(); // refresh falhou
             },
           ),
         );
@@ -539,7 +593,7 @@ void main() {
         buildInterceptor(
           onRefresh: () async {
             refreshCalls += 1;
-            return 'new-token';
+            return const RefreshSuccess('new-token');
           },
         ),
       );
@@ -592,7 +646,7 @@ void main() {
               refreshCalls += 1;
               await Future<void>.delayed(const Duration(milliseconds: 30));
               await storage.saveAccessToken(newToken);
-              return newToken;
+              return RefreshSuccess(newToken);
             },
           ),
         );
@@ -606,6 +660,434 @@ void main() {
         expect(responses, hasLength(3));
         // O Lock garante que apenas 1 refresh é feito para os 3 requests.
         expect(refreshCalls, 1);
+      },
+    );
+
+    // ── Resiliência contra exceções de storage / retry ──────────────────────
+
+    test(
+      'não pendura request quando storage lança PlatformException em onRequest',
+      () async {
+        storage.getAccessTokenErrorOnCall = (_) =>
+            PlatformException(code: 'READ_ERR', message: 'Keystore locked');
+
+        dio.httpClientAdapter = _TestHttpClientAdapter(
+          responder: (_) =>
+              const _AdapterResult(statusCode: 200, data: {'ok': true}),
+        );
+        dio.interceptors.add(
+          buildInterceptor(
+            onRefresh: () async => const RefreshSessionExpired(),
+            onCredentialRejected: () async => storage.clearProvisioning(),
+          ),
+        );
+
+        await expectLater(
+          dio.get('/protected').timeout(const Duration(seconds: 2)),
+          throwsA(
+            isA<DioException>().having(
+              (e) => e.error,
+              'error',
+              isA<PlatformException>(),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'não pendura request quando storage lança PlatformException dentro de _refreshUnderLock',
+      () async {
+        storage.seedTokens(
+          accessToken: validToken,
+          refreshToken: 'rt-1',
+          apiKey: 'api-key-1',
+        );
+        // 1a chamada (onRequest) ok; 2a chamada (onError -> _refreshUnderLock) lança.
+        storage.getAccessTokenErrorOnCall = (call) => call >= 2
+            ? PlatformException(code: 'READ_ERR', message: 'Keystore locked')
+            : null;
+
+        dio.httpClientAdapter = _TestHttpClientAdapter(
+          responder: (_) =>
+              const _AdapterResult(statusCode: 401, data: {'error': 'expired'}),
+        );
+        dio.interceptors.add(
+          buildInterceptor(
+            onRefresh: () async => const RefreshSessionExpired(),
+            onCredentialRejected: () async => storage.clearProvisioning(),
+          ),
+        );
+
+        await expectLater(
+          dio.get('/protected').timeout(const Duration(seconds: 2)),
+          throwsA(
+            isA<DioException>().having(
+              (e) => e.error,
+              'error',
+              isA<PlatformException>(),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'não pendura request e atualiza authNotifier quando clearProvisioning falha em onError',
+      () async {
+        storage.seedTokens(
+          accessToken: validToken,
+          refreshToken: 'rt-1',
+          apiKey: 'api-key-1',
+        );
+        storage.clearProvisioningError = PlatformException(
+          code: 'DEL_ERR',
+          message: 'Delete failed',
+        );
+
+        dio.httpClientAdapter = _TestHttpClientAdapter(
+          responder: (_) => const _AdapterResult(
+            statusCode: 403,
+            data: {
+              'status': 403,
+              'error': {
+                'code': 'auth.invalid.api.key',
+                'message': 'Invalid API Key',
+              },
+            },
+          ),
+        );
+        dio.interceptors.add(
+          buildInterceptor(
+            onRefresh: () async => const RefreshSessionExpired(),
+            onCredentialRejected: () async => storage.clearProvisioning(),
+          ),
+        );
+
+        await expectLater(
+          dio.get('/protected').timeout(const Duration(seconds: 2)),
+          throwsA(
+            isA<DioException>().having(
+              (e) => e.type,
+              'type',
+              DioExceptionType.cancel,
+            ),
+          ),
+        );
+        expect(authNotifier.state, AuthRouteState.needsSetup);
+      },
+    );
+
+    test('não pendura request quando retryDio lança exceção não-Dio', () async {
+      final newToken = validToken;
+      storage.seedTokens(
+        accessToken: validToken,
+        refreshToken: 'rt-1',
+        apiKey: 'api-key-1',
+      );
+
+      dio.httpClientAdapter = _TestHttpClientAdapter(
+        responder: (_) =>
+            const _AdapterResult(statusCode: 401, data: {'error': 'expired'}),
+      );
+      retryDio.httpClientAdapter = _TestHttpClientAdapter(
+        responder: (_) => throw StateError('Unexpected adapter crash'),
+      );
+
+      dio.interceptors.add(
+        buildInterceptor(
+          onRefresh: () async {
+            await storage.saveAccessToken(newToken);
+            return RefreshSuccess(newToken);
+          },
+        ),
+      );
+
+      await expectLater(
+        dio.get('/protected').timeout(const Duration(seconds: 2)),
+        throwsA(isA<DioException>()),
+      );
+    });
+
+    // ── Propagação de falhas transitórias de refresh (2.2.4) ──────────────────
+
+    test(
+      'deve propagar DioException real no refresh proativo com RefreshTransientFailure',
+      () async {
+        for (final type in [
+          DioExceptionType.connectionError,
+          DioExceptionType.connectionTimeout,
+        ]) {
+          storage.seedTokens(
+            accessToken: expiringToken,
+            refreshToken: 'rt-1',
+            apiKey: 'api-key-1',
+          );
+
+          final testDio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+          testDio.interceptors.add(
+            SecurityInterceptor(
+              storage: storage,
+              retryDio: retryDio,
+              authNotifier: authNotifier,
+              onRefresh: () async => RefreshTransientFailure(
+                errorType: type,
+                error: 'network down',
+              ),
+            ),
+          );
+
+          await expectLater(
+            testDio.get('/protected'),
+            throwsA(isA<DioException>().having((e) => e.type, 'type', type)),
+          );
+        }
+      },
+    );
+
+    test(
+      'deve propagar DioException 500 no refresh reativo com RefreshTransientFailure',
+      () async {
+        storage.seedTokens(
+          accessToken: validToken,
+          refreshToken: 'rt-1',
+          apiKey: 'api-key-1',
+        );
+
+        dio.httpClientAdapter = _TestHttpClientAdapter(
+          responder: (_) =>
+              const _AdapterResult(statusCode: 401, data: {'error': 'expired'}),
+        );
+
+        dio.interceptors.add(
+          buildInterceptor(
+            onRefresh: () async => RefreshTransientFailure(
+              errorType: DioExceptionType.badResponse,
+              response: Response(
+                requestOptions: RequestOptions(path: '/api/auth/refresh'),
+                statusCode: 500,
+              ),
+            ),
+          ),
+        );
+
+        await expectLater(
+          dio.get('/protected'),
+          throwsA(
+            isA<DioException>()
+                .having((e) => e.type, 'type', DioExceptionType.badResponse)
+                .having((e) => e.response?.statusCode, 'statusCode', 500),
+          ),
+        );
+      },
+    );
+
+    testWidgets(
+      'refresh proativo com falha transitória aciona GlobalErrorInterceptor uma única vez sem duplicar no authDio',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            scaffoldMessengerKey: SnackBarUtil().scaffoldKey,
+            home: const Scaffold(body: SizedBox.shrink()),
+          ),
+        );
+
+        storage.seedTokens(
+          accessToken: expiringToken,
+          refreshToken: 'rt-1',
+          apiKey: 'api-key-1',
+        );
+
+        // authDio real com GlobalErrorInterceptor, simulando falha de conexão.
+        final authDio = Dio(BaseOptions(baseUrl: 'https://example.test'))
+          ..interceptors.add(GlobalErrorInterceptor());
+        authDio.httpClientAdapter = _TestHttpClientAdapter(
+          responder: (options) => throw DioException(
+            requestOptions: options,
+            type: DioExceptionType.connectionError,
+            error: 'SocketException',
+          ),
+        );
+
+        final authService = AuthService(
+          dio: authDio,
+          storage: storage,
+          authNotifier: authNotifier,
+        );
+
+        dio.interceptors
+          ..add(
+            SecurityInterceptor(
+              storage: storage,
+              retryDio: retryDio,
+              authNotifier: authNotifier,
+              onRefresh: authService.refreshToken,
+            ),
+          )
+          ..add(GlobalErrorInterceptor());
+
+        await tester.runAsync(() async {
+          await expectLater(
+            dio.get('/protected'),
+            throwsA(
+              isA<DioException>().having(
+                (e) => e.type,
+                'type',
+                DioExceptionType.connectionError,
+              ),
+            ),
+          );
+        });
+
+        await tester.pump();
+        expect(find.byType(SnackBar), findsOneWidget);
+        expect(
+          find.text('Não foi possível conectar ao servidor.'),
+          findsOneWidget,
+        );
+        await tester.pump(const Duration(seconds: 5));
+      },
+    );
+
+    testWidgets(
+      'refresh reativo (401) com falha transitória aciona GlobalErrorInterceptor uma única vez',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            scaffoldMessengerKey: SnackBarUtil().scaffoldKey,
+            home: const Scaffold(body: SizedBox.shrink()),
+          ),
+        );
+
+        storage.seedTokens(
+          accessToken: validToken,
+          refreshToken: 'rt-1',
+          apiKey: 'api-key-1',
+        );
+
+        final authDio = Dio(BaseOptions(baseUrl: 'https://example.test'))
+          ..interceptors.add(GlobalErrorInterceptor());
+        authDio.httpClientAdapter = _TestHttpClientAdapter(
+          responder: (_) => const _AdapterResult(
+            statusCode: 500,
+            data: {'error': 'server down'},
+          ),
+        );
+
+        final authService = AuthService(
+          dio: authDio,
+          storage: storage,
+          authNotifier: authNotifier,
+        );
+
+        dio.httpClientAdapter = _TestHttpClientAdapter(
+          responder: (_) =>
+              const _AdapterResult(statusCode: 401, data: {'error': 'expired'}),
+        );
+        dio.interceptors
+          ..add(
+            SecurityInterceptor(
+              storage: storage,
+              retryDio: retryDio,
+              authNotifier: authNotifier,
+              onRefresh: authService.refreshToken,
+            ),
+          )
+          ..add(GlobalErrorInterceptor());
+
+        await tester.runAsync(() async {
+          await expectLater(
+            dio.get('/protected'),
+            throwsA(
+              isA<DioException>().having(
+                (e) => e.response?.statusCode,
+                'statusCode',
+                500,
+              ),
+            ),
+          );
+        });
+
+        await tester.pump();
+        expect(find.byType(SnackBar), findsOneWidget);
+        expect(
+          find.text('Erro interno do servidor. Tente novamente mais tarde.'),
+          findsOneWidget,
+        );
+        await tester.pump(const Duration(seconds: 5));
+      },
+    );
+
+    testWidgets(
+      'GlobalErrorInterceptor exibe mensagem de timeout para sendTimeout e ignora RefreshSessionExpired',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            scaffoldMessengerKey: SnackBarUtil().scaffoldKey,
+            home: const Scaffold(body: SizedBox.shrink()),
+          ),
+        );
+
+        // 1. RefreshSessionExpired -> cancel -> sem SnackBar.
+        storage.seedTokens(
+          accessToken: expiringToken,
+          refreshToken: 'rt-1',
+          apiKey: 'api-key-1',
+        );
+        final cancelDio = Dio(BaseOptions(baseUrl: 'https://example.test'))
+          ..interceptors.add(
+            SecurityInterceptor(
+              storage: storage,
+              retryDio: retryDio,
+              authNotifier: authNotifier,
+              onRefresh: () async => const RefreshSessionExpired(),
+            ),
+          )
+          ..interceptors.add(GlobalErrorInterceptor());
+
+        await tester.runAsync(() async {
+          await expectLater(
+            cancelDio.get('/expired'),
+            throwsA(
+              isA<DioException>().having(
+                (e) => e.type,
+                'type',
+                DioExceptionType.cancel,
+              ),
+            ),
+          );
+        });
+        await tester.pump();
+        expect(find.byType(SnackBar), findsNothing);
+
+        // 2. sendTimeout -> exibe SnackBar de timeout.
+        dio.httpClientAdapter = _TestHttpClientAdapter(
+          responder: (options) => throw DioException(
+            requestOptions: options,
+            type: DioExceptionType.sendTimeout,
+          ),
+        );
+        dio.interceptors.add(GlobalErrorInterceptor());
+
+        await tester.runAsync(() async {
+          await expectLater(
+            dio.get('/send-timeout'),
+            throwsA(
+              isA<DioException>().having(
+                (e) => e.type,
+                'type',
+                DioExceptionType.sendTimeout,
+              ),
+            ),
+          );
+        });
+
+        await tester.pump();
+        expect(
+          find.text('Tempo de conexão esgotado. Verifique sua internet.'),
+          findsOneWidget,
+        );
+        await tester.pump(const Duration(seconds: 5));
       },
     );
   });

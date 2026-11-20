@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/models/device/device_filter.dart';
 import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
+import 'package:flutter_workshop_front/pages/bootstrap_error/bootstrap_error_page.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers/all_customers_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/customer_detail_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_register/customer_register_page.dart';
@@ -13,29 +15,36 @@ import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
 import 'package:flutter_workshop_front/pages/not_found_page.dart';
 import 'package:go_router/go_router.dart';
 
-GoRouter buildRouter(AuthNotifier authNotifier) {
-  return GoRouter(
-    initialLocation: HomePage.route,
-    routes: _routes,
-    refreshListenable: authNotifier,
-    redirect: (context, state) {
-      final authState = authNotifier.state;
-      final isSetupRoute = state.matchedLocation == SetupPage.route;
+String? resolveAuthRedirect(AuthRouteState authState, String matchedLocation) {
+  final isSetupRoute = matchedLocation == SetupPage.route;
+  final isBootstrapErrorRoute = matchedLocation == BootstrapErrorPage.route;
 
-      if (authState == AuthRouteState.restoring) {
-        return null;
-      }
-
-      if (authState == AuthRouteState.needsSetup && !isSetupRoute) {
-        return SetupPage.route;
-      }
-
-      if (authState == AuthRouteState.authenticated && isSetupRoute) {
+  switch (authState) {
+    case AuthRouteState.restoring:
+      return null;
+    case AuthRouteState.needsSetup:
+      return isSetupRoute ? null : SetupPage.route;
+    case AuthRouteState.offline:
+    case AuthRouteState.storageError:
+      return isBootstrapErrorRoute ? null : BootstrapErrorPage.route;
+    case AuthRouteState.authenticated:
+      if (isSetupRoute || isBootstrapErrorRoute) {
         return HomePage.route;
       }
-
       return null;
-    },
+  }
+}
+
+GoRouter buildRouter(
+  AuthNotifier authNotifier, {
+  @visibleForTesting List<RouteBase>? routesOverride,
+}) {
+  return GoRouter(
+    initialLocation: HomePage.route,
+    routes: routesOverride ?? _routes,
+    refreshListenable: authNotifier,
+    redirect: (context, state) =>
+        resolveAuthRedirect(authNotifier.state, state.matchedLocation),
     errorBuilder: (context, state) => const NotFoundPage(),
   );
 }
@@ -53,6 +62,13 @@ List<RouteBase> _routes = [
     name: SetupPage.route,
     builder: (context, state) {
       return const SetupPage();
+    },
+  ),
+  GoRoute(
+    path: BootstrapErrorPage.route,
+    name: BootstrapErrorPage.route,
+    builder: (context, state) {
+      return const BootstrapErrorPage();
     },
   ),
   GoRoute(

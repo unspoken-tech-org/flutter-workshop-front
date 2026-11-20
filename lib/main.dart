@@ -23,9 +23,19 @@ Future<void> main() async {
   final authNotifier = AuthNotifier();
   final storage = SecurityStorage();
   final authService = AuthService(storage: storage, authNotifier: authNotifier);
-  CustomDio.setup(storage, authService.refreshToken, authNotifier);
+  CustomDio.setup(
+    storage,
+    authService.refreshToken,
+    authNotifier,
+    onCredentialRejected: authService.forceLogout,
+  );
   authNotifier.setState(AuthRouteState.restoring, notify: false);
-  await authService.initializeAuthState();
+  try {
+    await authService.initializeAuthState();
+  } catch (e, st) {
+    debugPrint('[AuthDebug] Unexpected bootstrap error: $e\n$st');
+    authNotifier.setState(AuthRouteState.storageError, notify: false);
+  }
   final router = buildRouter(authNotifier);
 
   runApp(

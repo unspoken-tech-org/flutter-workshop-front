@@ -4,11 +4,13 @@ import 'package:flutter_workshop_front/core/config/config.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/global_error_interceptor.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/security_interceptor.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
+import 'package:flutter_workshop_front/core/security/refresh_result.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
 
 class CustomDio {
   static SecurityStorage? _storage;
-  static Future<String?> Function()? _onRefresh;
+  static Future<RefreshResult> Function()? _onRefresh;
+  static Future<void> Function()? _onCredentialRejected;
   static AuthNotifier? _authNotifier;
   static Dio? _appDio;
   static Dio? _authDio;
@@ -18,12 +20,14 @@ class CustomDio {
   /// Configures global dependencies for the security interceptor.
   static void setup(
     SecurityStorage storage,
-    Future<String?> Function() onRefresh,
-    AuthNotifier authNotifier,
-  ) {
+    Future<RefreshResult> Function() onRefresh,
+    AuthNotifier authNotifier, {
+    Future<void> Function()? onCredentialRejected,
+  }) {
     _storage = storage;
     _onRefresh = onRefresh;
     _authNotifier = authNotifier;
+    _onCredentialRejected = onCredentialRejected;
 
     if (_appDio != null) {
       _ensureSecurityInterceptor(_appDio!);
@@ -52,6 +56,7 @@ class CustomDio {
   static void resetForTest() {
     _storage = null;
     _onRefresh = null;
+    _onCredentialRejected = null;
     _authNotifier = null;
     _appDio = null;
     _authDio = null;
@@ -96,6 +101,7 @@ class CustomDio {
       retryDio: retryDio,
       onRefresh: _onRefresh!,
       authNotifier: _authNotifier!,
+      onCredentialRejected: _onCredentialRejected,
     );
 
     final globalErrorIndex = dio.interceptors.indexWhere(

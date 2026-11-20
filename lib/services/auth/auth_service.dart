@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:synchronized/synchronized.dart';
 import '../../core/exceptions/requisition_exception.dart';
 import '../../core/config/config.dart';
 
@@ -8,14 +9,24 @@ import '../../core/http/api_auth_error.dart';
 import '../../core/http/custom_dio.dart';
 import '../../core/http/response_validation.dart';
 import '../../core/security/auth_notifier.dart';
+import '../../core/security/refresh_result.dart';
 import '../../core/security/security_storage.dart';
 import '../../models/auth/token_request.dart';
 import '../../models/auth/token_response.dart';
+
+enum SessionRestoreResult {
+  restored,
+  invalidCredentials,
+  transientError,
+  noApiKey,
+}
 
 class AuthService {
   final Dio _dio;
   final SecurityStorage _storage;
   final AuthNotifier _authNotifier;
+  final Lock _storageLock = Lock();
+  int _sessionEpoch = 0;
 
   AuthService({
     Dio? dio,
@@ -29,10 +40,23 @@ class AuthService {
   Future<bool> get hasApiKey async => (await apiKey) != null;
 
   Future<bool> get hasSession async {
-    final accessToken = await _storage.getAccessToken();
     final refreshToken = await _storage.getRefreshToken();
-    return (accessToken != null && accessToken.isNotEmpty) ||
-        (refreshToken != null && refreshToken.isNotEmpty);
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      return true;
+    }
+    final accessToken = await _storage.getAccessToken();
+    if (accessToken == null || accessToken.isEmpty) {
+      return false;
+    }
+    return !_isTokenExpired(accessToken);
+  }
+
+  bool _isTokenExpired(String token) {
+    try {
+      return JwtDecoder.isExpired(token);
+    } catch (_) {
+      return true;
+    }
   }
 
   /// RBAC: Checks if user has ADMIN role by decoding the current JWT.
@@ -52,6 +76,7 @@ class AuthService {
 
   /// Performs initial authentication exchanging API Key for JWT tokens.
   Future<void> authenticate(String apiKey) async {
+    final epochAtStart = ++_sessionEpoch;
     try {
       final boundDeviceId = await _storage.getBoundDeviceId();
       final appVersion = await Config.appVersion;
@@ -66,30 +91,65 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        final tokenResponse = TokenResponse.fromJson(response.data);
+        if (response.data is! Map<String, dynamic>) {
+          throw const FormatException('Invalid token response');
+        }
+        final tokenResponse = TokenResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
 
         debugPrint('[AuthDebug] Authenticate successful. Saving tokens...');
-        // Save API Key only if authentication succeeds
-        await _storage.saveApiKey(apiKey);
-        await _storage.saveTokens(
-          tokenResponse.accessToken,
-          tokenResponse.refreshToken,
-        );
-        _authNotifier.setState(AuthRouteState.authenticated);
+        await _storageLock.synchronized(() async {
+          if (_sessionEpoch != epochAtStart) {
+            return;
+          }
+          // Save API Key only if authentication succeeds
+          await _storage.saveApiKey(apiKey);
+          await _storage.saveTokens(
+            tokenResponse.accessToken,
+            tokenResponse.refreshToken,
+          );
+          _authNotifier.setState(AuthRouteState.authenticated);
+        });
       } else {
         // 409 (conflito de dispositivo) e demais 4xx entregues pelo
         // validateStatus: o setup não pode marcar sucesso.
+        if (ApiAuthError.isCredentialRejected(response)) {
+          await _storageLock.synchronized(() async {
+            if (_sessionEpoch == epochAtStart) {
+              try {
+                await _storage.clearProvisioning();
+              } finally {
+                _authNotifier.setState(AuthRouteState.needsSetup);
+              }
+            }
+          });
+        }
         throw requisitionExceptionFromResponse(response);
       }
     } on DioException catch (e) {
       debugPrint(
         '[AuthDebug] Authenticate failed with status ${e.response?.statusCode}: $e',
       );
-      if (e.response?.statusCode == 401) {
-        await _storage.clearProvisioning();
-        _authNotifier.setState(AuthRouteState.needsSetup);
+      if (e.response?.statusCode == 401 ||
+          ApiAuthError.isCredentialRejected(e.response)) {
+        await _storageLock.synchronized(() async {
+          if (_sessionEpoch == epochAtStart) {
+            try {
+              await _storage.clearProvisioning();
+            } finally {
+              _authNotifier.setState(AuthRouteState.needsSetup);
+            }
+          }
+        });
       } else {
-        await _storage.clearSession();
+        await _storageLock.synchronized(() async {
+          if (_sessionEpoch == epochAtStart) {
+            try {
+              await _storage.clearSession();
+            } catch (_) {}
+          }
+        });
       }
       rethrow;
     } on RequisitionException {
@@ -97,60 +157,97 @@ class AuthService {
     } catch (e) {
       debugPrint('[AuthDebug] Authenticate failed: $e');
       // If initial auth fails, ensure session is cleared but preserve boundDeviceId
-      await _storage.clearSession();
-      _authNotifier.setState(AuthRouteState.needsSetup);
+      await _storageLock.synchronized(() async {
+        if (_sessionEpoch == epochAtStart) {
+          try {
+            await _storage.clearSession();
+          } catch (_) {}
+        }
+      });
       rethrow;
     }
   }
 
-  Future<bool> restoreSessionFromStoredApiKey() async {
+  Future<SessionRestoreResult> restoreSessionFromStoredApiKey() async {
     final apiKey = await _storage.getApiKey();
     if (apiKey == null || apiKey.isEmpty) {
-      return false;
+      return SessionRestoreResult.noApiKey;
     }
 
     if (await hasSession) {
-      return true;
+      return SessionRestoreResult.restored;
     }
 
     try {
       await authenticate(apiKey);
-      return true;
-    } on DioException {
-      return false;
-    } on RequisitionException {
-      return false;
-    } catch (_) {
-      return false;
+      return SessionRestoreResult.restored;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401 ||
+          ApiAuthError.isCredentialRejected(e.response)) {
+        return SessionRestoreResult.invalidCredentials;
+      }
+      return SessionRestoreResult.transientError;
+    } on RequisitionException catch (e) {
+      if (e.code == ApiAuthError.invalidApiKey ||
+          e.code == ApiAuthError.invalidToken ||
+          e.code == '409' ||
+          e.code == 'DEVICE_BOUND') {
+        await _clearProvisioningAndResetState();
+        return SessionRestoreResult.invalidCredentials;
+      }
+      return SessionRestoreResult.transientError;
+    } on FormatException {
+      return SessionRestoreResult.transientError;
     }
   }
 
   /// Performs silent Access Token refresh.
-  Future<String?> refreshToken() async {
+  Future<RefreshResult> refreshToken() async {
     debugPrint('[AuthDebug] Starting refreshToken flow...');
-    final currentRefreshToken = await _storage.getRefreshToken();
-    if (currentRefreshToken == null) {
+    final epochAtStart = _sessionEpoch;
+    final String? currentRefreshToken;
+    try {
+      currentRefreshToken = await _storage.getRefreshToken();
+    } catch (e) {
+      debugPrint('[AuthDebug] Failed reading refresh token: $e');
+      return RefreshTransientFailure(
+        errorType: DioExceptionType.unknown,
+        error: e,
+      );
+    }
+
+    if (currentRefreshToken == null || currentRefreshToken.isEmpty) {
       debugPrint('[AuthDebug] No refresh token found.');
-      return null;
+      return const RefreshSessionExpired();
+    }
+
+    if (_sessionEpoch != epochAtStart) {
+      debugPrint('[AuthDebug] Session epoch changed before refresh request.');
+      return const RefreshSessionExpired();
     }
 
     try {
       final response = await _dio.post(
         '/api/auth/refresh',
         data: {'refreshToken': currentRefreshToken},
+        options: Options(extra: {'silent': true}),
       );
 
       final statusCode = response.statusCode ?? 0;
       if (statusCode != 200 && statusCode != 201) {
         debugPrint('[AuthDebug] Unexpected refresh status: $statusCode');
-        await _handleRefreshRejection(response);
-        return null;
+        return await _handleRefreshRejection(
+          response,
+          epochAtStart: epochAtStart,
+        );
       }
 
       if (response.data is! Map<String, dynamic>) {
         debugPrint('[AuthDebug] Invalid refresh payload format.');
-        await logout();
-        return null;
+        if (_sessionEpoch == epochAtStart) {
+          await logout();
+        }
+        return const RefreshSessionExpired();
       }
 
       final payload = response.data as Map<String, dynamic>;
@@ -158,32 +255,65 @@ class AuthService {
 
       if (newAccessToken == null || newAccessToken.isEmpty) {
         debugPrint('[AuthDebug] Invalid refresh payload: missing accessToken.');
-        await logout();
-        return null;
+        if (_sessionEpoch == epochAtStart) {
+          await logout();
+        }
+        return const RefreshSessionExpired();
       }
 
       final newRefreshToken = payload['refreshToken'] as String?;
 
-      if (newRefreshToken != null && newRefreshToken.isNotEmpty) {
-        debugPrint(
-          '[AuthDebug] Refresh successful. Rotating access and refresh tokens.',
-        );
-        await _storage.saveTokens(newAccessToken, newRefreshToken);
-      } else {
-        debugPrint('[AuthDebug] Refresh successful. Saving new access token.');
-        await _storage.saveAccessToken(newAccessToken);
-      }
+      return await _storageLock.synchronized(() async {
+        if (_sessionEpoch != epochAtStart) {
+          debugPrint(
+            '[AuthDebug] Session epoch changed while refresh was in flight. Discarding token.',
+          );
+          return const RefreshSessionExpired();
+        }
 
-      return newAccessToken;
+        try {
+          if (newRefreshToken != null && newRefreshToken.isNotEmpty) {
+            debugPrint(
+              '[AuthDebug] Refresh successful. Rotating access and refresh tokens.',
+            );
+            await _storage.saveTokens(newAccessToken, newRefreshToken);
+          } else {
+            debugPrint(
+              '[AuthDebug] Refresh successful. Saving new access token.',
+            );
+            await _storage.saveAccessToken(newAccessToken);
+          }
+          return RefreshSuccess(newAccessToken);
+        } catch (e) {
+          debugPrint('[AuthDebug] Failed saving refreshed token: $e');
+          return RefreshTransientFailure(
+            errorType: DioExceptionType.unknown,
+            error: e,
+          );
+        }
+      });
     } on DioException catch (e) {
       debugPrint(
         '[AuthDebug] Refresh failed with status ${e.response?.statusCode}',
       );
-      await _handleRefreshRejection(e.response);
-      return null;
+      if (e.response?.statusCode == 401 ||
+          ApiAuthError.isCredentialRejected(e.response)) {
+        return await _handleRefreshRejection(
+          e.response,
+          epochAtStart: epochAtStart,
+        );
+      }
+      return RefreshTransientFailure(
+        errorType: e.type,
+        response: e.response,
+        error: e.error ?? e,
+      );
     } catch (e) {
       debugPrint('[AuthDebug] Unexpected error on refresh: $e');
-      return null;
+      return RefreshTransientFailure(
+        errorType: DioExceptionType.unknown,
+        error: e,
+      );
     }
   }
 
@@ -193,18 +323,40 @@ class AuthService {
   /// revogado, expirado ou API key inativa. 400/403 sem código de credencial
   /// (gateway "Invalid Host Header", WAF) e falhas de rede são transitórios:
   /// mantêm a sessão para a próxima tentativa.
-  Future<void> _handleRefreshRejection(Response<dynamic>? response) async {
+  Future<RefreshResult> _handleRefreshRejection(
+    Response<dynamic>? response, {
+    required int epochAtStart,
+  }) async {
     if (response?.statusCode == 401) {
       // Refresh token recusado: preserva API key para facilitar re-login.
-      debugPrint('[AuthDebug] Refresh token rejected. Clearing session only.');
-      await _storage.clearSession();
-      _authNotifier.setState(AuthRouteState.needsSetup);
+      return await _storageLock.synchronized(() async {
+        if (_sessionEpoch != epochAtStart) {
+          return const RefreshSessionExpired();
+        }
+        debugPrint(
+          '[AuthDebug] Refresh token rejected. Clearing session only.',
+        );
+        try {
+          await _storage.clearSession();
+        } finally {
+          _authNotifier.setState(AuthRouteState.needsSetup);
+        }
+        return const RefreshSessionExpired();
+      });
     } else if (ApiAuthError.isCredentialRejected(response)) {
+      if (_sessionEpoch != epochAtStart) {
+        return const RefreshSessionExpired();
+      }
       debugPrint('[AuthDebug] Credential rejected on refresh. Logging out...');
-      await logout();
+      await forceLogout();
+      return const RefreshSessionExpired();
     } else {
       debugPrint(
         '[AuthDebug] Transient refresh failure (${response?.statusCode}). Keeping session.',
+      );
+      return RefreshTransientFailure(
+        errorType: DioExceptionType.badResponse,
+        response: response,
       );
     }
   }
@@ -212,61 +364,101 @@ class AuthService {
   /// Revokes token on backend and clears local storage.
   Future<void> logout() async {
     debugPrint('[AuthDebug] Starting logout flow...');
+    _sessionEpoch++;
     try {
       final refreshToken = await _storage.getRefreshToken();
       if (refreshToken != null) {
-        await _dio.post(
-          '/api/auth/revoke',
-          data: {'refreshToken': refreshToken},
-        );
+        await _dio
+            .post(
+              '/api/auth/revoke',
+              data: {'refreshToken': refreshToken},
+              options: Options(
+                extra: {'silent': true},
+                sendTimeout: const Duration(seconds: 3),
+                receiveTimeout: const Duration(seconds: 3),
+              ),
+            )
+            .timeout(const Duration(seconds: 3));
         debugPrint('[AuthDebug] Token revoked on backend.');
       }
     } catch (e) {
       debugPrint('[AuthDebug] Revoke on backend failed (silent): $e');
       // Network logout failed, but proceeding with local cleanup
     } finally {
-      debugPrint('[AuthDebug] Clearing local secure storage.');
-      await _storage.clearProvisioning();
-      _authNotifier.setState(AuthRouteState.needsSetup);
+      await _clearProvisioningAndResetState();
     }
   }
 
-  Future<AuthRouteState> initializeAuthState() async {
-    final alreadyHasSession = await hasSession;
-    if (alreadyHasSession) {
-      _authNotifier.setState(AuthRouteState.authenticated);
-      return AuthRouteState.authenticated;
-    }
+  /// Clears local provisioning immediately without calling the backend.
+  Future<void> forceLogout() async {
+    debugPrint('[AuthDebug] Starting forceLogout flow...');
+    _sessionEpoch++;
+    await _clearProvisioningAndResetState();
+  }
 
-    final hasStoredApiKey = await hasApiKey;
-    if (!hasStoredApiKey) {
-      if (kDebugMode) {
-        try {
-          final devApiKey = Config.devApiKey;
-          if (devApiKey.isNotEmpty) {
-            await authenticate(devApiKey);
+  Future<void> _clearProvisioningAndResetState() async {
+    await _storageLock.synchronized(() async {
+      try {
+        debugPrint('[AuthDebug] Clearing local secure storage.');
+        await _storage.clearProvisioning();
+      } catch (e) {
+        debugPrint('[AuthDebug] Failed clearing local secure storage: $e');
+      } finally {
+        _authNotifier.setState(AuthRouteState.needsSetup);
+      }
+    });
+  }
+
+  Future<AuthRouteState> initializeAuthState() async {
+    try {
+      final alreadyHasSession = await hasSession;
+      if (alreadyHasSession) {
+        _authNotifier.setState(AuthRouteState.authenticated);
+        return AuthRouteState.authenticated;
+      }
+
+      final hasStoredApiKey = await hasApiKey;
+      if (!hasStoredApiKey) {
+        if (kDebugMode) {
+          try {
+            final devApiKey = Config.devApiKey;
+            if (devApiKey.isNotEmpty) {
+              await authenticate(devApiKey);
+              _authNotifier.setState(AuthRouteState.authenticated);
+              return AuthRouteState.authenticated;
+            }
+          } catch (_) {
+            // If DEV key fails or env is unavailable, keep setup flow.
+          }
+        }
+
+        _authNotifier.setState(AuthRouteState.needsSetup);
+        return AuthRouteState.needsSetup;
+      }
+
+      final result = await restoreSessionFromStoredApiKey();
+      switch (result) {
+        case SessionRestoreResult.restored:
+          final stillHasApiKey = await hasApiKey;
+          final hasValidSessionAfterRestore = await hasSession;
+          if (stillHasApiKey && hasValidSessionAfterRestore) {
             _authNotifier.setState(AuthRouteState.authenticated);
             return AuthRouteState.authenticated;
           }
-        } catch (_) {
-          // If DEV key fails or env is unavailable, keep setup flow.
-        }
+          _authNotifier.setState(AuthRouteState.needsSetup);
+          return AuthRouteState.needsSetup;
+        case SessionRestoreResult.invalidCredentials:
+        case SessionRestoreResult.noApiKey:
+          _authNotifier.setState(AuthRouteState.needsSetup);
+          return AuthRouteState.needsSetup;
+        case SessionRestoreResult.transientError:
+          _authNotifier.setState(AuthRouteState.offline);
+          return AuthRouteState.offline;
       }
-
-      _authNotifier.setState(AuthRouteState.needsSetup);
-      return AuthRouteState.needsSetup;
+    } catch (e) {
+      debugPrint('[AuthDebug] Bootstrap/storage error: $e');
+      _authNotifier.setState(AuthRouteState.storageError);
+      return AuthRouteState.storageError;
     }
-
-    final restored = await restoreSessionFromStoredApiKey();
-    final stillHasApiKey = await hasApiKey;
-    final hasValidSessionAfterRestore = await hasSession;
-
-    if (restored && stillHasApiKey && hasValidSessionAfterRestore) {
-      _authNotifier.setState(AuthRouteState.authenticated);
-      return AuthRouteState.authenticated;
-    }
-
-    _authNotifier.setState(AuthRouteState.needsSetup);
-    return AuthRouteState.needsSetup;
   }
 }

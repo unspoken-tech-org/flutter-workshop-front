@@ -1,7 +1,11 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
+import 'package:flutter_workshop_front/core/security/refresh_result.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 
@@ -11,6 +15,9 @@ class _MemorySecurityStorage implements SecurityStorage {
   int clearProvisioningCalls = 0;
   int saveAccessTokenCalls = 0;
   int saveTokensCalls = 0;
+  Object? getRefreshTokenError;
+  Object? getApiKeyError;
+  Object? getBoundDeviceIdError;
 
   void seedTokens({String? accessToken, String? refreshToken}) {
     if (accessToken != null) _storage['access_token'] = accessToken;
@@ -41,14 +48,22 @@ class _MemorySecurityStorage implements SecurityStorage {
   Future<String?> getAccessToken() async => _storage['access_token'];
 
   @override
-  Future<String?> getApiKey() async => _storage['api_key'];
+  Future<String?> getApiKey() async {
+    if (getApiKeyError != null) throw getApiKeyError!;
+    return _storage['api_key'];
+  }
 
   @override
-  Future<String> getBoundDeviceId() async =>
-      _storage['bound_device_id'] ?? 'device-1';
+  Future<String> getBoundDeviceId() async {
+    if (getBoundDeviceIdError != null) throw getBoundDeviceIdError!;
+    return _storage['bound_device_id'] ?? 'device-1';
+  }
 
   @override
-  Future<String?> getRefreshToken() async => _storage['refresh_token'];
+  Future<String?> getRefreshToken() async {
+    if (getRefreshTokenError != null) throw getRefreshTokenError!;
+    return _storage['refresh_token'];
+  }
 
   @override
   Future<void> saveAccessToken(String accessToken) async {
@@ -79,6 +94,7 @@ class _FakeDio implements Dio {
   BaseOptions options = BaseOptions();
 
   final Map<String, _PostHandler> handlers;
+  final Map<String, Options?> recordedOptions = {};
 
   _FakeDio(this.handlers);
 
@@ -98,6 +114,7 @@ class _FakeDio implements Dio {
     void Function(int, int)? onSendProgress,
     void Function(int, int)? onReceiveProgress,
   }) async {
+    recordedOptions[path] = options;
     final handler = handlers[path];
     if (handler == null) {
       return Response<T>(
@@ -128,6 +145,16 @@ Response<dynamic> _response(
     statusCode: statusCode,
     data: data,
   );
+}
+
+String _makeJwt(int expEpochSeconds) {
+  final header = base64Url
+      .encode(utf8.encode('{"alg":"HS256","typ":"JWT"}'))
+      .replaceAll('=', '');
+  final payload = base64Url
+      .encode(utf8.encode('{"sub":"test","exp":$expEpochSeconds}'))
+      .replaceAll('=', '');
+  return '$header.$payload.fake-signature';
 }
 
 void main() {
@@ -171,9 +198,20 @@ void main() {
           authNotifier: AuthNotifier(),
         );
 
-        final token = await service.refreshToken();
+        final result = await service.refreshToken();
 
-        expect(token, 'at-2');
+        expect(
+          result,
+          isA<RefreshSuccess>().having(
+            (r) => r.accessToken,
+            'accessToken',
+            'at-2',
+          ),
+        );
+        expect(
+          dio.recordedOptions['/api/auth/refresh']?.extra?['silent'],
+          isTrue,
+        );
         expect(await storage.getAccessToken(), 'at-2');
         expect(await storage.getRefreshToken(), 'rt-2');
         expect(storage.saveTokensCalls, 1);
@@ -199,9 +237,16 @@ void main() {
           authNotifier: AuthNotifier(),
         );
 
-        final token = await service.refreshToken();
+        final result = await service.refreshToken();
 
-        expect(token, 'at-2');
+        expect(
+          result,
+          isA<RefreshSuccess>().having(
+            (r) => r.accessToken,
+            'accessToken',
+            'at-2',
+          ),
+        );
         expect(await storage.getAccessToken(), 'at-2');
         expect(await storage.getRefreshToken(), 'rt-1');
         expect(storage.saveTokensCalls, 0);
@@ -229,9 +274,13 @@ void main() {
           authNotifier: AuthNotifier(),
         );
 
-        final token = await service.refreshToken();
+        final result = await service.refreshToken();
 
-        expect(token, isNull);
+        expect(result, isA<RefreshSessionExpired>());
+        expect(
+          dio.recordedOptions['/api/auth/revoke']?.extra?['silent'],
+          isTrue,
+        );
         expect(storage.clearSessionCalls, 1);
       },
     );
@@ -251,9 +300,9 @@ void main() {
         authNotifier: AuthNotifier(),
       );
 
-      final token = await service.refreshToken();
+      final result = await service.refreshToken();
 
-      expect(token, isNull);
+      expect(result, isA<RefreshSessionExpired>());
       expect(storage.clearSessionCalls, 1);
     });
 
@@ -277,9 +326,18 @@ void main() {
         authNotifier: authNotifier,
       );
 
-      final token = await service.refreshToken();
+      final result = await service.refreshToken();
 
-      expect(token, isNull);
+      expect(
+        result,
+        isA<RefreshTransientFailure>()
+            .having(
+              (r) => r.errorType,
+              'errorType',
+              DioExceptionType.badResponse,
+            )
+            .having((r) => r.response?.statusCode, 'statusCode', 400),
+      );
       expect(storage.clearSessionCalls, 0);
       expect(storage.clearProvisioningCalls, 0);
       expect(await storage.getApiKey(), 'key-1');
@@ -298,6 +356,7 @@ void main() {
         '/api/auth/refresh': (data) async {
           throw DioException(
             requestOptions: RequestOptions(path: '/api/auth/refresh'),
+            type: DioExceptionType.badResponse,
             response: _response(
               '/api/auth/refresh',
               statusCode: 403,
@@ -312,9 +371,18 @@ void main() {
         authNotifier: authNotifier,
       );
 
-      final token = await service.refreshToken();
+      final result = await service.refreshToken();
 
-      expect(token, isNull);
+      expect(
+        result,
+        isA<RefreshTransientFailure>()
+            .having(
+              (r) => r.errorType,
+              'errorType',
+              DioExceptionType.badResponse,
+            )
+            .having((r) => r.response?.statusCode, 'statusCode', 403),
+      );
       expect(storage.clearSessionCalls, 0);
       expect(storage.clearProvisioningCalls, 0);
       expect(await storage.getApiKey(), 'key-1');
@@ -356,9 +424,9 @@ void main() {
           authNotifier: authNotifier,
         );
 
-        final token = await service.refreshToken();
+        final result = await service.refreshToken();
 
-        expect(token, isNull);
+        expect(result, isA<RefreshSessionExpired>());
         expect(storage.clearSessionCalls, 1);
         expect(await storage.getRefreshToken(), isNull);
         expect(authNotifier.state, AuthRouteState.needsSetup);
@@ -395,9 +463,9 @@ void main() {
           authNotifier: authNotifier,
         );
 
-        final token = await service.refreshToken();
+        final result = await service.refreshToken();
 
-        expect(token, isNull);
+        expect(result, isA<RefreshSessionExpired>());
         expect(storage.clearProvisioningCalls, 1);
         expect(await storage.getApiKey(), isNull);
         expect(authNotifier.state, AuthRouteState.needsSetup);
@@ -417,11 +485,65 @@ void main() {
         authNotifier: AuthNotifier(),
       );
 
-      final token = await service.refreshToken();
+      final result = await service.refreshToken();
 
-      expect(token, isNull);
+      expect(
+        result,
+        isA<RefreshTransientFailure>()
+            .having(
+              (r) => r.errorType,
+              'errorType',
+              DioExceptionType.badResponse,
+            )
+            .having((r) => r.response?.statusCode, 'statusCode', 500),
+      );
       expect(storage.clearSessionCalls, 0);
     });
+
+    test(
+      'deve retornar RefreshTransientFailure preservando tipo de erro de rede',
+      () async {
+        for (final type in [
+          DioExceptionType.connectionError,
+          DioExceptionType.connectionTimeout,
+          DioExceptionType.receiveTimeout,
+          DioExceptionType.sendTimeout,
+        ]) {
+          final storage = _MemorySecurityStorage()
+            ..seedTokens(refreshToken: 'rt-1');
+          final authNotifier = AuthNotifier(
+            initialState: AuthRouteState.authenticated,
+          );
+          final dio = _FakeDio({
+            '/api/auth/refresh': (data) async {
+              throw DioException(
+                requestOptions: RequestOptions(path: '/api/auth/refresh'),
+                type: type,
+                error: 'network issue',
+              );
+            },
+          });
+          final service = AuthService(
+            dio: dio,
+            storage: storage,
+            authNotifier: authNotifier,
+          );
+
+          final result = await service.refreshToken();
+
+          expect(
+            result,
+            isA<RefreshTransientFailure>().having(
+              (r) => r.errorType,
+              'errorType',
+              type,
+            ),
+          );
+          expect(storage.clearSessionCalls, 0);
+          expect(authNotifier.state, AuthRouteState.authenticated);
+        }
+      },
+    );
   });
 
   group('AuthService bootstrap/session', () {
@@ -457,7 +579,7 @@ void main() {
 
         final restored = await service.restoreSessionFromStoredApiKey();
 
-        expect(restored, isTrue);
+        expect(restored, SessionRestoreResult.restored);
         expect(await storage.getAccessToken(), 'at-1');
         expect(await storage.getRefreshToken(), 'rt-1');
       },
@@ -491,6 +613,37 @@ void main() {
         expect(await storage.getApiKey(), isNull);
         expect(await storage.getAccessToken(), isNull);
         expect(await storage.getRefreshToken(), isNull);
+        expect(authNotifier.state, AuthRouteState.needsSetup);
+      },
+    );
+
+    test(
+      'authenticate nao deve definir needsSetup em erro transitorio de rede',
+      () async {
+        final storage = _MemorySecurityStorage();
+        await storage.saveApiKey('key-1');
+        final notifier = AuthNotifier(initialState: AuthRouteState.offline);
+        final dio = _FakeDio({
+          '/api/auth/token': (data) async {
+            throw DioException(
+              requestOptions: RequestOptions(path: '/api/auth/token'),
+              type: DioExceptionType.connectionError,
+            );
+          },
+        });
+        final service = AuthService(
+          dio: dio,
+          storage: storage,
+          authNotifier: notifier,
+        );
+
+        await expectLater(
+          service.authenticate('key-1'),
+          throwsA(isA<DioException>()),
+        );
+
+        expect(await storage.getApiKey(), 'key-1');
+        expect(notifier.state, AuthRouteState.offline);
       },
     );
 
@@ -515,9 +668,25 @@ void main() {
 
         final restored = await service.restoreSessionFromStoredApiKey();
 
-        expect(restored, isFalse);
+        expect(restored, SessionRestoreResult.invalidCredentials);
         expect(storage.clearProvisioningCalls, 1);
         expect(await storage.getApiKey(), isNull);
+      },
+    );
+
+    test(
+      'restoreSessionFromStoredApiKey retorna noApiKey quando nao ha chave salva',
+      () async {
+        final storage = _MemorySecurityStorage();
+        final service = AuthService(
+          dio: _FakeDio({}),
+          storage: storage,
+          authNotifier: authNotifier,
+        );
+
+        final restored = await service.restoreSessionFromStoredApiKey();
+
+        expect(restored, SessionRestoreResult.noApiKey);
       },
     );
 
@@ -541,7 +710,7 @@ void main() {
     );
 
     test(
-      'initializeAuthState deve ir para setup em erro de rede no bootstrap',
+      'initializeAuthState deve ir para offline e preservar apiKey em erro de rede no bootstrap',
       () async {
         final storage = _MemorySecurityStorage();
         await storage.saveApiKey('key-1');
@@ -561,9 +730,243 @@ void main() {
 
         final state = await service.initializeAuthState();
 
-        expect(state, AuthRouteState.needsSetup);
-        expect(authNotifier.state, AuthRouteState.needsSetup);
+        expect(state, AuthRouteState.offline);
+        expect(authNotifier.state, AuthRouteState.offline);
         expect(await storage.getApiKey(), 'key-1');
+      },
+    );
+
+    test(
+      'initializeAuthState deve ir para storageError quando storage lanca excecao no boot',
+      () async {
+        final storage = _MemorySecurityStorage()
+          ..getRefreshTokenError = PlatformException(
+            code: 'KEYSTORE_ERR',
+            message: 'Keystore unavailable',
+          );
+        final service = AuthService(
+          dio: _FakeDio({}),
+          storage: storage,
+          authNotifier: authNotifier,
+        );
+
+        final state = await service.initializeAuthState();
+
+        expect(state, AuthRouteState.storageError);
+        expect(authNotifier.state, AuthRouteState.storageError);
+      },
+    );
+
+    test(
+      'initializeAuthState deve ir para storageError quando getBoundDeviceId falha durante restore',
+      () async {
+        final storage = _MemorySecurityStorage();
+        await storage.saveApiKey('key-1');
+        storage.getBoundDeviceIdError = PlatformException(
+          code: 'KEYSTORE_WRITE_ERR',
+          message: 'Cannot read device id',
+        );
+        final service = AuthService(
+          dio: _FakeDio({}),
+          storage: storage,
+          authNotifier: authNotifier,
+        );
+
+        final state = await service.initializeAuthState();
+
+        expect(state, AuthRouteState.storageError);
+        expect(authNotifier.state, AuthRouteState.storageError);
+      },
+    );
+  });
+
+  group('AuthService race & hasSession', () {
+    test(
+      'logout durante refresh em voo descarta token do refresh e mantém storage limpo',
+      () async {
+        final storage = _MemorySecurityStorage()
+          ..seedTokens(accessToken: 'at-old', refreshToken: 'rt-1');
+        await storage.saveApiKey('key-1');
+        final authNotifier = AuthNotifier(
+          initialState: AuthRouteState.authenticated,
+        );
+        final refreshCompleter = Completer<Response<dynamic>>();
+
+        final dio = _FakeDio({
+          '/api/auth/refresh': (_) => refreshCompleter.future,
+          '/api/auth/revoke': (_) async =>
+              _response('/api/auth/revoke', statusCode: 200),
+        });
+        final service = AuthService(
+          dio: dio,
+          storage: storage,
+          authNotifier: authNotifier,
+        );
+
+        final refreshFuture = service.refreshToken();
+        await Future<void>.delayed(Duration.zero);
+
+        await service.logout();
+        expect(authNotifier.state, AuthRouteState.needsSetup);
+        expect(await storage.getAccessToken(), isNull);
+        expect(await storage.getRefreshToken(), isNull);
+        expect(await storage.getApiKey(), isNull);
+
+        refreshCompleter.complete(
+          _response(
+            '/api/auth/refresh',
+            statusCode: 200,
+            data: {'accessToken': 'at-stale', 'refreshToken': 'rt-stale'},
+          ),
+        );
+
+        final result = await refreshFuture;
+
+        expect(result, isA<RefreshSessionExpired>());
+        expect(await storage.getAccessToken(), isNull);
+        expect(await storage.getRefreshToken(), isNull);
+        expect(await storage.getApiKey(), isNull);
+        expect(authNotifier.state, AuthRouteState.needsSetup);
+      },
+    );
+
+    test(
+      'forceLogout durante refresh em voo descarta token do refresh e mantém storage limpo',
+      () async {
+        final storage = _MemorySecurityStorage()
+          ..seedTokens(accessToken: 'at-old', refreshToken: 'rt-1');
+        await storage.saveApiKey('key-1');
+        final authNotifier = AuthNotifier(
+          initialState: AuthRouteState.authenticated,
+        );
+        final refreshCompleter = Completer<Response<dynamic>>();
+
+        final dio = _FakeDio({
+          '/api/auth/refresh': (_) => refreshCompleter.future,
+        });
+        final service = AuthService(
+          dio: dio,
+          storage: storage,
+          authNotifier: authNotifier,
+        );
+
+        final refreshFuture = service.refreshToken();
+        await Future<void>.delayed(Duration.zero);
+
+        await service.forceLogout();
+
+        refreshCompleter.complete(
+          _response(
+            '/api/auth/refresh',
+            statusCode: 200,
+            data: {'accessToken': 'at-stale'},
+          ),
+        );
+
+        final result = await refreshFuture;
+
+        expect(result, isA<RefreshSessionExpired>());
+        expect(await storage.getAccessToken(), isNull);
+        expect(await storage.getRefreshToken(), isNull);
+        expect(await storage.getApiKey(), isNull);
+        expect(authNotifier.state, AuthRouteState.needsSetup);
+      },
+    );
+
+    test(
+      'novo authenticate durante refresh em voo não é sobrescrito pelo token antigo',
+      () async {
+        final storage = _MemorySecurityStorage()
+          ..seedTokens(accessToken: 'at-old', refreshToken: 'rt-1');
+        final authNotifier = AuthNotifier(
+          initialState: AuthRouteState.needsSetup,
+        );
+        final refreshCompleter = Completer<Response<dynamic>>();
+
+        final dio = _FakeDio({
+          '/api/auth/refresh': (_) => refreshCompleter.future,
+          '/api/auth/token': (_) async => _response(
+            '/api/auth/token',
+            statusCode: 200,
+            data: {
+              'accessToken': 'at-fresh',
+              'refreshToken': 'rt-fresh',
+              'tokenType': 'Bearer',
+              'expiresIn': 3600,
+              'refreshExpiresIn': 86400,
+            },
+          ),
+        });
+        final service = AuthService(
+          dio: dio,
+          storage: storage,
+          authNotifier: authNotifier,
+        );
+
+        final refreshFuture = service.refreshToken();
+        await Future<void>.delayed(Duration.zero);
+
+        await service.authenticate('new-key');
+
+        refreshCompleter.complete(
+          _response(
+            '/api/auth/refresh',
+            statusCode: 200,
+            data: {'accessToken': 'at-stale', 'refreshToken': 'rt-stale'},
+          ),
+        );
+
+        final result = await refreshFuture;
+
+        expect(result, isA<RefreshSessionExpired>());
+        expect(await storage.getAccessToken(), 'at-fresh');
+        expect(await storage.getRefreshToken(), 'rt-fresh');
+        expect(authNotifier.state, AuthRouteState.authenticated);
+      },
+    );
+
+    test(
+      'hasSession retorna false quando há apenas accessToken expirado ou malformado',
+      () async {
+        final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final expiredJwt = _makeJwt(nowSec - 300);
+        final validJwt = _makeJwt(nowSec + 3600);
+
+        final storageExpired = _MemorySecurityStorage()
+          ..seedTokens(accessToken: expiredJwt);
+        final serviceExpired = AuthService(
+          dio: _FakeDio({}),
+          storage: storageExpired,
+          authNotifier: AuthNotifier(),
+        );
+        expect(await serviceExpired.hasSession, isFalse);
+
+        final storageMalformed = _MemorySecurityStorage()
+          ..seedTokens(accessToken: 'not-a-jwt');
+        final serviceMalformed = AuthService(
+          dio: _FakeDio({}),
+          storage: storageMalformed,
+          authNotifier: AuthNotifier(),
+        );
+        expect(await serviceMalformed.hasSession, isFalse);
+
+        final storageValid = _MemorySecurityStorage()
+          ..seedTokens(accessToken: validJwt);
+        final serviceValid = AuthService(
+          dio: _FakeDio({}),
+          storage: storageValid,
+          authNotifier: AuthNotifier(),
+        );
+        expect(await serviceValid.hasSession, isTrue);
+
+        final storageWithRefresh = _MemorySecurityStorage()
+          ..seedTokens(accessToken: expiredJwt, refreshToken: 'rt-1');
+        final serviceWithRefresh = AuthService(
+          dio: _FakeDio({}),
+          storage: storageWithRefresh,
+          authNotifier: AuthNotifier(),
+        );
+        expect(await serviceWithRefresh.hasSession, isTrue);
       },
     );
   });
