@@ -14,16 +14,25 @@ import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 class DeviceCustomerPageController extends ChangeNotifier {
   final DeviceCustomerService _deviceCustomerService;
-  final TechnicianService _technicianService = TechnicianService();
-  final CustomerContactService _customerContactService =
-      CustomerContactService();
-  final PaymentService _paymentService = PaymentService();
+  final TechnicianService _technicianService;
+  final CustomerContactService _customerContactService;
+  final PaymentService _paymentService;
 
-  DeviceCustomerPageController({DeviceCustomerService? deviceCustomerService})
-    : _deviceCustomerService = deviceCustomerService ?? DeviceCustomerService();
+  DeviceCustomerPageController({
+    DeviceCustomerService? deviceCustomerService,
+    TechnicianService? technicianService,
+    CustomerContactService? customerContactService,
+    PaymentService? paymentService,
+  }) : _deviceCustomerService =
+           deviceCustomerService ?? DeviceCustomerService(),
+       _technicianService = technicianService ?? TechnicianService(),
+       _customerContactService =
+           customerContactService ?? CustomerContactService(),
+       _paymentService = paymentService ?? PaymentService();
 
-  late DeviceCustomer deviceCustomer;
-  late List<Technician> technicians;
+  DeviceCustomer? deviceCustomer;
+  List<Technician> technicians = [];
+  String? loadError;
 
   bool isLoading = false;
 
@@ -39,6 +48,7 @@ class DeviceCustomerPageController extends ChangeNotifier {
 
   Future<void> init(int deviceId) async {
     isLoading = true;
+    loadError = null;
     notifyListeners();
     try {
       await Future.wait([
@@ -65,14 +75,22 @@ class DeviceCustomerPageController extends ChangeNotifier {
 
   Future<void> _getCustomerDevice(int deviceId, {bool isNew = false}) async {
     try {
-      final deviceCustomer = await _deviceCustomerService.getCustomerDeviceById(
+      final fetched = await _deviceCustomerService.getCustomerDeviceById(
         deviceId,
       );
-      this.deviceCustomer = deviceCustomer;
+      deviceCustomer = fetched;
+      loadError = null;
     } on RequisitionException catch (e) {
+      if (isNew) {
+        loadError = e.message;
+      }
       SnackBarUtil().showError(e.message);
     } catch (e) {
-      SnackBarUtil().showError('Erro ao buscar dispositivo. Tente novamente.');
+      const message = 'Erro ao buscar dispositivo. Tente novamente.';
+      if (isNew) {
+        loadError = message;
+      }
+      SnackBarUtil().showError(message);
     } finally {
       notifyListeners();
     }
@@ -107,12 +125,13 @@ class DeviceCustomerPageController extends ChangeNotifier {
   }
 
   Future<void> updateDeviceHasUrgency(bool hasUrgency) async {
-    if (isUpdating || isSaving) return;
+    final current = deviceCustomer;
+    if (current == null || isUpdating || isSaving) return;
     isUpdating = true;
     notifyListeners();
     try {
       final DeviceCustomer value = await _deviceCustomerService
-          .updateDeviceHasUrgency(deviceCustomer.deviceId, hasUrgency);
+          .updateDeviceHasUrgency(current.deviceId, hasUrgency);
       _applyQuickActionResponse(value);
       SnackBarUtil().showSuccess(
         'Urgencia do dispositivo atualizada com sucesso',
@@ -132,12 +151,13 @@ class DeviceCustomerPageController extends ChangeNotifier {
   /// Salva a edição e retorna `true` só quando o servidor confirma. Em erro,
   /// o chamador deve manter o modo de edição (e o rascunho).
   Future<bool> updateDeviceCustomer() async {
-    if (isSaving) return false;
+    final current = deviceCustomer;
+    if (current == null || isSaving) return false;
     isSaving = true;
     notifyListeners();
     try {
       DeviceCustomer response = await _deviceCustomerService
-          .updateDeviceCustomer(deviceCustomer);
+          .updateDeviceCustomer(current);
       deviceCustomer = response;
       _editingSnapshot = null;
       SnackBarUtil().showSuccess('Dispositivo atualizado com sucesso');
@@ -156,32 +176,37 @@ class DeviceCustomerPageController extends ChangeNotifier {
     }
   }
 
-  Future<void> createCustomerContact(
+  Future<bool> createCustomerContact(
     InputCustomerContact customerContact,
   ) async {
-    if (isCreatingContact) return;
+    final current = deviceCustomer;
+    if (current == null || isCreatingContact) return false;
     isCreatingContact = true;
     notifyListeners();
     try {
       await _customerContactService.createCustomerContact(customerContact);
-      await _getCustomerDevice(deviceCustomer.deviceId);
+      await _getCustomerDevice(current.deviceId);
 
       SnackBarUtil().showSuccess('Contato criado com sucesso');
+      return true;
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
+      return false;
     } catch (e) {
       SnackBarUtil().showError('Erro ao criar contato. Tente novamente.');
+      return false;
     } finally {
       isCreatingContact = false;
       notifyListeners();
     }
   }
 
-  Future<void> updateCustomerContact(
+  Future<bool> updateCustomerContact(
     int contactId,
     InputCustomerContact customerContact,
   ) async {
-    if (isEditingContact) return;
+    final current = deviceCustomer;
+    if (current == null || isEditingContact) return false;
     isEditingContact = true;
     notifyListeners();
     try {
@@ -189,13 +214,16 @@ class DeviceCustomerPageController extends ChangeNotifier {
         contactId,
         customerContact,
       );
-      await _getCustomerDevice(deviceCustomer.deviceId);
+      await _getCustomerDevice(current.deviceId);
 
       SnackBarUtil().showSuccess('Contato editado com sucesso');
+      return true;
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);
+      return false;
     } catch (e) {
       SnackBarUtil().showError('Erro ao editar contato. Tente novamente.');
+      return false;
     } finally {
       isEditingContact = false;
       notifyListeners();
@@ -203,12 +231,13 @@ class DeviceCustomerPageController extends ChangeNotifier {
   }
 
   Future<void> updateDeviceRevision(bool revision) async {
-    if (isUpdating || isSaving) return;
+    final current = deviceCustomer;
+    if (current == null || isUpdating || isSaving) return;
     isUpdating = true;
     notifyListeners();
     try {
       final DeviceCustomer value = await _deviceCustomerService
-          .updateDeviceRevision(deviceCustomer.deviceId, revision);
+          .updateDeviceRevision(current.deviceId, revision);
       _applyQuickActionResponse(value);
       SnackBarUtil().showSuccess(
         'Revisão do dispositivo atualizada com sucesso',
@@ -226,12 +255,13 @@ class DeviceCustomerPageController extends ChangeNotifier {
   }
 
   Future<void> updateDeviceStatus(StatusEnum status) async {
-    if (isUpdating || isSaving) return;
+    final current = deviceCustomer;
+    if (current == null || isUpdating || isSaving) return;
     isUpdating = true;
     notifyListeners();
     try {
       final DeviceCustomer value = await _deviceCustomerService
-          .updateDeviceStatus(deviceCustomer.deviceId, status);
+          .updateDeviceStatus(current.deviceId, status);
       _applyQuickActionResponse(value);
       SnackBarUtil().showSuccess(
         'Status do dispositivo atualizado com sucesso',
@@ -249,13 +279,15 @@ class DeviceCustomerPageController extends ChangeNotifier {
   }
 
   Future<void> createCustomerDevicePayment(InputPayment payment) async {
+    final current = deviceCustomer;
+    if (current == null) return;
     try {
       isCreatingPayment = true;
       notifyListeners();
       await _paymentService.createPayment(payment);
-      deviceCustomer = deviceCustomer.copyWith(
+      deviceCustomer = current.copyWith(
         payments: [
-          ...deviceCustomer.payments,
+          ...current.payments,
           CustomerDevicePayment(
             paymentId: 0,
             paymentValue: payment.value,

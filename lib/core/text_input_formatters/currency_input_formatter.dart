@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_workshop_front/core/money/money.dart';
 
 class CurrencyInputFormatter extends TextInputFormatter {
   @override
@@ -16,11 +16,12 @@ class CurrencyInputFormatter extends TextInputFormatter {
       return const TextEditingValue();
     }
 
-    final number = double.parse(digitsOnly) / 100;
+    final cents = int.tryParse(digitsOnly);
+    if (cents == null) {
+      return oldValue;
+    }
 
-    final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
-
-    final newString = formatter.format(number).trim();
+    final newString = Money.fromCents(cents).toBrCurrency.trim();
 
     return TextEditingValue(
       text: newString,

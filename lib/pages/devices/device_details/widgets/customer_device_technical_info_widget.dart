@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
@@ -44,19 +45,32 @@ class CustomerDeviceTechnicalInfoWidget extends StatelessWidget {
           const SizedBox(height: 24),
           Selector<
             DeviceCustomerPageController,
-            (DeviceCustomer, List<Technician>)
+            (DeviceCustomer?, List<Technician>)
           >(
             selector: (context, controller) =>
                 (controller.deviceCustomer, controller.technicians),
             builder: (context, values, child) {
               final (deviceCustomer, technicians) = values;
+              if (deviceCustomer == null) return const SizedBox.shrink();
+
+              final items = technicians
+                  .map((e) => e.name.capitalizeAllWords)
+                  .toList();
+              final currentTechnicianName =
+                  deviceCustomer.technicianName?.capitalizeAllWords;
+              final safeInitialValue =
+                  currentTechnicianName != null &&
+                      items.contains(currentTechnicianName)
+                  ? currentTechnicianName
+                  : null;
 
               return CustomDropdownButtonFormField(
                 headerLabel: 'Técnico',
-                initialValue: deviceCustomer.technicianName?.capitalizeAllWords,
-                items: technicians
-                    .map((e) => e.name.capitalizeAllWords)
-                    .toList(),
+                hintText: safeInitialValue == null
+                    ? currentTechnicianName
+                    : null,
+                initialValue: safeInitialValue,
+                items: items,
                 enabled: isEditing,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -65,12 +79,15 @@ class CustomerDeviceTechnicalInfoWidget extends StatelessWidget {
                   return null;
                 },
                 onSave: (value) {
-                  final technician = technicians.firstWhere(
+                  final technician = technicians.firstWhereOrNull(
                     (e) => e.name.capitalizeAllWords == value,
                   );
+                  if (technician == null) return;
                   final controller = context
                       .read<DeviceCustomerPageController>();
-                  final newDeviceCustomer = controller.deviceCustomer.copyWith(
+                  final current = controller.deviceCustomer;
+                  if (current == null) return;
+                  final newDeviceCustomer = current.copyWith(
                     technicianId: technician.id,
                     technicianName: technician.name,
                   );

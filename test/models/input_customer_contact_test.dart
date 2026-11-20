@@ -3,14 +3,17 @@ import 'package:flutter_workshop_front/models/customer_device/customer_contact.d
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 
-CustomerContact _contact({required bool hasMadeContact}) => CustomerContact(
+CustomerContact _contact({
+  required bool hasMadeContact,
+  String type = 'mensagem',
+}) => CustomerContact(
   id: 1,
   deviceId: 10,
   technicianId: 2,
   technicianName: 'Tecnico',
   phone: null,
   phoneNumber: null,
-  type: 'mensagem',
+  type: type,
   hasMadeContact: hasMadeContact,
   lastContact: DateTime(2026, 1, 1),
   conversation: null,
@@ -59,5 +62,33 @@ void main() {
 
       expect(input.toJson()['contactStatus'], isTrue);
     });
+  });
+
+  group('ContactType.tryParse and unknown contact types', () {
+    test('parses valid enum names and displayNames case-insensitively', () {
+      expect(ContactType.tryParse('LIGACAO'), ContactType.ligacao);
+      expect(ContactType.tryParse('Mensagem'), ContactType.mensagem);
+      expect(ContactType.tryParse('  Ligação '), ContactType.ligacao);
+      expect(ContactType.tryParse('PESSOALMENTE'), ContactType.pessoalmente);
+    });
+
+    test('returns null for unknown, empty, or null values', () {
+      expect(ContactType.tryParse('WHATSAPP'), isNull);
+      expect(ContactType.tryParse(''), isNull);
+      expect(ContactType.tryParse('   '), isNull);
+      expect(ContactType.tryParse(null), isNull);
+    });
+
+    test(
+      'fromCustomerContact sets contactType to null for unknown legacy type without crashing',
+      () {
+        final input = InputCustomerContact.fromCustomerContact(
+          _contact(hasMadeContact: true, type: 'WHATSAPP'),
+        );
+
+        expect(input.contactType, isNull);
+        expect(input.contactStatus, ContactStatus.realizado.name);
+      },
+    );
   });
 }

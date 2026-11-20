@@ -8,7 +8,9 @@ import 'package:flutter_workshop_front/repositories/customer/customer_repository
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 class AllCustomerController extends ChangeNotifier {
-  final CustomerRepository _customerRepository = CustomerRemoteDataSource();
+  static const int _pageSize = 10;
+
+  final CustomerRepository _customerRepository;
 
   CustomerSearchFilter? filter;
   List<MinifiedCustomerModel> _customers = [];
@@ -29,19 +31,26 @@ class AllCustomerController extends ChangeNotifier {
   bool _hasMore = true;
   bool get hasMore => _hasMore;
 
-  AllCustomerController() {
+  bool _loadMoreFailed = false;
+  bool get loadMoreFailed => _loadMoreFailed;
+
+  AllCustomerController({CustomerRepository? customerRepository})
+    : _customerRepository = customerRepository ?? CustomerRemoteDataSource() {
     searchCustomers(null);
   }
 
   Future<void> searchCustomers(String? searchTerm) async {
     _currentPage = 0;
     _hasMore = true;
+    _loadMoreFailed = false;
 
-    filter = CustomerSearchFilter.getCustomerSearchFilter(
-      searchTerm,
-      page: _currentPage,
-      size: 10,
-    );
+    filter =
+        CustomerSearchFilter.getCustomerSearchFilter(
+          searchTerm,
+          page: _currentPage,
+          size: _pageSize,
+        ) ??
+        CustomerSearchFilter(page: _currentPage, size: _pageSize);
 
     if (_isLoading) return;
     _isLoading = true;
@@ -64,14 +73,17 @@ class AllCustomerController extends ChangeNotifier {
   }
 
   Future<void> loadMore() async {
-    if (_isLoadingMore || !_hasMore) return;
+    if (_isLoadingMore || !_hasMore || _loadMoreFailed) return;
 
     try {
       _isLoadingMore = true;
+      _loadMoreFailed = false;
       notifyListeners();
 
       _currentPage++;
-      filter = filter?.copyWith(page: _currentPage);
+      filter = (filter ?? CustomerSearchFilter(size: _pageSize)).copyWith(
+        page: _currentPage,
+      );
 
       final Page<MinifiedCustomerModel> result = await _customerRepository
           .searchCustomers(filter);
@@ -80,13 +92,21 @@ class AllCustomerController extends ChangeNotifier {
       _hasMore = !result.last;
     } on RequisitionException catch (e) {
       _currentPage--;
+      _loadMoreFailed = true;
       SnackBarUtil().showError(e.message);
     } on Exception catch (_) {
       _currentPage--;
+      _loadMoreFailed = true;
       SnackBarUtil().showError("Erro ao buscar mais clientes");
     } finally {
       _isLoadingMore = false;
       notifyListeners();
     }
+  }
+
+  Future<void> retryLoadMore() {
+    _loadMoreFailed = false;
+    notifyListeners();
+    return loadMore();
   }
 }

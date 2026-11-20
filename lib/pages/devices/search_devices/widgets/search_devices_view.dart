@@ -8,6 +8,7 @@ import 'package:flutter_workshop_front/pages/devices/search_devices/widgets/sear
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
 import 'package:flutter_workshop_front/widgets/device/filtered_device_card.dart';
 import 'package:flutter_workshop_front/widgets/shared/empty_list_widget.dart';
+import 'package:flutter_workshop_front/widgets/shared/infinite_scroll_listener.dart';
 import 'package:provider/provider.dart';
 
 class SearchDevicesView extends StatefulWidget {
@@ -19,20 +20,6 @@ class SearchDevicesView extends StatefulWidget {
 
 class _SearchDevicesViewState extends State<SearchDevicesView> {
   final _scrollController = ScrollController();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final controller = context.read<SearchDevicesController>();
-      _scrollController.addListener(() {
-        if (_scrollController.position.maxScrollExtent ==
-            _scrollController.offset) {
-          controller.loadMore();
-        }
-      });
-    });
-  }
 
   @override
   void dispose() {
@@ -88,17 +75,25 @@ class _SearchDevicesViewState extends State<SearchDevicesView> {
                   child:
                       Selector<
                         SearchDevicesController,
-                        (bool, List<DeviceDataTable>, bool, bool)
+                        (bool, List<DeviceDataTable>, bool, bool, bool)
                       >(
                         selector: (context, controller) => (
                           controller.isLoading,
                           controller.devices,
                           controller.hasMore,
                           controller.isLoadingMore,
+                          controller.loadMoreFailed,
                         ),
                         builder: (context, values, _) {
-                          final (isLoading, devices, hasMore, isLoadingMore) =
-                              values;
+                          final (
+                            isLoading,
+                            devices,
+                            hasMore,
+                            isLoadingMore,
+                            loadMoreFailed,
+                          ) = values;
+                          final controller = context
+                              .read<SearchDevicesController>();
 
                           if (isLoading) {
                             return ListView.builder(
@@ -120,37 +115,54 @@ class _SearchDevicesViewState extends State<SearchDevicesView> {
                             );
                           }
 
-                          return ListView.builder(
-                            controller: _scrollController,
-                            itemCount: devices.length + (hasMore ? 1 : 0),
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemBuilder: (context, index) {
-                              if (index == devices.length) {
-                                return Column(
-                                  children: [
-                                    ...List.generate(
-                                      2,
-                                      (index) => const _DeviceCardShimmer(),
-                                    ),
-                                  ],
+                          return InfiniteScrollListener(
+                            scrollController: _scrollController,
+                            hasMore: hasMore,
+                            isLoading: isLoading,
+                            isLoadingMore: isLoadingMore,
+                            loadMoreFailed: loadMoreFailed,
+                            onLoadMore: controller.loadMore,
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              itemCount: devices.length + (hasMore ? 1 : 0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              itemBuilder: (context, index) {
+                                if (index == devices.length) {
+                                  if (loadMoreFailed && !isLoadingMore) {
+                                    return LoadMoreErrorFooter(
+                                      message:
+                                          'Erro ao carregar mais aparelhos.',
+                                      onRetry: controller.retryLoadMore,
+                                    );
+                                  }
+                                  return Column(
+                                    children: [
+                                      ...List.generate(
+                                        2,
+                                        (index) => const _DeviceCardShimmer(),
+                                      ),
+                                    ],
+                                  );
+                                }
+                                return FilteredDeviceCard(
+                                  device: devices[index],
+                                  onTap: () {
+                                    WsNavigator.pushDeviceDetails(
+                                      context,
+                                      devices[index].deviceId,
+                                    ).then((_) {
+                                      if (context.mounted) {
+                                        context
+                                            .read<SearchDevicesController>()
+                                            .searchDevices();
+                                      }
+                                    });
+                                  },
                                 );
-                              }
-                              return FilteredDeviceCard(
-                                device: devices[index],
-                                onTap: () {
-                                  WsNavigator.pushDeviceDetails(
-                                    context,
-                                    devices[index].deviceId,
-                                  ).then((_) {
-                                    if (context.mounted) {
-                                      context
-                                          .read<SearchDevicesController>()
-                                          .searchDevices();
-                                    }
-                                  });
-                                },
-                              );
-                            },
+                              },
+                            ),
                           );
                         },
                       ),

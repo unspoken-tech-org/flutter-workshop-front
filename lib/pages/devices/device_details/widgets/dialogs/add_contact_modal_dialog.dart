@@ -1,11 +1,12 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/core/design/ws_colors.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/contact_modal_shared.dart';
 import 'package:flutter_workshop_front/utils/phone_utils.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_date_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
@@ -32,9 +33,15 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
     super.initState();
     controller = context.read<DeviceCustomerPageController>();
     inputCustomerContact = InputCustomerContact.empty(
-      controller.deviceCustomer.deviceId,
+      controller.deviceCustomer?.deviceId ?? 0,
     );
     _dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
+  }
+
+  @override
+  void dispose() {
+    _dateController.dispose();
+    super.dispose();
   }
 
   @override
@@ -53,12 +60,16 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
             child:
                 Selector<
                   DeviceCustomerPageController,
-                  (DeviceCustomer, List<Technician>)
+                  (DeviceCustomer?, List<Technician>, bool)
                 >(
-                  selector: (context, controller) =>
-                      (controller.deviceCustomer, controller.technicians),
+                  selector: (context, controller) => (
+                    controller.deviceCustomer,
+                    controller.technicians,
+                    controller.isCreatingContact,
+                  ),
                   builder: (context, values, child) {
-                    final (deviceCustomer, technicians) = values;
+                    final (deviceCustomer, technicians, isSaving) = values;
+                    if (deviceCustomer == null) return const SizedBox.shrink();
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,10 +121,12 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                         .map((e) => e.name)
                                         .toList(),
                                     onSave: (value) {
-                                      inputCustomerContact
-                                          .technicianId = technicians
-                                          .firstWhere((e) => e.name == value)
-                                          .id;
+                                      inputCustomerContact.technicianId =
+                                          technicians
+                                              .firstWhereOrNull(
+                                                (e) => e.name == value,
+                                              )
+                                              ?.id;
                                     },
                                     validator: (value) {
                                       if (value == null) {
@@ -159,11 +172,13 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                         .toList(),
                                     onSave: (value) {
                                       final statusValue = StatusEnum.values
-                                          .firstWhere(
+                                          .firstWhereOrNull(
                                             (e) => e.displayName == value,
                                           );
-                                      inputCustomerContact.deviceStatus =
-                                          statusValue.dbName;
+                                      if (statusValue != null) {
+                                        inputCustomerContact.deviceStatus =
+                                            statusValue.dbName;
+                                      }
                                     },
                                     validator: (value) {
                                       if (value == null) {
@@ -251,11 +266,10 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                         ActionButtonsWidget(
                           formKey: _formKey,
                           dateController: _dateController,
-                          onSave: () async {
-                            await controller.createCustomerContact(
-                              inputCustomerContact,
-                            );
-                          },
+                          isSaving: isSaving,
+                          onSave: () => controller.createCustomerContact(
+                            inputCustomerContact,
+                          ),
                         ),
                       ],
                     );
@@ -301,68 +315,6 @@ class CustomerContactHeader extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.close),
         ),
-      ],
-    );
-  }
-}
-
-class ActionButtonsWidget extends StatelessWidget {
-  final GlobalKey<FormState> formKey;
-  final TextEditingController dateController;
-  final void Function() onSave;
-
-  const ActionButtonsWidget({
-    super.key,
-    required this.formKey,
-    required this.dateController,
-    required this.onSave,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        OutlinedButton(
-          onPressed: () {
-            formKey.currentState?.reset();
-            dateController.clear();
-          },
-          child: const Text('Limpar'),
-        ),
-        const SizedBox(width: 16),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: WsColors.dark,
-            foregroundColor: Colors.white,
-          ),
-          onPressed: () {
-            if (formKey.currentState?.validate() ?? false) {
-              formKey.currentState?.save();
-              onSave();
-              Navigator.of(context).pop();
-            }
-          },
-          child: const Text('Salvar'),
-        ),
-      ],
-    );
-  }
-}
-
-class SectionTileWidget extends StatelessWidget {
-  const SectionTileWidget({super.key, required this.title, required this.icon});
-
-  final String title;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: Colors.grey.shade700),
-        const SizedBox(width: 8),
-        Text(title, style: WsTextStyles.h4),
       ],
     );
   }

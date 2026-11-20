@@ -124,7 +124,7 @@ void main() {
       await controller.updateDeviceHasUrgency(true);
       controller.onEditingCancelled();
 
-      expect(controller.deviceCustomer.hasUrgency, isTrue);
+      expect(controller.deviceCustomer?.hasUrgency, isTrue);
     });
   });
 }

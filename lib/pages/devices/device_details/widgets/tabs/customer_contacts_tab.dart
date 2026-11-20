@@ -15,10 +15,17 @@ class _CustomerContactsTabState extends State<CustomerContactsTab> {
   final ScrollController _scrollController = ScrollController();
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Selector<DeviceCustomerPageController, DeviceCustomer>(
+    return Selector<DeviceCustomerPageController, DeviceCustomer?>(
       selector: (context, controller) => controller.deviceCustomer,
       builder: (context, deviceCustomer, child) {
+        if (deviceCustomer == null) return const SizedBox.shrink();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

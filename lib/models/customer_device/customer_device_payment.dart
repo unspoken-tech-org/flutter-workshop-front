@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter_workshop_front/core/money/money.dart';
 
 enum PaymentType {
   credito('Crédito'),
@@ -40,7 +41,7 @@ class CustomerDevicePayment extends Equatable {
   final int paymentId;
   final DateTime paymentDate;
   final PaymentType paymentType;
-  final double paymentValue;
+  final Money paymentValue;
   final PaymentCategory category;
   final String? receivedBy;
 
@@ -58,7 +59,7 @@ class CustomerDevicePayment extends Equatable {
       paymentId: json['paymentId'],
       paymentDate: DateTime.parse(json['paymentDate']),
       paymentType: PaymentType.fromString(json['paymentType']),
-      paymentValue: json['paymentValue'],
+      paymentValue: Money.fromJson(json['paymentValue']),
       category: PaymentCategory.fromString(json['category']),
       receivedBy: json['receivedBy'],
     );

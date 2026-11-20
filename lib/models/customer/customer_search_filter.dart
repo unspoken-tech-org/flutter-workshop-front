@@ -63,23 +63,31 @@ class CustomerSearchFilter {
 
     if (filterUtils.isId) {
       return CustomerSearchFilter(
-        id: int.parse(searchTerm ?? ''),
+        id: int.parse(filterUtils.digits),
         page: page,
         size: size,
       );
     } else if (filterUtils.isCpf) {
-      return CustomerSearchFilter(cpf: searchTerm, page: page, size: size);
+      return CustomerSearchFilter(
+        cpf: filterUtils.digits,
+        page: page,
+        size: size,
+      );
     } else if (filterUtils.isEmail) {
       return CustomerSearchFilter(
-        searchEmail: searchTerm,
+        searchEmail: filterUtils.text,
         page: page,
         size: size,
       );
     } else if (filterUtils.isPhoneOrCellPhone) {
-      return CustomerSearchFilter(phone: searchTerm, page: page, size: size);
+      return CustomerSearchFilter(
+        phone: filterUtils.digits,
+        page: page,
+        size: size,
+      );
     } else if (filterUtils.isName) {
       return CustomerSearchFilter(
-        searchName: searchTerm,
+        searchName: filterUtils.text,
         page: page,
         size: size,
       );

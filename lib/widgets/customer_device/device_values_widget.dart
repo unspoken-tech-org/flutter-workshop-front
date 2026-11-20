@@ -1,22 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/core/extensions/double_extensions.dart';
-import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
+import 'package:flutter_workshop_front/core/money/money.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/currency_input_formatter.dart';
-import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class DeviceValuesWidget extends StatelessWidget {
   final bool isEditing;
 
   const DeviceValuesWidget({super.key, this.isEditing = false});
-
-  String formatValue(double value) {
-    return NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(value);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,88 +23,105 @@ class DeviceValuesWidget extends StatelessWidget {
           color: isEditing ? Colors.blue.shade300 : const Color(0xFFE5E7EB),
         ),
       ),
-      child: Selector<DeviceCustomerPageController, DeviceCustomer>(
+      child: Selector<DeviceCustomerPageController, DeviceCustomer?>(
         selector: (context, controller) => controller.deviceCustomer,
-        builder: (context, deviceCustomer, child) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              children: [
-                Icon(Icons.attach_money),
-                SizedBox(width: 8),
-                Text(
-                  'Valores',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1F2937),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: CustomTextField(
-                    headerLabel: 'Taxa de orçamento',
-                    maxLines: 1,
-                    errorMaxLines: 2,
-                    value: formatValue(deviceCustomer.budgetFee ?? 0),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
+        builder: (context, deviceCustomer, child) {
+          if (deviceCustomer == null) return const SizedBox.shrink();
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.attach_money),
+                  SizedBox(width: 8),
+                  Text(
+                    'Valores',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1F2937),
                     ),
-                    inputFormatters: [CurrencyInputFormatter()],
-                    readOnly: !isEditing,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return null;
-                      final parsedValue = value.fromCurrency();
-                      final sumPaid = deviceCustomer.payments
-                          .where((p) => p.category == PaymentCategory.budgetFee)
-                          .fold(0.0, (sum, p) => sum + p.paymentValue);
-                      if (parsedValue < sumPaid) {
-                        return 'Valor mínimo: ${sumPaid.toBrCurrency}';
-                      }
-                      return null;
-                    },
-                    onSave: (value) {
-                      final newDeviceCustomer = controller.deviceCustomer
-                          .copyWith(budgetFee: value?.fromCurrency() ?? 0);
-                      controller.updateNewDeviceCustomer(newDeviceCustomer);
-                    },
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: CustomTextField(
-                    headerLabel: 'Valor do serviço',
-                    maxLines: 1,
-                    value: formatValue(deviceCustomer.serviceValue ?? 0),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
+                ],
+              ),
+              const SizedBox(height: 24),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: CustomTextField(
+                      headerLabel: 'Taxa de orçamento',
+                      maxLines: 1,
+                      errorMaxLines: 2,
+                      value:
+                          (deviceCustomer.budgetFee ?? Money.zero).toBrCurrency,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: [CurrencyInputFormatter()],
+                      readOnly: !isEditing,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return null;
+                        final parsedValue = Money.tryParseBr(value);
+                        if (parsedValue == null) return 'Valor inválido';
+                        final sumPaid = deviceCustomer.totalPaidFee;
+                        if (parsedValue < sumPaid) {
+                          return 'Valor mínimo: ${sumPaid.toBrCurrency}';
+                        }
+                        return null;
+                      },
+                      onSave: (value) {
+                        final current = controller.deviceCustomer;
+                        if (current == null) return;
+                        final newDeviceCustomer = current.copyWith(
+                          budgetFee: Money.tryParseBr(value) ?? Money.zero,
+                        );
+                        controller.updateNewDeviceCustomer(newDeviceCustomer);
+                      },
                     ),
-                    inputFormatters: [CurrencyInputFormatter()],
-                    readOnly: !isEditing,
-                    onSave: (value) {
-                      final newDeviceCustomer = controller.deviceCustomer
-                          .copyWith(serviceValue: value?.fromCurrency());
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: CustomTextField(
+                      headerLabel: 'Valor do serviço',
+                      maxLines: 1,
+                      value: (deviceCustomer.serviceValue ?? Money.zero)
+                          .toBrCurrency,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: [CurrencyInputFormatter()],
+                      readOnly: !isEditing,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return null;
+                        if (Money.tryParseBr(value) == null) {
+                          return 'Valor inválido';
+                        }
+                        return null;
+                      },
+                      onSave: (value) {
+                        final current = controller.deviceCustomer;
+                        if (current == null) return;
+                        final newDeviceCustomer = current.copyWith(
+                          serviceValue: Money.tryParseBr(value) ?? Money.zero,
+                        );
 
-                      controller.updateNewDeviceCustomer(newDeviceCustomer);
-                    },
+                        controller.updateNewDeviceCustomer(newDeviceCustomer);
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(color: Color(0xFFE5E7EB), height: 1),
-            const SizedBox(height: 16),
-            _BudgetFeeStatusWidget(
-              computedBudgetFeeCollected:
-                  deviceCustomer.computedBudgetFeeCollected,
-            ),
-          ],
-        ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(color: Color(0xFFE5E7EB), height: 1),
+              const SizedBox(height: 16),
+              _BudgetFeeStatusWidget(
+                computedBudgetFeeCollected:
+                    deviceCustomer.computedBudgetFeeCollected,
+              ),
+            ],
+          );
+        },
       ),
     );
   }

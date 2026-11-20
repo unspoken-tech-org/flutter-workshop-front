@@ -22,61 +22,64 @@ class DiagnosticDeviceInfoWidget extends StatelessWidget {
           color: isEditing ? Colors.blue.shade300 : const Color(0xFFE5E7EB),
         ),
       ),
-      child: Selector<DeviceCustomerPageController, DeviceCustomer>(
+      child: Selector<DeviceCustomerPageController, DeviceCustomer?>(
         selector: (context, controller) => controller.deviceCustomer,
-        builder: (context, deviceCustomer, child) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              children: [
-                Icon(Icons.description_outlined, color: Color(0xFF4B5563)),
-                SizedBox(width: 12),
-                Text(
-                  'Diagnóstico',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1F2937),
+        builder: (context, deviceCustomer, child) {
+          if (deviceCustomer == null) return const SizedBox.shrink();
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.description_outlined, color: Color(0xFF4B5563)),
+                  SizedBox(width: 12),
+                  Text(
+                    'Diagnóstico',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1F2937),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            CustomTextField(
-              headerLabel: 'Problema',
-              value: deviceCustomer.problem,
-              readOnly: !isEditing,
-              hintText: 'Descreva o problema relatado pelo cliente...',
-              maxLines: 4,
-              onSave: (value) {
-                final newDeviceCustomer = controller.deviceCustomer.copyWith(
-                  problem: value,
-                );
-                controller.updateNewDeviceCustomer(newDeviceCustomer);
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Problema é obrigatório';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              headerLabel: 'Orçamento',
-              value: deviceCustomer.budget,
-              readOnly: !isEditing,
-              hintText: 'Descreva o orçamento para o conserto...',
-              maxLines: 4,
-              onSave: (value) {
-                final newDeviceCustomer = controller.deviceCustomer.copyWith(
-                  budget: value,
-                );
-                controller.updateNewDeviceCustomer(newDeviceCustomer);
-              },
-            ),
-          ],
-        ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              CustomTextField(
+                headerLabel: 'Problema',
+                value: deviceCustomer.problem,
+                readOnly: !isEditing,
+                hintText: 'Descreva o problema relatado pelo cliente...',
+                maxLines: 4,
+                onSave: (value) {
+                  final current = controller.deviceCustomer;
+                  if (current == null) return;
+                  final newDeviceCustomer = current.copyWith(problem: value);
+                  controller.updateNewDeviceCustomer(newDeviceCustomer);
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Problema é obrigatório';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                headerLabel: 'Orçamento',
+                value: deviceCustomer.budget,
+                readOnly: !isEditing,
+                hintText: 'Descreva o orçamento para o conserto...',
+                maxLines: 4,
+                onSave: (value) {
+                  final current = controller.deviceCustomer;
+                  if (current == null) return;
+                  final newDeviceCustomer = current.copyWith(budget: value);
+                  controller.updateNewDeviceCustomer(newDeviceCustomer);
+                },
+              ),
+            ],
+          );
+        },
       ),
     );
   }

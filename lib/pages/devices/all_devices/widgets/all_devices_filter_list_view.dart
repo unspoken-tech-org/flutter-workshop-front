@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/device/device_filter.dart';
 import 'package:flutter_workshop_front/models/device_brand/device_brand_model.dart';
@@ -165,12 +166,14 @@ class AllDevicesFilterListView extends StatelessWidget {
                       items: statusNames,
                       onChanged: (value) {
                         if (value == null) return;
-                        final status = StatusEnum.values.firstWhere(
+                        final status = StatusEnum.values.firstWhereOrNull(
                           (e) =>
                               e.displayName.toLowerCase() ==
                               value.toLowerCase(),
                         );
-                        controller.addRemoveStatus(status);
+                        if (status != null) {
+                          controller.addRemoveStatus(status);
+                        }
                       },
                     ),
                   );

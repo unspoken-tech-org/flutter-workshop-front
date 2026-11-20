@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
 
 enum ContactType {
@@ -8,6 +9,17 @@ enum ContactType {
   final String displayName;
 
   const ContactType(this.displayName);
+
+  static ContactType? tryParse(String? raw) {
+    final normalized = raw?.trim().toLowerCase();
+    if (normalized == null || normalized.isEmpty) return null;
+
+    return ContactType.values.firstWhereOrNull(
+      (e) =>
+          e.name.toLowerCase() == normalized ||
+          e.displayName.toLowerCase() == normalized,
+    );
+  }
 
   static ContactType fromDisplayName(String displayName) =>
       switch (displayName) {
@@ -62,15 +74,13 @@ class InputCustomerContact {
       InputCustomerContact(deviceId: deviceId, contactDate: DateTime.now());
 
   factory InputCustomerContact.fromCustomerContact(CustomerContact contact) {
-    ContactType? matchedType = ContactType.values.firstWhere(
-      (e) => e.name.toLowerCase() == contact.type.toLowerCase(),
-    );
+    final matchedType = ContactType.tryParse(contact.type);
 
     DateTime? parsedDate = contact.lastContact;
 
     return InputCustomerContact(
       deviceId: contact.deviceId,
-      contactType: matchedType.name,
+      contactType: matchedType?.name,
       technicianId: contact.technicianId,
       phoneNumber: contact.phoneNumber ?? contact.phone,
       message: contact.conversation,

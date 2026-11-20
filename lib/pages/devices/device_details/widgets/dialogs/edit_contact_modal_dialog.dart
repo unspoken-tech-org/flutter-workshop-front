@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/date_time_extension.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
@@ -44,34 +45,28 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
     _dateController.text = widget.contact.lastContact.formatDate();
   }
 
+  @override
+  void dispose() {
+    _dateController.dispose();
+    super.dispose();
+  }
+
   String? _initialContactTypeDisplayName() {
-    try {
-      return ContactType.values
-          .firstWhere((e) => e.name == inputCustomerContact.contactType)
-          .displayName;
-    } catch (_) {
-      return null;
-    }
+    return ContactType.values
+        .firstWhereOrNull((e) => e.name == inputCustomerContact.contactType)
+        ?.displayName;
   }
 
   String? _initialContactStatusDisplayName() {
-    try {
-      return ContactStatus.values
-          .firstWhere((e) => e.name == inputCustomerContact.contactStatus)
-          .displayName;
-    } catch (_) {
-      return null;
-    }
+    return ContactStatus.values
+        .firstWhereOrNull((e) => e.name == inputCustomerContact.contactStatus)
+        ?.displayName;
   }
 
   String? _initialTechnicianName(List<Technician> technicians) {
-    try {
-      return technicians
-          .firstWhere((e) => e.id == widget.contact.technicianId)
-          .name;
-    } catch (_) {
-      return widget.contact.technicianName;
-    }
+    return technicians
+        .firstWhereOrNull((e) => e.id == widget.contact.technicianId)
+        ?.name;
   }
 
   @override
@@ -90,12 +85,17 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
             child:
                 Selector<
                   DeviceCustomerPageController,
-                  (DeviceCustomer, List<Technician>)
+                  (DeviceCustomer?, List<Technician>, bool)
                 >(
-                  selector: (context, controller) =>
-                      (controller.deviceCustomer, controller.technicians),
+                  selector: (context, controller) => (
+                    controller.deviceCustomer,
+                    controller.technicians,
+                    controller.isEditingContact,
+                  ),
                   builder: (context, values, child) {
-                    final (deviceCustomer, technicians) = values;
+                    final (deviceCustomer, technicians, isSaving) = values;
+                    if (deviceCustomer == null) return const SizedBox.shrink();
+                    final initialTechName = _initialTechnicianName(technicians);
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,6 +130,10 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                           ).name;
                                     },
                                     onChanged: (value) {
+                                      if (value != null) {
+                                        inputCustomerContact.contactType =
+                                            ContactType.tryParse(value)?.name;
+                                      }
                                       isContactTypePersonally =
                                           value ==
                                           ContactType.pessoalmente.displayName;
@@ -142,20 +146,36 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                       return null;
                                     },
                                   ),
+                                  if (inputCustomerContact.contactType ==
+                                          null &&
+                                      widget.contact.type.isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Tipo atual: ${widget.contact.type} — selecione uma opção',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.amber.shade800,
+                                      ),
+                                    ),
+                                  ],
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
                                     headerLabel: 'Contactante',
-                                    initialValue: _initialTechnicianName(
-                                      technicians,
-                                    ),
+                                    hintText: initialTechName == null
+                                        ? widget.contact.technicianName
+                                        : null,
+                                    initialValue: initialTechName,
                                     items: technicians
                                         .map((e) => e.name)
                                         .toList(),
                                     onSave: (value) {
-                                      inputCustomerContact
-                                          .technicianId = technicians
-                                          .firstWhere((e) => e.name == value)
-                                          .id;
+                                      inputCustomerContact.technicianId =
+                                          technicians
+                                              .firstWhereOrNull(
+                                                (e) => e.name == value,
+                                              )
+                                              ?.id ??
+                                          inputCustomerContact.technicianId;
                                     },
                                     validator: (value) {
                                       if (value == null) {
@@ -224,11 +244,13 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                         .toList(),
                                     onSave: (value) {
                                       final statusValue = StatusEnum.values
-                                          .firstWhere(
+                                          .firstWhereOrNull(
                                             (e) => e.displayName == value,
                                           );
-                                      inputCustomerContact.deviceStatus =
-                                          statusValue.dbName;
+                                      if (statusValue != null) {
+                                        inputCustomerContact.deviceStatus =
+                                            statusValue.dbName;
+                                      }
                                     },
                                     validator: (value) {
                                       if (value == null) {
@@ -319,12 +341,11 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                         ActionButtonsWidget(
                           formKey: _formKey,
                           dateController: _dateController,
-                          onSave: () async {
-                            await controller.updateCustomerContact(
-                              widget.contact.id,
-                              inputCustomerContact,
-                            );
-                          },
+                          isSaving: isSaving,
+                          onSave: () => controller.updateCustomerContact(
+                            widget.contact.id,
+                            inputCustomerContact,
+                          ),
                         ),
                       ],
                     );
