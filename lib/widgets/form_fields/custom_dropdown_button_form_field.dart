@@ -10,6 +10,7 @@ class CustomDropdownButtonFormField extends StatelessWidget {
   final void Function(String? value)? onChanged;
   final String? Function(String? value)? validator;
   final bool enabled;
+  final int errorMaxLines;
 
   const CustomDropdownButtonFormField({
     super.key,
@@ -22,6 +23,7 @@ class CustomDropdownButtonFormField extends StatelessWidget {
     this.validator,
     this.onChanged,
     this.enabled = true,
+    this.errorMaxLines = 1,
   });
 
   @override
@@ -47,6 +49,7 @@ class CustomDropdownButtonFormField extends StatelessWidget {
             labelText: fieldLabel,
             hintText: hintText,
             hintStyle: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
+            errorMaxLines: errorMaxLines,
             border: const OutlineInputBorder(),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),

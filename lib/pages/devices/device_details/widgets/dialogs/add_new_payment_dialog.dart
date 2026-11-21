@@ -5,6 +5,7 @@ import 'package:flutter_workshop_front/core/money/money.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/currency_input_formatter.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
+import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_date_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
@@ -92,6 +93,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
             children: [
               CustomDropdownButtonFormField(
                 headerLabel: 'Categoria',
+                errorMaxLines: 2,
                 items: PaymentCategory.values
                     .map((e) => e.displayName)
                     .toList(),
@@ -113,6 +115,14 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Selecione uma categoria';
+                  }
+                  final deviceStatus = controller.deviceCustomer?.deviceStatus;
+                  if (deviceStatus == StatusEnum.newDevice &&
+                      _selectedCategory == PaymentCategory.service) {
+                    return 'Pagamentos de serviços não são permitidos para aparelho com status Novo';
+                  }
+                  if (deviceStatus == StatusEnum.disposed) {
+                    return 'Pagamentos não são permitidos para aparelho descartado';
                   }
                   final budgetFee =
                       controller.deviceCustomer?.budgetFee ?? Money.zero;
@@ -177,6 +187,17 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
                     if (budgetFee.isPositive && parsed > remaining) {
                       return 'As taxas já pagas (${totalPaidFee.toBrCurrency}) excedem o valor da taxa de orçamento';
                     }
+                  } else if (_selectedCategory == PaymentCategory.service) {
+                    final serviceValue =
+                        controller.deviceCustomer?.serviceValue ?? Money.zero;
+                    if (!serviceValue.isPositive) {
+                      return 'Valor do serviço não definido';
+                    }
+                    final totalPaid =
+                        controller.deviceCustomer?.totalPaid ?? Money.zero;
+                    if (totalPaid + parsed > serviceValue) {
+                      return 'O total pago (${(totalPaid + parsed).toBrCurrency}) excede o valor do serviço (${serviceValue.toBrCurrency})';
+                    }
                   }
                   return null;
                 },
@@ -187,12 +208,35 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
               CustomDateFormField(
                 dateController: _dateController,
                 label: 'Data do Pagamento',
+                errorMaxLines: 2,
                 onSave: (value) => _inputPayment = _inputPayment.copyWith(
                   paymentDate: DateFormat('dd/MM/yyyy').parse(value),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Selecione a data do pagamento';
+                  }
+                  final parsedDate = DateFormat(
+                    'dd/MM/yyyy',
+                  ).tryParseStrict(value);
+                  if (parsedDate == null) {
+                    return 'Data inválida';
+                  }
+                  final entryDate = controller.deviceCustomer?.entryDate;
+                  if (entryDate != null) {
+                    final paymentDay = DateTime(
+                      parsedDate.year,
+                      parsedDate.month,
+                      parsedDate.day,
+                    );
+                    final entryDay = DateTime(
+                      entryDate.year,
+                      entryDate.month,
+                      entryDate.day,
+                    );
+                    if (paymentDay.isBefore(entryDay)) {
+                      return 'A data do pagamento não pode ser anterior à data de entrada (${_formatDate(entryDate)})';
+                    }
                   }
                   return null;
                 },
