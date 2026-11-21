@@ -25,16 +25,16 @@ class MinifiedCustomerDevice {
 
   factory MinifiedCustomerDevice.fromJson(Map<String, dynamic> json) {
     return MinifiedCustomerDevice(
-      deviceId: json['deviceId'],
-      customerId: json['customerId'],
-      typeBrandModel: json['typeBrandModel'],
-      deviceStatus: StatusEnum.fromDbName(json['deviceStatus']),
-      problem: json['problem'],
-      hasUrgency: json['hasUrgency'],
-      revision: json['revision'],
-      entryDate: DateTime.parse(json['entryDate']),
+      deviceId: json['deviceId'] as int,
+      customerId: json['customerId'] as int,
+      typeBrandModel: json['typeBrandModel'] as String,
+      deviceStatus: StatusEnum.fromDbName(json['deviceStatus'] as String),
+      problem: json['problem'] as String,
+      hasUrgency: json['hasUrgency'] as bool,
+      revision: json['revision'] as bool,
+      entryDate: DateTime.parse(json['entryDate'] as String),
       departureDate: json['departureDate'] != null
-          ? DateTime.parse(json['departureDate'])
+          ? DateTime.parse(json['departureDate'] as String)
           : null,
     );
   }

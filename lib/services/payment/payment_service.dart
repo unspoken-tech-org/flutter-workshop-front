@@ -9,7 +9,7 @@ class PaymentService {
   Future<void> createPayment(InputPayment payment) async {
     final json = {...payment.toJson()};
 
-    final response = await _dio.post('/v1/payment', data: json);
+    final response = await _dio.post<dynamic>('/v1/payment', data: json);
     response.ensureSuccess();
   }
 }

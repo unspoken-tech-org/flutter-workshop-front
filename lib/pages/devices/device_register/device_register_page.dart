@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/widgets/device_register_form.dart';
@@ -23,13 +25,15 @@ class DeviceRegisterPage extends StatelessWidget {
     return ChangeNotifierProvider(
       lazy: false,
       create: (context) {
-        return DeviceRegisterController(
+        final controller = DeviceRegisterController(
           TypesBrandsModelsRemoteDataSource(),
           ColorService(),
           DeviceCustomerService(),
           TechnicianService(),
           CustomerRemoteDataSource(),
-        )..init(customerId, customerName);
+        );
+        unawaited(controller.init(customerId, customerName));
+        return controller;
       },
       child: WsScaffold(
         child: SingleChildScrollView(

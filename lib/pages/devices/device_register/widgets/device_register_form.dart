@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
@@ -25,11 +27,11 @@ class _DeviceRegisterFormState extends State<DeviceRegisterForm> {
     }
     _formKey.currentState?.save();
 
-    int? deviceId = await context
+    final int? deviceId = await context
         .read<DeviceRegisterController>()
         .createDevice();
     if (deviceId != null && context.mounted) {
-      WsNavigator.pushDeviceDetails(context, deviceId, replaced: true);
+      await WsNavigator.pushDeviceDetails(context, deviceId, replaced: true);
     }
   }
 
@@ -43,10 +45,12 @@ class _DeviceRegisterFormState extends State<DeviceRegisterForm> {
       if (!mounted) return;
 
       // Rolar para o início do formulário (onde os primeiros erros aparecem)
-      Scrollable.ensureVisible(
-        context,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
+      unawaited(
+        Scrollable.ensureVisible(
+          context,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        ),
       );
     });
   }

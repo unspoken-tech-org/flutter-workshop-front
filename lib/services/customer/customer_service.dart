@@ -13,22 +13,31 @@ class CustomerService {
   Future<CustomerModel> createCustomer(InputCustomer customer) async {
     final json = customer.toJson();
 
-    final response = await _dio.post('/v1/customer', data: json);
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/v1/customer',
+      data: json,
+    );
 
     if ([200, 201].contains(response.statusCode)) {
-      return CustomerModel.fromJson(response.data);
+      return CustomerModel.fromJson(response.data!);
     } else {
-      throw RequisitionException.fromJson(response.data['error']);
+      throw RequisitionException.fromJson(
+        response.data!['error'] as Map<String, dynamic>,
+      );
     }
   }
 
   Future<CustomerModel> getCustomer(int customerId) async {
-    final response = await _dio.get('/v1/customer/$customerId');
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/v1/customer/$customerId',
+    );
 
     if ([200].contains(response.statusCode)) {
-      return CustomerModel.fromJson(response.data);
+      return CustomerModel.fromJson(response.data!);
     } else {
-      throw RequisitionException.fromJson(response.data['error']);
+      throw RequisitionException.fromJson(
+        response.data!['error'] as Map<String, dynamic>,
+      );
     }
   }
 
@@ -38,30 +47,38 @@ class CustomerService {
   ) async {
     final json = customer.toJson();
 
-    final response = await _dio.put('/v1/customer/$customerId', data: json);
+    final response = await _dio.put<Map<String, dynamic>>(
+      '/v1/customer/$customerId',
+      data: json,
+    );
 
     if ([200].contains(response.statusCode)) {
-      return CustomerModel.fromJson(response.data);
+      return CustomerModel.fromJson(response.data!);
     } else {
-      throw RequisitionException.fromJson(response.data['error']);
+      throw RequisitionException.fromJson(
+        response.data!['error'] as Map<String, dynamic>,
+      );
     }
   }
 
   Future<Page<MinifiedCustomerModel>> searchCustomers(
     CustomerSearchFilter? filter,
   ) async {
-    final response = await _dio.post(
+    final response = await _dio.post<Map<String, dynamic>>(
       '/v1/customer/search',
-      data: filter?.toJson() ?? {},
+      data: filter?.toJson() ?? <String, dynamic>{},
     );
 
     if ([200].contains(response.statusCode)) {
       return Page.fromJson(
-        response.data,
-        (customer) => MinifiedCustomerModel.fromJson(customer),
+        response.data!,
+        (customer) =>
+            MinifiedCustomerModel.fromJson(customer as Map<String, dynamic>),
       );
     } else {
-      throw RequisitionException.fromJson(response.data['error']);
+      throw RequisitionException.fromJson(
+        response.data!['error'] as Map<String, dynamic>,
+      );
     }
   }
 }

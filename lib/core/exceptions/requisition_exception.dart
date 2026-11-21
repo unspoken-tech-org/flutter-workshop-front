@@ -5,7 +5,10 @@ class RequisitionException implements Exception {
   RequisitionException(this.message, this.code);
 
   factory RequisitionException.fromJson(Map<String, dynamic> json) {
-    return RequisitionException(json['message'], json['code']);
+    return RequisitionException(
+      json['message'] as String,
+      json['code'] as String,
+    );
   }
 
   @override

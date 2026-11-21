@@ -156,7 +156,7 @@ class SecurityInterceptor extends Interceptor {
 
         try {
           // _retryDio NÃO tem SecurityInterceptor: sem deadlock de fila.
-          final response = await _retryDio.fetch(retryOptions);
+          final response = await _retryDio.fetch<dynamic>(retryOptions);
           return handler.resolve(response);
         } on DioException catch (retryErr) {
           debugPrint('[AuthDebug][$requestId] Retry failed: $retryErr');

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
@@ -41,7 +43,7 @@ class SearchDevicesFilterListView extends StatelessWidget {
               ),
               OutlinedButton.icon(
                 onPressed: () {
-                  controller.clearFilters();
+                  unawaited(controller.clearFilters());
                 },
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.transparent),

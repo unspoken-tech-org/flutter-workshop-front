@@ -16,7 +16,9 @@ extension ResponseValidation<T> on Response<T> {
   }
 }
 
-RequisitionException requisitionExceptionFromResponse(Response response) {
+RequisitionException requisitionExceptionFromResponse(
+  Response<dynamic> response,
+) {
   final status = response.statusCode ?? 0;
   final data = response.data;
   final error = data is Map ? data['error'] : null;

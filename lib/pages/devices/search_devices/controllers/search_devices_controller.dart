@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 import 'package:flutter_workshop_front/models/device/device_filter.dart'
@@ -18,7 +20,7 @@ class SearchDevicesController extends ChangeNotifier {
     DeviceSearchFilter? filter,
   }) {
     this.filter = filter ?? DeviceSearchFilter();
-    searchDevices();
+    unawaited(searchDevices());
   }
 
   List<DeviceDataTable> devices = [];
@@ -48,7 +50,7 @@ class SearchDevicesController extends ChangeNotifier {
       filter.page = _currentPage;
       devices = [];
       notifyListeners();
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
       final Page<DeviceDataTable> result = await _allDevicesRepository
           .searchDevices(filter);
       devices = result.content;
@@ -78,11 +80,11 @@ class SearchDevicesController extends ChangeNotifier {
 
     final trimmed = searchTerm.trim();
     if (trimmed.isEmpty) {
-      searchDevices();
+      unawaited(searchDevices());
       return;
     }
 
-    var search = FilterUtils(trimmed);
+    final search = FilterUtils(trimmed);
     if (search.isCpf) {
       filter.customerCpf = search.digits;
     } else if (search.isPhoneOrCellPhone) {
@@ -92,43 +94,43 @@ class SearchDevicesController extends ChangeNotifier {
     } else {
       filter = filter.withSearchQuery(search.text);
     }
-    searchDevices();
+    unawaited(searchDevices());
   }
 
   void addRemoveStatus(StatusEnum status) {
     filter = filter.withToggledStatus(status);
     notifyListeners();
-    searchDevices();
+    unawaited(searchDevices());
   }
 
   void toggleUrgency() {
     filter = filter.withToggledUrgency();
     notifyListeners();
-    searchDevices();
+    unawaited(searchDevices());
   }
 
   void toggleRevision() {
     filter = filter.withToggledRevision();
     notifyListeners();
-    searchDevices();
+    unawaited(searchDevices());
   }
 
   void addRemoveEnterRangeDate(DateTime? initialDate, DateTime? endDate) {
     filter = filter.withRangeDate(initialDate, endDate);
     notifyListeners();
-    searchDevices();
+    unawaited(searchDevices());
   }
 
   void toggleOrderBy(OrderBy orderBy) {
     filter = filter.withToggledOrderBy(orderBy);
     notifyListeners();
-    searchDevices();
+    unawaited(searchDevices());
   }
 
   void clearOrderBy() {
     filter = filter.clearOrderBy();
     notifyListeners();
-    searchDevices();
+    unawaited(searchDevices());
   }
 
   Future<void> clearSearch() async {

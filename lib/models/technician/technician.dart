@@ -7,9 +7,9 @@ class Technician {
 
   factory Technician.fromJson(Map<String, dynamic> json) {
     return Technician(
-      id: json['id'],
-      name: json['name'],
-      number: json['number'],
+      id: json['id'] as int,
+      name: json['name'] as String,
+      number: json['number'] as String,
     );
   }
 }

@@ -26,18 +26,32 @@ class DeviceStatistics {
 
   factory DeviceStatistics.fromJson(Map<String, dynamic> json) {
     return DeviceStatistics(
-      novo: StatisticsCount.fromJson(json[StatusEnum.newDevice.dbName]),
-      aguardando: StatisticsCount.fromJson(
-        json[StatusEnum.waitingApproval.dbName],
+      novo: StatisticsCount.fromJson(
+        json[StatusEnum.newDevice.dbName] as Map<String, dynamic>,
       ),
-      emAndamento: StatisticsCount.fromJson(json[StatusEnum.inProgress.dbName]),
-      pronto: StatisticsCount.fromJson(json[StatusEnum.ready.dbName]),
-      entregue: StatisticsCount.fromJson(json[StatusEnum.delivered.dbName]),
-      descartado: StatisticsCount.fromJson(json[StatusEnum.disposed.dbName]),
-      revisao: StatisticsCount.fromJson(json['REVISAO']),
-      urgente: StatisticsCount.fromJson(json['URGENTE']),
-      lastViewedDevices: (json['last_viewed_devices'] as List)
-          .map((e) => DeviceDataTable.fromJson(e))
+      aguardando: StatisticsCount.fromJson(
+        json[StatusEnum.waitingApproval.dbName] as Map<String, dynamic>,
+      ),
+      emAndamento: StatisticsCount.fromJson(
+        json[StatusEnum.inProgress.dbName] as Map<String, dynamic>,
+      ),
+      pronto: StatisticsCount.fromJson(
+        json[StatusEnum.ready.dbName] as Map<String, dynamic>,
+      ),
+      entregue: StatisticsCount.fromJson(
+        json[StatusEnum.delivered.dbName] as Map<String, dynamic>,
+      ),
+      descartado: StatisticsCount.fromJson(
+        json[StatusEnum.disposed.dbName] as Map<String, dynamic>,
+      ),
+      revisao: StatisticsCount.fromJson(
+        json['REVISAO'] as Map<String, dynamic>,
+      ),
+      urgente: StatisticsCount.fromJson(
+        json['URGENTE'] as Map<String, dynamic>,
+      ),
+      lastViewedDevices: (json['last_viewed_devices'] as List<dynamic>)
+          .map((e) => DeviceDataTable.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
   }
@@ -50,6 +64,9 @@ class StatisticsCount {
   StatisticsCount({required this.total, required this.lastMonth});
 
   factory StatisticsCount.fromJson(Map<String, dynamic> json) {
-    return StatisticsCount(total: json['total'], lastMonth: json['lastMonth']);
+    return StatisticsCount(
+      total: json['total'] as int,
+      lastMonth: json['lastMonth'] as int,
+    );
   }
 }

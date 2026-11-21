@@ -20,7 +20,7 @@ class Type implements ITypeBrandModelColor {
   }
 
   factory Type.fromJson(Map<String, dynamic> json) {
-    return Type(idType: json['idType'], type: json['type']);
+    return Type(idType: json['idType'] as int, type: json['type'] as String);
   }
 }
 
@@ -41,7 +41,10 @@ class Brand implements ITypeBrandModelColor {
   }
 
   factory Brand.fromJson(Map<String, dynamic> json) {
-    return Brand(idBrand: json['idBrand'], brand: json['brand']);
+    return Brand(
+      idBrand: json['idBrand'] as int,
+      brand: json['brand'] as String,
+    );
   }
 }
 
@@ -62,6 +65,9 @@ class Model implements ITypeBrandModelColor {
   }
 
   factory Model.fromJson(Map<String, dynamic> json) {
-    return Model(idModel: json['idModel'], model: json['model']);
+    return Model(
+      idModel: json['idModel'] as int,
+      model: json['model'] as String,
+    );
   }
 }

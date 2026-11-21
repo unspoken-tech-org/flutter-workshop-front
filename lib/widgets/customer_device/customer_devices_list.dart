@@ -4,7 +4,7 @@ import 'package:flutter_workshop_front/widgets/customer_device/customer_device_c
 
 class CustomerDevicesList extends StatelessWidget {
   final List<MinifiedCustomerDevice> customerDevices;
-  final Function(int) onTap;
+  final void Function(int) onTap;
   const CustomerDevicesList({
     super.key,
     required this.customerDevices,

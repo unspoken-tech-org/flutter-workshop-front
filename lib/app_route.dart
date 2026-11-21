@@ -89,7 +89,7 @@ List<RouteBase> _routes = [
     path: '/customer/:id',
     name: CustomerDetailPage.route,
     builder: (context, state) {
-      var id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
+      final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
       return CustomerDetailPage(customerId: id);
     },
   ),
@@ -97,10 +97,10 @@ List<RouteBase> _routes = [
     path: '/device/register',
     name: DeviceRegisterPage.route,
     builder: (context, state) {
-      var customerId = int.tryParse(
+      final customerId = int.tryParse(
         state.uri.queryParameters['customerId'] ?? '',
       );
-      var customerName = state.uri.queryParameters['customerName'];
+      final customerName = state.uri.queryParameters['customerName'];
 
       return DeviceRegisterPage(
         customerId: customerId,
@@ -112,7 +112,7 @@ List<RouteBase> _routes = [
     path: '/device/all',
     name: AllDevicesPage.route,
     builder: (context, state) {
-      var filter = state.extra as DeviceFilter?;
+      final filter = state.extra as DeviceFilter?;
       return AllDevicesPage(filter: filter);
     },
   ),
@@ -120,7 +120,7 @@ List<RouteBase> _routes = [
     path: '/device/search',
     name: SearchDevicesPage.route,
     builder: (context, state) {
-      var filter = state.extra as DeviceSearchFilter?;
+      final filter = state.extra as DeviceSearchFilter?;
       return SearchDevicesPage(filter: filter);
     },
   ),
@@ -128,7 +128,7 @@ List<RouteBase> _routes = [
     path: '/device/:id',
     name: DeviceDetailsPage.route,
     builder: (context, state) {
-      var id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
+      final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
       return DeviceDetailsPage(deviceId: id);
     },
   ),

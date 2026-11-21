@@ -67,7 +67,7 @@ class UpdateService {
     final currentVersion = packageInfo.version;
 
     try {
-      final response = await _dio.get(
+      final response = await _dio.get<Map<String, dynamic>>(
         'https://api.github.com/repos/$owner/$repo/releases/latest',
       );
 

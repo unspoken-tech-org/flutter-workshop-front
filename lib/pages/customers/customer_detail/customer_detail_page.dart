@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/controllers/customer_detail_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/widgets/customer_detail_shimmer.dart';
@@ -25,9 +27,11 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
 
     return ChangeNotifierProvider(
       lazy: false,
-      create: (_) =>
-          CustomerDetailController(CustomerRemoteDataSource())
-            ..fetchCustomer(widget.customerId),
+      create: (_) {
+        final controller = CustomerDetailController(CustomerRemoteDataSource());
+        unawaited(controller.fetchCustomer(widget.customerId));
+        return controller;
+      },
       child: WsScaffold(
         backgroundColor: const Color(0xFFF5F5F5),
         child: SingleChildScrollView(

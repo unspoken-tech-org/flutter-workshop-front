@@ -59,7 +59,7 @@ class CustomerSearchFilter {
     int? page,
     int? size,
   }) {
-    FilterUtils filterUtils = FilterUtils(searchTerm ?? '');
+    final FilterUtils filterUtils = FilterUtils(searchTerm ?? '');
 
     if (filterUtils.isId) {
       return CustomerSearchFilter(

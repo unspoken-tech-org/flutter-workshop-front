@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/device/device_filter.dart';
@@ -46,12 +48,14 @@ class _SearchOrderByButtonViewState extends State<SearchOrderByButtonView>
 
   void toggleOverlay() {
     if (_overlayPortalController.isShowing) {
-      animationController.reverse().then((_) {
-        _overlayPortalController.hide();
-      });
+      unawaited(
+        animationController.reverse().then((_) {
+          _overlayPortalController.hide();
+        }),
+      );
     } else {
       _overlayPortalController.show();
-      animationController.forward();
+      unawaited(animationController.forward());
     }
   }
 

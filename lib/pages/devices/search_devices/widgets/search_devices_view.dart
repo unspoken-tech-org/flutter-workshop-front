@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
@@ -149,16 +151,20 @@ class _SearchDevicesViewState extends State<SearchDevicesView> {
                                 return FilteredDeviceCard(
                                   device: devices[index],
                                   onTap: () {
-                                    WsNavigator.pushDeviceDetails(
-                                      context,
-                                      devices[index].deviceId,
-                                    ).then((_) {
-                                      if (context.mounted) {
-                                        context
-                                            .read<SearchDevicesController>()
-                                            .searchDevices();
-                                      }
-                                    });
+                                    unawaited(
+                                      WsNavigator.pushDeviceDetails(
+                                        context,
+                                        devices[index].deviceId,
+                                      ).then((_) {
+                                        if (context.mounted) {
+                                          unawaited(
+                                            context
+                                                .read<SearchDevicesController>()
+                                                .searchDevices(),
+                                          );
+                                        }
+                                      }),
+                                    );
                                   },
                                 );
                               },

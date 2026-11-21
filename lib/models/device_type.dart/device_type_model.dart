@@ -5,7 +5,10 @@ class DeviceType {
   DeviceType({required this.idType, required this.typeName});
 
   factory DeviceType.fromJson(Map<String, dynamic> json) {
-    return DeviceType(idType: json['idType'], typeName: json['type']);
+    return DeviceType(
+      idType: json['idType'] as int,
+      typeName: json['type'] as String,
+    );
   }
 
   Map<String, dynamic> toJson() {

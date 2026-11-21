@@ -31,7 +31,7 @@ class CustomerContactsListWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton.icon(
-                onPressed: () => showDialog(
+                onPressed: () => showDialog<void>(
                   context: context,
                   builder: (context) => ChangeNotifierProvider.value(
                     value: controller,
@@ -74,7 +74,7 @@ class CustomerContactsListWidget extends StatelessWidget {
                   final contact = customerContacts[index];
                   return ContactCard(
                     contact: contact,
-                    onEdit: () => showDialog(
+                    onEdit: () => showDialog<void>(
                       context: context,
                       builder: (context) => ChangeNotifierProvider.value(
                         value: controller,

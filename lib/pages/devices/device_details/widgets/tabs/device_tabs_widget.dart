@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
@@ -12,7 +14,7 @@ class DeviceTabsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
+    final size = MediaQuery.of(context).size;
     final controller = context.read<DeviceCustomerPageController>();
     return SizedBox(
       width: size.width * 0.7,
@@ -78,7 +80,9 @@ class DeviceTabsWidget extends StatelessWidget {
                           child: CustomerDevicesList(
                             customerDevices: otherDevices,
                             onTap: (id) {
-                              WsNavigator.pushDeviceDetails(context, id);
+                              unawaited(
+                                WsNavigator.pushDeviceDetails(context, id),
+                              );
                             },
                           ),
                         );

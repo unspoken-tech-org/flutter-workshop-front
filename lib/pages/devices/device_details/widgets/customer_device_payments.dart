@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
@@ -62,14 +64,16 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
                           ),
                           OutlinedButton(
                             onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return ChangeNotifierProvider.value(
-                                    value: controller,
-                                    child: const AddNewPaymentDialog(),
-                                  );
-                                },
+                              unawaited(
+                                showDialog<void>(
+                                  context: context,
+                                  builder: (context) {
+                                    return ChangeNotifierProvider.value(
+                                      value: controller,
+                                      child: const AddNewPaymentDialog(),
+                                    );
+                                  },
+                                ),
                               );
                             },
                             style: OutlinedButton.styleFrom(

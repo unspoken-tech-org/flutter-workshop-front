@@ -169,8 +169,8 @@ void main() {
       CustomDio.retryDioForTest?.httpClientAdapter = adapter;
 
       final responses = await Future.wait([
-        dioA.post('/v1/payment', data: {'value': 100}),
-        dioB.put('/v1/device/update', data: {'id': 1}),
+        dioA.post<dynamic>('/v1/payment', data: {'value': 100}),
+        dioB.put<dynamic>('/v1/device/update', data: {'id': 1}),
       ]);
 
       expect(responses, hasLength(2));

@@ -30,7 +30,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
 
   Future<void> onSave(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
-    var customerController = context.read<CustomerRegisterController>();
+    final customerController = context.read<CustomerRegisterController>();
 
     _inputCustomer = _inputCustomer.copyWith(phones: []);
     _formKey.currentState?.save();

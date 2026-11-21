@@ -76,7 +76,7 @@ class InputCustomerContact {
   factory InputCustomerContact.fromCustomerContact(CustomerContact contact) {
     final matchedType = ContactType.tryParse(contact.type);
 
-    DateTime? parsedDate = contact.lastContact;
+    final DateTime parsedDate = contact.lastContact;
 
     return InputCustomerContact(
       deviceId: contact.deviceId,

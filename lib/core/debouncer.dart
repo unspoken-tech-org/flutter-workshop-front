@@ -9,7 +9,7 @@ class Debouncer {
   /// Execute the [callback] after the defined time.
   /// If the method is called again before the time expires,
   /// the previous execution will be canceled.
-  void run(Function callback) {
+  void run(void Function() callback) {
     _timer?.cancel();
     _timer = Timer(Duration(milliseconds: milliseconds), () {
       callback();

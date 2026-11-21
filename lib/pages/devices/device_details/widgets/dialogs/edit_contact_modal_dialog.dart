@@ -285,7 +285,7 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                     label: 'Data do contato',
                                     dateController: _dateController,
                                     onSave: (value) {
-                                      DateFormat format = DateFormat(
+                                      final DateFormat format = DateFormat(
                                         "dd/MM/yyyy",
                                       );
                                       inputCustomerContact.contactDate = format

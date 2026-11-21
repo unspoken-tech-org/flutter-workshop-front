@@ -8,7 +8,7 @@ import 'package:flutter_workshop_front/widgets/hoverable_card.dart';
 
 class CustomerCard extends StatelessWidget {
   final MinifiedCustomerModel customer;
-  final Function(int) onTap;
+  final void Function(int) onTap;
 
   const CustomerCard({super.key, required this.customer, required this.onTap});
 

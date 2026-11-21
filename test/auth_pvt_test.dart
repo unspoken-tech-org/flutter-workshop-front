@@ -81,7 +81,7 @@ class MockDio implements Dio {
     return Response(
       requestOptions: RequestOptions(path: path),
       statusCode: 200,
-      data: {} as T,
+      data: <String, dynamic>{} as T,
     );
   }
 
@@ -90,7 +90,7 @@ class MockDio implements Dio {
     return Response(
       requestOptions: requestOptions,
       statusCode: 200,
-      data: {} as T,
+      data: <String, dynamic>{} as T,
     );
   }
 

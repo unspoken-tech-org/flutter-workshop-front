@@ -56,7 +56,10 @@ Dio _dioReturning(int status, String body, {String? contentType}) {
 void main() {
   group('ResponseValidation.ensureSuccess', () {
     test('retorna a resposta em 2xx', () async {
-      final response = await _dioReturning(201, '{"id": 1}').post('/x');
+      final response = await _dioReturning(
+        201,
+        '{"id": 1}',
+      ).post<dynamic>('/x');
 
       expect(response.ensureSuccess(), same(response));
     });
@@ -71,7 +74,10 @@ void main() {
             'code': 'BAD_REQUEST',
           },
         });
-        final response = await _dioReturning(400, body).post('/v1/payment');
+        final response = await _dioReturning(
+          400,
+          body,
+        ).post<dynamic>('/v1/payment');
 
         expect(
           () => response.ensureSuccess(),
@@ -95,7 +101,7 @@ void main() {
           429,
           'Too Many Requests',
           contentType: 'text/plain',
-        ).get('/v1/colors');
+        ).get<dynamic>('/v1/colors');
 
         expect(
           () => response.ensureSuccess(),
@@ -109,7 +115,10 @@ void main() {
     );
 
     test('404 sem corpo lança RequisitionException', () async {
-      final response = await _dioReturning(404, '').get('/v1/technician');
+      final response = await _dioReturning(
+        404,
+        '',
+      ).get<dynamic>('/v1/technician');
 
       expect(
         () => response.ensureSuccess(),

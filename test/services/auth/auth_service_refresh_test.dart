@@ -120,7 +120,7 @@ class _FakeDio implements Dio {
       return Response<T>(
         requestOptions: RequestOptions(path: path),
         statusCode: 200,
-        data: {} as T,
+        data: <String, dynamic>{} as T,
       );
     }
     final response = await handler(data);

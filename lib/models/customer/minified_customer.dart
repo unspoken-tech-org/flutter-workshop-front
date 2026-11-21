@@ -19,13 +19,13 @@ class MinifiedCustomerModel {
 
   factory MinifiedCustomerModel.fromJson(Map<String, dynamic> json) {
     return MinifiedCustomerModel(
-      customerId: json['id'],
-      name: json['name'],
-      createdAt: DateTime.parse(json['createdAt']),
-      cpf: json['cpf'],
-      mainPhone: json['mainPhone'] ?? '',
-      email: json['email'],
-      gender: json['gender'],
+      customerId: json['id'] as int,
+      name: json['name'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      cpf: json['cpf'] as String,
+      mainPhone: (json['mainPhone'] as String?) ?? '',
+      email: json['email'] as String?,
+      gender: json['gender'] as String,
     );
   }
 }

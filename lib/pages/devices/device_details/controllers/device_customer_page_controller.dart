@@ -156,7 +156,7 @@ class DeviceCustomerPageController extends ChangeNotifier {
     isSaving = true;
     notifyListeners();
     try {
-      DeviceCustomer response = await _deviceCustomerService
+      final DeviceCustomer response = await _deviceCustomerService
           .updateDeviceCustomer(current);
       deviceCustomer = response;
       _editingSnapshot = null;

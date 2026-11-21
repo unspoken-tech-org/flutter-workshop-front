@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
@@ -59,7 +61,7 @@ class _CustomerDeviceInfoHeaderWidgetState
             ),
             TextButton(
               onPressed: () {
-                onConfirm();
+                unawaited(onConfirm());
                 Navigator.pop(context);
               },
               child: const Text('Prosseguir'),

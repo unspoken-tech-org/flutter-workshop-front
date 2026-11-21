@@ -48,7 +48,8 @@ class _MultiSelectColorFieldState extends State<MultiSelectColorField> {
   final OverlayPortalController _overlayController = OverlayPortalController();
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  final GlobalKey<FormFieldState> _fieldKey = GlobalKey<FormFieldState>();
+  final GlobalKey<FormFieldState<List<ColorModel>>> _fieldKey =
+      GlobalKey<FormFieldState<List<ColorModel>>>();
 
   List<ColorModel> _suggestions = [];
   String _currentQuery = '';
@@ -102,16 +103,20 @@ class _MultiSelectColorFieldState extends State<MultiSelectColorField> {
     final currentOffset = _scrollController.offset;
 
     if (targetOffset + _kItemHeight > currentOffset + viewportHeight) {
-      _scrollController.animateTo(
-        targetOffset + _kItemHeight - viewportHeight,
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
+      unawaited(
+        _scrollController.animateTo(
+          targetOffset + _kItemHeight - viewportHeight,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+        ),
       );
     } else if (targetOffset < currentOffset) {
-      _scrollController.animateTo(
-        targetOffset,
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
+      unawaited(
+        _scrollController.animateTo(
+          targetOffset,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+        ),
       );
     }
   }
@@ -191,14 +196,14 @@ class _MultiSelectColorFieldState extends State<MultiSelectColorField> {
         return;
       }
       if (_currentQuery.isNotEmpty && _showCreateOption) {
-        _createColor(_currentQuery);
+        unawaited(_createColor(_currentQuery));
       }
       return;
     }
 
     if (_highlightedIndex >= _suggestions.length) {
       if (_showCreateOption) {
-        _createColor(_currentQuery);
+        unawaited(_createColor(_currentQuery));
       }
       return;
     }
@@ -386,7 +391,7 @@ class _MultiSelectColorFieldState extends State<MultiSelectColorField> {
       onTap: () {
         if (_currentQuery.isEmpty) return;
         setState(() => _highlightedIndex = -1);
-        _createColor(_currentQuery);
+        unawaited(_createColor(_currentQuery));
       },
       child: Container(
         color: isHighlighted ? Colors.grey.shade100 : null,

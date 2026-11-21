@@ -16,7 +16,7 @@ class CustomerRegisterController extends ChangeNotifier {
     try {
       isCreatingCustomer = true;
       notifyListeners();
-      var customer = await _customerRepository.createCustomer(newCustomer);
+      final customer = await _customerRepository.createCustomer(newCustomer);
       SnackBarUtil().showSuccess('Cliente cadastrado com sucesso');
       return customer.customerId;
     } on RequisitionException catch (e) {

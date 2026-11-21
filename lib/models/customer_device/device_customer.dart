@@ -75,47 +75,49 @@ class DeviceCustomer extends Equatable {
 
   factory DeviceCustomer.fromJson(Map<String, dynamic> json) {
     return DeviceCustomer(
-      deviceId: json['deviceId'],
-      customerId: json['customerId'],
-      customerName: json['customerName'],
-      deviceStatus: StatusEnum.fromDbName(json['deviceStatus']),
-      brandName: json['brandName'],
-      modelName: json['modelName'],
-      typeName: json['typeName'],
-      technicianId: json['technicianId'],
-      technicianName: json['technicianName'],
-      problem: json['problem'],
-      observation: json['observation'],
-      budget: json['budget'],
+      deviceId: json['deviceId'] as int,
+      customerId: json['customerId'] as int,
+      customerName: json['customerName'] as String,
+      deviceStatus: StatusEnum.fromDbName(json['deviceStatus'] as String),
+      brandName: json['brandName'] as String,
+      modelName: json['modelName'] as String,
+      typeName: json['typeName'] as String,
+      technicianId: json['technicianId'] as int?,
+      technicianName: json['technicianName'] as String?,
+      problem: json['problem'] as String,
+      observation: json['observation'] as String,
+      budget: json['budget'] as String?,
       serviceValue: json['serviceValue'] != null
           ? Money.fromJson(json['serviceValue'])
           : null,
       budgetFee: json['budgetFee'] != null
           ? Money.fromJson(json['budgetFee'])
           : null,
-      hasUrgency: json['hasUrgency'],
-      revision: json['revision'],
+      hasUrgency: json['hasUrgency'] as bool,
+      revision: json['revision'] as bool,
       deviceColors: (json['deviceColors'] as List<dynamic>)
           .map((e) => e.toString().capitalizeFirst)
           .toList(),
-      entryDate: DateTime.parse(json['entryDate']),
+      entryDate: DateTime.parse(json['entryDate'] as String),
       departureDate: json['departureDate'] != null
-          ? DateTime.parse(json['departureDate'])
+          ? DateTime.parse(json['departureDate'] as String)
           : null,
       lastUpdate: json['lastUpdate'] != null
-          ? DateTime.parse(json['lastUpdate'])
+          ? DateTime.parse(json['lastUpdate'] as String)
           : null,
       customerContacts: (json['customerContacts'] as List<dynamic>)
-          .map((e) => CustomerContact.fromJson(e))
+          .map((e) => CustomerContact.fromJson(e as Map<String, dynamic>))
           .toList(),
       customerPhones: (json['customerPhones'] as List<dynamic>)
-          .map((e) => CustomerPhones.fromJson(e))
+          .map((e) => CustomerPhones.fromJson(e as Map<String, dynamic>))
           .toList(),
       otherDevices: (json['otherDevices'] as List<dynamic>)
-          .map((e) => MinifiedCustomerDevice.fromJson(e))
+          .map(
+            (e) => MinifiedCustomerDevice.fromJson(e as Map<String, dynamic>),
+          )
           .toList(),
       payments: (json['payments'] as List<dynamic>)
-          .map((e) => CustomerDevicePayment.fromJson(e))
+          .map((e) => CustomerDevicePayment.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
   }
