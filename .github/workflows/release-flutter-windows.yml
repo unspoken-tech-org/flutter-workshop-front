@@ -61,11 +61,12 @@ jobs:
       - name: Build Windows Release
         run: flutter build windows --release --dart-define-from-file=.env-prd --build-name=${{ steps.get_version.outputs.VERSION }}
 
-      - name: Download and Install Inno Setup
+      - name: Install Inno Setup
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://jrsoftware.org/download.php/is.exe" -OutFile "innosetup-installer.exe"
-          Start-Process -FilePath "innosetup-installer.exe" -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
+          if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe") -and -not (Test-Path "C:\Program Files\Inno Setup 6\ISCC.exe") -and -not (Get-Command iscc -ErrorAction SilentlyContinue)) {
+            choco install innosetup -y --no-progress
+          }
 
       - name: Compile installer (Inno Setup)
         shell: pwsh
@@ -73,7 +74,9 @@ jobs:
           $setupScript = Get-Content installer\workshopApp.iss -Raw
           $setupScript = $setupScript -replace '#define MyAppVersion ".*"', "#define MyAppVersion `"${{ steps.get_version.outputs.VERSION }}`""
           Set-Content -Path installer\workshopApp.iss -Value $setupScript
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\workshopApp.iss
+          $iscc = @("C:\Program Files (x86)\Inno Setup 6\ISCC.exe", "C:\Program Files\Inno Setup 6\ISCC.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) { $iscc = (Get-Command iscc -ErrorAction Stop).Source }
+          & $iscc installer\workshopApp.iss
 
       - name: Extract release notes from annotated tag
         id: get_release_notes
