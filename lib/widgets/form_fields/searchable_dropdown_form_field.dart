@@ -57,6 +57,7 @@ class _SearchableDropdownFormFieldState<T>
   late final TextEditingController _controller;
   late final bool _ownsController;
   List<T> _suggestions = [];
+  String _currentQuery = '';
   bool _isSelected = false;
   int _highlightedIndex = -1;
   bool _ignoreNextFocusLoss = false;
@@ -79,8 +80,11 @@ class _SearchableDropdownFormFieldState<T>
     if (oldWidget.enabled && !widget.enabled) {
       setState(() {
         _isSelected = false;
+        _currentQuery = '';
+        _suggestions = [];
         _highlightedIndex = -1;
       });
+      _removeOverlay();
       _controller.clear();
     }
     if (widget._externalController != oldWidget._externalController) {
@@ -201,6 +205,7 @@ class _SearchableDropdownFormFieldState<T>
   }
 
   void _search(String query) {
+    _currentQuery = query;
     _highlightedIndex = -1;
     if (query.isEmpty) {
       setState(() => _suggestions = []);
@@ -211,15 +216,13 @@ class _SearchableDropdownFormFieldState<T>
     _debouncer.run(() async {
       try {
         final results = await widget.searchFn(query);
-        if (mounted) {
-          setState(() => _suggestions = results);
-          _updateOverlay();
-        }
+        if (!mounted || _currentQuery != query || _isSelected) return;
+        setState(() => _suggestions = results);
+        _updateOverlay();
       } catch (e) {
-        if (mounted) {
-          setState(() => _suggestions = []);
-          _removeOverlay();
-        }
+        if (!mounted || _currentQuery != query || _isSelected) return;
+        setState(() => _suggestions = []);
+        _removeOverlay();
       }
     });
   }
@@ -242,8 +245,11 @@ class _SearchableDropdownFormFieldState<T>
   void _clearSelection() {
     setState(() {
       _isSelected = false;
+      _currentQuery = '';
+      _suggestions = [];
       _controller.clear();
     });
+    _removeOverlay();
     widget.onClear?.call();
   }
 

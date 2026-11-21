@@ -40,30 +40,38 @@ class SearchDevicesController extends ChangeNotifier {
   int get totalElements => _totalElements;
   int _totalPages = 0;
   int get totalPages => _totalPages;
+  int _requestGeneration = 0;
 
   Future<void> searchDevices() async {
-    if (isLoading) return;
+    final generation = ++_requestGeneration;
     try {
       isLoading = true;
+      _isLoadingMore = false;
       _loadMoreFailed = false;
       _currentPage = 0;
       filter.page = _currentPage;
       devices = [];
       notifyListeners();
       await Future<void>.delayed(const Duration(milliseconds: 200));
+      if (generation != _requestGeneration) return;
       final Page<DeviceDataTable> result = await _allDevicesRepository
           .searchDevices(filter);
+      if (generation != _requestGeneration) return;
       devices = result.content;
       _totalElements = result.totalElements;
       _totalPages = result.totalPages;
       _hasMore = !result.last;
     } on RequisitionException catch (e) {
+      if (generation != _requestGeneration) return;
       SnackBarUtil().showError(e.message);
     } on Exception catch (_) {
+      if (generation != _requestGeneration) return;
       SnackBarUtil().showError("Erro ao buscar aparelhos");
     } finally {
-      isLoading = false;
-      notifyListeners();
+      if (generation == _requestGeneration) {
+        isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -147,8 +155,9 @@ class SearchDevicesController extends ChangeNotifier {
   }
 
   Future<void> loadMore() async {
-    if (_isLoadingMore || !_hasMore || _loadMoreFailed) return;
+    if (isLoading || _isLoadingMore || !_hasMore || _loadMoreFailed) return;
 
+    final generation = _requestGeneration;
     try {
       _isLoadingMore = true;
       _loadMoreFailed = false;
@@ -159,20 +168,25 @@ class SearchDevicesController extends ChangeNotifier {
 
       final Page<DeviceDataTable> result = await _allDevicesRepository
           .searchDevices(filter);
+      if (generation != _requestGeneration) return;
       devices.addAll(result.content);
       _totalPages = result.totalPages;
       _hasMore = !result.last;
     } on RequisitionException catch (e) {
+      if (generation != _requestGeneration) return;
       _currentPage--;
       _loadMoreFailed = true;
       SnackBarUtil().showError(e.message);
     } on Exception catch (_) {
+      if (generation != _requestGeneration) return;
       _currentPage--;
       _loadMoreFailed = true;
       SnackBarUtil().showError("Erro ao buscar mais aparelhos");
     } finally {
-      _isLoadingMore = false;
-      notifyListeners();
+      if (generation == _requestGeneration) {
+        _isLoadingMore = false;
+        notifyListeners();
+      }
     }
   }
 

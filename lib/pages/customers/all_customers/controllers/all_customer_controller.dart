@@ -36,15 +36,19 @@ class AllCustomerController extends ChangeNotifier {
   bool _loadMoreFailed = false;
   bool get loadMoreFailed => _loadMoreFailed;
 
+  int _requestGeneration = 0;
+
   AllCustomerController({CustomerRepository? customerRepository})
     : _customerRepository = customerRepository ?? CustomerRemoteDataSource() {
     unawaited(searchCustomers(null));
   }
 
   Future<void> searchCustomers(String? searchTerm) async {
+    final generation = ++_requestGeneration;
     _currentPage = 0;
     _hasMore = true;
     _loadMoreFailed = false;
+    _isLoadingMore = false;
 
     filter =
         CustomerSearchFilter.getCustomerSearchFilter(
@@ -54,29 +58,33 @@ class AllCustomerController extends ChangeNotifier {
         ) ??
         CustomerSearchFilter(page: _currentPage, size: _pageSize);
 
-    if (_isLoading) return;
     _isLoading = true;
     notifyListeners();
 
     try {
       final page = await _customerRepository.searchCustomers(filter);
+      if (generation != _requestGeneration) return;
       _customers = page.content;
       _currentPage = page.number;
       _totalElements = page.totalElements;
       _hasMore = !page.last;
     } catch (e) {
+      if (generation != _requestGeneration) return;
       SnackBarUtil().showError('Erro ao buscar clientes. Tente novamente.');
       _customers = [];
       _hasMore = false;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (generation == _requestGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   Future<void> loadMore() async {
-    if (_isLoadingMore || !_hasMore || _loadMoreFailed) return;
+    if (_isLoading || _isLoadingMore || !_hasMore || _loadMoreFailed) return;
 
+    final generation = _requestGeneration;
     try {
       _isLoadingMore = true;
       _loadMoreFailed = false;
@@ -89,20 +97,25 @@ class AllCustomerController extends ChangeNotifier {
 
       final Page<MinifiedCustomerModel> result = await _customerRepository
           .searchCustomers(filter);
+      if (generation != _requestGeneration) return;
       _customers.addAll(result.content);
       _totalElements = result.totalElements;
       _hasMore = !result.last;
     } on RequisitionException catch (e) {
+      if (generation != _requestGeneration) return;
       _currentPage--;
       _loadMoreFailed = true;
       SnackBarUtil().showError(e.message);
     } on Exception catch (_) {
+      if (generation != _requestGeneration) return;
       _currentPage--;
       _loadMoreFailed = true;
       SnackBarUtil().showError("Erro ao buscar mais clientes");
     } finally {
-      _isLoadingMore = false;
-      notifyListeners();
+      if (generation == _requestGeneration) {
+        _isLoadingMore = false;
+        notifyListeners();
+      }
     }
   }
 

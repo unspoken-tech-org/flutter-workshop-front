@@ -244,15 +244,13 @@ class _TypeBrandModelAutocompleteFormFieldState<T extends ITypeBrandModelColor>
     _debouncer.run(() async {
       try {
         final results = await widget.searchFn(query);
-        if (mounted) {
-          setState(() => _suggestions = results);
-          _updateOverlay();
-        }
+        if (!mounted || _currentQuery != query || _isSelected) return;
+        setState(() => _suggestions = results);
+        _updateOverlay();
       } catch (e) {
-        if (mounted) {
-          setState(() => _suggestions = []);
-          _removeOverlay();
-        }
+        if (!mounted || _currentQuery != query || _isSelected) return;
+        setState(() => _suggestions = []);
+        _removeOverlay();
       }
     });
   }
@@ -275,8 +273,11 @@ class _TypeBrandModelAutocompleteFormFieldState<T extends ITypeBrandModelColor>
   void _clearSelection() {
     setState(() {
       _isSelected = false;
+      _currentQuery = '';
+      _suggestions = [];
       _controller.clear();
     });
+    _removeOverlay();
     widget.onClear?.call();
   }
 

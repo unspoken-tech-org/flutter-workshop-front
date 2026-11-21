@@ -98,7 +98,7 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
                     child: SingleChildScrollView(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        children: StatusEnum.values.map((status) {
+                        children: StatusEnum.selectableValues.map((status) {
                           final (backgroundColor, borderColor, textColor) =
                               status.colors;
                           return TextButton(
