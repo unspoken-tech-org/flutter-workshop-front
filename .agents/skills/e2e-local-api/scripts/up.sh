@@ -19,11 +19,18 @@ umask 077
 chmod 755 "$STATE/secrets"; chmod 644 "$STATE/secrets/dbpass" "$STATE/secrets/apikey"
 umask 022
 
+API_HEAD=$(git -C "$API_REPO" rev-parse HEAD)
+EXISTING_HEAD=$(docker image inspect --format '{{index .Config.Labels "e2e.api.head"}}' "$PREFIX-api:local" 2>/dev/null || true)
+
 echo "[e2e] copiando HEAD da API (git archive, sem tocar o checkout)"
 git -C "$API_REPO" archive HEAD | tar -x -C "$STATE/api-src"
 
-echo "[e2e] build da imagem $PREFIX-api:local (alguns minutos na 1a vez)"
-docker build -q -t "$PREFIX-api:local" -f "$STATE/api-src/apps/api/docker/Dockerfile" "$STATE/api-src" >/dev/null
+if [ "${E2E_REBUILD:-0}" != "1" ] && [ "$EXISTING_HEAD" = "$API_HEAD" ]; then
+  echo "[e2e] reutilizando imagem $PREFIX-api:local (HEAD ${API_HEAD:0:7}; use E2E_REBUILD=1 para rebuild)"
+else
+  echo "[e2e] build da imagem $PREFIX-api:local (alguns minutos na 1a vez)"
+  docker build -q --label "e2e.api.head=$API_HEAD" -t "$PREFIX-api:local" -f "$STATE/api-src/apps/api/docker/Dockerfile" "$STATE/api-src" >/dev/null
+fi
 
 docker network inspect "$PREFIX-net" >/dev/null 2>&1 || docker network create "$PREFIX-net" >/dev/null
 

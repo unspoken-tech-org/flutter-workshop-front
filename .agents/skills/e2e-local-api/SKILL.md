@@ -21,7 +21,7 @@ SKILL=<dir desta skill>; STATE=<scratchpad>/e2e
 bash $SKILL/scripts/up.sh /home/ornelas/Documentos/repositorios/workshop-fe-be/workshop_rest_api $STATE
 ```
 O que o script faz:
-- **Código da API:** `git archive HEAD` copiado para `$STATE/api-src`, e o build da imagem `e2e-local-api:local` sai dessa cópia. Para testar outro branch da API, troque `HEAD` no script.
+- **Código da API:** `git archive HEAD` copiado para `$STATE/api-src`, e o build da imagem `e2e-local-api:local` sai dessa cópia (reutilizada automaticamente enquanto o `HEAD` da API não mudar; passe `E2E_REBUILD=1` para forçar rebuild). Para testar outro branch da API, troque `HEAD` no script.
 - **Banco:** Postgres `16.15-alpine3.24` em tmpfs. Sem `--user`, porque com ele o initdb falha.
 - **API:** perfil `qa`. A senha do banco entra via configtree e as chaves JWT de dev do repo ficam em `/app/config/qa_keys`.
 - **Seed:** a API key sintética vem do `seed.sql` do projeto (role ADMIN). Os dados de referência vêm de `scripts/seed_reference.sql`: 1 técnico, tipo/marca/modelo, cor, cliente com telefone e o aparelho #1 com status `NOVO`.
@@ -39,12 +39,16 @@ Escolha da plataforma: Linux desktop é suportado, mas **web** é mais fácil de
 WP=$(python3 -c "import socket;s=socket.socket();s.bind(('127.0.0.1',0));print(s.getsockname()[1])")
 flutter run -d web-server --web-hostname 127.0.0.1 --web-port $WP --dart-define-from-file=$STATE/test.env   # em background
 ```
-- Espere `Quit (terminate` aparecer no log antes de abrir `http://127.0.0.1:$WP` com `preview_start`.
-- Com `test.env` (sem chave), o app abre em `/setup`. Use para testar uma chave inválida, digitando um valor falso.
+- Espere `Quit (terminate` aparecer no log antes de abrir `http://127.0.0.1:$WP` no navegador (via subagente `browser` ou `preview_start`).
+- Com `test.env` (sem chave), o app abre em `/setup`. Use para testar uma chave inválida (ou com espaços nas pontas para validar `trim()`), digitando o valor no campo.
 - Com `test-auth.env`, o app autentica sozinho em debug. Para trocar de env, encerre o `flutter run`: mate o processo cujo `ps -eo pid,args` contém `web-port $WP`, filtrando com awk e `[w]eb-port` para não pegar o próprio shell. Depois rode de novo.
-- Para ter mais área útil, use `resize_window` com 1280×900 e devolva `preset: desktop` no fim.
+- **Viewports obrigatórios:** valide em desktop (`1280×900` ou `1440×900`) **e** em viewport compacto (`1024×700`) — usando `resize_window` ou redimensionamento no subagente `browser`, e devolvendo `preset: desktop` ao fim se aplicável. No viewport compacto, confira explicitamente:
+  - menus/overlays (ex.: `DeviceStatusChip`) inteiramente visíveis dentro da tela sem cortar à direita ou embaixo;
+  - campos de data/moeda sem truncamento crítico;
+  - FAB e botões flutuantes sem cobrir controles ou totais;
+  - zero `RenderFlex overflow` no console.
 
-### Particularidades do navegador embutido com Flutter web
+### Particularidades do navegador com Flutter web
 - **O screenshot pode mostrar o frame anterior.** Espere 1–2 s ou faça um `hover` antes de capturar de novo.
 - **Autocomplete exige passo a passo:** clique, espera, digitação, espera, screenshot e clique na sugestão. Em lote rápido, os eventos se perdem.
 - **O primeiro clique num botão às vezes só tira o foco** do campo; confira e clique de novo.
@@ -54,7 +58,7 @@ flutter run -d web-server --web-hostname 127.0.0.1 --web-port $WP --dart-define-
   const f=(ty,b)=>t.dispatchEvent(new PointerEvent(ty,{bubbles:true,clientX:x,clientY:y,pointerId:1,pointerType:'mouse',button:0,buttons:b,isPrimary:true}));
   f('pointerdown',1);await sl(60);f('pointerup',0);await sl(120);f('pointerdown',1);await sl(60);f('pointerup',0);
   ```
-- **Evidência no console:** `read_console_messages` com `pattern` (substring, não regex). Use `AuthDebug` e `GlobalError` para auth, e `EXCEPTION` ou `setState` para asserts de widget.
+- **Evidência no console:** capture mensagens do console (`read_console_messages` com `pattern` substring, ou console do Playwright/browser). Use `AuthDebug` e `GlobalError` para auth, e `EXCEPTION` ou `setState` para asserts de widget.
 
 ## 3. Injetar falhas
 ```bash
@@ -72,20 +76,29 @@ bash $SKILL/scripts/api_restart.sh $STATE up     # religa a API e reaponta o pro
 - **`$STATE/proxy.log`:** método, caminho, status e modo de cada requisição, sem headers nem corpo. Prova o que foi enviado e o que voltou.
 - **Banco**, para confirmar persistência ou rejeição:
   `docker exec e2e-local-db psql -U workshop_synthetic -d workshop_synthetic -tAc "select ... from devices where id=N"`
-- **Corpo de uma resposta:** `read_network_requests` com `urlPattern` e depois `requestId`.
+- **Corpo de uma resposta:** inspecione as requisições de rede (via `read_network_requests` ou rede do Playwright/browser).
 - **Screenshot** de cada passo/falha, e console para exceções.
 - Monte o relatório por cenário: passou/falhou, a evidência e, quando algo não pôde ser testado, o motivo e como validar depois.
 
 ## Cenários de referência
-- **Setup com chave inválida:** espera 401 → erro no campo, continua em `/setup`.
-- **Pagamento rejeitado:**
-  - A API exige `receivedBy`, embora a UI diga "Opcional".
-  - Data futura é rejeitada em `PaymentService`.
-  - Esperado: erro com a mensagem da API, diálogo aberto e nenhuma linha em `payments`.
-- **Orçamento:**
+- **Setup:**
+  - Chave inválida: espera 401 → erro no campo, continua em `/setup`.
+  - Chave válida com espaços/quebras nas pontas: deve fazer `trim()` e autenticar com 200 → `/home`.
+- **Pagamento (validação e rejeição):**
+  - `"Recebido por"` é obrigatório na UI (sem `"Opcional"`) e bloqueia envio vazio.
+  - Data futura é bloqueada no `CustomDateFormField` (dias futuros desabilitados no picker).
+  - Erro da API (ex.: modo de falha ou validação backend): exibe toast **acima** do diálogo, mantém diálogo aberto e nenhuma linha em `payments`.
+- **Orçamento e `"Valor a ser pago"`:**
   - No cadastro, "Valor Orçamento" vai para `budget_fee`; na edição, "Valor do serviço" vai para `service_value`.
   - "1.500,00" deve virar `1500.00`. Campo vazio deve virar `0.00`, sem erro.
+  - Em edição, alterar o rascunho de `Valor do serviço` sem salvar não altera `"Valor a ser pago"` no card `Pagamentos` (mostra só o valor persistido).
+- **Aparelho (`Status chip` e `departureDate`):**
+  - `DeviceStatusChip` abre o menu por **clique/toque** (sem depender de hover) e mantém todas as opções visíveis no viewport.
+  - Limpar `Data de saída` e salvar persiste `departure_date = NULL` no banco.
+- **Cliente com `gender` legado (`MALE`/`FEMALE`):**
+  - Abrir o cliente do `seed_reference.sql` (`gender = 'MALE'`): o dropdown exibe `"Masculino"` sem assertion.
 - **Contato "Realizado":** `has_made_contact=t`. A edição abre com duplo clique no card (use o JS acima) e deve vir preenchida.
+- **Toast acima de modal:** provocar erro com diálogo de contato ou pagamento aberto e confirmar que o toast do `SnackBarUtil` fica visível sobre o diálogo.
 - **Rascunho da edição do aparelho:**
   - Urgência e status salvam na hora (PUT), mas o texto digitado não pode sumir.
   - Com a API parada, Salvar deve mostrar erro e manter a edição.
@@ -99,6 +112,6 @@ bash $SKILL/scripts/api_restart.sh $STATE up     # religa a API e reaponta o pro
 ```bash
 bash $SKILL/scripts/down.sh $STATE
 ```
-- Pare também o `flutter run` e o browser preview (`preview_list` → `preview_stop`).
+- Pare também o `flutter run` e a sessão do navegador (`preview_list` → `preview_stop`, se aplicável).
 - O script remove containers, rede, imagem `e2e-local-api:local`, segredos e envs. Mantém `proxy.log` como evidência.
 - A imagem do Postgres fica, porque pode ser compartilhada.
