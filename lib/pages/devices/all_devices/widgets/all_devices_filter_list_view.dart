@@ -156,7 +156,7 @@ class AllDevicesFilterListView extends StatelessWidget {
               Selector<AllDevicesController, DeviceFilter>(
                 selector: (context, controller) => controller.filter,
                 builder: (context, filter, _) {
-                  final statusNames = StatusEnum.values
+                  final statusNames = StatusEnum.selectableValues
                       .map((e) => e.displayName)
                       .toList();
 
@@ -168,11 +168,12 @@ class AllDevicesFilterListView extends StatelessWidget {
                       items: statusNames,
                       onChanged: (value) {
                         if (value == null) return;
-                        final status = StatusEnum.values.firstWhereOrNull(
-                          (e) =>
-                              e.displayName.toLowerCase() ==
-                              value.toLowerCase(),
-                        );
+                        final status = StatusEnum.selectableValues
+                            .firstWhereOrNull(
+                              (e) =>
+                                  e.displayName.toLowerCase() ==
+                                  value.toLowerCase(),
+                            );
                         if (status != null) {
                           controller.addRemoveStatus(status);
                         }

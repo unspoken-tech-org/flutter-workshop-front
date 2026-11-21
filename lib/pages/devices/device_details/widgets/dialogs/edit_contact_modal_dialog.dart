@@ -238,12 +238,19 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                   CustomDropdownButtonFormField(
                                     headerLabel: 'Status do aparelho',
                                     initialValue:
-                                        widget.contact.deviceStatus.displayName,
-                                    items: StatusEnum.values
+                                        widget.contact.deviceStatus ==
+                                            StatusEnum.unknown
+                                        ? null
+                                        : widget
+                                              .contact
+                                              .deviceStatus
+                                              .displayName,
+                                    items: StatusEnum.selectableValues
                                         .map((e) => e.displayName)
                                         .toList(),
                                     onSave: (value) {
-                                      final statusValue = StatusEnum.values
+                                      final statusValue = StatusEnum
+                                          .selectableValues
                                           .firstWhereOrNull(
                                             (e) => e.displayName == value,
                                           );

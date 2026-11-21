@@ -271,13 +271,13 @@ void main() {
   });
 
   // -------------------------------------------------------------------------
-  group('AllDevicesController — guard de listagem', () {
+  group('AllDevicesController — geração de listagem e guard de filtros', () {
     // O construtor chama fetchAllDevicesFiltering() fire-and-forget.
-    // A parte síncrona do método define isLoading = true antes do primeiro
-    // await, portanto isLoading já é true logo após a construção do controller.
+    // Uma nova chamada a fetchAllDevicesFiltering() durante isLoading=true
+    // NÃO deve ser descartada (ela incrementa a geração e invalida a anterior).
 
     test(
-      'fetchAllDevicesFiltering não executa nova chamada quando isLoading=true',
+      'fetchAllDevicesFiltering não descarta nova chamada quando isLoading=true e invalida chamada anterior',
       () async {
         final repo = _BlockingAllDevicesRepository();
         final controller = AllDevicesController(repo);
@@ -287,9 +287,16 @@ void main() {
         // getAllDevicesFiltering ainda não foi chamado (está atrás do Future.delayed)
         expect(repo.filteringCalls, 0);
 
-        await controller.fetchAllDevicesFiltering(); // guard dispara
+        // Nova chamada enquanto a primeira está no Future.delayed(200ms)
+        final secondCall = controller.fetchAllDevicesFiltering();
+        expect(controller.isLoading, true);
 
-        expect(repo.filteringCalls, 0); // nenhuma nova chamada
+        // Aguarda o debounce de 200ms: apenas a geração mais nova chega ao repo
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+        expect(repo.filteringCalls, 1);
+
+        // Não aguardamos secondCall porque _BlockingAllDevicesRepository nunca completa
+        unawaited(secondCall);
       },
     );
 

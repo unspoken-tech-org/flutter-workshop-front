@@ -8,14 +8,22 @@ enum StatusEnum {
   approved(displayName: 'Aprovado', dbName: 'APROVADO'),
   notApproved(displayName: 'Não aprovado', dbName: 'NAO_APROVADO'),
   disposed(displayName: 'Descartado', dbName: 'DESCARTADO'),
-  ready(displayName: 'Pronto', dbName: 'PRONTO');
+  ready(displayName: 'Pronto', dbName: 'PRONTO'),
+  unknown(displayName: 'Desconhecido', dbName: 'DESCONHECIDO');
 
   final String dbName;
   final String displayName;
 
   const StatusEnum({required this.dbName, required this.displayName});
 
-  static StatusEnum fromDbName(String dbName) {
+  static List<StatusEnum> get selectableValues =>
+      values.where((s) => s != unknown).toList(growable: false);
+
+  static StatusEnum fromDbName(String? dbName) {
+    if (dbName == null) {
+      debugPrint('Unknown device status: null');
+      return StatusEnum.unknown;
+    }
     switch (dbName.toUpperCase()) {
       case 'EM_ANDAMENTO':
         return StatusEnum.inProgress;
@@ -34,7 +42,8 @@ enum StatusEnum {
       case 'NAO_APROVADO':
         return StatusEnum.notApproved;
       default:
-        throw Exception('Status not found');
+        debugPrint('Unknown device status: $dbName');
+        return StatusEnum.unknown;
     }
   }
 }
@@ -81,6 +90,11 @@ extension StatusEnumExtension on StatusEnum {
           Colors.red.shade100,
           Colors.red.shade200,
           Colors.red.shade800,
+        ),
+        StatusEnum.unknown => (
+          Colors.grey.shade100,
+          Colors.grey.shade300,
+          Colors.grey.shade800,
         ),
       };
 }

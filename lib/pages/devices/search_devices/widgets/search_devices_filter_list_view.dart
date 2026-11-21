@@ -71,7 +71,7 @@ class SearchDevicesFilterListView extends StatelessWidget {
                       .map((e) => DateFormat('dd/MM/yyyy').format(e))
                       .join(' - ');
 
-              final statusNames = StatusEnum.values
+              final statusNames = StatusEnum.selectableValues
                   .map((e) => e.displayName)
                   .toList();
 
@@ -104,11 +104,12 @@ class SearchDevicesFilterListView extends StatelessWidget {
                       items: statusNames,
                       onChanged: (value) {
                         if (value == null) return;
-                        final status = StatusEnum.values.firstWhereOrNull(
-                          (e) =>
-                              e.displayName.toLowerCase() ==
-                              value.toLowerCase(),
-                        );
+                        final status = StatusEnum.selectableValues
+                            .firstWhereOrNull(
+                              (e) =>
+                                  e.displayName.toLowerCase() ==
+                                  value.toLowerCase(),
+                            );
                         if (status != null) {
                           controller.addRemoveStatus(status);
                         }

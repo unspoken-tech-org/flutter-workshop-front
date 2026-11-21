@@ -167,11 +167,12 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
                                     headerLabel: 'Status do aparelho',
-                                    items: StatusEnum.values
+                                    items: StatusEnum.selectableValues
                                         .map((e) => e.displayName)
                                         .toList(),
                                     onSave: (value) {
-                                      final statusValue = StatusEnum.values
+                                      final statusValue = StatusEnum
+                                          .selectableValues
                                           .firstWhereOrNull(
                                             (e) => e.displayName == value,
                                           );
