@@ -151,6 +151,8 @@ class DeviceCustomer extends Equatable {
     );
   }
 
+  static const Object _unset = Object();
+
   DeviceCustomer copyWith({
     int? deviceId,
     int? customerId,
@@ -171,7 +173,7 @@ class DeviceCustomer extends Equatable {
     bool? revision,
     List<String>? deviceColors,
     DateTime? entryDate,
-    DateTime? departureDate,
+    Object? departureDate = _unset,
     DateTime? lastUpdate,
     List<CustomerContact>? customerContacts,
     List<CustomerPhones>? customerPhones,
@@ -197,7 +199,9 @@ class DeviceCustomer extends Equatable {
       revision: revision ?? this.revision,
       deviceColors: deviceColors ?? this.deviceColors,
       entryDate: entryDate ?? this.entryDate,
-      departureDate: departureDate ?? this.departureDate,
+      departureDate: identical(departureDate, _unset)
+          ? this.departureDate
+          : departureDate as DateTime?,
       lastUpdate: lastUpdate ?? this.lastUpdate,
       customerContacts: customerContacts ?? this.customerContacts,
       customerPhones: customerPhones ?? this.customerPhones,

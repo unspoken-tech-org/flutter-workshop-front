@@ -23,7 +23,8 @@ class SetupController extends ChangeNotifier {
 
   Future<bool> authenticate(String apiKey) async {
     if (isLoading) return false;
-    if (apiKey.trim().isEmpty) {
+    final trimmedKey = apiKey.trim();
+    if (trimmedKey.isEmpty) {
       errorMessage = 'A API Key não pode estar vazia.';
       isSuccess = false;
       notifyListeners();
@@ -36,7 +37,7 @@ class SetupController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _authService.authenticate(apiKey);
+      await _authService.authenticate(trimmedKey);
       isSuccess = true;
       return true;
     } on RequisitionException catch (e) {

@@ -17,6 +17,7 @@ class CustomDateFormField extends StatefulWidget {
   final String? Function(String? value)? validator;
   final bool enabled;
   final int errorMaxLines;
+  final bool allowFutureDates;
 
   const CustomDateFormField({
     super.key,
@@ -32,6 +33,7 @@ class CustomDateFormField extends StatefulWidget {
     this.onClear,
     this.enabled = true,
     this.errorMaxLines = 1,
+    this.allowFutureDates = false,
   });
 
   @override
@@ -127,11 +129,13 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
           onTap: () async {
             if (!widget.enabled) return;
             if (widget.datePickerType == DatePickerType.single) {
+              final now = DateTime.now();
+              final lastDate = widget.allowFutureDates ? DateTime(2100) : now;
               final date = await showDatePicker(
                 context: context,
-                initialDate: DateTime.now(),
+                initialDate: now.isAfter(lastDate) ? lastDate : now,
                 firstDate: DateTime(2000),
-                lastDate: DateTime(2100),
+                lastDate: lastDate,
               );
               if (date != null) {
                 dateController.text = DateFormat('dd/MM/yyyy').format(date);
@@ -139,11 +143,15 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
                 setState(() {});
               }
             } else {
+              final lastDate = widget.allowFutureDates
+                  ? DateTime(2100)
+                  : DateTime.now();
               final date = await showCalendarDatePicker2Dialog(
                 context: context,
                 dialogSize: const Size(400, 400),
                 config: CalendarDatePicker2WithActionButtonsConfig(
                   calendarType: CalendarDatePicker2Type.range,
+                  lastDate: lastDate,
                 ),
               );
               if (date != null) {

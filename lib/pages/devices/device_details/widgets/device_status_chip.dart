@@ -27,6 +27,14 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
   }
 
   @override
+  void didUpdateWidget(DeviceStatusChip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.status != oldWidget.status) {
+      currentStatus = widget.status;
+    }
+  }
+
+  @override
   void dispose() {
     _onExitOverlayTimer?.cancel();
     _removeOverlay();
@@ -40,6 +48,14 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
     });
   }
 
+  void _toggleOverlay(BuildContext context) {
+    if (_overlayEntry != null) {
+      _removeOverlay();
+    } else {
+      _showOverlay(context);
+    }
+  }
+
   void _showOverlay(BuildContext context) {
     _onExitOverlayTimer?.cancel();
 
@@ -49,71 +65,87 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
 
     _overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        width: 220,
+        width: 240,
         child: CompositedTransformFollower(
           link: _layerLink,
-          offset: const Offset(0, 30),
-          child: MouseRegion(
-            onEnter: (_) {
-              _onExitOverlayTimer?.cancel();
-            },
-            onExit: (_) {
-              _startOnExitOverlayTimer();
-            },
-            child: Material(
-              elevation: 4,
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 8,
-                  horizontal: 16,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: StatusEnum.values.map((status) {
-                    final (backgroundColor, borderColor, textColor) =
-                        status.colors;
-                    return TextButton(
-                      onPressed: () {
-                        _onExitOverlayTimer?.cancel();
-                        widget.onSelect?.call(status);
-                        setState(() {
-                          currentStatus = status;
-                        });
-                        _removeOverlay();
-                      },
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        overlayColor: Colors.transparent,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: textColor,
-                              shape: BoxShape.circle,
+          targetAnchor: Alignment.bottomRight,
+          followerAnchor: Alignment.topRight,
+          offset: const Offset(0, 6),
+          child: TapRegion(
+            onTapOutside: (_) => _removeOverlay(),
+            child: MouseRegion(
+              onEnter: (_) {
+                _onExitOverlayTimer?.cancel();
+              },
+              onExit: (_) {
+                _startOnExitOverlayTimer();
+              },
+              child: Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 260),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: StatusEnum.values.map((status) {
+                          final (backgroundColor, borderColor, textColor) =
+                              status.colors;
+                          return TextButton(
+                            onPressed: () {
+                              _onExitOverlayTimer?.cancel();
+                              widget.onSelect?.call(status);
+                              setState(() {
+                                currentStatus = status;
+                              });
+                              _removeOverlay();
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 4,
+                              ),
+                              minimumSize: Size.zero,
+                              visualDensity: VisualDensity.compact,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              overlayColor: Colors.transparent,
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            status.displayName,
-                            style: WsTextStyles.body2.copyWith(
-                              color: textColor,
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: textColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    status.displayName,
+                                    style: WsTextStyles.body2.copyWith(
+                                      color: textColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
+                          );
+                        }).toList(),
                       ),
-                    );
-                  }).toList(),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -138,18 +170,28 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
       onExit: (_) => _startOnExitOverlayTimer(),
       child: CompositedTransformTarget(
         link: _layerLink,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            border: Border.all(color: borderColor),
+        child: Semantics(
+          button: true,
+          label: 'Alterar status do aparelho (${currentStatus.displayName})',
+          child: InkWell(
             borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(
-            currentStatus.displayName,
-            style: WsTextStyles.body2.copyWith(
-              color: textColor,
-              fontWeight: FontWeight.w700,
+            onTap: widget.onSelect == null
+                ? null
+                : () => _toggleOverlay(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                border: Border.all(color: borderColor),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                currentStatus.displayName,
+                style: WsTextStyles.body2.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ),
         ),

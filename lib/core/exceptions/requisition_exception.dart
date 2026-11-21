@@ -5,9 +5,13 @@ class RequisitionException implements Exception {
   RequisitionException(this.message, this.code);
 
   factory RequisitionException.fromJson(Map<String, dynamic> json) {
+    final message = json['message'];
+    final code = json['code'];
     return RequisitionException(
-      json['message'] as String,
-      json['code'] as String,
+      message is String && message.isNotEmpty
+          ? message
+          : 'Erro na requisição. Tente novamente.',
+      code?.toString() ?? '',
     );
   }
 

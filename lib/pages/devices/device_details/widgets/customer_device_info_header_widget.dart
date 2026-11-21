@@ -141,7 +141,6 @@ class _CustomerDeviceInfoHeaderWidgetState
                             },
                     ),
                     DeviceStatusChip(
-                      key: GlobalKey(),
                       status: deviceCustomer.deviceStatus,
                       onSelect: isUpdating
                           ? null

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class SnackBarUtil {
@@ -7,8 +9,13 @@ class SnackBarUtil {
 
   final GlobalKey<ScaffoldMessengerState> _scaffoldKey =
       GlobalKey<ScaffoldMessengerState>();
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   GlobalKey<ScaffoldMessengerState> get scaffoldKey => _scaffoldKey;
+  GlobalKey<NavigatorState> get navigatorKey => _navigatorKey;
+
+  OverlayEntry? _activeOverlayEntry;
+  Timer? _overlayTimer;
 
   static const _animationStyle = AnimationStyle(
     curve: Curves.easeOut,
@@ -54,6 +61,41 @@ class SnackBarUtil {
     required Color backgroundColor,
     required Color textColor,
   }) {
+    final overlay = _navigatorKey.currentState?.overlay;
+    if (overlay != null) {
+      _removeActiveOverlay();
+      final entry = OverlayEntry(
+        builder: (context) => Positioned(
+          left: 16,
+          right: 16,
+          bottom: 24,
+          child: Center(
+            child: Material(
+              color: Colors.transparent,
+              elevation: 6,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 340),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: backgroundColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(message, style: TextStyle(color: textColor)),
+              ),
+            ),
+          ),
+        ),
+      );
+      _activeOverlayEntry = entry;
+      overlay.insert(entry);
+      _overlayTimer = Timer(const Duration(seconds: 3), _removeActiveOverlay);
+      return;
+    }
+
     final snackBar = SnackBar(
       content: Text(message, style: TextStyle(color: textColor)),
       width: 300,
@@ -68,5 +110,12 @@ class SnackBarUtil {
       snackBar,
       snackBarAnimationStyle: _animationStyle,
     );
+  }
+
+  void _removeActiveOverlay() {
+    _overlayTimer?.cancel();
+    _overlayTimer = null;
+    _activeOverlayEntry?.remove();
+    _activeOverlayEntry = null;
   }
 }
