@@ -42,7 +42,9 @@ class _HomePageState extends State<HomePage> {
       if (!mounted) return;
 
       await UpdateDialog.show(context, updateInfo, updateService);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[HomePage] Failed to check for updates: $e');
+    }
   }
 
   @override

@@ -14,6 +14,8 @@ class CustomerDetailController extends ChangeNotifier {
   CustomerModel? _customer;
   CustomerModel? get customer => _customer;
 
+  String? errorMessage;
+
   bool isLoading = false;
 
   bool _isEditing = false;
@@ -30,12 +32,17 @@ class CustomerDetailController extends ChangeNotifier {
   Future<void> fetchCustomer(int customerId) async {
     if (isLoading) return;
     isLoading = true;
+    errorMessage = null;
     notifyListeners();
     try {
       final result = await _customerRepository.getCustomer(customerId);
       _customer = result;
+    } on RequisitionException catch (e) {
+      errorMessage = e.message;
+      _snackBarUtil.showError(e.message);
     } catch (e) {
-      _snackBarUtil.showError('Erro ao buscar cliente: $e');
+      errorMessage = 'Erro ao buscar cliente. Tente novamente.';
+      _snackBarUtil.showError(errorMessage!);
     } finally {
       isLoading = false;
       notifyListeners();

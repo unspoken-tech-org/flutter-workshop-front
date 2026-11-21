@@ -98,6 +98,11 @@ class DeviceCustomerPageController extends ChangeNotifier {
 
   DeviceCustomer? _editingSnapshot;
 
+  /// Retorna o aparelho com os valores persistidos no servidor, ignorando
+  /// alterações de rascunho enquanto uma edição estiver em andamento.
+  DeviceCustomer? get persistedDeviceCustomer =>
+      _editingSnapshot ?? deviceCustomer;
+
   void updateNewDeviceCustomer(DeviceCustomer newDeviceCustomer) {
     deviceCustomer = newDeviceCustomer;
   }
@@ -285,19 +290,22 @@ class DeviceCustomerPageController extends ChangeNotifier {
       isCreatingPayment = true;
       notifyListeners();
       await _paymentService.createPayment(payment);
-      deviceCustomer = current.copyWith(
-        payments: [
-          ...current.payments,
-          CustomerDevicePayment(
-            paymentId: 0,
-            paymentValue: payment.value,
-            paymentDate: payment.paymentDate!,
-            paymentType: payment.paymentType!,
-            category: payment.category!,
-            receivedBy: payment.receivedBy,
-          ),
-        ],
+      final newPayment = CustomerDevicePayment(
+        paymentId: 0,
+        paymentValue: payment.value,
+        paymentDate: payment.paymentDate!,
+        paymentType: payment.paymentType!,
+        category: payment.category!,
+        receivedBy: payment.receivedBy,
       );
+      deviceCustomer = current.copyWith(
+        payments: [...current.payments, newPayment],
+      );
+      if (_editingSnapshot != null) {
+        _editingSnapshot = _editingSnapshot!.copyWith(
+          payments: [..._editingSnapshot!.payments, newPayment],
+        );
+      }
       SnackBarUtil().showSuccess('Pagamento criado com sucesso');
     } on RequisitionException catch (e) {
       SnackBarUtil().showError(e.message);

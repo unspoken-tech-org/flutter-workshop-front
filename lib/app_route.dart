@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
+import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 import 'package:flutter_workshop_front/models/device/device_filter.dart';
 import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
 import 'package:flutter_workshop_front/pages/bootstrap_error/bootstrap_error_page.dart';
@@ -40,6 +41,7 @@ GoRouter buildRouter(
   @visibleForTesting List<RouteBase>? routesOverride,
 }) {
   return GoRouter(
+    navigatorKey: SnackBarUtil().navigatorKey,
     initialLocation: HomePage.route,
     routes: routesOverride ?? _routes,
     refreshListenable: authNotifier,

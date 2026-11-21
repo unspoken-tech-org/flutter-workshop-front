@@ -54,6 +54,29 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                     }
                     final controller = context.read<CustomerDetailController>();
                     if (controller.customer == null) {
+                      if (controller.errorMessage != null) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 32),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              EmptyListWidget(
+                                message: controller.errorMessage!,
+                              ),
+                              const SizedBox(height: 12),
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  unawaited(
+                                    controller.fetchCustomer(widget.customerId),
+                                  );
+                                },
+                                icon: const Icon(Icons.refresh),
+                                label: const Text('Tentar novamente'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
                       return const EmptyListWidget(
                         message: 'Nenhum cliente encontrado.',
                       );

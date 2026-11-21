@@ -176,6 +176,9 @@ class DeviceRegisterController extends ChangeNotifier {
 
       SnackBarUtil().showSuccess('Dispositivo criado com sucesso');
       return deviceCustomer.deviceId;
+    } on RequisitionException catch (e) {
+      SnackBarUtil().showError(e.message);
+      return null;
     } catch (e) {
       SnackBarUtil().showError('Erro ao criar dispositivo');
       return null;

@@ -200,7 +200,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
               const SizedBox(height: 16),
               CustomDropdownButtonFormField(
                 headerLabel: 'Recebido por',
-                hintText: 'Opcional',
+                hintText: 'Selecione quem recebeu',
                 items: controller.technicians
                     .map((e) => e.name.capitalizeAllWords)
                     .toList(),
@@ -213,6 +213,12 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
                   if (value.isNotEmpty) {
                     _inputPayment = _inputPayment.copyWith(receivedBy: value);
                   }
+                },
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Selecione quem recebeu o pagamento';
+                  }
+                  return null;
                 },
               ),
             ],

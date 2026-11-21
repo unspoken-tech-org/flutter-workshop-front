@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/models/device/device_filter.dart';
@@ -59,7 +61,30 @@ class DashboardStatsView extends StatelessWidget {
                 );
               }
               if (statistics == null) {
-                return const SizedBox.shrink();
+                final controller = context.read<HomeController>();
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          controller.errorMessage ??
+                              'Não foi possível carregar as estatísticas.',
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            unawaited(controller.getDeviceStatistics());
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Tentar novamente'),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               }
               return Wrap(
                 spacing: 8,

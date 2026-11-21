@@ -4,6 +4,7 @@ import 'package:flutter_workshop_front/core/money/money.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
+import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_new_payment_dialog.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/payment_totals_widget.dart';
@@ -201,6 +202,9 @@ void main() {
         final paymentService = _RecordingPaymentService();
         final controller =
             DeviceCustomerPageController(paymentService: paymentService)
+              ..technicians = [
+                Technician(id: 1, name: 'Carlos', number: '11999999999'),
+              ]
               ..deviceCustomer = _deviceWithPayments(
                 budgetFee: 101.77,
                 payments: const [
@@ -241,6 +245,12 @@ void main() {
         final valueField = find.widgetWithText(TextFormField, 'R\$\u00A00,00');
         await tester.enterText(valueField, '6667');
         await tester.pump();
+
+        // Select ReceivedBy -> Carlos
+        await tester.tap(find.byType(DropdownButtonFormField<String>).at(2));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Carlos').last);
+        await tester.pumpAndSettle();
 
         await tester.tap(find.text('Adicionar Pagamento'));
         await tester.pumpAndSettle();

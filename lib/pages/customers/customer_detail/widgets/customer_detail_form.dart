@@ -48,6 +48,25 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
     super.dispose();
   }
 
+  String? _normalizeGender(String raw) {
+    switch (raw.trim().toUpperCase()) {
+      case 'MALE':
+      case 'MASCULINO':
+      case 'M':
+        return 'Masculino';
+      case 'FEMALE':
+      case 'FEMININO':
+      case 'F':
+        return 'Feminino';
+      case 'OTHER':
+      case 'OUTRO':
+      case 'O':
+        return 'Outro';
+      default:
+        return null;
+    }
+  }
+
   void _initSecondaryPhoneFields() {
     widget.customer.phones.where((phone) => !phone.main).forEach((phone) {
       _secondaryPhoneFields.add(
@@ -144,7 +163,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: CustomDropdownButtonFormField(
-                    initialValue: customer.gender.capitalizeFirst,
+                    initialValue: _normalizeGender(customer.gender),
                     fieldLabel: 'Sexo',
                     items: const ['Masculino', 'Feminino', 'Outro'],
                     onSave: (value) {
