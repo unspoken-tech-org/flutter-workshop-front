@@ -60,6 +60,10 @@ class DeviceCustomer extends Equatable {
     this.payments = const [],
   });
 
+  Money get totalPaid {
+    return payments.fold(Money.zero, (sum, p) => sum + p.paymentValue);
+  }
+
   Money get totalPaidFee {
     return payments
         .where((p) => p.category == PaymentCategory.budgetFee)
@@ -225,7 +229,7 @@ class DeviceCustomer extends Equatable {
       'observation': observation,
       'budget': budget,
       'serviceValue': serviceValue?.toJson(),
-      'budgetFee': budgetFee?.toJson(),
+      'budgetFee': (budgetFee ?? Money.zero).toJson(),
       'hasUrgency': hasUrgency,
       'revision': revision,
       'deviceColors': deviceColors,

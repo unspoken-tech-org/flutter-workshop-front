@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
+import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_payment_item.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_new_payment_dialog.dart';
@@ -35,6 +36,8 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
             if (deviceCustomer == null) return const SizedBox.shrink();
             final List<CustomerDevicePayment> devicePayments =
                 deviceCustomer.payments;
+            final isDisposed =
+                deviceCustomer.deviceStatus == StatusEnum.disposed;
 
             return SizedBox(
               height: 600,
@@ -62,38 +65,56 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
                               ),
                             ],
                           ),
-                          OutlinedButton(
-                            onPressed: () {
-                              unawaited(
-                                showDialog<void>(
-                                  context: context,
-                                  builder: (context) {
-                                    return ChangeNotifierProvider.value(
-                                      value: controller,
-                                      child: const AddNewPaymentDialog(),
-                                    );
-                                  },
-                                ),
-                              );
-                            },
-                            style: OutlinedButton.styleFrom(
-                              alignment: Alignment.center,
-                              iconColor: Colors.black,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(6),
-                                side: const BorderSide(color: Colors.black),
-                              ),
-                            ),
-                            child: Row(
-                              spacing: 6,
-                              children: [
-                                if (showLabel)
-                                  const Text(
-                                    'Adicionar',
-                                    style: TextStyle(color: Colors.black),
+                          Tooltip(
+                            message: isDisposed
+                                ? 'Pagamentos não são permitidos para aparelho descartado'
+                                : '',
+                            child: OutlinedButton(
+                              onPressed: isDisposed
+                                  ? null
+                                  : () {
+                                      unawaited(
+                                        showDialog<void>(
+                                          context: context,
+                                          builder: (context) {
+                                            return ChangeNotifierProvider.value(
+                                              value: controller,
+                                              child:
+                                                  const AddNewPaymentDialog(),
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    },
+                              style: OutlinedButton.styleFrom(
+                                alignment: Alignment.center,
+                                iconColor: isDisposed
+                                    ? Colors.grey.shade400
+                                    : Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(6),
+                                  side: BorderSide(
+                                    color: isDisposed
+                                        ? Colors.grey.shade400
+                                        : Colors.black,
                                   ),
-                                const Icon(Icons.add, size: 16),
-                              ],
+                                ),
+                              ),
+                              child: Row(
+                                spacing: 6,
+                                children: [
+                                  if (showLabel)
+                                    Text(
+                                      'Adicionar',
+                                      style: TextStyle(
+                                        color: isDisposed
+                                            ? Colors.grey.shade400
+                                            : Colors.black,
+                                      ),
+                                    ),
+                                  const Icon(Icons.add, size: 16),
+                                ],
+                              ),
                             ),
                           ),
                         ],
