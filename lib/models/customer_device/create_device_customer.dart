@@ -4,6 +4,6 @@ class CreateDeviceCustomerResponse {
   CreateDeviceCustomerResponse({required this.deviceId});
 
   factory CreateDeviceCustomerResponse.fromJson(Map<String, dynamic> json) {
-    return CreateDeviceCustomerResponse(deviceId: json['deviceId']);
+    return CreateDeviceCustomerResponse(deviceId: json['deviceId'] as int);
   }
 }

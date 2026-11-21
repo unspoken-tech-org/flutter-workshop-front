@@ -17,8 +17,8 @@ class AllDevicesController extends ChangeNotifier {
 
   AllDevicesController(this._allDevicesRepository, {DeviceFilter? filter}) {
     this.filter = filter ?? DeviceFilter();
-    fetchAllDevicesFiltering();
-    fetchFilterOptions();
+    unawaited(fetchAllDevicesFiltering());
+    unawaited(fetchFilterOptions());
   }
 
   List<DeviceDataTable> devices = [];
@@ -51,7 +51,7 @@ class AllDevicesController extends ChangeNotifier {
       filter.page = _currentPage;
       devices = [];
       notifyListeners();
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
       final Page<DeviceDataTable> result = await _allDevicesRepository
           .getAllDevicesFiltering(filter);
       devices = result.content;
@@ -107,7 +107,7 @@ class AllDevicesController extends ChangeNotifier {
   void filterTable(String searchTerm) {
     filter = filter.clearTypedFilters();
 
-    var search = FilterUtils(searchTerm);
+    final search = FilterUtils(searchTerm);
     if (search.isName) {
       filter.customerName = search.text;
     } else if (search.isCpf) {
@@ -117,55 +117,55 @@ class AllDevicesController extends ChangeNotifier {
     } else if (search.isId) {
       filter.deviceId = int.parse(search.digits);
     }
-    fetchAllDevicesFiltering();
+    unawaited(fetchAllDevicesFiltering());
   }
 
   void addRemoveDeviceType(DeviceType deviceType) {
     filter = filter.withToggledType(deviceType);
     notifyListeners();
-    fetchAllDevicesFiltering();
+    unawaited(fetchAllDevicesFiltering());
   }
 
   void addRemoveDeviceBrand(DeviceBrand deviceBrand) {
     filter = filter.withToggledBrand(deviceBrand);
     notifyListeners();
-    fetchAllDevicesFiltering();
+    unawaited(fetchAllDevicesFiltering());
   }
 
   void addRemoveStatus(StatusEnum status) {
     filter = filter.withToggledStatus(status);
     notifyListeners();
-    fetchAllDevicesFiltering();
+    unawaited(fetchAllDevicesFiltering());
   }
 
   void toggleUrgency() {
     filter = filter.withToggledUrgency();
     notifyListeners();
-    fetchAllDevicesFiltering();
+    unawaited(fetchAllDevicesFiltering());
   }
 
   void toggleRevision() {
     filter = filter.withToggledRevision();
     notifyListeners();
-    fetchAllDevicesFiltering();
+    unawaited(fetchAllDevicesFiltering());
   }
 
   void addRemoveEnterRangeDate(DateTime? initialDate, DateTime? endDate) {
     filter = filter.withRangeDate(initialDate, endDate);
     notifyListeners();
-    fetchAllDevicesFiltering();
+    unawaited(fetchAllDevicesFiltering());
   }
 
   void toggleOrderBy(OrderBy orderBy) {
     filter = filter.withToggledOrderBy(orderBy);
     notifyListeners();
-    fetchAllDevicesFiltering();
+    unawaited(fetchAllDevicesFiltering());
   }
 
   void clearOrderBy() {
     filter = filter.clearOrderBy();
     notifyListeners();
-    fetchAllDevicesFiltering();
+    unawaited(fetchAllDevicesFiltering());
   }
 
   Future<void> clearSearch() async {

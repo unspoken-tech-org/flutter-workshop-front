@@ -105,11 +105,13 @@ void main() {
             body: Builder(
               builder: (context) => ElevatedButton(
                 onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (_) => ChangeNotifierProvider.value(
-                      value: controller,
-                      child: const AddContactModalDialog(),
+                  unawaited(
+                    showDialog<void>(
+                      context: context,
+                      builder: (_) => ChangeNotifierProvider.value(
+                        value: controller,
+                        child: const AddContactModalDialog(),
+                      ),
                     ),
                   );
                 },
@@ -231,11 +233,13 @@ void main() {
             body: Builder(
               builder: (context) => ElevatedButton(
                 onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (_) => ChangeNotifierProvider.value(
-                      value: controller,
-                      child: EditContactModalDialog(contact: contact),
+                  unawaited(
+                    showDialog<void>(
+                      context: context,
+                      builder: (_) => ChangeNotifierProvider.value(
+                        value: controller,
+                        child: EditContactModalDialog(contact: contact),
+                      ),
                     ),
                   );
                 },

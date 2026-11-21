@@ -37,7 +37,7 @@ class _SwitchFormFieldState extends State<SwitchFormField> {
       onSaved: widget.onSaved,
       validator: widget.validator,
       builder: (FormFieldState<bool> field) {
-        bool value = field.value ?? false;
+        final bool value = field.value ?? false;
 
         return Switch(
           thumbColor: WidgetStateProperty.all(Colors.white),

@@ -68,7 +68,8 @@ class AuthService {
     }
 
     final decodedToken = JwtDecoder.decode(token);
-    final List<dynamic> roles = decodedToken['roles'] ?? [];
+    final List<dynamic> roles =
+        (decodedToken['roles'] as List<dynamic>?) ?? <dynamic>[];
     final isAdmin = roles.contains('ADMIN');
     debugPrint('[AuthDebug] Decoded roles: $roles. isAdmin: $isAdmin');
     return isAdmin;
@@ -81,7 +82,7 @@ class AuthService {
       final boundDeviceId = await _storage.getBoundDeviceId();
       final appVersion = await Config.appVersion;
 
-      final response = await _dio.post(
+      final response = await _dio.post<dynamic>(
         '/api/auth/token',
         options: Options(headers: {'X-API-Key': apiKey}),
         data: TokenRequest(
@@ -227,7 +228,7 @@ class AuthService {
     }
 
     try {
-      final response = await _dio.post(
+      final response = await _dio.post<dynamic>(
         '/api/auth/refresh',
         data: {'refreshToken': currentRefreshToken},
         options: Options(extra: {'silent': true}),
@@ -369,7 +370,7 @@ class AuthService {
       final refreshToken = await _storage.getRefreshToken();
       if (refreshToken != null) {
         await _dio
-            .post(
+            .post<dynamic>(
               '/api/auth/revoke',
               data: {'refreshToken': refreshToken},
               options: Options(

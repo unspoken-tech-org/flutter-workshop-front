@@ -12,16 +12,22 @@ class TypeBrandModelSearchService {
     int page = 0,
     int size = 15,
   }) async {
-    Response response = await dio.post(
-      '/v1/type/search',
-      data: {'query': query, 'page': page, 'size': size},
-    );
+    final Response<Map<String, dynamic>> response = await dio
+        .post<Map<String, dynamic>>(
+          '/v1/type/search',
+          data: {'query': query, 'page': page, 'size': size},
+        );
 
     if (response.statusCode != 200) {
-      throw RequisitionException.fromJson(response.data['error']);
+      throw RequisitionException.fromJson(
+        response.data!['error'] as Map<String, dynamic>,
+      );
     }
 
-    return Page.fromJson(response.data, (json) => Type.fromJson(json));
+    return Page.fromJson(
+      response.data!,
+      (json) => Type.fromJson(json as Map<String, dynamic>),
+    );
   }
 
   Future<Page<Brand>> searchBrands(
@@ -29,16 +35,22 @@ class TypeBrandModelSearchService {
     int page = 0,
     int size = 15,
   }) async {
-    Response response = await dio.post(
-      '/v1/brand/search',
-      data: {'query': query, 'page': page, 'size': size},
-    );
+    final Response<Map<String, dynamic>> response = await dio
+        .post<Map<String, dynamic>>(
+          '/v1/brand/search',
+          data: {'query': query, 'page': page, 'size': size},
+        );
 
     if (response.statusCode != 200) {
-      throw RequisitionException.fromJson(response.data['error']);
+      throw RequisitionException.fromJson(
+        response.data!['error'] as Map<String, dynamic>,
+      );
     }
 
-    return Page.fromJson(response.data, (json) => Brand.fromJson(json));
+    return Page.fromJson(
+      response.data!,
+      (json) => Brand.fromJson(json as Map<String, dynamic>),
+    );
   }
 
   Future<Page<Model>> searchModels(
@@ -48,51 +60,66 @@ class TypeBrandModelSearchService {
     int page = 0,
     int size = 15,
   }) async {
-    Response response = await dio.post(
-      '/v1/model/search',
-      data: {
-        'typeId': typeId,
-        'brandId': brandId,
-        'query': query,
-        'page': page,
-        'size': size,
-      },
-    );
+    final Response<Map<String, dynamic>> response = await dio
+        .post<Map<String, dynamic>>(
+          '/v1/model/search',
+          data: {
+            'typeId': typeId,
+            'brandId': brandId,
+            'query': query,
+            'page': page,
+            'size': size,
+          },
+        );
 
     if (response.statusCode != 200) {
-      throw RequisitionException.fromJson(response.data['error']);
+      throw RequisitionException.fromJson(
+        response.data!['error'] as Map<String, dynamic>,
+      );
     }
 
-    return Page.fromJson(response.data, (json) => Model.fromJson(json));
+    return Page.fromJson(
+      response.data!,
+      (json) => Model.fromJson(json as Map<String, dynamic>),
+    );
   }
 
   Future<Type> createType(String name) async {
-    Response response = await dio.post('/v1/type', data: {'type': name});
+    final Response<Map<String, dynamic>> response = await dio
+        .post<Map<String, dynamic>>('/v1/type', data: {'type': name});
 
     if (response.statusCode != 201) {
-      throw RequisitionException.fromJson(response.data['error']);
+      throw RequisitionException.fromJson(
+        response.data!['error'] as Map<String, dynamic>,
+      );
     }
 
-    return Type.fromJson(response.data);
+    return Type.fromJson(response.data!);
   }
 
   Future<Brand> createBrand(String name) async {
-    Response response = await dio.post('/v1/brand', data: {'brand': name});
+    final Response<Map<String, dynamic>> response = await dio
+        .post<Map<String, dynamic>>('/v1/brand', data: {'brand': name});
 
     if (response.statusCode != 201) {
-      throw RequisitionException.fromJson(response.data['error']);
+      throw RequisitionException.fromJson(
+        response.data!['error'] as Map<String, dynamic>,
+      );
     }
 
-    return Brand.fromJson(response.data);
+    return Brand.fromJson(response.data!);
   }
 
   Future<Model> createModel(String name) async {
-    Response response = await dio.post('/v1/model', data: {'model': name});
+    final Response<Map<String, dynamic>> response = await dio
+        .post<Map<String, dynamic>>('/v1/model', data: {'model': name});
 
     if (response.statusCode != 201) {
-      throw RequisitionException.fromJson(response.data['error']);
+      throw RequisitionException.fromJson(
+        response.data!['error'] as Map<String, dynamic>,
+      );
     }
 
-    return Model.fromJson(response.data);
+    return Model.fromJson(response.data!);
   }
 }

@@ -7,8 +7,12 @@ class TechnicianService {
   final Dio dio = CustomDio.dioInstance();
 
   Future<List<Technician>> getTechnicians() async {
-    Response result = await dio.get('/v1/technician');
+    final Response<List<dynamic>> result = await dio.get<List<dynamic>>(
+      '/v1/technician',
+    );
     result.ensureSuccess();
-    return (result.data as List).map((e) => Technician.fromJson(e)).toList();
+    return result.data!
+        .map((e) => Technician.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

@@ -29,17 +29,17 @@ class CustomerContact {
 
   factory CustomerContact.fromJson(Map<String, dynamic> json) {
     return CustomerContact(
-      id: json['id'],
-      deviceId: json['deviceId'],
-      technicianId: json['technicianId'],
-      technicianName: json['technicianName'],
-      phone: json['phone'],
-      phoneNumber: json['phoneNumber'],
-      type: json['type'],
-      hasMadeContact: json['hasMadeContact'],
-      lastContact: DateTime.parse(json['lastContact']),
-      conversation: json['conversation'],
-      deviceStatus: StatusEnum.fromDbName(json['deviceStatus']),
+      id: json['id'] as int,
+      deviceId: json['deviceId'] as int,
+      technicianId: json['technicianId'] as int,
+      technicianName: json['technicianName'] as String,
+      phone: json['phone'] as String?,
+      phoneNumber: json['phoneNumber'] as String?,
+      type: json['type'] as String,
+      hasMadeContact: json['hasMadeContact'] as bool,
+      lastContact: DateTime.parse(json['lastContact'] as String),
+      conversation: json['conversation'] as String?,
+      deviceStatus: StatusEnum.fromDbName(json['deviceStatus'] as String),
     );
   }
 }

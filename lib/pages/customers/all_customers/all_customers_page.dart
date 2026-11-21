@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
@@ -34,7 +36,7 @@ class _AllCustomersPageState extends State<AllCustomersPage> {
   }
 
   void clearSearch() {
-    _controller.searchCustomers(null);
+    unawaited(_controller.searchCustomers(null));
   }
 
   @override

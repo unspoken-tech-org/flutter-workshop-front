@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/date_time_extension.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
@@ -55,7 +57,7 @@ class WsDataTable extends StatelessWidget {
           DataCell(
             Text(e.customerName),
             onTap: () {
-              WsNavigator.pushDeviceDetails(context, e.deviceId);
+              unawaited(WsNavigator.pushDeviceDetails(context, e.deviceId));
             },
           ),
           DataCell(Text(e.type)),

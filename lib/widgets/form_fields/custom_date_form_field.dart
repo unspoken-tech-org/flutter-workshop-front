@@ -147,7 +147,7 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
                 ),
               );
               if (date != null) {
-                var dates = List.of(date.nonNulls);
+                final dates = List.of(date.nonNulls);
                 if (dates.length == 1) {
                   dates.add(DateTime.now());
                 }

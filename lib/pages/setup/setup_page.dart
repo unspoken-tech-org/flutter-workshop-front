@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -28,11 +30,13 @@ class _SetupPageState extends State<SetupPage> {
         widget.controller ??
         SetupController(authService: context.read<AuthService>());
 
-    _controller.init().then((_) {
-      if (_controller.apiKey.isNotEmpty) {
-        _apiKeyTextController.text = _controller.apiKey;
-      }
-    });
+    unawaited(
+      _controller.init().then((_) {
+        if (_controller.apiKey.isNotEmpty) {
+          _apiKeyTextController.text = _controller.apiKey;
+        }
+      }),
+    );
   }
 
   @override

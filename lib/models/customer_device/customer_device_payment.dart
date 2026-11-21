@@ -56,12 +56,12 @@ class CustomerDevicePayment extends Equatable {
 
   factory CustomerDevicePayment.fromJson(Map<String, dynamic> json) {
     return CustomerDevicePayment(
-      paymentId: json['paymentId'],
-      paymentDate: DateTime.parse(json['paymentDate']),
-      paymentType: PaymentType.fromString(json['paymentType']),
+      paymentId: json['paymentId'] as int,
+      paymentDate: DateTime.parse(json['paymentDate'] as String),
+      paymentType: PaymentType.fromString(json['paymentType'] as String),
       paymentValue: Money.fromJson(json['paymentValue']),
-      category: PaymentCategory.fromString(json['category']),
-      receivedBy: json['receivedBy'],
+      category: PaymentCategory.fromString(json['category'] as String),
+      receivedBy: json['receivedBy'] as String?,
     );
   }
 

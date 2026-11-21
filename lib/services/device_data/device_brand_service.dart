@@ -7,12 +7,14 @@ class DeviceBrandService {
   final Dio dio = CustomDio.dioInstance();
 
   Future<List<DeviceBrand>> getAllDeviceBrands([String? name]) async {
-    Response result = await dio.get(
+    final Response<List<dynamic>> result = await dio.get<List<dynamic>>(
       '/v1/brand',
       queryParameters: {'name': name},
     );
     result.ensureSuccess();
 
-    return (result.data as List).map((e) => DeviceBrand.fromJson(e)).toList();
+    return result.data!
+        .map((e) => DeviceBrand.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

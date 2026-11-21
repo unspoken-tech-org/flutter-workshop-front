@@ -6,7 +6,7 @@ import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 
 class DeviceStatusChip extends StatefulWidget {
   final StatusEnum status;
-  final Function(StatusEnum status)? onSelect;
+  final void Function(StatusEnum status)? onSelect;
 
   const DeviceStatusChip({super.key, required this.status, this.onSelect});
 

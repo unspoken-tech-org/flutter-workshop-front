@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/controllers/customer_detail_controller.dart';
@@ -46,9 +48,13 @@ class CustomerDevicesSection extends StatelessWidget {
                       child: CustomerDevicesList(
                         customerDevices: customer.customerDevices,
                         onTap: (id) {
-                          WsNavigator.pushDeviceDetails(context, id).then((_) {
-                            controller.fetchCustomer(customerId);
-                          });
+                          unawaited(
+                            WsNavigator.pushDeviceDetails(context, id).then((
+                              _,
+                            ) {
+                              unawaited(controller.fetchCustomer(customerId));
+                            }),
+                          );
                         },
                       ),
                     ),

@@ -4,8 +4,12 @@ import 'package:flutter_workshop_front/models/colors/color_model.dart';
 
 class ColorService {
   Future<List<ColorModel>> getColors() async {
-    final response = await CustomDio.dioInstance().get('/v1/colors');
+    final response = await CustomDio.dioInstance().get<List<dynamic>>(
+      '/v1/colors',
+    );
     response.ensureSuccess();
-    return (response.data as List).map((e) => ColorModel.fromJson(e)).toList();
+    return response.data!
+        .map((e) => ColorModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

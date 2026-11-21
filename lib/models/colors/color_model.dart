@@ -7,7 +7,10 @@ class ColorModel implements ITypeBrandModelColor {
   ColorModel({required this.idColor, required this.color});
 
   factory ColorModel.fromJson(Map<String, dynamic> json) {
-    return ColorModel(idColor: json['idColor'], color: json['color']);
+    return ColorModel(
+      idColor: json['idColor'] as int?,
+      color: json['color'] as String,
+    );
   }
 
   @override

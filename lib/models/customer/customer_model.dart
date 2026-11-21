@@ -23,18 +23,23 @@ class CustomerModel {
 
   factory CustomerModel.fromJson(Map<String, dynamic> json) {
     return CustomerModel(
-      customerId: json['customerId'],
-      name: json['name'],
-      createdAt: DateTime.parse(json['createdAt']),
-      cpf: json['cpf'],
-      gender: json['gender'],
-      email: json['email'],
-      phones: (json['phones'] as List)
-          .map((phone) => PhoneModel.fromJson(phone))
+      customerId: json['customerId'] as int,
+      name: json['name'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      cpf: json['cpf'] as String,
+      gender: json['gender'] as String,
+      email: json['email'] as String?,
+      phones: (json['phones'] as List<dynamic>)
+          .map((phone) => PhoneModel.fromJson(phone as Map<String, dynamic>))
           .toList(),
-      customerDevices: ((json['customerDevices'] ?? []) as List)
-          .map((device) => MinifiedCustomerDevice.fromJson(device))
-          .toList(),
+      customerDevices:
+          ((json['customerDevices'] ?? <dynamic>[]) as List<dynamic>)
+              .map(
+                (device) => MinifiedCustomerDevice.fromJson(
+                  device as Map<String, dynamic>,
+                ),
+              )
+              .toList(),
     );
   }
 }
@@ -54,10 +59,10 @@ class PhoneModel {
 
   factory PhoneModel.fromJson(Map<String, dynamic> json) {
     return PhoneModel(
-      idCellphone: json['id'],
-      number: json['number'],
-      main: json['main'],
-      name: json['name'],
+      idCellphone: json['id'] as int,
+      number: json['number'] as String,
+      main: json['main'] as bool,
+      name: json['name'] as String?,
     );
   }
 }

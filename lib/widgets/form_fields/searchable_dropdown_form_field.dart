@@ -116,16 +116,20 @@ class _SearchableDropdownFormFieldState<T>
     final currentOffset = _scrollController.offset;
 
     if (targetOffset + _kItemHeight > currentOffset + viewportHeight) {
-      _scrollController.animateTo(
-        targetOffset + _kItemHeight - viewportHeight,
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
+      unawaited(
+        _scrollController.animateTo(
+          targetOffset + _kItemHeight - viewportHeight,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+        ),
       );
     } else if (targetOffset < currentOffset) {
-      _scrollController.animateTo(
-        targetOffset,
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
+      unawaited(
+        _scrollController.animateTo(
+          targetOffset,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+        ),
       );
     }
   }

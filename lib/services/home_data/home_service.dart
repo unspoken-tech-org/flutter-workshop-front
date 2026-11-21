@@ -7,11 +7,14 @@ class HomeService {
   final Dio dio = CustomDio.dioInstance();
 
   Future<List<DeviceDataTable>> getTableData([HomeTableFilter? filter]) async {
-    var body = filter?.toJson();
-    Response result = await dio.post('/v1/device/filter', data: body);
+    final body = filter?.toJson();
+    final Response<List<dynamic>> result = await dio.post<List<dynamic>>(
+      '/v1/device/filter',
+      data: body,
+    );
 
-    return (result.data as List)
-        .map((e) => DeviceDataTable.fromJson(e))
+    return result.data!
+        .map((e) => DeviceDataTable.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 }

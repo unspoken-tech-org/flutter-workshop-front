@@ -60,7 +60,7 @@ void main() {
 
     // Usa runAsync para permitir processamento de microtasks e timers do Mock
     await tester.runAsync(() async {
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future<void>.delayed(const Duration(milliseconds: 500));
     });
 
     await tester.pump();

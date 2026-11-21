@@ -5,10 +5,14 @@ import 'package:flutter_workshop_front/models/device_statistics/device_statistic
 class DeviceStatisticsService {
   final _dio = CustomDio.dioInstance();
   Future<DeviceStatistics> getDeviceStatistics() async {
-    final response = await _dio.get('/v1/device-statistics');
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/v1/device-statistics',
+    );
     if (response.statusCode != 200) {
-      throw RequisitionException.fromJson(response.data['error']);
+      throw RequisitionException.fromJson(
+        response.data!['error'] as Map<String, dynamic>,
+      );
     }
-    return DeviceStatistics.fromJson(response.data);
+    return DeviceStatistics.fromJson(response.data!);
   }
 }

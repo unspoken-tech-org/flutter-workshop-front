@@ -10,7 +10,7 @@ class MoneyInputWidget extends StatefulWidget {
   final Color? borderColor;
   final double? borderRadius;
   final List<BoxShadow>? boxShadow;
-  final Function(double) onChanged;
+  final void Function(double) onChanged;
 
   const MoneyInputWidget({
     super.key,
@@ -36,16 +36,16 @@ class _MoneyInputWidgetState extends State<MoneyInputWidget> {
   double _lastLaborValue = 0;
 
   void _formatText() {
-    String current = _controller.text;
+    final String current = _controller.text;
 
-    String digitsOnly = current.replaceAll(RegExp(r'[^0-9]'), '');
+    final String digitsOnly = current.replaceAll(RegExp(r'[^0-9]'), '');
     if (digitsOnly.isEmpty) {
       _controller.text = '';
       return;
     }
 
-    int number = int.parse(digitsOnly);
-    double formatted = _formatCurrency(number);
+    final int number = int.parse(digitsOnly);
+    final double formatted = _formatCurrency(number);
     _controller.value = TextEditingValue(
       text: formatted.toBrCurrency,
       selection: TextSelection.collapsed(offset: formatted.toBrCurrency.length),
@@ -54,9 +54,9 @@ class _MoneyInputWidgetState extends State<MoneyInputWidget> {
   }
 
   double _formatCurrency(int value) {
-    num reals = value ~/ 100;
-    double cents = (value % 100) / 100;
-    double total = reals + cents;
+    final num reals = value ~/ 100;
+    final double cents = (value % 100) / 100;
+    final double total = reals + cents;
     return total;
   }
 

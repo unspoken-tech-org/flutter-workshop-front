@@ -8,7 +8,7 @@ import 'package:flutter_workshop_front/widgets/shared/infinite_scroll_listener.d
 class CustomersList extends StatefulWidget {
   final AllCustomerController controller;
   final List<MinifiedCustomerModel> customers;
-  final Function(int) onTap;
+  final void Function(int) onTap;
 
   const CustomersList({
     super.key,

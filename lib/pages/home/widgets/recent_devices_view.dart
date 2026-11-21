@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
@@ -67,14 +69,20 @@ class RecentDevicesView extends StatelessWidget {
                   itemBuilder: (context, index) => FilteredDeviceCard(
                     device: devices[index],
                     onTap: () {
-                      WsNavigator.pushDeviceDetails(
-                        context,
-                        devices[index].deviceId,
-                      ).then((value) {
-                        if (context.mounted) {
-                          context.read<HomeController>().getDeviceStatistics();
-                        }
-                      });
+                      unawaited(
+                        WsNavigator.pushDeviceDetails(
+                          context,
+                          devices[index].deviceId,
+                        ).then((value) {
+                          if (context.mounted) {
+                            unawaited(
+                              context
+                                  .read<HomeController>()
+                                  .getDeviceStatistics(),
+                            );
+                          }
+                        }),
+                      );
                     },
                   ),
                 );

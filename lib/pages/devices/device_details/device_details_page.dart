@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
@@ -34,10 +36,12 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
 
   void _scrollToTop() {
     if (!_scrollController.hasClients) return;
-    _scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
+    unawaited(
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      ),
     );
   }
 
@@ -45,9 +49,12 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       lazy: false,
-      create: (context) =>
-          (widget.controllerFactory?.call() ?? DeviceCustomerPageController())
-            ..init(widget.deviceId),
+      create: (context) {
+        final controller =
+            widget.controllerFactory?.call() ?? DeviceCustomerPageController();
+        unawaited(controller.init(widget.deviceId));
+        return controller;
+      },
       child: WsScaffold(
         backgroundColor: const Color(0xFFF5F5F5),
         floatingActionButton: FloatingActionButton(

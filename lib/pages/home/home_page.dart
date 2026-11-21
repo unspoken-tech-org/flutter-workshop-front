@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/home/controllers/home_controller.dart';
 import 'package:flutter_workshop_front/pages/home/widgets/dashboard_stats_view.dart';
@@ -22,7 +24,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkForUpdatesOnStartup();
+      unawaited(_checkForUpdatesOnStartup());
     });
   }
 
@@ -36,7 +38,7 @@ class _HomePageState extends State<HomePage> {
 
       if (!mounted || updateInfo == null || !updateInfo.hasUpdate) return;
 
-      await Future.delayed(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(seconds: 2));
       if (!mounted) return;
 
       await UpdateDialog.show(context, updateInfo, updateService);
@@ -46,7 +48,11 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => HomeController()..getDeviceStatistics(),
+      create: (context) {
+        final controller = HomeController();
+        unawaited(controller.getDeviceStatistics());
+        return controller;
+      },
       child: WsScaffold(
         backgroundColor: const Color(0xFFF9FAFB),
         child: Center(

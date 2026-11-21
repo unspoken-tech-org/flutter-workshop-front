@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
@@ -36,7 +38,7 @@ class AllCustomerController extends ChangeNotifier {
 
   AllCustomerController({CustomerRepository? customerRepository})
     : _customerRepository = customerRepository ?? CustomerRemoteDataSource() {
-    searchCustomers(null);
+    unawaited(searchCustomers(null));
   }
 
   Future<void> searchCustomers(String? searchTerm) async {

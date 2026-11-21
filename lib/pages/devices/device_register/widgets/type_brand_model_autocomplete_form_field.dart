@@ -137,16 +137,20 @@ class _TypeBrandModelAutocompleteFormFieldState<T extends ITypeBrandModelColor>
     final currentOffset = _scrollController.offset;
 
     if (targetOffset + _kItemHeight > currentOffset + viewportHeight) {
-      _scrollController.animateTo(
-        targetOffset + _kItemHeight - viewportHeight,
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
+      unawaited(
+        _scrollController.animateTo(
+          targetOffset + _kItemHeight - viewportHeight,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+        ),
       );
     } else if (targetOffset < currentOffset) {
-      _scrollController.animateTo(
-        targetOffset,
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
+      unawaited(
+        _scrollController.animateTo(
+          targetOffset,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+        ),
       );
     }
   }
@@ -213,14 +217,14 @@ class _TypeBrandModelAutocompleteFormFieldState<T extends ITypeBrandModelColor>
         return;
       }
       if (_currentQuery.isNotEmpty) {
-        _createItem(_currentQuery);
+        unawaited(_createItem(_currentQuery));
       }
       return;
     }
 
     if (_highlightedIndex >= _suggestions.length) {
       if (_showCreateOption) {
-        _createItem(_currentQuery);
+        unawaited(_createItem(_currentQuery));
       }
       return;
     }
@@ -388,7 +392,7 @@ class _TypeBrandModelAutocompleteFormFieldState<T extends ITypeBrandModelColor>
       onTap: () {
         if (_currentQuery.isEmpty) return;
         setState(() => _highlightedIndex = -1);
-        _createItem(_currentQuery);
+        unawaited(_createItem(_currentQuery));
       },
       child: Container(
         color: isHighlighted ? Colors.grey.shade100 : null,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/models/device/device_filter.dart';
 import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
@@ -17,7 +19,7 @@ class WsNavigator {
   }
 
   static void pushCustomers(BuildContext context) {
-    context.pushNamed(AllCustomersPage.route);
+    unawaited(context.pushNamed(AllCustomersPage.route));
   }
 
   static void pushCustomerDetail(
@@ -31,15 +33,17 @@ class WsNavigator {
         pathParameters: {'id': customerId.toString()},
       );
     } else {
-      context.pushNamed(
-        CustomerDetailPage.route,
-        pathParameters: {'id': customerId.toString()},
+      unawaited(
+        context.pushNamed(
+          CustomerDetailPage.route,
+          pathParameters: {'id': customerId.toString()},
+        ),
       );
     }
   }
 
   static void pushCustomerRegister(BuildContext context) {
-    context.pushNamed(CustomerRegisterPage.route);
+    unawaited(context.pushNamed(CustomerRegisterPage.route));
   }
 
   static Future<void> pushDeviceDetails(
@@ -89,12 +93,14 @@ class WsNavigator {
     int? customerId,
     String? customerName,
   }) {
-    context.pushNamed(
-      DeviceRegisterPage.route,
-      queryParameters: {
-        'customerId': customerId.toString(),
-        'customerName': customerName,
-      },
+    unawaited(
+      context.pushNamed(
+        DeviceRegisterPage.route,
+        queryParameters: {
+          'customerId': customerId.toString(),
+          'customerName': customerName,
+        },
+      ),
     );
   }
 }

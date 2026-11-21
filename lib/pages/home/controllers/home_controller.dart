@@ -16,7 +16,7 @@ class HomeController extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
     try {
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
       deviceStatistics = await _deviceStatisticsService.getDeviceStatistics();
     } catch (e) {
       debugPrint('[HomeController] Error getting device statistics: $e');

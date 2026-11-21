@@ -1,6 +1,6 @@
 extension ReadJsonData on Map<String, dynamic> {
-  T? to<T>(String s, fnc) {
-    var value = this[s];
+  T? to<T>(String s, T Function(String) fnc) {
+    final value = this[s];
     if (value == null) return null;
 
     if (value is T) {
@@ -13,7 +13,7 @@ extension ReadJsonData on Map<String, dynamic> {
   }
 
   double? toDouble(String s, {double? defaultValue}) {
-    var value = this[s];
+    final value = this[s];
     if (value == null) return defaultValue;
     if (value is int) {
       return value.toDouble();
@@ -30,7 +30,7 @@ extension ReadJsonData on Map<String, dynamic> {
   }
 
   String? toStr(String s, {String? defaultValue}) {
-    var value = this[s];
+    final value = this[s];
     if (value == null) return defaultValue;
     if (value is String) {
       return value;
@@ -43,7 +43,7 @@ extension ReadJsonData on Map<String, dynamic> {
   }
 
   bool? toBool(String s, {bool? defaultValue}) {
-    var value = this[s];
+    final value = this[s];
     if (value == null) return defaultValue;
     if (value is bool) {
       return value;
@@ -54,17 +54,21 @@ extension ReadJsonData on Map<String, dynamic> {
   }
 
   List<int>? toListInt(String s) {
-    var value = this[s];
-    return value == null ? List<int>.empty() : value.cast<int>();
+    final value = this[s];
+    return value == null
+        ? List<int>.empty()
+        : (value as List<dynamic>).cast<int>();
   }
 
   List<int?>? toListIntDouble(String s) {
-    var value = this[s];
-    return value == null ? List<double>.empty() : value.cast<double>();
+    final value = this[s];
+    return value == null
+        ? List<int?>.empty()
+        : (value as List<dynamic>).cast<int?>();
   }
 
   int? toInt(String s, {int? defaultValue}) {
-    var value = this[s];
+    final value = this[s];
     if (value == null) return defaultValue;
     if (value is int) {
       return value;
@@ -83,7 +87,8 @@ extension ReadJsonObject on Map<String, dynamic> {
     T Function(Map<String, dynamic>) fromJson, {
     T? defaultValue,
   }) {
-    if (this[key] == null) return defaultValue;
-    return fromJson(this[key]);
+    final value = this[key];
+    if (value == null) return defaultValue;
+    return fromJson(value as Map<String, dynamic>);
   }
 }

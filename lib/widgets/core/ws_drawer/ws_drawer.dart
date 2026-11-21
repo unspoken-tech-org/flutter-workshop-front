@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers/all_customers_page.dart';
@@ -155,7 +157,7 @@ class WsDrawer extends StatelessWidget {
                 DeviceRegisterPage.route,
               ],
               onTap: () {
-                WsNavigator.pushSearchDevices(context);
+                unawaited(WsNavigator.pushSearchDevices(context));
               },
             ),
             const Spacer(),

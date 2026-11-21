@@ -228,7 +228,7 @@ void main() {
         ),
       );
 
-      final response = await dio.get('/protected');
+      final response = await dio.get<dynamic>('/protected');
 
       expect(response.statusCode, 200);
       expect(refreshCalls, 1);
@@ -268,7 +268,7 @@ void main() {
         );
 
         await expectLater(
-          dio.get('/protected'),
+          dio.get<dynamic>('/protected'),
           throwsA(
             isA<DioException>().having(
               (e) => e.response?.statusCode,
@@ -310,7 +310,7 @@ void main() {
       );
 
       await expectLater(
-        dio.get('/protected'),
+        dio.get<dynamic>('/protected'),
         throwsA(
           isA<DioException>().having(
             (e) => e.response?.statusCode,
@@ -346,7 +346,7 @@ void main() {
         );
 
         await expectLater(
-          dio.get('/protected'),
+          dio.get<dynamic>('/protected'),
           throwsA(
             isA<DioException>().having(
               (e) => e.type,
@@ -392,7 +392,7 @@ void main() {
       );
 
       await expectLater(
-        dio.get('/admin-only'),
+        dio.get<dynamic>('/admin-only'),
         throwsA(
           isA<DioException>()
               .having((e) => e.type, 'type', DioExceptionType.badResponse)
@@ -434,7 +434,7 @@ void main() {
       );
 
       await expectLater(
-        dio.get('/protected'),
+        dio.get<dynamic>('/protected'),
         throwsA(
           isA<DioException>().having(
             (e) => e.response?.statusCode,
@@ -482,7 +482,7 @@ void main() {
       );
 
       await expectLater(
-        dio.get('/protected'),
+        dio.get<dynamic>('/protected'),
         throwsA(
           isA<DioException>().having(
             (e) => e.type,
@@ -532,7 +532,7 @@ void main() {
           ),
         );
 
-        final response = await dio.get('/protected');
+        final response = await dio.get<dynamic>('/protected');
 
         expect(response.statusCode, 200);
         // Refresh proativo ocorreu no onRequest — nenhum 401 foi recebido.
@@ -564,7 +564,7 @@ void main() {
         );
 
         await expectLater(
-          dio.get('/protected'),
+          dio.get<dynamic>('/protected'),
           throwsA(
             isA<DioException>().having(
               (e) => e.type,
@@ -599,7 +599,7 @@ void main() {
       );
 
       // /api/auth/token é um endpoint de auth — deve passar sem refresh.
-      final response = await dio.post('/api/auth/token');
+      final response = await dio.post<dynamic>('/api/auth/token');
 
       expect(response.statusCode, 200);
       expect(refreshCalls, 0);
@@ -652,9 +652,9 @@ void main() {
         );
 
         final responses = await Future.wait([
-          dio.get('/protected/a'),
-          dio.get('/protected/b'),
-          dio.get('/protected/c'),
+          dio.get<dynamic>('/protected/a'),
+          dio.get<dynamic>('/protected/b'),
+          dio.get<dynamic>('/protected/c'),
         ]);
 
         expect(responses, hasLength(3));
@@ -683,7 +683,7 @@ void main() {
         );
 
         await expectLater(
-          dio.get('/protected').timeout(const Duration(seconds: 2)),
+          dio.get<dynamic>('/protected').timeout(const Duration(seconds: 2)),
           throwsA(
             isA<DioException>().having(
               (e) => e.error,
@@ -720,7 +720,7 @@ void main() {
         );
 
         await expectLater(
-          dio.get('/protected').timeout(const Duration(seconds: 2)),
+          dio.get<dynamic>('/protected').timeout(const Duration(seconds: 2)),
           throwsA(
             isA<DioException>().having(
               (e) => e.error,
@@ -765,7 +765,7 @@ void main() {
         );
 
         await expectLater(
-          dio.get('/protected').timeout(const Duration(seconds: 2)),
+          dio.get<dynamic>('/protected').timeout(const Duration(seconds: 2)),
           throwsA(
             isA<DioException>().having(
               (e) => e.type,
@@ -804,7 +804,7 @@ void main() {
       );
 
       await expectLater(
-        dio.get('/protected').timeout(const Duration(seconds: 2)),
+        dio.get<dynamic>('/protected').timeout(const Duration(seconds: 2)),
         throwsA(isA<DioException>()),
       );
     });
@@ -838,7 +838,7 @@ void main() {
           );
 
           await expectLater(
-            testDio.get('/protected'),
+            testDio.get<dynamic>('/protected'),
             throwsA(isA<DioException>().having((e) => e.type, 'type', type)),
           );
         }
@@ -872,7 +872,7 @@ void main() {
         );
 
         await expectLater(
-          dio.get('/protected'),
+          dio.get<dynamic>('/protected'),
           throwsA(
             isA<DioException>()
                 .having((e) => e.type, 'type', DioExceptionType.badResponse)
@@ -928,7 +928,7 @@ void main() {
 
         await tester.runAsync(() async {
           await expectLater(
-            dio.get('/protected'),
+            dio.get<dynamic>('/protected'),
             throwsA(
               isA<DioException>().having(
                 (e) => e.type,
@@ -997,7 +997,7 @@ void main() {
 
         await tester.runAsync(() async {
           await expectLater(
-            dio.get('/protected'),
+            dio.get<dynamic>('/protected'),
             throwsA(
               isA<DioException>().having(
                 (e) => e.response?.statusCode,
@@ -1047,7 +1047,7 @@ void main() {
 
         await tester.runAsync(() async {
           await expectLater(
-            cancelDio.get('/expired'),
+            cancelDio.get<dynamic>('/expired'),
             throwsA(
               isA<DioException>().having(
                 (e) => e.type,
@@ -1071,7 +1071,7 @@ void main() {
 
         await tester.runAsync(() async {
           await expectLater(
-            dio.get('/send-timeout'),
+            dio.get<dynamic>('/send-timeout'),
             throwsA(
               isA<DioException>().having(
                 (e) => e.type,

@@ -14,7 +14,7 @@ class DashboardStatsView extends StatelessWidget {
   void _onPressed(BuildContext context, DeviceFilter filter) async {
     await WsNavigator.pushAllDevices(context, filter: filter);
     if (context.mounted) {
-      context.read<HomeController>().getDeviceStatistics();
+      await context.read<HomeController>().getDeviceStatistics();
     }
   }
 

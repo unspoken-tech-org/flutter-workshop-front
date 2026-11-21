@@ -11,7 +11,10 @@ class CustomerContactService {
   ) async {
     final json = customerContact.toJson();
 
-    final response = await _dio.post('/v1/customer-contact', data: json);
+    final response = await _dio.post<dynamic>(
+      '/v1/customer-contact',
+      data: json,
+    );
     response.ensureSuccess();
   }
 
@@ -21,7 +24,10 @@ class CustomerContactService {
   ) async {
     final json = customerContact.toJson();
 
-    final response = await _dio.put('/v1/customer-contact/$id', data: json);
+    final response = await _dio.put<dynamic>(
+      '/v1/customer-contact/$id',
+      data: json,
+    );
     response.ensureSuccess();
   }
 }
