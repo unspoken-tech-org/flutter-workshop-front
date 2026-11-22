@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:synchronized/synchronized.dart';
+import '../../security/auth_debug_log.dart';
 import '../../security/auth_notifier.dart';
 import '../../security/refresh_result.dart';
 import '../api_auth_error.dart';
@@ -159,11 +160,12 @@ class SecurityInterceptor extends Interceptor {
           final response = await _retryDio.fetch<dynamic>(retryOptions);
           return handler.resolve(response);
         } on DioException catch (retryErr) {
-          debugPrint('[AuthDebug][$requestId] Retry failed: $retryErr');
+          authDebugLog('[AuthDebug][$requestId] Retry failed', error: retryErr);
           return handler.next(retryErr);
         } catch (retryErr, st) {
-          debugPrint(
-            '[AuthDebug][$requestId] Retry failed unexpectedly: $retryErr',
+          authDebugLog(
+            '[AuthDebug][$requestId] Retry failed unexpectedly',
+            error: retryErr,
           );
           return handler.reject(
             DioException(
@@ -185,8 +187,9 @@ class SecurityInterceptor extends Interceptor {
             await _onCredentialRejected();
           }
         } catch (e) {
-          debugPrint(
-            '[AuthDebug][$requestId] Failed clearing provisioning on forced logout: $e',
+          authDebugLog(
+            '[AuthDebug][$requestId] Failed clearing provisioning on forced logout',
+            error: e,
           );
         }
         _authNotifier.setState(AuthRouteState.needsSetup);
@@ -202,7 +205,7 @@ class SecurityInterceptor extends Interceptor {
 
       handler.next(err);
     } catch (e, st) {
-      debugPrint('[AuthDebug] Unexpected error in onError: $e');
+      authDebugLog('[AuthDebug] Unexpected error in onError', error: e);
       handler.reject(
         DioException(
           requestOptions: options,

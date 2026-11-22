@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
+import 'package:flutter_workshop_front/core/state/safe_change_notifier_mixin.dart';
 import 'package:flutter_workshop_front/models/device/device_filter.dart';
 import 'package:flutter_workshop_front/models/device_brand/device_brand_model.dart';
 import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
@@ -12,7 +13,7 @@ import 'package:flutter_workshop_front/repositories/all_devices/all_devices_repo
 import 'package:flutter_workshop_front/utils/filter_utils.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
-class AllDevicesController extends ChangeNotifier {
+class AllDevicesController extends ChangeNotifier with SafeChangeNotifierMixin {
   final AllDevicesRepository _allDevicesRepository;
 
   AllDevicesController(this._allDevicesRepository, {DeviceFilter? filter}) {

@@ -114,6 +114,7 @@ class _CustomerDeviceInfoHeaderWidgetState
                                       .updateDeviceHasUrgency(
                                         !deviceCustomer.hasUrgency,
                                       );
+                                  if (!mounted) return;
                                   setState(() {});
                                 },
                               );
@@ -135,6 +136,7 @@ class _CustomerDeviceInfoHeaderWidgetState
                                       .updateDeviceRevision(
                                         !deviceCustomer.revision,
                                       );
+                                  if (!mounted) return;
                                   setState(() {});
                                 },
                               );
@@ -148,6 +150,7 @@ class _CustomerDeviceInfoHeaderWidgetState
                               await context
                                   .read<DeviceCustomerPageController>()
                                   .updateDeviceStatus(status);
+                              if (!mounted) return;
                               setState(() {});
                             },
                     ),
