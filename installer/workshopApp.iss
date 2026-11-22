@@ -20,6 +20,7 @@ SolidCompression=yes
 WizardStyle=modern
 UninstallDisplayIcon={app}\{#MyAppExeName}
 CloseApplications=yes
+RestartApplications=yes
 AppMutex=EletrolukWorkshopSingleInstanceMutex
 
 [Languages]

@@ -181,11 +181,21 @@ jobs:
           done
           ls output
 
+      - name: Generate SHA-256 checksums
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path output -Filter *.exe | ForEach-Object {
+            $hash = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            Set-Content -Path "$($_.FullName).sha256" -Value "$hash  $($_.Name)" -NoNewline
+          }
+
       - name: Create GitHub Release and upload installer
         uses: softprops/action-gh-release@v1
         with:
           name: Release ${{ steps.get_version.outputs.VERSION }}${{ steps.release_type.outputs.SUFFIX }}
           body: ${{ steps.body.outputs.BODY }}
-          files: ./output/*.exe
+          files: |
+            ./output/*.exe
+            ./output/*.sha256
           draft: false
           prerelease: ${{ steps.release_type.outputs.PRERELEASE == 'true' }}

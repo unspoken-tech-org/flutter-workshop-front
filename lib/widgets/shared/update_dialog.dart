@@ -1,16 +1,24 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../services/update/update_service.dart';
 
-class UpdateDialog extends StatelessWidget {
+class UpdateDialog extends StatefulWidget {
   final UpdateInfo updateInfo;
   final VoidCallback onDownload;
+  final Future<void> Function({
+    void Function(double? progress)? onProgress,
+    void Function(UpdateInstallStage stage)? onStageChange,
+  })?
+  onSilentInstall;
 
   const UpdateDialog({
     super.key,
     required this.updateInfo,
     required this.onDownload,
+    this.onSilentInstall,
   });
 
   static Future<void> show(
@@ -18,38 +26,101 @@ class UpdateDialog extends StatelessWidget {
     UpdateInfo updateInfo,
     UpdateService updateService,
   ) {
+    Future<void> openBrowser() async {
+      try {
+        await updateService.openDownloadUrl(updateInfo.downloadUrl);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Download iniciado no navegador'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erro ao abrir download: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+
+    final canSilentInstall =
+        Platform.isWindows && updateInfo.supportsSilentInstall;
+
     return showDialog(
       context: context,
       builder: (_) => UpdateDialog(
         updateInfo: updateInfo,
-        onDownload: () async {
-          try {
-            await updateService.openDownloadUrl(updateInfo.downloadUrl);
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Download iniciado no navegador'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            }
-          } catch (e) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Erro ao abrir download: $e'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-          }
-        },
+        onDownload: openBrowser,
+        onSilentInstall: canSilentInstall
+            ? ({onProgress, onStageChange}) => updateService.downloadAndInstall(
+                updateInfo,
+                onProgress: onProgress,
+                onStageChange: onStageChange,
+              )
+            : null,
       ),
     );
   }
 
   @override
+  State<UpdateDialog> createState() => _UpdateDialogState();
+}
+
+class _UpdateDialogState extends State<UpdateDialog> {
+  bool _isInstalling = false;
+  double? _progress;
+  UpdateInstallStage? _stage;
+  String? _installError;
+
+  String get _stageLabel => switch (_stage) {
+    UpdateInstallStage.downloading =>
+      _progress != null
+          ? 'Baixando atualização... ${(_progress! * 100).round()}%'
+          : 'Baixando atualização...',
+    UpdateInstallStage.verifying => 'Verificando integridade do instalador...',
+    UpdateInstallStage.launching => 'Iniciando instalador...',
+    null => 'Preparando atualização...',
+  };
+
+  Future<void> _startSilentInstall() async {
+    final install = widget.onSilentInstall;
+    if (install == null || _isInstalling) return;
+    setState(() {
+      _isInstalling = true;
+      _progress = null;
+      _stage = UpdateInstallStage.downloading;
+      _installError = null;
+    });
+    try {
+      await install(
+        onProgress: (value) {
+          if (!mounted) return;
+          setState(() => _progress = value);
+        },
+        onStageChange: (stage) {
+          if (!mounted) return;
+          setState(() => _stage = stage);
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isInstalling = false;
+        _installError =
+            'Não foi possível instalar automaticamente ($e). Você pode baixar pelo navegador.';
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final updateInfo = widget.updateInfo;
     return AlertDialog(
       title: Row(
         children: [
@@ -77,28 +148,65 @@ class UpdateDialog extends StatelessWidget {
                 const SizedBox(height: 12),
                 UpdatePublishDateRow(updateInfo: updateInfo),
               ],
+              if (_isInstalling) ...[
+                const SizedBox(height: 16),
+                LinearProgressIndicator(value: _progress),
+                const SizedBox(height: 8),
+                Text(_stageLabel, style: Theme.of(context).textTheme.bodySmall),
+              ],
+              if (_installError != null) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Text(
+                    _installError!,
+                    style: TextStyle(color: Colors.red.shade900),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: _isInstalling ? null : () => Navigator.of(context).pop(),
           child: const Text('Depois'),
         ),
         if (updateInfo.hasUpdate)
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).pop();
-              onDownload();
-            },
-            icon: const Icon(Icons.download),
-            label: const Text('Baixar Atualização'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
+          if (_installError != null || widget.onSilentInstall == null)
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+                widget.onDownload();
+              },
+              icon: const Icon(Icons.open_in_browser),
+              label: Text(
+                _installError != null
+                    ? 'Abrir no Navegador'
+                    : 'Baixar Atualização',
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+            )
+          else
+            ElevatedButton.icon(
+              onPressed: _isInstalling ? null : _startSilentInstall,
+              icon: const Icon(Icons.download),
+              label: const Text('Atualizar Agora'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
             ),
-          ),
       ],
     );
   }
