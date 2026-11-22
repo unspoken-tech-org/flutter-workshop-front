@@ -160,11 +160,12 @@ class SecurityInterceptor extends Interceptor {
           final response = await _retryDio.fetch<dynamic>(retryOptions);
           return handler.resolve(response);
         } on DioException catch (retryErr) {
-          authDebugLog('[AuthDebug][$requestId] Retry failed', error: retryErr);
+          authDebugLog('Retry failed', requestId: requestId, error: retryErr);
           return handler.next(retryErr);
         } catch (retryErr, st) {
           authDebugLog(
-            '[AuthDebug][$requestId] Retry failed unexpectedly',
+            'Retry failed unexpectedly',
+            requestId: requestId,
             error: retryErr,
           );
           return handler.reject(
@@ -188,7 +189,8 @@ class SecurityInterceptor extends Interceptor {
           }
         } catch (e) {
           authDebugLog(
-            '[AuthDebug][$requestId] Failed clearing provisioning on forced logout',
+            'Failed clearing provisioning on forced logout',
+            requestId: requestId,
             error: e,
           );
         }
@@ -205,7 +207,7 @@ class SecurityInterceptor extends Interceptor {
 
       handler.next(err);
     } catch (e, st) {
-      authDebugLog('[AuthDebug] Unexpected error in onError', error: e);
+      authDebugLog('Unexpected error in onError', error: e);
       handler.reject(
         DioException(
           requestOptions: options,

@@ -130,7 +130,7 @@ class AuthService {
         throw requisitionExceptionFromResponse(response);
       }
     } on DioException catch (e) {
-      authDebugLog('[AuthDebug] Authenticate failed', error: e);
+      authDebugLog('Authenticate failed', error: e);
       if (e.response?.statusCode == 401 ||
           ApiAuthError.isCredentialRejected(e.response)) {
         await _storageLock.synchronized(() async {
@@ -155,7 +155,7 @@ class AuthService {
     } on RequisitionException {
       rethrow;
     } catch (e) {
-      authDebugLog('[AuthDebug] Authenticate failed', error: e);
+      authDebugLog('Authenticate failed', error: e);
       // If initial auth fails, ensure session is cleared but preserve boundDeviceId
       await _storageLock.synchronized(() async {
         if (_sessionEpoch == epochAtStart) {
@@ -209,7 +209,7 @@ class AuthService {
     try {
       currentRefreshToken = await _storage.getRefreshToken();
     } catch (e) {
-      authDebugLog('[AuthDebug] Failed reading refresh token', error: e);
+      authDebugLog('Failed reading refresh token', error: e);
       return RefreshTransientFailure(
         errorType: DioExceptionType.unknown,
         error: e,
@@ -285,7 +285,7 @@ class AuthService {
           }
           return RefreshSuccess(newAccessToken);
         } catch (e) {
-          authDebugLog('[AuthDebug] Failed saving refreshed token', error: e);
+          authDebugLog('Failed saving refreshed token', error: e);
           return RefreshTransientFailure(
             errorType: DioExceptionType.unknown,
             error: e,
@@ -309,7 +309,7 @@ class AuthService {
         error: e.error ?? e,
       );
     } catch (e) {
-      authDebugLog('[AuthDebug] Unexpected error on refresh', error: e);
+      authDebugLog('Unexpected error on refresh', error: e);
       return RefreshTransientFailure(
         errorType: DioExceptionType.unknown,
         error: e,

@@ -27,12 +27,12 @@ void main() {
         ),
       );
 
-      authDebugLog('[AuthDebug] Refresh failed', error: err);
+      authDebugLog('Refresh failed', requestId: 'req-1', error: err);
 
       expect(logged, hasLength(1));
       expect(
         logged.single,
-        '[AuthDebug] Refresh failed: DioException(type=DioExceptionType.badResponse, status=401)',
+        '[AuthDebug][req-1] Refresh failed: DioException(type=DioExceptionType.badResponse, status=401)',
       );
       expect(logged.single, isNot(contains('super-secret')));
     });
