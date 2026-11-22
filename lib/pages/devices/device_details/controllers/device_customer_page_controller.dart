@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
+import 'package:flutter_workshop_front/core/state/safe_change_notifier_mixin.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
@@ -12,7 +13,8 @@ import 'package:flutter_workshop_front/services/payment/payment_service.dart';
 import 'package:flutter_workshop_front/services/technician/technician_service.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
-class DeviceCustomerPageController extends ChangeNotifier {
+class DeviceCustomerPageController extends ChangeNotifier
+    with SafeChangeNotifierMixin {
   final DeviceCustomerService _deviceCustomerService;
   final TechnicianService _technicianService;
   final CustomerContactService _customerContactService;

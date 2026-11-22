@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
+import 'package:flutter_workshop_front/core/state/safe_change_notifier_mixin.dart';
 import 'package:flutter_workshop_front/models/device_statistics/device_statistics.dart';
 import 'package:flutter_workshop_front/services/device_statistics/device_statistics_service.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
-class HomeController extends ChangeNotifier {
+class HomeController extends ChangeNotifier with SafeChangeNotifierMixin {
   final DeviceStatisticsService _deviceStatisticsService =
       DeviceStatisticsService();
 

@@ -137,6 +137,7 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
                 firstDate: DateTime(2000),
                 lastDate: lastDate,
               );
+              if (!mounted) return;
               if (date != null) {
                 dateController.text = DateFormat('dd/MM/yyyy').format(date);
                 widget.onSelected?.call(date, null);
@@ -154,6 +155,7 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
                   lastDate: lastDate,
                 ),
               );
+              if (!mounted) return;
               if (date != null) {
                 final dates = List.of(date.nonNulls);
                 if (dates.length == 1) {
