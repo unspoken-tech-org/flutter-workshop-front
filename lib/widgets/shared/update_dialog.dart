@@ -299,34 +299,200 @@ class _VersionColumn extends StatelessWidget {
   }
 }
 
-class UpdateReleaseNotesSection extends StatelessWidget {
+class UpdateReleaseNotesSection extends StatefulWidget {
   final UpdateInfo updateInfo;
 
   const UpdateReleaseNotesSection({super.key, required this.updateInfo});
 
   @override
+  State<UpdateReleaseNotesSection> createState() =>
+      _UpdateReleaseNotesSectionState();
+}
+
+class _UpdateReleaseNotesSectionState extends State<UpdateReleaseNotesSection> {
+  static const int _initialVisibleCount = 3;
+
+  final ScrollController _scrollController = ScrollController();
+  bool _expanded = false;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final entries = widget.updateInfo.releaseHistory;
+    final headerText = entries.length > 1
+        ? 'Novidades (${entries.length} versões)'
+        : 'Novidades';
+    final hasMore = entries.length > _initialVisibleCount;
+    final visibleEntries = (!hasMore || _expanded)
+        ? entries
+        : entries.take(_initialVisibleCount).toList(growable: false);
+    final remaining = entries.length - _initialVisibleCount;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Novidades',
+          headerText,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade300),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 280),
+          child: Scrollbar(
+            controller: _scrollController,
+            thumbVisibility: true,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              child: entries.isEmpty
+                  ? _FallbackReleaseNotesCard(
+                      notes: widget.updateInfo.releaseNotes,
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (var i = 0; i < visibleEntries.length; i++) ...[
+                          if (i > 0) const SizedBox(height: 8),
+                          _ReleaseNoteEntryCard(
+                            entry: visibleEntries[i],
+                            isLatest: entries.length > 1 && i == 0,
+                          ),
+                        ],
+                      ],
+                    ),
+            ),
           ),
-          child: Text(updateInfo.releaseNotes),
         ),
+        if (hasMore) ...[
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: () => setState(() => _expanded = !_expanded),
+              child: Text(
+                _expanded
+                    ? 'Mostrar menos'
+                    : remaining == 1
+                    ? 'Ver mais 1 versão anterior'
+                    : 'Ver mais $remaining versões anteriores',
+              ),
+            ),
+          ),
+        ],
+        if (widget.updateInfo.hasTruncatedHistory) ...[
+          const SizedBox(height: 8),
+          const _TruncatedHistoryNotice(),
+        ],
       ],
+    );
+  }
+}
+
+class _FallbackReleaseNotesCard extends StatelessWidget {
+  final String notes;
+
+  const _FallbackReleaseNotesCard({required this.notes});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Text(notes),
+    );
+  }
+}
+
+class _ReleaseNoteEntryCard extends StatelessWidget {
+  final ReleaseNoteEntry entry;
+  final bool isLatest;
+
+  const _ReleaseNoteEntryCard({required this.entry, required this.isLatest});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final dateText = DateFormat('dd/MM/yyyy').format(entry.publishedAt);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'v${entry.version}',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (isLatest) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Text(
+                    'Mais recente',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: Colors.blue.shade800,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+              const Spacer(),
+              Text(
+                dateText,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(entry.notes),
+        ],
+      ),
+    );
+  }
+}
+
+class _TruncatedHistoryNotice extends StatelessWidget {
+  const _TruncatedHistoryNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      'Exibindo apenas as versões mais recentes. Consulte o GitHub para o histórico completo.',
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        color: Colors.grey.shade600,
+        fontStyle: FontStyle.italic,
+      ),
     );
   }
 }
