@@ -8,6 +8,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/services/update/update_service.dart';
 import 'package:flutter_workshop_front/widgets/shared/update_dialog.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+
+class _FeedAdapter implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    final payload = jsonEncode({
+      'tag_name': 'v1.6.0',
+      'body': '## Novidades\n\n- Auto-update',
+      'published_at': '2026-11-22T12:00:00Z',
+      'html_url': 'https://example.com/release',
+      'assets': [
+        {
+          'name': 'Workshop.App-Setup-1.6.0.exe',
+          'browser_download_url': 'http://192.168.122.1:8787/setup.exe',
+        },
+        {
+          'name': 'Workshop.App-Setup-1.6.0.exe.sha256',
+          'browser_download_url': 'http://192.168.122.1:8787/setup.exe.sha256',
+        },
+      ],
+    });
+    return ResponseBody.fromString(
+      payload,
+      200,
+      headers: {
+        Headers.contentTypeHeader: ['application/json'],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
 
 class _FakeUpdateAdapter implements HttpClientAdapter {
   final Uint8List exeBytes;
@@ -109,6 +146,34 @@ void main() {
       expect(_makeInfo(latest: '1.5.2', current: '1.5.2').hasUpdate, isFalse);
       expect(_makeInfo(latest: '1.5.1', current: '1.5.2').hasUpdate, isFalse);
     });
+  });
+
+  group('UpdateService.checkForUpdates', () {
+    test(
+      'uses custom feedUrlOverride and parses exe and sha256 assets',
+      () async {
+        final dio = Dio()..httpClientAdapter = _FeedAdapter();
+        final service = UpdateService(
+          dio: dio,
+          feedUrlOverride: 'http://192.168.122.1:8787/latest.json',
+          packageInfoLoader: () async => PackageInfo(
+            appName: 'Workshop App',
+            packageName: 'workshop',
+            version: '1.5.9',
+            buildNumber: '1',
+          ),
+        );
+
+        final info = await service.checkForUpdates();
+
+        expect(info, isNotNull);
+        expect(info!.latestVersion, '1.6.0');
+        expect(info.currentVersion, '1.5.9');
+        expect(info.hasUpdate, isTrue);
+        expect(info.downloadUrl, 'http://192.168.122.1:8787/setup.exe');
+        expect(info.checksumUrl, 'http://192.168.122.1:8787/setup.exe.sha256');
+      },
+    );
   });
 
   group('UpdateService.downloadAndInstall', () {
