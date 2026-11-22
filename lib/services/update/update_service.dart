@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -5,10 +8,22 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/config/env_config.dart';
 
+enum UpdateInstallStage { downloading, verifying, launching }
+
+class UpdateInstallException implements Exception {
+  final String message;
+
+  const UpdateInstallException(this.message);
+
+  @override
+  String toString() => message;
+}
+
 class UpdateInfo {
   final String latestVersion;
   final String currentVersion;
   final String downloadUrl;
+  final String? checksumUrl;
   final String releaseNotes;
   final DateTime publishedAt;
 
@@ -16,11 +31,15 @@ class UpdateInfo {
     required this.latestVersion,
     required this.currentVersion,
     required this.downloadUrl,
+    this.checksumUrl,
     required this.releaseNotes,
     required this.publishedAt,
   });
 
   bool get hasUpdate => compareVersions(latestVersion, currentVersion) > 0;
+
+  bool get supportsSilentInstall =>
+      checksumUrl != null && checksumUrl!.isNotEmpty;
 
   @visibleForTesting
   static int compareVersions(String v1, String v2) {
@@ -115,17 +134,45 @@ class UpdateService {
   static bool hasCheckedOnStartup = false;
 
   final Dio _dio;
+  final Future<void> Function(String exePath) _installerLauncher;
+  final void Function() _onExit;
+  final Directory? _tempDirectory;
+  final bool _isWindows;
+  final Future<PackageInfo> Function() _packageInfoLoader;
 
-  UpdateService({Dio? dio})
-    : _dio =
-          dio ??
-          Dio(
-            BaseOptions(
-              connectTimeout: const Duration(seconds: 10),
-              receiveTimeout: const Duration(seconds: 10),
-              headers: const {'Accept': 'application/vnd.github.v3+json'},
-            ),
-          );
+  UpdateService({
+    Dio? dio,
+    Future<void> Function(String exePath)? installerLauncher,
+    void Function()? onExit,
+    Directory? tempDirectory,
+    bool? isWindows,
+    Future<PackageInfo> Function()? packageInfoLoader,
+  }) : _dio =
+           dio ??
+           Dio(
+             BaseOptions(
+               connectTimeout: const Duration(seconds: 10),
+               receiveTimeout: const Duration(seconds: 10),
+               headers: const {'Accept': 'application/vnd.github.v3+json'},
+             ),
+           ),
+       _installerLauncher = installerLauncher ?? _defaultInstallerLauncher,
+       _onExit = onExit ?? (() => exit(0)),
+       _tempDirectory = tempDirectory,
+       _isWindows = isWindows ?? Platform.isWindows,
+       _packageInfoLoader = packageInfoLoader ?? PackageInfo.fromPlatform;
+
+  static Future<void> _defaultInstallerLauncher(String exePath) async {
+    await Process.start('cmd', [
+      '/c',
+      'start',
+      '',
+      exePath,
+      '/SILENT',
+      '/CLOSEAPPLICATIONS',
+      '/RESTARTAPPLICATIONS',
+    ], mode: ProcessStartMode.detached);
+  }
 
   Future<UpdateInfo?> checkForUpdates() async {
     final owner = EnvConfig.githubOwner;
@@ -135,7 +182,7 @@ class UpdateService {
       return null;
     }
 
-    final packageInfo = await PackageInfo.fromPlatform();
+    final packageInfo = await _packageInfoLoader();
     final currentVersion = packageInfo.version;
 
     try {
@@ -151,14 +198,18 @@ class UpdateService {
       final publishedAt = DateTime.parse(data['published_at'] as String);
 
       String? downloadUrl;
+      String? checksumUrl;
       final assets = data['assets'] as List<dynamic>?;
       if (assets != null) {
         for (final asset in assets) {
           final a = asset as Map<String, dynamic>;
           final name = (a['name'] as String).toLowerCase();
-          if (name.endsWith('.exe')) {
-            downloadUrl = a['browser_download_url'] as String;
-            break;
+          final browserUrl = a['browser_download_url'] as String?;
+          if (browserUrl == null) continue;
+          if (downloadUrl == null && name.endsWith('.exe')) {
+            downloadUrl = browserUrl;
+          } else if (checksumUrl == null && name.endsWith('.sha256')) {
+            checksumUrl = browserUrl;
           }
         }
       }
@@ -168,6 +219,7 @@ class UpdateService {
         latestVersion: latestVersion,
         currentVersion: currentVersion,
         downloadUrl: downloadUrl,
+        checksumUrl: checksumUrl,
         releaseNotes: _stripMarkdown(rawNotes),
         publishedAt: publishedAt,
       );
@@ -175,6 +227,82 @@ class UpdateService {
       debugPrint('Erro ao verificar atualizações: $e');
       return null;
     }
+  }
+
+  Future<void> downloadAndInstall(
+    UpdateInfo updateInfo, {
+    void Function(double? progress)? onProgress,
+    void Function(UpdateInstallStage stage)? onStageChange,
+  }) async {
+    if (!_isWindows) {
+      throw const UpdateInstallException(
+        'Atualização automática disponível apenas no Windows.',
+      );
+    }
+    final checksumUrl = updateInfo.checksumUrl;
+    if (checksumUrl == null || checksumUrl.isEmpty) {
+      throw const UpdateInstallException(
+        'Arquivo de verificação SHA-256 não encontrado nesta versão.',
+      );
+    }
+
+    onStageChange?.call(UpdateInstallStage.downloading);
+    final checksumResponse = await _dio.get<String>(
+      checksumUrl,
+      options: Options(responseType: ResponseType.plain),
+    );
+    final expectedHash = _parseSha256(checksumResponse.data);
+    if (expectedHash == null) {
+      throw const UpdateInstallException(
+        'Formato inválido no arquivo de verificação SHA-256.',
+      );
+    }
+
+    final dir = _tempDirectory ?? Directory.systemTemp;
+    final savePath =
+        '${dir.path}${Platform.pathSeparator}workshop_update_${DateTime.now().millisecondsSinceEpoch}.exe';
+    final installerFile = File(savePath);
+
+    try {
+      await _dio.download(
+        updateInfo.downloadUrl,
+        savePath,
+        options: Options(receiveTimeout: const Duration(minutes: 5)),
+        onReceiveProgress: (received, total) {
+          if (total <= 0) {
+            onProgress?.call(null);
+          } else {
+            onProgress?.call((received / total).clamp(0.0, 1.0));
+          }
+        },
+      );
+
+      onStageChange?.call(UpdateInstallStage.verifying);
+      final digest = await sha256.bind(installerFile.openRead()).first;
+      final actualHash = digest.toString().toLowerCase();
+      if (actualHash != expectedHash) {
+        throw const UpdateInstallException(
+          'Falha na verificação de integridade (SHA-256) do instalador.',
+        );
+      }
+
+      onStageChange?.call(UpdateInstallStage.launching);
+      await _installerLauncher(savePath);
+      _onExit();
+    } catch (_) {
+      if (await installerFile.exists()) {
+        try {
+          await installerFile.delete();
+        } catch (_) {}
+      }
+      rethrow;
+    }
+  }
+
+  static String? _parseSha256(String? content) {
+    if (content == null) return null;
+    final match = RegExp(r'\b([a-fA-F0-9]{64})\b').firstMatch(content);
+    return match?.group(1)?.toLowerCase();
   }
 
   Future<void> openDownloadUrl(String url) async {
