@@ -139,6 +139,7 @@ class UpdateService {
   final Directory? _tempDirectory;
   final bool _isWindows;
   final Future<PackageInfo> Function() _packageInfoLoader;
+  final String? _feedUrlOverride;
 
   UpdateService({
     Dio? dio,
@@ -147,6 +148,7 @@ class UpdateService {
     Directory? tempDirectory,
     bool? isWindows,
     Future<PackageInfo> Function()? packageInfoLoader,
+    String? feedUrlOverride,
   }) : _dio =
            dio ??
            Dio(
@@ -160,7 +162,8 @@ class UpdateService {
        _onExit = onExit ?? (() => exit(0)),
        _tempDirectory = tempDirectory,
        _isWindows = isWindows ?? Platform.isWindows,
-       _packageInfoLoader = packageInfoLoader ?? PackageInfo.fromPlatform;
+       _packageInfoLoader = packageInfoLoader ?? PackageInfo.fromPlatform,
+       _feedUrlOverride = feedUrlOverride;
 
   static Future<void> _defaultInstallerLauncher(String exePath) async {
     await Process.start('cmd', [
@@ -175,20 +178,25 @@ class UpdateService {
   }
 
   Future<UpdateInfo?> checkForUpdates() async {
-    final owner = EnvConfig.githubOwner;
-    final repo = EnvConfig.githubRepo;
+    final configuredFeedUrl = _feedUrlOverride ?? EnvConfig.updateFeedUrl;
+    final String releaseUrl;
+    if (configuredFeedUrl.isNotEmpty) {
+      releaseUrl = configuredFeedUrl;
+    } else {
+      final owner = EnvConfig.githubOwner;
+      final repo = EnvConfig.githubRepo;
 
-    if (owner.isEmpty || repo.isEmpty) {
-      return null;
+      if (owner.isEmpty || repo.isEmpty) {
+        return null;
+      }
+      releaseUrl = 'https://api.github.com/repos/$owner/$repo/releases/latest';
     }
 
     final packageInfo = await _packageInfoLoader();
     final currentVersion = packageInfo.version;
 
     try {
-      final response = await _dio.get<Map<String, dynamic>>(
-        'https://api.github.com/repos/$owner/$repo/releases/latest',
-      );
+      final response = await _dio.get<Map<String, dynamic>>(releaseUrl);
 
       if (response.statusCode != 200) return null;
 

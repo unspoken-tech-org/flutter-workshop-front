@@ -61,6 +61,31 @@ jobs:
       - name: Build Windows Release
         run: flutter build windows --release --dart-define-from-file=.env-prd --build-name=${{ steps.get_version.outputs.VERSION }}
 
+      - name: Bundle Visual C++ Runtime DLLs
+        shell: pwsh
+        run: |
+          $vsInstallPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          $crtDirs = Get-ChildItem -Path "$vsInstallPath\VC\Redist\MSVC" -Directory -ErrorAction Stop |
+            Where-Object { $_.Name -match '^\d+\.' } |
+            Sort-Object Name -Descending
+          $crtPath = $null
+          foreach ($dir in $crtDirs) {
+            $candidate = Get-ChildItem -Path $dir.FullName -Directory -Filter "Microsoft.VC*.CRT" -Recurse -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -match '\\x64\\' } |
+              Select-Object -First 1
+            if ($candidate) {
+              $crtPath = $candidate.FullName
+              break
+            }
+          }
+          if (-not $crtPath) {
+            Write-Error "Could not locate Microsoft.VC*.CRT x64 redistributable DLLs"
+            exit 1
+          }
+          Write-Host "Copying CRT DLLs from: $crtPath"
+          Copy-Item -Path "$crtPath\*.dll" -Destination "build\windows\x64\runner\Release\" -Force
+          Get-ChildItem "build\windows\x64\runner\Release\*.dll" | Select-Object Name
+
       - name: Install Inno Setup
         shell: pwsh
         run: |
