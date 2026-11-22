@@ -20,22 +20,94 @@ class UpdateInfo {
     required this.publishedAt,
   });
 
-  bool get hasUpdate => _compareVersions(latestVersion, currentVersion) > 0;
+  bool get hasUpdate => compareVersions(latestVersion, currentVersion) > 0;
 
-  static int _compareVersions(String v1, String v2) {
-    // Remove suffixes like -test, -beta, +build
-    final cleanV1 = v1.split(RegExp(r'[-+]'))[0];
-    final cleanV2 = v2.split(RegExp(r'[-+]'))[0];
+  @visibleForTesting
+  static int compareVersions(String v1, String v2) {
+    final parsed1 = _parseVersion(v1);
+    final parsed2 = _parseVersion(v2);
 
-    final parts1 = cleanV1.split('.').map((e) => int.tryParse(e) ?? 0).toList();
-    final parts2 = cleanV2.split('.').map((e) => int.tryParse(e) ?? 0).toList();
     for (int i = 0; i < 3; i++) {
-      final p1 = i < parts1.length ? parts1[i] : 0;
-      final p2 = i < parts2.length ? parts2[i] : 0;
-      if (p1 > p2) return 1;
-      if (p1 < p2) return -1;
+      final cmp = parsed1.core[i].compareTo(parsed2.core[i]);
+      if (cmp != 0) return cmp;
+    }
+
+    final preCmp = _comparePreRelease(parsed1.preRelease, parsed2.preRelease);
+    if (preCmp != 0) return preCmp;
+
+    // Only compare +build metadata when both versions explicitly specify it,
+    // because GitHub release tags (vX.Y.Z) omit +build while local builds may
+    // carry pubspec build numbers.
+    if (parsed1.build != null && parsed2.build != null) {
+      return _compareIdentifiers(parsed1.build!, parsed2.build!);
     }
     return 0;
+  }
+
+  static ({List<int> core, List<String>? preRelease, List<String>? build})
+  _parseVersion(String raw) {
+    var normalized = raw.trim();
+    if (normalized.startsWith('v') || normalized.startsWith('V')) {
+      normalized = normalized.substring(1);
+    }
+
+    final plusIndex = normalized.indexOf('+');
+    List<String>? build;
+    if (plusIndex != -1) {
+      final buildStr = normalized.substring(plusIndex + 1);
+      if (buildStr.isNotEmpty) {
+        build = buildStr.split('.');
+      }
+      normalized = normalized.substring(0, plusIndex);
+    }
+
+    final dashIndex = normalized.indexOf('-');
+    List<String>? preRelease;
+    if (dashIndex != -1) {
+      final preStr = normalized.substring(dashIndex + 1);
+      if (preStr.isNotEmpty) {
+        preRelease = preStr.split('.');
+      }
+      normalized = normalized.substring(0, dashIndex);
+    }
+
+    final rawParts = normalized.split('.');
+    final core = List<int>.generate(
+      3,
+      (i) => i < rawParts.length ? (int.tryParse(rawParts[i]) ?? 0) : 0,
+    );
+    return (core: core, preRelease: preRelease, build: build);
+  }
+
+  static int _comparePreRelease(List<String>? pre1, List<String>? pre2) {
+    if (pre1 == null && pre2 == null) return 0;
+    // A normal version has higher precedence than a pre-release version.
+    if (pre1 == null) return 1;
+    if (pre2 == null) return -1;
+    return _compareIdentifiers(pre1, pre2);
+  }
+
+  static int _compareIdentifiers(List<String> ids1, List<String> ids2) {
+    final len = ids1.length < ids2.length ? ids1.length : ids2.length;
+    for (int i = 0; i < len; i++) {
+      final a = ids1[i];
+      final b = ids2[i];
+      final aNum = int.tryParse(a);
+      final bNum = int.tryParse(b);
+      if (aNum != null && bNum != null) {
+        final cmp = aNum.compareTo(bNum);
+        if (cmp != 0) return cmp;
+      } else if (aNum != null) {
+        // SemVer 2.0: numeric identifiers always have lower precedence.
+        return -1;
+      } else if (bNum != null) {
+        return 1;
+      } else {
+        final cmp = a.compareTo(b);
+        if (cmp != 0) return cmp;
+      }
+    }
+    return ids1.length.compareTo(ids2.length);
   }
 }
 
