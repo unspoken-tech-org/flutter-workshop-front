@@ -19,6 +19,18 @@ class UpdateInstallException implements Exception {
   String toString() => message;
 }
 
+class ReleaseNoteEntry {
+  final String version;
+  final String notes;
+  final DateTime publishedAt;
+
+  const ReleaseNoteEntry({
+    required this.version,
+    required this.notes,
+    required this.publishedAt,
+  });
+}
+
 class UpdateInfo {
   final String latestVersion;
   final String currentVersion;
@@ -26,6 +38,8 @@ class UpdateInfo {
   final String? checksumUrl;
   final String releaseNotes;
   final DateTime publishedAt;
+  final List<ReleaseNoteEntry> releaseHistory;
+  final bool hasTruncatedHistory;
 
   UpdateInfo({
     required this.latestVersion,
@@ -34,6 +48,8 @@ class UpdateInfo {
     this.checksumUrl,
     required this.releaseNotes,
     required this.publishedAt,
+    this.releaseHistory = const [],
+    this.hasTruncatedHistory = false,
   });
 
   bool get hasUpdate => compareVersions(latestVersion, currentVersion) > 0;
@@ -130,8 +146,26 @@ class UpdateInfo {
   }
 }
 
+class _ParsedRelease {
+  final String version;
+  final String notes;
+  final DateTime publishedAt;
+  final String downloadUrl;
+  final String? checksumUrl;
+
+  const _ParsedRelease({
+    required this.version,
+    required this.notes,
+    required this.publishedAt,
+    required this.downloadUrl,
+    this.checksumUrl,
+  });
+}
+
 class UpdateService {
   static bool hasCheckedOnStartup = false;
+  static const int _maxPages = 3;
+  static const String _emptyNotesFallback = 'Sem notas de atualização';
 
   final Dio _dio;
   final Future<void> Function(String exePath) _installerLauncher;
@@ -189,52 +223,169 @@ class UpdateService {
       if (owner.isEmpty || repo.isEmpty) {
         return null;
       }
-      releaseUrl = 'https://api.github.com/repos/$owner/$repo/releases/latest';
+      releaseUrl =
+          'https://api.github.com/repos/$owner/$repo/releases?per_page=50';
     }
 
     final packageInfo = await _packageInfoLoader();
     final currentVersion = packageInfo.version;
 
     try {
-      final response = await _dio.get<Map<String, dynamic>>(releaseUrl);
+      String? nextUrl = releaseUrl;
+      var pagesFetched = 0;
+      var hasTruncatedHistory = false;
+      final parsedReleases = <_ParsedRelease>[];
 
-      if (response.statusCode != 200) return null;
+      while (nextUrl != null && pagesFetched < _maxPages) {
+        final response = await _dio.get<dynamic>(nextUrl);
 
-      final data = response.data as Map<String, dynamic>;
-      final latestVersion = (data['tag_name'] as String).replaceFirst('v', '');
-      final rawNotes = (data['body'] as String?) ?? 'Sem notas de atualização';
-      final publishedAt = DateTime.parse(data['published_at'] as String);
+        if (response.statusCode != 200) {
+          if (pagesFetched == 0) return null;
+          break;
+        }
 
-      String? downloadUrl;
-      String? checksumUrl;
-      final assets = data['assets'] as List<dynamic>?;
-      if (assets != null) {
-        for (final asset in assets) {
-          final a = asset as Map<String, dynamic>;
-          final name = (a['name'] as String).toLowerCase();
-          final browserUrl = a['browser_download_url'] as String?;
-          if (browserUrl == null) continue;
-          if (downloadUrl == null && name.endsWith('.exe')) {
-            downloadUrl = browserUrl;
-          } else if (checksumUrl == null && name.endsWith('.sha256')) {
-            checksumUrl = browserUrl;
+        pagesFetched++;
+        final rawData = response.data;
+        final bool isListResponse;
+        final List<dynamic> rawItems;
+
+        if (rawData is Map<String, dynamic>) {
+          isListResponse = false;
+          rawItems = [rawData];
+        } else if (rawData is List<dynamic>) {
+          isListResponse = true;
+          rawItems = rawData;
+        } else {
+          if (pagesFetched == 1) return null;
+          break;
+        }
+
+        final pageParsed = <_ParsedRelease>[];
+        for (final item in rawItems) {
+          if (item is! Map<String, dynamic>) continue;
+          final parsed = _parseRelease(item);
+          if (parsed != null) {
+            pageParsed.add(parsed);
           }
         }
+        parsedReleases.addAll(pageParsed);
+
+        if (!isListResponse || rawItems.isEmpty) {
+          break;
+        }
+
+        final nextLink = _extractNextPageUrl(response.headers);
+        if (nextLink == null) {
+          break;
+        }
+
+        final hasReachedCurrentOrOlder = pageParsed.any(
+          (r) => UpdateInfo.compareVersions(r.version, currentVersion) <= 0,
+        );
+        if (hasReachedCurrentOrOlder) {
+          break;
+        }
+
+        if (pagesFetched >= _maxPages) {
+          hasTruncatedHistory = true;
+          break;
+        }
+
+        nextUrl = nextLink;
       }
-      downloadUrl ??= data['html_url'] as String;
+
+      if (parsedReleases.isEmpty) return null;
+
+      parsedReleases.sort(
+        (a, b) => UpdateInfo.compareVersions(b.version, a.version),
+      );
+
+      final latest = parsedReleases.first;
+      final releaseHistory = parsedReleases
+          .where(
+            (r) => UpdateInfo.compareVersions(r.version, currentVersion) > 0,
+          )
+          .map(
+            (r) => ReleaseNoteEntry(
+              version: r.version,
+              notes: r.notes,
+              publishedAt: r.publishedAt,
+            ),
+          )
+          .toList(growable: false);
 
       return UpdateInfo(
-        latestVersion: latestVersion,
+        latestVersion: latest.version,
         currentVersion: currentVersion,
-        downloadUrl: downloadUrl,
-        checksumUrl: checksumUrl,
-        releaseNotes: _stripMarkdown(rawNotes),
-        publishedAt: publishedAt,
+        downloadUrl: latest.downloadUrl,
+        checksumUrl: latest.checksumUrl,
+        releaseNotes: latest.notes,
+        publishedAt: latest.publishedAt,
+        releaseHistory: releaseHistory,
+        hasTruncatedHistory: hasTruncatedHistory,
       );
     } catch (e) {
       debugPrint('Erro ao verificar atualizações: $e');
       return null;
     }
+  }
+
+  _ParsedRelease? _parseRelease(Map<String, dynamic> data) {
+    if (data['draft'] == true || data['prerelease'] == true) {
+      return null;
+    }
+
+    final rawTag = data['tag_name'];
+    if (rawTag is! String || rawTag.trim().isEmpty) {
+      return null;
+    }
+    final version = rawTag.trim().replaceFirst(RegExp(r'^[vV]'), '');
+    if (version.isEmpty) return null;
+
+    final publishedAtRaw =
+        (data['published_at'] as String?) ?? (data['created_at'] as String?);
+    if (publishedAtRaw == null) return null;
+    final publishedAt = DateTime.tryParse(publishedAtRaw);
+    if (publishedAt == null) return null;
+
+    final rawNotes = (data['body'] as String?) ?? '';
+
+    String? downloadUrl;
+    String? checksumUrl;
+    final assets = data['assets'] as List<dynamic>?;
+    if (assets != null) {
+      for (final asset in assets) {
+        if (asset is! Map<String, dynamic>) continue;
+        final name = (asset['name'] as String?)?.toLowerCase();
+        final browserUrl = asset['browser_download_url'] as String?;
+        if (name == null || browserUrl == null) continue;
+        if (downloadUrl == null && name.endsWith('.exe')) {
+          downloadUrl = browserUrl;
+        } else if (checksumUrl == null && name.endsWith('.sha256')) {
+          checksumUrl = browserUrl;
+        }
+      }
+    }
+    downloadUrl ??= (data['html_url'] as String?) ?? '';
+
+    return _ParsedRelease(
+      version: version,
+      notes: _cleanReleaseNotes(rawNotes),
+      publishedAt: publishedAt,
+      downloadUrl: downloadUrl,
+      checksumUrl: checksumUrl,
+    );
+  }
+
+  static String? _extractNextPageUrl(Headers headers) {
+    final linkValues = headers['link'];
+    if (linkValues == null || linkValues.isEmpty) return null;
+    final combined = linkValues.join(',');
+    final match = RegExp(
+      r'<([^>]+)>[^,]*;\s*rel="next"',
+      caseSensitive: false,
+    ).firstMatch(combined);
+    return match?.group(1);
   }
 
   Future<void> downloadAndInstall(
@@ -319,6 +470,30 @@ class UpdateService {
     if (!ok) {
       throw Exception('Não foi possível abrir o link de download');
     }
+  }
+
+  String _cleanReleaseNotes(String rawNotes) {
+    var result = rawNotes.replaceAll('\r\n', '\n').trimLeft();
+
+    // Remove cabeçalho redundante de versão gerado pelo workflow de release
+    // (ex: "## v1.6.0\n\n").
+    result = result
+        .replaceFirst(
+          RegExp(r'^#{1,6}\s+v?\d+\.\d+\.\d+[^\n]*\n*', caseSensitive: false),
+          '',
+        )
+        .trimLeft();
+
+    // Remove cabeçalho redundante "Novidades" (ex: "### Novidades\n\n").
+    result = result
+        .replaceFirst(
+          RegExp(r'^#{1,6}\s+novidades\s*(?:\n+|$)', caseSensitive: false),
+          '',
+        )
+        .trimLeft();
+
+    final cleaned = _stripMarkdown(result);
+    return cleaned.isEmpty ? _emptyNotesFallback : cleaned;
   }
 
   String _stripMarkdown(String markdown) {
