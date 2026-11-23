@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_workshop_front/core/http/custom_dio.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/refresh_result.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
@@ -127,6 +128,7 @@ class _FakeDio implements Dio {
     return Response<T>(
       requestOptions: response.requestOptions,
       statusCode: response.statusCode,
+      headers: response.headers,
       data: response.data as T,
     );
   }
@@ -139,12 +141,68 @@ Response<dynamic> _response(
   String path, {
   required int statusCode,
   Object? data,
+  Map<String, List<String>>? headers,
 }) {
   return Response<dynamic>(
     requestOptions: RequestOptions(path: path),
     statusCode: statusCode,
+    headers: headers == null ? null : Headers.fromMap(headers),
     data: data,
   );
+}
+
+const _rateLimitBody = <String, dynamic>{
+  'status': 429,
+  'title': 'Muitas requisições',
+  'error': {
+    'code': 'rate.limited',
+    'message': 'Limite de requisições excedido. Tente novamente em instantes.',
+  },
+};
+
+Response<dynamic> _rateLimited({String? retryAfter}) => _response(
+  '/api/auth/refresh',
+  statusCode: 429,
+  data: _rateLimitBody,
+  headers: {
+    if (retryAfter != null) 'retry-after': [retryAfter],
+  },
+);
+
+/// Relógio manual para testar a janela do `Retry-After` sem esperar.
+class _FakeClock {
+  DateTime now = DateTime(2026, 11, 22, 10);
+
+  void advance(Duration d) => now = now.add(d);
+}
+
+class _FixedAdapter implements HttpClientAdapter {
+  final int status;
+  final String body;
+  final Map<String, List<String>> headers;
+  int calls = 0;
+
+  _FixedAdapter(this.status, this.body, {this.headers = const {}});
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    calls += 1;
+    return ResponseBody.fromString(
+      body,
+      status,
+      headers: {
+        Headers.contentTypeHeader: ['application/json; charset=utf-8'],
+        ...headers,
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
 }
 
 String _makeJwt(int expEpochSeconds) {
@@ -544,6 +602,218 @@ void main() {
         }
       },
     );
+  });
+
+  group('AuthService.refreshToken com HTTP 429', () {
+    late _MemorySecurityStorage storage;
+    late AuthNotifier authNotifier;
+    late _FakeClock clock;
+    late int refreshCalls;
+
+    setUp(() async {
+      storage = _MemorySecurityStorage()..seedTokens(refreshToken: 'rt-1');
+      await storage.saveApiKey('key-1');
+      authNotifier = AuthNotifier(initialState: AuthRouteState.authenticated);
+      clock = _FakeClock();
+      refreshCalls = 0;
+    });
+
+    AuthService serviceWith(Future<Response<dynamic>> Function() onRefresh) {
+      return AuthService(
+        dio: _FakeDio({
+          '/api/auth/refresh': (data) {
+            refreshCalls += 1;
+            return onRefresh();
+          },
+        }),
+        storage: storage,
+        authNotifier: authNotifier,
+        clock: () => clock.now,
+      );
+    }
+
+    void expectSessionKept() {
+      expect(storage.clearSessionCalls, 0);
+      expect(storage.clearProvisioningCalls, 0);
+      expect(authNotifier.state, AuthRouteState.authenticated);
+    }
+
+    Matcher isTransient429() => isA<RefreshTransientFailure>()
+        .having((r) => r.errorType, 'errorType', DioExceptionType.badResponse)
+        .having((r) => r.response?.statusCode, 'statusCode', 429);
+
+    test(
+      '429 entregue como status é transitório e não derruba a sessão',
+      () async {
+        final service = serviceWith(() async => _rateLimited(retryAfter: '10'));
+
+        final result = await service.refreshToken();
+
+        expect(result, isTransient429());
+        expectSessionKept();
+        expect(await storage.getApiKey(), 'key-1');
+        expect(await storage.getRefreshToken(), 'rt-1');
+      },
+    );
+
+    test(
+      '429 lançado como DioException é transitório e não derruba a sessão',
+      () async {
+        final service = serviceWith(() async {
+          throw DioException(
+            requestOptions: RequestOptions(path: '/api/auth/refresh'),
+            type: DioExceptionType.badResponse,
+            response: _rateLimited(retryAfter: '10'),
+          );
+        });
+
+        final result = await service.refreshToken();
+
+        expect(result, isTransient429());
+        expectSessionKept();
+        expect(await storage.getRefreshToken(), 'rt-1');
+      },
+    );
+
+    test(
+      'respeita Retry-After: 10 antes de chamar o refresh de novo',
+      () async {
+        var respond429 = true;
+        final service = serviceWith(() async {
+          if (respond429) return _rateLimited(retryAfter: '10');
+          return _response(
+            '/api/auth/refresh',
+            statusCode: 200,
+            data: {'accessToken': 'at-2', 'refreshToken': 'rt-2'},
+          );
+        });
+
+        expect(await service.refreshToken(), isTransient429());
+        expect(refreshCalls, 1);
+
+        respond429 = false;
+        clock.advance(const Duration(seconds: 9));
+        final blocked = await service.refreshToken();
+        expect(blocked, isTransient429());
+        expect(refreshCalls, 1, reason: 'dentro do Retry-After não há request');
+        expectSessionKept();
+
+        clock.advance(const Duration(seconds: 1));
+        final after = await service.refreshToken();
+        expect(after, isA<RefreshSuccess>());
+        expect(refreshCalls, 2);
+        expect(await storage.getAccessToken(), 'at-2');
+      },
+    );
+
+    test('sem Retry-After aplica o fallback de 30s', () async {
+      final service = serviceWith(() async => _rateLimited());
+
+      await service.refreshToken();
+      expect(refreshCalls, 1);
+
+      clock.advance(const Duration(seconds: 29));
+      await service.refreshToken();
+      expect(refreshCalls, 1);
+
+      clock.advance(const Duration(seconds: 1));
+      await service.refreshToken();
+      expect(refreshCalls, 2);
+      expectSessionKept();
+    });
+
+    test('Retry-After inválido aplica o fallback de 30s', () async {
+      for (final invalid in [
+        'abc',
+        '-5',
+        '',
+        'Wed, 21 Oct 2026 07:28:00 GMT',
+      ]) {
+        refreshCalls = 0;
+        clock = _FakeClock();
+        final service = serviceWith(
+          () async => _rateLimited(retryAfter: invalid),
+        );
+
+        await service.refreshToken();
+        clock.advance(const Duration(seconds: 29));
+        await service.refreshToken();
+        expect(refreshCalls, 1, reason: 'Retry-After="$invalid"');
+
+        clock.advance(const Duration(seconds: 1));
+        await service.refreshToken();
+        expect(refreshCalls, 2, reason: 'Retry-After="$invalid"');
+      }
+    });
+
+    test('DioException 429 sem Retry-After também suspende por 30s', () async {
+      final service = serviceWith(() async {
+        throw DioException(
+          requestOptions: RequestOptions(path: '/api/auth/refresh'),
+          type: DioExceptionType.badResponse,
+          response: _rateLimited(),
+        );
+      });
+
+      await service.refreshToken();
+      clock.advance(const Duration(seconds: 29));
+      await service.refreshToken();
+      expect(refreshCalls, 1);
+
+      clock.advance(const Duration(seconds: 1));
+      await service.refreshToken();
+      expect(refreshCalls, 2);
+    });
+
+    test(
+      'falhas transitórias que não são 429 não suspendem o refresh',
+      () async {
+        final service = serviceWith(
+          () async => _response('/api/auth/refresh', statusCode: 500),
+        );
+
+        await service.refreshToken();
+        await service.refreshToken();
+
+        expect(refreshCalls, 2);
+      },
+    );
+
+    test('via CustomDio real: 429 com Retry-After vira DioException e '
+        'bloqueia novas chamadas HTTP', () async {
+      CustomDio.resetForTest();
+      addTearDown(CustomDio.resetForTest);
+      final adapter = _FixedAdapter(
+        429,
+        jsonEncode(_rateLimitBody),
+        headers: {
+          'retry-after': ['10'],
+        },
+      );
+      final dio = CustomDio.authDioInstance()
+        ..options.baseUrl = 'https://test.example.com'
+        ..httpClientAdapter = adapter;
+      final service = AuthService(
+        dio: dio,
+        storage: storage,
+        authNotifier: authNotifier,
+        clock: () => clock.now,
+      );
+
+      final first = await service.refreshToken();
+      expect(first, isTransient429());
+      expect(adapter.calls, 1);
+
+      clock.advance(const Duration(seconds: 5));
+      final second = await service.refreshToken();
+      expect(second, isTransient429());
+      expect(adapter.calls, 1);
+      expectSessionKept();
+
+      clock.advance(const Duration(seconds: 5));
+      await service.refreshToken();
+      expect(adapter.calls, 2);
+    });
   });
 
   group('AuthService bootstrap/session', () {

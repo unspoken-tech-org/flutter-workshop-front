@@ -11,6 +11,48 @@ class Config {
   static String get devApiKey =>
       kDebugMode ? const String.fromEnvironment('DEV_API_KEY') : '';
 
+  /// Hosts aceitos com `http://` fora do release (E2E local contra a API).
+  static const _localHttpHosts = {'localhost', '127.0.0.1'};
+
+  /// Valida o `BASE_URL` no boot e falha rápido com [StateError].
+  ///
+  /// Em release exige `https://`; em debug/profile aceita também
+  /// `http://localhost` e `http://127.0.0.1` (`scripts/set_env.sh local`).
+  static Uri validateBaseUrl(String rawUrl, {required bool isReleaseMode}) {
+    final trimmed = rawUrl.trim();
+    if (trimmed.isEmpty) {
+      throw StateError(
+        'BASE_URL ausente: rode com --dart-define-from-file=.env (ver .env.example).',
+      );
+    }
+
+    final uri = Uri.tryParse(trimmed);
+    if (uri == null ||
+        !uri.hasScheme ||
+        uri.host.isEmpty ||
+        (uri.scheme != 'https' && uri.scheme != 'http')) {
+      throw StateError(
+        'BASE_URL inválida: use uma URL absoluta http(s) com host.',
+      );
+    }
+
+    if (uri.scheme == 'https') {
+      return uri;
+    }
+
+    if (isReleaseMode) {
+      throw StateError('BASE_URL deve usar https:// em builds release.');
+    }
+
+    if (!_localHttpHosts.contains(uri.host)) {
+      throw StateError(
+        'BASE_URL com http:// só é aceita para localhost/127.0.0.1 fora do release.',
+      );
+    }
+
+    return uri;
+  }
+
   static Future<String> get appVersion async {
     final packageInfo = await PackageInfo.fromPlatform();
     return packageInfo.version;

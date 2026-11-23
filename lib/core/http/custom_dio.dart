@@ -74,8 +74,13 @@ class CustomDio {
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
         sendTimeout: const Duration(seconds: 15),
+        // 401/403/429 viram DioException: Security/GlobalErrorInterceptor
+        // tratam sessão e rate limit em vez de o chamador ver "sucesso".
         validateStatus: (status) {
-          return status! < 500 && status != 401 && status != 403;
+          return status! < 500 &&
+              status != 401 &&
+              status != 403 &&
+              status != 429;
         },
       ),
     );

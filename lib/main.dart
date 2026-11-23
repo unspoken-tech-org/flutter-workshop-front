@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -13,11 +14,7 @@ import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controll
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (Config.baseUrl.isEmpty) {
-    throw StateError(
-      'BASE_URL ausente: rode com --dart-define-from-file=.env (ver .env.example).',
-    );
-  }
+  Config.validateBaseUrl(Config.baseUrl, isReleaseMode: kReleaseMode);
 
   // Inicialização da Camada de Segurança
   final authNotifier = AuthNotifier();

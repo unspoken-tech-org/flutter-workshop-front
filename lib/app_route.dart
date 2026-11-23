@@ -10,6 +10,7 @@ import 'package:flutter_workshop_front/pages/customers/customer_register/custome
 import 'package:flutter_workshop_front/pages/devices/all_devices/all_devices_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/device_details_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/device_register_page.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/device_register_route_args.dart';
 import 'package:flutter_workshop_front/pages/devices/search_devices/search_devices_page.dart';
 import 'package:flutter_workshop_front/pages/home/home_page.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
@@ -99,14 +100,11 @@ List<RouteBase> _routes = [
     path: '/device/register',
     name: DeviceRegisterPage.route,
     builder: (context, state) {
-      final customerId = int.tryParse(
-        state.uri.queryParameters['customerId'] ?? '',
-      );
-      final customerName = state.uri.queryParameters['customerName'];
+      final args = DeviceRegisterRouteArgs.fromRoute(state.uri, state.extra);
 
       return DeviceRegisterPage(
-        customerId: customerId,
-        customerName: customerName,
+        customerId: args.customerId,
+        customerName: args.customerName,
       );
     },
   ),

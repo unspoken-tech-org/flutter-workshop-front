@@ -9,6 +9,7 @@ import 'package:flutter_workshop_front/pages/customers/customer_register/custome
 import 'package:flutter_workshop_front/pages/devices/all_devices/all_devices_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/device_details_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/device_register_page.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/device_register_route_args.dart';
 import 'package:flutter_workshop_front/pages/devices/search_devices/search_devices_page.dart';
 import 'package:flutter_workshop_front/pages/home/home_page.dart';
 import 'package:go_router/go_router.dart';
@@ -97,9 +98,9 @@ class WsNavigator {
       context.pushNamed(
         DeviceRegisterPage.route,
         queryParameters: {
-          'customerId': customerId.toString(),
-          'customerName': customerName,
+          if (customerId != null) 'customerId': customerId.toString(),
         },
+        extra: DeviceRegisterExtra(customerName: customerName),
       ),
     );
   }
