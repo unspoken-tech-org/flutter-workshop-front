@@ -56,11 +56,34 @@ class DeviceRegisterController extends ChangeNotifier
     isLoading = true;
     notifyListeners();
     try {
-      await Future.wait([fetchColors(), fetchTechnicians()]);
-      if (customerId == null) isCustomerSelected = false;
+      await Future.wait([
+        fetchColors(),
+        fetchTechnicians(),
+        if (customerId != null && customerName == null)
+          _loadCustomerName(customerId),
+      ]);
+      if (this.customerId == null) isCustomerSelected = false;
     } finally {
       isLoading = false;
       notifyListeners();
+    }
+  }
+
+  /// Fallback quando a rota chega só com `customerId` (deep-link ou chamador
+  /// sem `extra`): o nome vem da API, nunca da URI.
+  Future<void> _loadCustomerName(int customerId) async {
+    try {
+      final customer = await _customerRepository.getCustomer(customerId);
+      if (this.customerId == customerId) customerName = customer.name;
+    } catch (e) {
+      // Sem o nome não dá para confirmar o cliente: volta para a busca manual.
+      if (this.customerId == customerId) {
+        this.customerId = null;
+        customerName = null;
+      }
+      SnackBarUtil().showError(
+        e is RequisitionException ? e.message : 'Erro ao buscar o cliente',
+      );
     }
   }
 
