@@ -4,6 +4,28 @@ import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 /// Global interceptor for network error handling and UI feedback.
 class GlobalErrorInterceptor extends Interceptor {
+  static const tooManyRequestsFallbackMessage =
+      'Muitas requisições. Aguarde alguns instantes e tente novamente.';
+
+  /// Mensagem do `ResponseError` (`{status, title, error: {code, message}}`)
+  /// do `429`, com fallback fixo quando o corpo não é JSON da API.
+  @visibleForTesting
+  static String tooManyRequestsMessage(Response<dynamic>? response) {
+    final data = response?.data;
+    if (data is Map) {
+      final error = data['error'];
+      final message = error is Map ? error['message'] : null;
+      if (message is String && message.trim().isNotEmpty) {
+        return message;
+      }
+      final title = data['title'];
+      if (title is String && title.trim().isNotEmpty) {
+        return title;
+      }
+    }
+    return tooManyRequestsFallbackMessage;
+  }
+
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final extra = err.requestOptions.extra;
@@ -30,7 +52,7 @@ class GlobalErrorInterceptor extends Interceptor {
       return handler.next(err);
     }
 
-    // 3. Error Filtering: Only infrastructure and Server Errors (5xx) trigger global UI.
+    // 3. Error Filtering: Only infrastructure, rate limit (429) and Server Errors (5xx) trigger global UI.
     // Client Errors (4xx) are passed to the Controller for business logic handling.
     bool shouldShowGlobalError = false;
     String errorMessage = 'Ocorreu um erro inesperado de conexão.';
@@ -42,6 +64,9 @@ class GlobalErrorInterceptor extends Interceptor {
       shouldShowGlobalError = true;
     } else if (err.type == DioExceptionType.connectionError) {
       errorMessage = 'Não foi possível conectar ao servidor.';
+      shouldShowGlobalError = true;
+    } else if (err.response?.statusCode == 429) {
+      errorMessage = tooManyRequestsMessage(err.response);
       shouldShowGlobalError = true;
     } else if (err.response != null && (err.response!.statusCode ?? 0) >= 500) {
       errorMessage = 'Erro interno do servidor. Tente novamente mais tarde.';

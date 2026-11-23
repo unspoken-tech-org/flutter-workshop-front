@@ -372,7 +372,7 @@ void main() {
           statusCode: 403,
           data: {
             'status': 403,
-            'message': 'Acesso Negado',
+            'title': 'Acesso Negado',
             'error': {'code': 'auth.access.denied', 'message': 'Acesso Negado'},
           },
         ),
