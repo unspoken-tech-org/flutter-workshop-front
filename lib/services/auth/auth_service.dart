@@ -23,19 +23,32 @@ enum SessionRestoreResult {
 }
 
 class AuthService {
+  /// Espera aplicada quando o `429` do refresh vem sem `Retry-After` válido.
+  static const refreshRetryAfterFallback = Duration(seconds: 30);
+
+  /// Teto defensivo para um `Retry-After` exagerado não travar o refresh.
+  static const refreshRetryAfterMax = Duration(hours: 1);
+
   final Dio _dio;
   final SecurityStorage _storage;
   final AuthNotifier _authNotifier;
+  final DateTime Function() _now;
   final Lock _storageLock = Lock();
   int _sessionEpoch = 0;
+
+  /// Até quando o refresh fica suspenso após um `429` (zona `/api/auth/*`).
+  DateTime? _refreshBlockedUntil;
+  Response<dynamic>? _refreshRateLimitResponse;
 
   AuthService({
     Dio? dio,
     SecurityStorage? storage,
     required AuthNotifier authNotifier,
+    @visibleForTesting DateTime Function()? clock,
   }) : _authNotifier = authNotifier,
        _dio = dio ?? CustomDio.authDioInstance(),
-       _storage = storage ?? SecurityStorage();
+       _storage = storage ?? SecurityStorage(),
+       _now = clock ?? DateTime.now;
 
   Future<String?> get apiKey async => (await _storage.getApiKey());
   Future<bool> get hasApiKey async => (await apiKey) != null;
@@ -226,6 +239,22 @@ class AuthService {
       return const RefreshSessionExpired();
     }
 
+    final blockedUntil = _refreshBlockedUntil;
+    if (blockedUntil != null) {
+      if (_now().isBefore(blockedUntil)) {
+        debugPrint(
+          '[AuthDebug] Refresh rate limited until $blockedUntil. Skipping request.',
+        );
+        return RefreshTransientFailure(
+          errorType: DioExceptionType.badResponse,
+          response: _refreshRateLimitResponse,
+          error: 'Refresh suspenso por rate limit (429) até $blockedUntil',
+        );
+      }
+      _refreshBlockedUntil = null;
+      _refreshRateLimitResponse = null;
+    }
+
     try {
       final response = await _dio.post<dynamic>(
         '/api/auth/refresh',
@@ -303,6 +332,7 @@ class AuthService {
           epochAtStart: epochAtStart,
         );
       }
+      _suspendRefreshIfRateLimited(e.response);
       return RefreshTransientFailure(
         errorType: e.type,
         response: e.response,
@@ -354,11 +384,36 @@ class AuthService {
       debugPrint(
         '[AuthDebug] Transient refresh failure (${response?.statusCode}). Keeping session.',
       );
+      _suspendRefreshIfRateLimited(response);
       return RefreshTransientFailure(
         errorType: DioExceptionType.badResponse,
         response: response,
       );
     }
+  }
+
+  /// Após `429` no refresh, não tenta de novo antes do `Retry-After`
+  /// (segundos; fallback [refreshRetryAfterFallback] se ausente/inválido).
+  /// Sem isso o refresh proativo prolonga o bloqueio de todo o IP.
+  void _suspendRefreshIfRateLimited(Response<dynamic>? response) {
+    if (response?.statusCode != 429) {
+      return;
+    }
+    final wait = _parseRetryAfter(response!.headers.value('retry-after'));
+    _refreshBlockedUntil = _now().add(wait);
+    _refreshRateLimitResponse = response;
+    debugPrint(
+      '[AuthDebug] Refresh rate limited (429). Next attempt after ${wait.inSeconds}s.',
+    );
+  }
+
+  static Duration _parseRetryAfter(String? raw) {
+    final seconds = int.tryParse(raw?.trim() ?? '');
+    if (seconds == null || seconds < 0) {
+      return refreshRetryAfterFallback;
+    }
+    final wait = Duration(seconds: seconds);
+    return wait > refreshRetryAfterMax ? refreshRetryAfterMax : wait;
   }
 
   /// Revokes token on backend and clears local storage.
