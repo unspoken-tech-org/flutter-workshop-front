@@ -7,7 +7,7 @@ description: Dirige a UI do flutter-workshop-front em execução (Linux desktop 
 
 O Flutter desenha num canvas, então navegador e leitores de DOM não enxergam os widgets. O mcp_flutter conecta na VM service do app (debug ou profile) e expõe a árvore de semântica: cada campo e botão aparece com tipo, rótulo e valor, e as ações usam o `ref` desse nó (`s_12`).
 
-> **Status:** rascunho tirado do spike de 24/11/2026. A CLI e o servidor MCP foram validados no Linux desktop. Pelo Claude Code, o servidor ainda não foi testado.
+> **Status:** rascunho tirado do spike de 24/11/2026. A CLI e o servidor MCP foram validados no Linux desktop. No mesmo dia, as 34 tools `fmt_` foram testadas uma a uma de dentro do Claude Code (resultado nas seções 4 a 7).
 
 ## Regras
 - Nunca imprima a API key. Leia de arquivo e passe por variável.
@@ -74,28 +74,31 @@ Se a conexão falhar (`vm_not_connected`, por exemplo depois de um hot restart),
    ```bash
    F wait_for '{"predicate":{"kind":"text","text":"Detalhes do Cliente"},"timeoutMs":8000}'
    ```
-   Predicados: `text`, `noText`, `node` (com `identifier` e estado), `stable` (`stableWindowMs`), `noError` e `time`.
+   Predicados: `text`, `noText`, `node` (com `identifier` e estado), `stable` (`stableWindowMs`), `noError` e `time`. Nenhum widget do app tem `Semantics(identifier:)`, então `node` só serve com `absent:true`. O predicado `changed` (`since`) não funciona: expira mesmo com a tela mudando, pela CLI e pelo MCP.
 4. **Conferir:** `F snap` de novo, que mostra os valores dos campos e o `enabled` dos botões, e `F get_app_errors`. Para provar efeito no backend, consulte o banco ou a API.
 
 **Refs mudam** depois de navegação, abertura de dropdown ou rebuild grande. Tire um novo `snap` antes de agir de novo.
 
-A documentação do mcp_flutter oferece dois recursos para isso: passar `snapshotId` nas ações, para receber `stale_snapshot` quando a árvore mudou, e esperar com o predicado `changed`. **Pela CLI, nenhum dos dois funciona neste app:** um `tap_widget` com `snapshotId` antigo foi aceito depois de uma navegação, e `{"kind":"changed","since":N}` expirou mesmo com a tela mudando. Use `text`/`noText` e um `snap` novo.
+Passe o `snapshot_id` do último snapshot como `snapshotId` nas ações: se outro snapshot foi tirado depois, a ação falha com `stale_snapshot` em vez de agir num ref velho. Funciona pela CLI e pelo MCP. O contador só avança quando há um snapshot novo (`semantic_snapshot`, `wait_for`, `reveal_search`), não quando a tela muda. É o mesmo contador para a CLI e o MCP, e um hot restart volta ele para 1.
 
 ## 5. Comandos úteis
 | Comando | Para quê |
 | --- | --- |
-| `semantic_snapshot` | Árvore de semântica com refs. Aceita `fields`, `subtreeOf` e `identifierPrefix` |
-| `tap_widget`, `long_press`, `hover`, `drag`, `swipe`, `scroll` | Gestos por ref |
+| `semantic_snapshot` | Árvore de semântica com refs. Aceita `fields`, `subtreeOf` e `lens` (`compact`, `design`). `identifierPrefix` volta vazio: o app não define `identifier` |
+| `tap_widget`, `long_press`, `hover`, `drag` | Gestos por ref |
+| `scroll`, `swipe` | Precisam do `ref` de um nó `scrollable`. O Dashboard tem um, e lá `{"ref":"s_15","direction":"down"}` rola. O formulário de cliente não tem: `no_scrollable_at_point`, e o `swipe` volta `verified:false` |
 | `enter_text`, `fill_form` | Digitação; devolve `verified` e `appliedText` |
-| `reveal_search` | Rola até achar um nó fora da tela (`query`, `matchBy`: `identifier`, `label` etc., `direction`, `maxAttempts`) e devolve o `ref`. Precisa de uma lista rolável na tela; sem ela, `scroll_blocked` |
+| `reveal_search` | Rola até achar um nó fora da tela e devolve `ref` e `snapshotId`, por exemplo `{"query":"Dashboard Aparelhos","matchBy":"label","direction":"up","maxAttempts":3}` depois de rolar o Dashboard. Sem lista rolável: `scroll_blocked` |
 | `press_key`, `focus_widget` | Teclado e foco. Não há tecla "Back": use `navigate` com `pop` ou `press_key` `Escape` |
-| `handle_dialog` | Fecha o diálogo do topo (`{"action":"dismiss"}`) |
+| `handle_dialog` | Fecha o diálogo ou menu do topo (`{"action":"dismiss"}`), inclusive o dropdown aberto. Sem popup: `no_popup_route` |
 | `navigate` | Só `{"action":"pop"}` funciona. `push` falha com `push_rejected`, porque o app usa go_router e o Navigator não tem rotas nomeadas. Navegue pela UI |
 | `wait_for` | Espera por condição |
 | `get_app_errors`, `get_recent_logs` | Erros e logs do app |
-| `get_screenshots`, `capture_ui_snapshot` | Imagem da tela |
-| `hot_reload_flutter`, `hot_restart_flutter` | Recarregar depois de editar código |
-| `hot_reload_and_capture` | Hot reload e screenshot numa chamada (`{"includeErrors":true}`). Pela CLI o PNG vem em base64 no JSON: redirecione para arquivo |
+| `get_screenshots`, `capture_ui_snapshot` | Imagem da tela. No Linux, só com `{"mode":"flutter_layer"}` (`screenshotMode` no `capture_ui_snapshot`). O modo padrão dá `visual_capture_unsupported` |
+| `hot_reload_flutter`, `hot_restart_flutter` | Recarregar depois de editar código. O restart reconecta sozinho e volta o app para o Dashboard |
+| `hot_reload_and_capture` | Hot reload e screenshot numa chamada. O PNG vem em base64 no JSON (cerca de 50 mil caracteres), também pelo MCP e mesmo com `--save-images`. Evite: use `hot_reload_flutter` e depois `get_screenshots` |
+| `get_view_details`, `inspect_widget_at_point` | Funcionam, mas a resposta é enorme (`get_view_details` passa de 60 mil caracteres). Use só quando o snapshot não basta |
+| `focus_window` | Não existe no Linux: só macOS e iOS |
 | `evaluate_dart_expression` | Avaliar Dart no app (desktop; no web depende do DWDS) |
 
 A lista completa sai de `flutter-mcp-toolkit capabilities` e os argumentos de `flutter-mcp-toolkit schema`.
@@ -103,7 +106,7 @@ A lista completa sai de `flutter-mcp-toolkit capabilities` e os argumentos de `f
 ## 6. Armadilhas conhecidas neste app
 - **Campos com máscara** (CPF, telefone) voltam com `verified: false`, porque o valor final é o formatado (`529.982.247-25`). Confira `appliedText` em vez de tratar isso como falha.
 - **Botões só com ícone** (menu lateral, logout) aparecem como `button`/`tappable` sem rótulo. Ache pelo `center`/bounds no `semantic_snapshot` completo. O logout é o último item à esquerda, com `center.y` acima de 670 numa janela de 1280x720.
-- **Dropdown de Sexo:** `tap_widget` no botão `Sexo`, novo `snap` e tap no item (`Masculino`, `Feminino`, `Outro`).
+- **Dropdown de Sexo:** `tap_widget` no botão `Sexo`, novo `snap` e tap no item (`Masculino`, `Feminino`, `Outro`). Logo depois do tap no item, o snapshot vem vazio durante a animação de fechamento: espere com `wait_for` `{"kind":"stable","stableWindowMs":300}`. O botão passa a mostrar `Sexo\nMasculino`.
 - **Setup:** o botão `Conectar ao Servidor` só fica `enabled` com texto no campo. Logo depois do setup, o app vai para `Dashboard Aparelhos`.
 - **Chave presa a um dispositivo:** depois do setup num alvo (desktop), o setup em outro (web) recebe 409 `auth.api_key.device.bound`. No banco local, limpe `bound_device_id`/`bound_at` da chave.
 - **Logout:** volta para a tela de setup sem confirmação. É o caminho mais curto para testar o setup de novo.
@@ -121,12 +124,15 @@ claude mcp add flutter-ui -s local -- "$FMTK_BIN/flutter-mcp-toolkit-server" \
 - As tools só aparecem numa sessão nova do Claude Code. Confira com `claude mcp list`.
 - `--disable-service-auth-codes` deixa a VM service aberta a qualquer processo local na porta 8181. Use só em máquina de desenvolvimento.
 
-O servidor respondeu pelo protocolo MCP (stdio) com o app em 8181, mas ainda não foi usado de dentro de uma sessão do Claude Code. Se as tools não aparecerem, use a CLI desta skill.
+- Com `--save-images`, só `get_screenshots` e `capture_ui_snapshot` gravam arquivo (devolvem `file://`). A pasta é `.mcp_screenshots/`, no diretório onde o servidor foi iniciado. Pode cair fora do repositório.
+- Servidor declarado num `.mcp.json` de projeto só carrega depois que o usuário o aprova no `claude`. Enquanto isso, `claude mcp list` mostra *Pending approval*.
+
+Se as tools não aparecerem, use a CLI desta skill: o catálogo e o comportamento são os mesmos.
 
 **Plugin oficial (alternativa, não usado aqui):** `/plugin marketplace add Arenukvern/mcp_flutter` e `/plugin install flutter-mcp-toolkit@flutter-mcp-toolkit`. Ele não instala o binário: o servidor continua vindo do `install.sh`. Também registra o próprio servidor MCP, que duplica as tools se o `claude mcp add` acima também estiver ativo. E traz 16 skills genéricas, algumas de manutenção do próprio mcp_flutter, que concorrem com esta. Use o plugin ou esta seção, nunca os dois.
 
-## 8. Tools do próprio app (ainda não usado)
-O `mcp_toolkit` deixa o app registrar tools e resources próprios, que o agente chama por `fmt_list_client_tools_and_resources`, `fmt_client_tool` e `fmt_client_resource`. Pode servir, por exemplo, para expor a rota atual do go_router ou navegar direto para ela, já que o `navigate` não funciona com go_router. Se for usar:
+## 8. Tools do próprio app (nenhuma ainda)
+O `mcp_toolkit` deixa o app registrar tools e resources próprios, que o agente chama por `fmt_list_client_tools_and_resources`, `fmt_client_tool` e `fmt_client_resource`. Hoje a lista só traz as duas que o próprio toolkit registra, `app_identity` e `select_widget_at_point`. Pode servir, por exemplo, para expor a rota atual do go_router ou navegar direto para ela, já que o `navigate` não funciona com go_router. Se for usar:
 - Registre com `MCPToolkitBinding.instance.addEntries(entries: {AgentCallEntry.tool(...)})` em `lib/core/agent/agent_toolkit.dart`, antes do `bootstrapFlutter`. Assim continua só com `MCP_TOOLKIT=true` e fora do release.
 - Use namespace e nome próprios em `snake_case` (`workshop_…`). Se o nome colidir com uma tool nativa, a sua é ignorada sem aviso.
 - Nunca devolva chave, token ou dado de cliente: as regras do `AppLogger` valem aqui.
