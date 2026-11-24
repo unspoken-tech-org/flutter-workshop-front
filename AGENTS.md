@@ -42,4 +42,3 @@ Read the matching file before the task (load it only then):
 | commit | `instructions/git/commits.md` |
 | open or update a PR | `instructions/git/pull-requests.md` |
 | create a tag or release | `instructions/git/releases.md` |
-| install or register the flutter-ui MCP server | `instructions/agents/flutter-ui-mcp.md` |
