@@ -77,7 +77,7 @@ class WsDrawer extends StatelessWidget {
                     if (isExpanded) ...[
                       const SizedBox(width: 16),
                       const Text(
-                        'Workshop App',
+                        'Eletroluk WorkShop',
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 20,

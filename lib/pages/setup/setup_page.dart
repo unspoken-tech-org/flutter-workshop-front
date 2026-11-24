@@ -85,7 +85,7 @@ class _SetupPageState extends State<SetupPage> {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Eletroluk Workshop',
+                      'Eletroluk WorkShop',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
@@ -181,7 +181,7 @@ class _SetupPageState extends State<SetupPage> {
 
                     const SizedBox(height: 32),
                     const Text(
-                      '© 2024 Eletroluk Workshop. Todos os direitos reservados.',
+                      '© Eletroluk WorkShop. Todos os direitos reservados.',
                       style: TextStyle(color: Color(0xFF938F99), fontSize: 12),
                     ),
                   ],

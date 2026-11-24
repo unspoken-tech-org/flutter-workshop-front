@@ -1,5 +1,8 @@
 ; installer/workshopApp.iss
-#define MyAppName "Workshop App"
+#define MyAppName "Eletroluk WorkShop"
+; Folder and shortcut name of installs made before the rename. The install
+; folder stays the same so new and existing installs share one path.
+#define MyLegacyAppName "Workshop App"
 #define MyAppVersion "0.0.0"
 #define MyAppExeName "flutter_workshop_front.exe"
 #define MyAppPublisher "Unspoken Tech Org"
@@ -9,7 +12,7 @@ AppId={{A8B5D3C4-1A2B-4C5D-9E0F-112233445566}}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={autopf}\{#MyAppName}
+DefaultDirName={autopf}\{#MyLegacyAppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
 DisableDirPage=no
@@ -28,6 +31,11 @@ Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortugue
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
+[InstallDelete]
+; Shortcuts created under the old name; the new ones are created in [Icons].
+Type: files; Name: "{autoprograms}\{#MyLegacyAppName}.lnk"
+Type: files; Name: "{autodesktop}\{#MyLegacyAppName}.lnk"
 
 [Files]
 Source: "..\build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs

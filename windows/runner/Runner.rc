@@ -94,7 +94,7 @@ BEGIN
             // path_provider: changing them orphans the logs and stored data
             // of installed apps. Keep them as they are.
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "Workshop App" "\0"
+            VALUE "FileDescription", "Eletroluk WorkShop" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "flutter_workshop_front" "\0"
             VALUE "LegalCopyright", "Copyright (C) Unspoken Tech Org. All rights reserved." "\0"
