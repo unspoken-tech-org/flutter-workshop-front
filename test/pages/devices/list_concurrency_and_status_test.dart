@@ -284,6 +284,31 @@ void main() {
     );
   });
 
+  group('AllDevicesController total em falha', () {
+    test('zera o total quando a nova busca falha', () async {
+      final repo = _FakeAllDevicesRepository();
+      final controller = AllDevicesController(repo);
+
+      await Future<void>.delayed(const Duration(milliseconds: 220));
+      repo.pendingAllDevices[0].$2.complete(
+        _page([_device(1, 'Ana'), _device(2, 'Bia')], number: 0, last: false),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(controller.totalElements, 2);
+
+      controller.addRemoveStatus(StatusEnum.ready);
+      await Future<void>.delayed(const Duration(milliseconds: 220));
+      repo.pendingAllDevices[1].$2.completeError(Exception('offline'));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.devices, isEmpty);
+      expect(controller.totalElements, 0);
+      expect(controller.totalPages, 0);
+      expect(controller.hasMore, isFalse);
+      expect(controller.isLoading, isFalse);
+    });
+  });
+
   group('3.2 — SearchDevicesController concorrência e paginação', () {
     test(
       'busca alterada durante loading não é descartada e loadMore antigo não contamina nova busca',
