@@ -22,6 +22,34 @@ jobs:
       - name: Fetch tags
         run: git fetch --force --tags
 
+      # A versão vem da tag (vX.Y.Z ou vX.Y.Z-rc.N -> X.Y.Z) e precisa ser igual
+      # ao X.Y.Z do version: do pubspec.yaml; se não for, o job falha aqui, antes
+      # do build, sem publicar nada (corrigir o pubspec por PR, apagar a tag e
+      # criá-la de novo). Execução manual fora de tag usa a versão do pubspec.
+      - name: Resolve version
+        id: get_version
+        shell: bash
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          pubspec_version="$(sed -nE 's/^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' pubspec.yaml)"
+          [[ -n "$pubspec_version" ]] || { echo "::error::could not read version: from pubspec.yaml"; exit 1; }
+          if [[ "$REF_TYPE" == "tag" ]]; then
+            [[ "$REF_NAME" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)(-.+)?$ ]] || {
+              echo "::error::tag $REF_NAME is not vX.Y.Z or vX.Y.Z-<suffix>"
+              exit 1
+            }
+            version="${BASH_REMATCH[1]}"
+            [[ "$version" == "$pubspec_version" ]] || {
+              echo "::error::tag $REF_NAME is $version but pubspec.yaml has $pubspec_version; bump pubspec.yaml by PR, delete the tag and create it again"
+              exit 1
+            }
+          else
+            version="$pubspec_version"
+          fi
+          echo "VERSION=$version" >> "$GITHUB_OUTPUT"
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -33,27 +61,6 @@ jobs:
 
       - name: Enable Windows Desktop
         run: flutter config --enable-windows-desktop
-
-      # A versão vem da tag (vX.Y.Z ou vX.Y.Z-rc.N -> X.Y.Z); o pubspec.yaml não é
-      # atualizado. Execução manual fora de tag usa a versão do pubspec.yaml.
-      - name: Resolve version
-        id: get_version
-        shell: bash
-        env:
-          REF_TYPE: ${{ github.ref_type }}
-          REF_NAME: ${{ github.ref_name }}
-        run: |
-          if [[ "$REF_TYPE" == "tag" ]]; then
-            [[ "$REF_NAME" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)(-.+)?$ ]] || {
-              echo "::error::tag $REF_NAME is not vX.Y.Z or vX.Y.Z-<suffix>"
-              exit 1
-            }
-            version="${BASH_REMATCH[1]}"
-          else
-            version="$(sed -nE 's/^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' pubspec.yaml)"
-          fi
-          [[ -n "$version" ]] || { echo "::error::could not resolve the version"; exit 1; }
-          echo "VERSION=$version" >> "$GITHUB_OUTPUT"
 
       # Os valores entram por --dart-define; nenhum .env vai para o bundle.
       # --build-name grava a versão no executável: o UpdateService compara
