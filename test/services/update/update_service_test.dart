@@ -6,6 +6,8 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_workshop_front/core/logging/app_logger.dart';
+import 'package:flutter_workshop_front/core/logging/log_sink.dart';
 import 'package:flutter_workshop_front/services/update/update_service.dart';
 import 'package:flutter_workshop_front/widgets/shared/update_dialog.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -146,6 +148,63 @@ class _FakeUpdateAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+UpdateInfo? _infoOf(UpdateCheckResult result) {
+  expect(result, isA<UpdateCheckCompleted>());
+  return (result as UpdateCheckCompleted).info;
+}
+
+class _StatusAdapter implements HttpClientAdapter {
+  final int statusCode;
+  final Map<String, List<String>> headers;
+
+  _StatusAdapter(this.statusCode, {this.headers = const {}});
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async => ResponseBody.fromString(
+    '{"message":"error"}',
+    statusCode,
+    headers: {
+      Headers.contentTypeHeader: ['application/json'],
+      ...headers,
+    },
+  );
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _OfflineAdapter implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) => throw DioException.connectionError(
+    requestOptions: options,
+    reason: 'offline',
+  );
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _MemorySink implements LogSink {
+  final List<String> lines = [];
+
+  @override
+  String? get directoryPath => null;
+
+  @override
+  void write(String line) => lines.add(line);
+
+  @override
+  Future<void> flush() async {}
+}
+
 UpdateInfo _makeInfo({
   required String latest,
   required String current,
@@ -228,7 +287,7 @@ void main() {
           ),
         );
 
-        final info = await service.checkForUpdates();
+        final info = _infoOf(await service.checkForUpdates());
 
         expect(info, isNotNull);
         expect(info!.latestVersion, '1.6.0');
@@ -303,7 +362,7 @@ void main() {
           ),
         );
 
-        final info = await service.checkForUpdates();
+        final info = _infoOf(await service.checkForUpdates());
 
         expect(info, isNotNull);
         expect(info!.latestVersion, '1.5.0');
@@ -356,7 +415,7 @@ void main() {
           ),
         );
 
-        final info = await service.checkForUpdates();
+        final info = _infoOf(await service.checkForUpdates());
 
         expect(info, isNotNull);
         expect(info!.hasUpdate, isFalse);
@@ -401,7 +460,7 @@ void main() {
           ),
         );
 
-        final info = await service.checkForUpdates();
+        final info = _infoOf(await service.checkForUpdates());
 
         expect(info, isNotNull);
         expect(info!.releaseHistory, hasLength(3));
@@ -461,7 +520,7 @@ void main() {
           ),
         );
 
-        final info = await service.checkForUpdates();
+        final info = _infoOf(await service.checkForUpdates());
 
         expect(info, isNotNull);
         expect(adapter.requestedUrls, [page1, page2]);
@@ -523,7 +582,7 @@ void main() {
           ),
         );
 
-        final info = await service.checkForUpdates();
+        final info = _infoOf(await service.checkForUpdates());
 
         expect(info, isNotNull);
         expect(adapter.requestedUrls, [page1, page2, page3]);
@@ -535,6 +594,119 @@ void main() {
         ]);
       },
     );
+  });
+
+  group('UpdateService.checkForUpdates result', () {
+    late _MemorySink sink;
+
+    setUp(() {
+      sink = _MemorySink();
+      AppLogger.setSinkForTesting(sink);
+    });
+
+    tearDown(() => AppLogger.setSinkForTesting(const NoopLogSink()));
+
+    UpdateService serviceWith(HttpClientAdapter adapter, {String? feed}) =>
+        UpdateService(
+          dio: Dio()..httpClientAdapter = adapter,
+          feedUrlOverride: feed ?? 'https://api.github.com/repos/o/r/releases',
+          packageInfoLoader: () async => PackageInfo(
+            appName: 'Workshop App',
+            packageName: 'workshop',
+            version: '1.0.0',
+            buildNumber: '1',
+          ),
+        );
+
+    test('is disabled when no feed is configured', () async {
+      final result = await serviceWith(
+        _OfflineAdapter(),
+        feed: '',
+      ).checkForUpdates();
+
+      expect(result, isA<UpdateCheckDisabled>());
+    });
+
+    test('reports GitHub rate limit (403 with no remaining quota)', () async {
+      final result = await serviceWith(
+        _StatusAdapter(
+          403,
+          headers: {
+            'x-ratelimit-remaining': ['0'],
+            'x-ratelimit-reset': ['1795536000'],
+          },
+        ),
+      ).checkForUpdates();
+
+      expect(result, isA<UpdateCheckFailed>());
+      final failed = result as UpdateCheckFailed;
+      expect(failed.reason, UpdateCheckFailureReason.rateLimited);
+      expect(failed.statusCode, 403);
+      expect(
+        sink.lines.last,
+        contains(
+          'Check failed: rate limited status=403 remaining=0 '
+          'resetAt=2026-11-24T16:00:00.000Z',
+        ),
+      );
+    });
+
+    test('reports 429 as rate limit', () async {
+      final result = await serviceWith(_StatusAdapter(429)).checkForUpdates();
+
+      expect(
+        (result as UpdateCheckFailed).reason,
+        UpdateCheckFailureReason.rateLimited,
+      );
+    });
+
+    test('a 403 with quota left is a bad status, not rate limit', () async {
+      final result = await serviceWith(
+        _StatusAdapter(
+          403,
+          headers: {
+            'x-ratelimit-remaining': ['42'],
+          },
+        ),
+      ).checkForUpdates();
+
+      final failed = result as UpdateCheckFailed;
+      expect(failed.reason, UpdateCheckFailureReason.badStatus);
+      expect(failed.statusCode, 403);
+      expect(sink.lines.last, contains('Check failed: status=403'));
+    });
+
+    test('reports server errors as bad status', () async {
+      final result = await serviceWith(_StatusAdapter(502)).checkForUpdates();
+
+      final failed = result as UpdateCheckFailed;
+      expect(failed.reason, UpdateCheckFailureReason.badStatus);
+      expect(failed.statusCode, 502);
+    });
+
+    test('reports network failures and logs them', () async {
+      final result = await serviceWith(_OfflineAdapter()).checkForUpdates();
+
+      expect(
+        (result as UpdateCheckFailed).reason,
+        UpdateCheckFailureReason.network,
+      );
+      expect(
+        sink.lines.last,
+        contains('WARNING [Update] Check failed: network type=connectionError'),
+      );
+    });
+
+    test('completes with no info when the feed has no release', () async {
+      const url = 'https://example.com/releases';
+      final result = await serviceWith(
+        _DynamicFeedAdapter({url: (body: <Object>[], headers: {})}),
+        feed: url,
+      ).checkForUpdates();
+
+      expect(result, isA<UpdateCheckCompleted>());
+      expect((result as UpdateCheckCompleted).info, isNull);
+    });
   });
 
   group('UpdateService release notes', () {
@@ -553,7 +725,7 @@ void main() {
           buildNumber: '1',
         ),
       );
-      final info = await service.checkForUpdates();
+      final info = _infoOf(await service.checkForUpdates());
       return info!.releaseNotes;
     }
 

@@ -147,6 +147,50 @@ class UpdateInfo {
   }
 }
 
+/// Why an update check could not finish.
+enum UpdateCheckFailureReason {
+  /// GitHub refused the request because the hourly quota is spent
+  /// (`429`, or `403` with `x-ratelimit-remaining: 0`).
+  rateLimited,
+
+  /// The feed answered with an unexpected HTTP status.
+  badStatus,
+
+  /// The feed answered with a body that is not a release or a list.
+  invalidPayload,
+
+  /// No response: offline, DNS, timeout or TLS failure.
+  network,
+
+  /// Any other error while checking.
+  unexpected,
+}
+
+/// Outcome of [UpdateService.checkForUpdates].
+sealed class UpdateCheckResult {
+  const UpdateCheckResult();
+}
+
+/// No release feed is configured, so the check did not run.
+final class UpdateCheckDisabled extends UpdateCheckResult {
+  const UpdateCheckDisabled();
+}
+
+/// The feed answered. [info] is `null` when it has no published release.
+final class UpdateCheckCompleted extends UpdateCheckResult {
+  final UpdateInfo? info;
+
+  const UpdateCheckCompleted(this.info);
+}
+
+/// The check ran but failed; the failure is already in the log.
+final class UpdateCheckFailed extends UpdateCheckResult {
+  final UpdateCheckFailureReason reason;
+  final int? statusCode;
+
+  const UpdateCheckFailed(this.reason, {this.statusCode});
+}
+
 class _ParsedRelease {
   final String version;
   final String notes;
@@ -213,7 +257,7 @@ class UpdateService {
     ], mode: ProcessStartMode.detached);
   }
 
-  Future<UpdateInfo?> checkForUpdates() async {
+  Future<UpdateCheckResult> checkForUpdates() async {
     final configuredFeedUrl = _feedUrlOverride ?? EnvConfig.updateFeedUrl;
     final String releaseUrl;
     if (configuredFeedUrl.isNotEmpty) {
@@ -224,7 +268,7 @@ class UpdateService {
 
       if (owner.isEmpty || repo.isEmpty) {
         AppLogger.info(_logTag, 'Check skipped: no release feed configured');
-        return null;
+        return const UpdateCheckDisabled();
       }
       releaseUrl =
           'https://api.github.com/repos/$owner/$repo/releases?per_page=50';
@@ -249,11 +293,12 @@ class UpdateService {
         final response = await _dio.get<dynamic>(nextUrl);
 
         if (response.statusCode != 200) {
-          AppLogger.warning(
-            _logTag,
-            'Check got status=${response.statusCode} page=${pagesFetched + 1}',
+          final failure = _httpFailure(
+            response.statusCode,
+            response.headers,
+            page: pagesFetched + 1,
           );
-          if (pagesFetched == 0) return null;
+          if (pagesFetched == 0) return failure;
           break;
         }
 
@@ -274,7 +319,11 @@ class UpdateService {
             'Check got unexpected payload type=${rawData.runtimeType} '
             'page=$pagesFetched',
           );
-          if (pagesFetched == 1) return null;
+          if (pagesFetched == 1) {
+            return const UpdateCheckFailed(
+              UpdateCheckFailureReason.invalidPayload,
+            );
+          }
           break;
         }
 
@@ -314,7 +363,7 @@ class UpdateService {
 
       if (parsedReleases.isEmpty) {
         AppLogger.info(_logTag, 'Check result: no published releases found');
-        return null;
+        return const UpdateCheckCompleted(null);
       }
 
       parsedReleases.sort(
@@ -353,12 +402,61 @@ class UpdateService {
         'newerVersions=${releaseHistory.length} pages=$pagesFetched '
         'truncated=$hasTruncatedHistory',
       );
-      return info;
+      return UpdateCheckCompleted(info);
+    } on DioException catch (e, st) {
+      final response = e.response;
+      if (response != null) {
+        return _httpFailure(response.statusCode, response.headers, page: null);
+      }
+      debugPrint('Erro ao verificar atualizações: ${e.type}');
+      AppLogger.warning(
+        _logTag,
+        'Check failed: network type=${e.type.name}',
+        error: e,
+        stackTrace: st,
+      );
+      return const UpdateCheckFailed(UpdateCheckFailureReason.network);
     } catch (e, st) {
       debugPrint('Erro ao verificar atualizações: $e');
       AppLogger.warning(_logTag, 'Check failed', error: e, stackTrace: st);
-      return null;
+      return const UpdateCheckFailed(UpdateCheckFailureReason.unexpected);
     }
+  }
+
+  /// Logs a non-200 answer from the feed and maps it to a failure,
+  /// telling GitHub's rate limit apart from other statuses.
+  static UpdateCheckFailed _httpFailure(
+    int? statusCode,
+    Headers headers, {
+    required int? page,
+  }) {
+    final pageInfo = page == null ? '' : ' page=$page';
+    final remaining = headers.value('x-ratelimit-remaining');
+    final isRateLimited =
+        statusCode == 429 || (statusCode == 403 && remaining == '0');
+    if (isRateLimited) {
+      final resetEpoch = int.tryParse(headers.value('x-ratelimit-reset') ?? '');
+      final resetAt = resetEpoch == null
+          ? 'unknown'
+          : DateTime.fromMillisecondsSinceEpoch(
+              resetEpoch * 1000,
+              isUtc: true,
+            ).toIso8601String();
+      AppLogger.warning(
+        _logTag,
+        'Check failed: rate limited status=$statusCode '
+        'remaining=${remaining ?? 'unknown'} resetAt=$resetAt$pageInfo',
+      );
+      return UpdateCheckFailed(
+        UpdateCheckFailureReason.rateLimited,
+        statusCode: statusCode,
+      );
+    }
+    AppLogger.warning(_logTag, 'Check failed: status=$statusCode$pageInfo');
+    return UpdateCheckFailed(
+      UpdateCheckFailureReason.badStatus,
+      statusCode: statusCode,
+    );
   }
 
   _ParsedRelease? _parseRelease(Map<String, dynamic> data) {

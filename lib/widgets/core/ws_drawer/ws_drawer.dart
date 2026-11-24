@@ -180,32 +180,49 @@ class WsDrawer extends StatelessWidget {
                 );
 
                 final updateService = UpdateService();
-                final updateInfo = await updateService.checkForUpdates();
+                final result = await updateService.checkForUpdates();
 
                 if (!context.mounted) return;
 
                 scaffoldMessenger.hideCurrentSnackBar();
 
-                if (updateInfo == null) {
-                  scaffoldMessenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('Erro ao verificar atualizações.'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
+                final String errorMessage;
+                switch (result) {
+                  case UpdateCheckCompleted(info: final updateInfo?):
+                    if (updateInfo.hasUpdate) {
+                      await UpdateDialog.show(
+                        context,
+                        updateInfo,
+                        updateService,
+                      );
+                    } else {
+                      scaffoldMessenger.showSnackBar(
+                        const SnackBar(
+                          content: Text('O aplicativo já está atualizado!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                    return;
+                  case UpdateCheckCompleted():
+                    errorMessage = 'Nenhuma versão publicada encontrada.';
+                  case UpdateCheckDisabled():
+                    errorMessage =
+                        'Verificação de atualizações não configurada.';
+                  case UpdateCheckFailed(
+                    reason: UpdateCheckFailureReason.rateLimited,
+                  ):
+                    errorMessage =
+                        'Limite de verificações atingido. Tente mais tarde.';
+                  case UpdateCheckFailed():
+                    errorMessage = 'Erro ao verificar atualizações.';
                 }
-
-                if (updateInfo.hasUpdate) {
-                  await UpdateDialog.show(context, updateInfo, updateService);
-                } else {
-                  scaffoldMessenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('O aplicativo já está atualizado!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    content: Text(errorMessage),
+                    backgroundColor: Colors.red,
+                  ),
+                );
               },
             ),
             if (AppLogger.canOpenLogDirectory)
