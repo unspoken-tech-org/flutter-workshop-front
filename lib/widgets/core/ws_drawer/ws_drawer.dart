@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/logging/app_logger.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers/all_customers_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/customer_detail_page.dart';
@@ -169,6 +170,7 @@ class WsDrawer extends StatelessWidget {
               title: 'Atualizações',
               route: const [],
               onTap: () async {
+                AppLogger.info('Update', 'Manual update check from drawer');
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
                 scaffoldMessenger.showSnackBar(
                   const SnackBar(
@@ -206,6 +208,28 @@ class WsDrawer extends StatelessWidget {
                 }
               },
             ),
+            if (AppLogger.canOpenLogDirectory)
+              WsDrawerItem(
+                currentRoute: currentRoute,
+                isExpanded: isExpanded,
+                icon: Icons.folder_open,
+                title: 'Abrir pasta de logs',
+                route: const [],
+                onTap: () async {
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  final opened = await AppLogger.openLogDirectory();
+                  if (opened) return;
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Não foi possível abrir a pasta de logs: '
+                        '${AppLogger.logDirectoryPath}',
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                },
+              ),
             WsDrawerItem(
               currentRoute: currentRoute,
               isExpanded: isExpanded,

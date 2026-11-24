@@ -26,6 +26,8 @@ import 'package:flutter_workshop_front/pages/setup/setup_controller.dart';
 import 'package:flutter_workshop_front/repositories/all_devices/all_devices_repository.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
+import '../../helpers/result_guard.dart';
 
 // ---------------------------------------------------------------------------
 // Stubs
@@ -93,29 +95,33 @@ class _BlockingCustomerRepository implements CustomerRepository {
   final _updateCompleter = Completer<CustomerModel>();
 
   @override
-  Future<CustomerModel> createCustomer(InputCustomer customer) {
-    createCalls++;
-    return _createCompleter.future;
-  }
+  Future<Result<CustomerModel>> createCustomer(InputCustomer customer) =>
+      guardResult(() {
+        createCalls++;
+        return _createCompleter.future;
+      });
 
   @override
-  Future<CustomerModel> getCustomer(int customerId) {
+  Future<Result<CustomerModel>> getCustomer(int customerId) => guardResult(() {
     getCalls++;
     return _getCompleter.future;
-  }
+  });
 
   @override
-  Future<CustomerModel> updateCustomer(int customerId, InputCustomer customer) {
+  Future<Result<CustomerModel>> updateCustomer(
+    int customerId,
+    InputCustomer customer,
+  ) => guardResult(() {
     updateCalls++;
     return _updateCompleter.future;
-  }
+  });
 
   @override
-  Future<Page<MinifiedCustomerModel>> searchCustomers(
+  Future<Result<Page<MinifiedCustomerModel>>> searchCustomers(
     CustomerSearchFilter? filter,
-  ) {
+  ) => guardResult(() {
     throw UnimplementedError();
-  }
+  });
 }
 
 /// Repositório de dispositivos cuja chamada de filtragem nunca completa,
@@ -127,28 +133,34 @@ class _BlockingAllDevicesRepository implements AllDevicesRepository {
   int brandsCalls = 0;
 
   @override
-  Future<Page<DeviceDataTable>> getAllDevicesFiltering([DeviceFilter? filter]) {
+  Future<Result<Page<DeviceDataTable>>> getAllDevicesFiltering([
+    DeviceFilter? filter,
+  ]) => guardResult(() {
     filteringCalls++;
     return Completer<Page<DeviceDataTable>>().future; // nunca completa
-  }
+  });
 
   @override
-  Future<Page<DeviceDataTable>> searchDevices([DeviceSearchFilter? filter]) {
+  Future<Result<Page<DeviceDataTable>>> searchDevices([
+    DeviceSearchFilter? filter,
+  ]) => guardResult(() {
     searchCalls++;
     return Completer<Page<DeviceDataTable>>().future;
-  }
+  });
 
   @override
-  Future<List<DeviceType>> getAllDeviceTypes([String? name]) async {
-    typesCalls++;
-    return [];
-  }
+  Future<Result<List<DeviceType>>> getAllDeviceTypes([String? name]) =>
+      guardResult(() async {
+        typesCalls++;
+        return [];
+      });
 
   @override
-  Future<List<DeviceBrand>> getAllDeviceBrands([String? name]) async {
-    brandsCalls++;
-    return [];
-  }
+  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([String? name]) =>
+      guardResult(() async {
+        brandsCalls++;
+        return [];
+      });
 }
 
 // ---------------------------------------------------------------------------

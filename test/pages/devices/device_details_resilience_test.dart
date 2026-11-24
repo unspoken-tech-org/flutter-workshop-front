@@ -23,6 +23,8 @@ import 'package:flutter_workshop_front/services/technician/technician_service.da
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controller.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
+import '../../helpers/result_guard.dart';
 
 DeviceCustomer _sampleDevice({
   int technicianId = 10,
@@ -61,7 +63,8 @@ class _StubDeviceCustomerService implements DeviceCustomerService {
   _StubDeviceCustomerService(this.onGet);
 
   @override
-  Future<DeviceCustomer> getCustomerDeviceById(int deviceId) => onGet(deviceId);
+  Future<Result<DeviceCustomer>> getCustomerDeviceById(int deviceId) =>
+      guardResult(() => onGet(deviceId));
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -73,7 +76,8 @@ class _StubTechnicianService implements TechnicianService {
   _StubTechnicianService(this.onGet);
 
   @override
-  Future<List<Technician>> getTechnicians() => onGet();
+  Future<Result<List<Technician>>> getTechnicians() =>
+      guardResult(() => onGet());
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -81,20 +85,20 @@ class _StubTechnicianService implements TechnicianService {
 
 class _StubCustomerRepository implements CustomerRepository {
   @override
-  Future<CustomerModel> createCustomer(InputCustomer customer) =>
+  Future<Result<CustomerModel>> createCustomer(InputCustomer customer) =>
       throw UnimplementedError();
 
   @override
-  Future<CustomerModel> getCustomer(int customerId) =>
+  Future<Result<CustomerModel>> getCustomer(int customerId) =>
       throw UnimplementedError();
 
   @override
-  Future<Page<MinifiedCustomerModel>> searchCustomers(
+  Future<Result<Page<MinifiedCustomerModel>>> searchCustomers(
     CustomerSearchFilter? filter,
   ) => throw UnimplementedError();
 
   @override
-  Future<CustomerModel> updateCustomer(
+  Future<Result<CustomerModel>> updateCustomer(
     int customerId,
     InputCustomer customer,
   ) => throw UnimplementedError();

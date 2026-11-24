@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/customer/customer_model.dart';
 import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
 import 'package:flutter_workshop_front/models/customer/input_customer.dart';
@@ -9,34 +10,27 @@ import 'package:flutter_workshop_front/services/customer/customer_service.dart';
 class CustomerRemoteDataSource implements CustomerRepository {
   final CustomerService _customerService = CustomerService();
   @override
-  Future<CustomerModel> createCustomer(InputCustomer customer) async {
-    final response = await _customerService.createCustomer(customer);
-    return response;
+  Future<Result<CustomerModel>> createCustomer(InputCustomer customer) {
+    return _customerService.createCustomer(customer);
   }
 
   @override
-  Future<CustomerModel> getCustomer(int customerId) async {
-    final response = await _customerService.getCustomer(customerId);
-    return response;
+  Future<Result<CustomerModel>> getCustomer(int customerId) {
+    return _customerService.getCustomer(customerId);
   }
 
   @override
-  Future<CustomerModel> updateCustomer(
+  Future<Result<CustomerModel>> updateCustomer(
     int customerId,
     InputCustomer customer,
-  ) async {
-    final response = await _customerService.updateCustomer(
-      customerId,
-      customer,
-    );
-    return response;
+  ) {
+    return _customerService.updateCustomer(customerId, customer);
   }
 
   @override
-  Future<Page<MinifiedCustomerModel>> searchCustomers(
+  Future<Result<Page<MinifiedCustomerModel>>> searchCustomers(
     CustomerSearchFilter? filter,
-  ) async {
-    final response = await _customerService.searchCustomers(filter);
-    return response;
+  ) {
+    return _customerService.searchCustomers(filter);
   }
 }

@@ -56,12 +56,11 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
 
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      try {
-        await controller.createCustomerDevicePayment(_inputPayment);
-      } on Exception {
-        // O controller já exibiu o erro; mantém o diálogo aberto.
-        return;
-      }
+      final created = await controller.createCustomerDevicePayment(
+        _inputPayment,
+      );
+      // Em erro o controller já exibiu a mensagem; mantém o diálogo aberto.
+      if (!created) return;
       if (context.mounted) Navigator.of(context).pop();
     }
   }

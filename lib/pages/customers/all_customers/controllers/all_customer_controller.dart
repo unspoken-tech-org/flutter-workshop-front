@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart' hide Page;
-import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/result/app_failure.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
-import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_remote_data_source.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
@@ -62,17 +62,20 @@ class AllCustomerController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final page = await _customerRepository.searchCustomers(filter);
+      final result = await _customerRepository.searchCustomers(filter);
       if (generation != _requestGeneration) return;
-      _customers = page.content;
-      _currentPage = page.number;
-      _totalElements = page.totalElements;
-      _hasMore = !page.last;
-    } catch (e) {
-      if (generation != _requestGeneration) return;
-      SnackBarUtil().showError('Erro ao buscar clientes. Tente novamente.');
-      _customers = [];
-      _hasMore = false;
+      switch (result) {
+        case Ok(:final value):
+          _customers = value.content;
+          _currentPage = value.number;
+          _totalElements = value.totalElements;
+          _hasMore = !value.last;
+        case Err():
+          // Mantém a mensagem fixa de hoje, também para erros da API.
+          SnackBarUtil().showError('Erro ao buscar clientes. Tente novamente.');
+          _customers = [];
+          _hasMore = false;
+      }
     } finally {
       if (generation == _requestGeneration) {
         _isLoading = false;
@@ -95,22 +98,20 @@ class AllCustomerController extends ChangeNotifier {
         page: _currentPage,
       );
 
-      final Page<MinifiedCustomerModel> result = await _customerRepository
-          .searchCustomers(filter);
+      final result = await _customerRepository.searchCustomers(filter);
       if (generation != _requestGeneration) return;
-      _customers.addAll(result.content);
-      _totalElements = result.totalElements;
-      _hasMore = !result.last;
-    } on RequisitionException catch (e) {
-      if (generation != _requestGeneration) return;
-      _currentPage--;
-      _loadMoreFailed = true;
-      SnackBarUtil().showError(e.message);
-    } on Exception catch (_) {
-      if (generation != _requestGeneration) return;
-      _currentPage--;
-      _loadMoreFailed = true;
-      SnackBarUtil().showError("Erro ao buscar mais clientes");
+      switch (result) {
+        case Ok(:final value):
+          _customers.addAll(value.content);
+          _totalElements = value.totalElements;
+          _hasMore = !value.last;
+        case Err(:final failure):
+          _currentPage--;
+          _loadMoreFailed = true;
+          SnackBarUtil().showError(
+            failure.messageOr('Erro ao buscar mais clientes'),
+          );
+      }
     } finally {
       if (generation == _requestGeneration) {
         _isLoadingMore = false;

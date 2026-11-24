@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/logging/app_logger.dart';
 import '../../services/update/update_service.dart';
+
+const String _logTag = 'UpdateDialog';
 
 class UpdateDialog extends StatefulWidget {
   final UpdateInfo updateInfo;
@@ -29,6 +32,7 @@ class UpdateDialog extends StatefulWidget {
     Future<void> openBrowser() async {
       try {
         await updateService.openDownloadUrl(updateInfo.downloadUrl);
+        AppLogger.info(_logTag, 'Download URL opened in browser');
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -37,7 +41,13 @@ class UpdateDialog extends StatefulWidget {
             ),
           );
         }
-      } catch (e) {
+      } catch (e, st) {
+        AppLogger.error(
+          _logTag,
+          'Failed to open download URL',
+          error: e,
+          stackTrace: st,
+        );
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -52,8 +62,9 @@ class UpdateDialog extends StatefulWidget {
     final canSilentInstall =
         Platform.isWindows && updateInfo.supportsSilentInstall;
 
-    return showDialog(
-      context: context,
+    return _showAndLog(
+      context,
+      canSilentInstall: canSilentInstall,
       builder: (_) => UpdateDialog(
         updateInfo: updateInfo,
         onDownload: openBrowser,
@@ -68,6 +79,21 @@ class UpdateDialog extends StatefulWidget {
     );
   }
 
+  static Future<void> _showAndLog(
+    BuildContext context, {
+    required bool canSilentInstall,
+    required WidgetBuilder builder,
+  }) async {
+    AppLogger.info(_logTag, 'Showing dialog (silentInstall=$canSilentInstall)');
+    try {
+      await showDialog<void>(context: context, builder: builder);
+      AppLogger.info(_logTag, 'Dialog route completed');
+    } catch (e, st) {
+      AppLogger.error(_logTag, 'Dialog route failed', error: e, stackTrace: st);
+      rethrow;
+    }
+  }
+
   @override
   State<UpdateDialog> createState() => _UpdateDialogState();
 }
@@ -77,6 +103,24 @@ class _UpdateDialogState extends State<UpdateDialog> {
   double? _progress;
   UpdateInstallStage? _stage;
   String? _installError;
+
+  @override
+  void initState() {
+    super.initState();
+    AppLogger.info(
+      _logTag,
+      'Opened: ${widget.updateInfo.currentVersion} -> '
+      '${widget.updateInfo.latestVersion} '
+      'hasUpdate=${widget.updateInfo.hasUpdate} '
+      'silentInstall=${widget.onSilentInstall != null}',
+    );
+  }
+
+  @override
+  void dispose() {
+    AppLogger.info(_logTag, 'Closed (installing=$_isInstalling)');
+    super.dispose();
+  }
 
   String get _stageLabel => switch (_stage) {
     UpdateInstallStage.downloading =>
@@ -90,6 +134,10 @@ class _UpdateDialogState extends State<UpdateDialog> {
 
   Future<void> _startSilentInstall() async {
     final install = widget.onSilentInstall;
+    AppLogger.info(
+      _logTag,
+      'Button "Atualizar Agora" clicked (installing=$_isInstalling)',
+    );
     if (install == null || _isInstalling) return;
     setState(() {
       _isInstalling = true;
@@ -104,11 +152,13 @@ class _UpdateDialogState extends State<UpdateDialog> {
           setState(() => _progress = value);
         },
         onStageChange: (stage) {
+          AppLogger.info(_logTag, 'Install stage: ${stage.name}');
           if (!mounted) return;
           setState(() => _stage = stage);
         },
       );
     } catch (e) {
+      AppLogger.warning(_logTag, 'Silent install failed; showing fallback');
       if (!mounted) return;
       setState(() {
         _isInstalling = false;
@@ -176,13 +226,22 @@ class _UpdateDialogState extends State<UpdateDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: _isInstalling ? null : () => Navigator.of(context).pop(),
+          onPressed: _isInstalling
+              ? null
+              : () {
+                  AppLogger.info(_logTag, 'Button "Depois" clicked');
+                  Navigator.of(context).pop();
+                },
           child: const Text('Depois'),
         ),
         if (updateInfo.hasUpdate)
           if (_installError != null || widget.onSilentInstall == null)
             ElevatedButton.icon(
               onPressed: () {
+                AppLogger.info(
+                  _logTag,
+                  'Button "${_installError != null ? 'Abrir no Navegador' : 'Baixar Atualização'}" clicked',
+                );
                 Navigator.of(context).pop();
                 widget.onDownload();
               },

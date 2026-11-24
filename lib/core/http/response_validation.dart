@@ -1,21 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 
-/// O `validateStatus` do [CustomDio] entrega respostas 4xx (exceto 401/403)
-/// como sucesso. Esta extensão centraliza a regra que transforma essas
-/// respostas em [RequisitionException], para os controllers exibirem a
-/// mensagem do backend em vez de tratar o erro como sucesso.
-extension ResponseValidation<T> on Response<T> {
-  Response<T> ensureSuccess() {
-    final status = statusCode ?? 0;
-    if (status >= 200 && status < 300) {
-      return this;
-    }
-
-    throw requisitionExceptionFromResponse(this);
-  }
-}
-
+/// Converte uma resposta de erro da API (`{ "error": { code, message } }`)
+/// em [RequisitionException], tolerando corpo que não é um Map.
+///
+/// Usada pelo `ApiClient` e pelo `AuthService`.
 RequisitionException requisitionExceptionFromResponse(
   Response<dynamic> response,
 ) {

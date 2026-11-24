@@ -24,6 +24,8 @@ import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controll
 import 'package:flutter_workshop_front/widgets/shared/infinite_scroll_listener.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
+import '../../helpers/result_guard.dart';
 
 MinifiedCustomerModel _customer(int id) => MinifiedCustomerModel(
   customerId: id,
@@ -56,26 +58,26 @@ class _FakeCustomerRepository implements CustomerRepository {
   _FakeCustomerRepository(this.onSearch);
 
   @override
-  Future<Page<MinifiedCustomerModel>> searchCustomers(
+  Future<Result<Page<MinifiedCustomerModel>>> searchCustomers(
     CustomerSearchFilter? filter,
-  ) {
+  ) => guardResult(() {
     receivedFilters.add(filter);
     return onSearch(filter?.page ?? 0);
-  }
+  });
 
   @override
-  Future<CustomerModel> createCustomer(InputCustomer customer) =>
-      throw UnimplementedError();
+  Future<Result<CustomerModel>> createCustomer(InputCustomer customer) =>
+      guardResult(() => throw UnimplementedError());
 
   @override
-  Future<CustomerModel> getCustomer(int customerId) =>
-      throw UnimplementedError();
+  Future<Result<CustomerModel>> getCustomer(int customerId) =>
+      guardResult(() => throw UnimplementedError());
 
   @override
-  Future<CustomerModel> updateCustomer(
+  Future<Result<CustomerModel>> updateCustomer(
     int customerId,
     InputCustomer customer,
-  ) => throw UnimplementedError();
+  ) => guardResult(() => throw UnimplementedError());
 }
 
 class _FakeDevicesRepository implements AllDevicesRepository {
@@ -84,19 +86,22 @@ class _FakeDevicesRepository implements AllDevicesRepository {
   _FakeDevicesRepository(this.onFetch);
 
   @override
-  Future<Page<DeviceDataTable>> getAllDevicesFiltering([
+  Future<Result<Page<DeviceDataTable>>> getAllDevicesFiltering([
     DeviceFilter? filter,
-  ]) => onFetch(filter?.page ?? 0);
+  ]) => guardResult(() => onFetch(filter?.page ?? 0));
 
   @override
-  Future<Page<DeviceDataTable>> searchDevices([DeviceSearchFilter? filter]) =>
-      onFetch(filter?.page ?? 0);
+  Future<Result<Page<DeviceDataTable>>> searchDevices([
+    DeviceSearchFilter? filter,
+  ]) => guardResult(() => onFetch(filter?.page ?? 0));
 
   @override
-  Future<List<DeviceBrand>> getAllDeviceBrands([String? name]) async => [];
+  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([String? name]) =>
+      guardResult(() async => []);
 
   @override
-  Future<List<DeviceType>> getAllDeviceTypes([String? name]) async => [];
+  Future<Result<List<DeviceType>>> getAllDeviceTypes([String? name]) =>
+      guardResult(() async => []);
 }
 
 Widget _wrapWithRouter(Widget child) {

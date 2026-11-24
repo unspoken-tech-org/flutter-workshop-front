@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
+import 'package:flutter_workshop_front/core/result/app_failure.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/core/state/safe_change_notifier_mixin.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
@@ -65,11 +66,14 @@ class DeviceCustomerPageController extends ChangeNotifier
 
   Future<void> _getTechnicians() async {
     try {
-      technicians = await _technicianService.getTechnicians();
-    } on RequisitionException catch (e) {
-      SnackBarUtil().showError(e.message);
-    } catch (e) {
-      SnackBarUtil().showError('Erro ao buscar técnicos. Tente novamente.');
+      switch (await _technicianService.getTechnicians()) {
+        case Ok(:final value):
+          technicians = value;
+        case Err(:final failure):
+          SnackBarUtil().showError(
+            failure.messageOr('Erro ao buscar técnicos. Tente novamente.'),
+          );
+      }
     } finally {
       notifyListeners();
     }
@@ -77,22 +81,19 @@ class DeviceCustomerPageController extends ChangeNotifier
 
   Future<void> _getCustomerDevice(int deviceId, {bool isNew = false}) async {
     try {
-      final fetched = await _deviceCustomerService.getCustomerDeviceById(
-        deviceId,
-      );
-      deviceCustomer = fetched;
-      loadError = null;
-    } on RequisitionException catch (e) {
-      if (isNew) {
-        loadError = e.message;
+      switch (await _deviceCustomerService.getCustomerDeviceById(deviceId)) {
+        case Ok(:final value):
+          deviceCustomer = value;
+          loadError = null;
+        case Err(:final failure):
+          final message = failure.messageOr(
+            'Erro ao buscar dispositivo. Tente novamente.',
+          );
+          if (isNew) {
+            loadError = message;
+          }
+          SnackBarUtil().showError(message);
       }
-      SnackBarUtil().showError(e.message);
-    } catch (e) {
-      const message = 'Erro ao buscar dispositivo. Tente novamente.';
-      if (isNew) {
-        loadError = message;
-      }
-      SnackBarUtil().showError(message);
     } finally {
       notifyListeners();
     }
@@ -137,18 +138,22 @@ class DeviceCustomerPageController extends ChangeNotifier
     isUpdating = true;
     notifyListeners();
     try {
-      final DeviceCustomer value = await _deviceCustomerService
-          .updateDeviceHasUrgency(current.deviceId, hasUrgency);
-      _applyQuickActionResponse(value);
-      SnackBarUtil().showSuccess(
-        'Urgencia do dispositivo atualizada com sucesso',
-      );
-    } on RequisitionException catch (e) {
-      SnackBarUtil().showError(e.message);
-    } catch (e) {
-      SnackBarUtil().showError(
-        'Erro ao atualizar urgência do dispositivo. Tente novamente.',
-      );
+      switch (await _deviceCustomerService.updateDeviceHasUrgency(
+        current.deviceId,
+        hasUrgency,
+      )) {
+        case Ok(:final value):
+          _applyQuickActionResponse(value);
+          SnackBarUtil().showSuccess(
+            'Urgencia do dispositivo atualizada com sucesso',
+          );
+        case Err(:final failure):
+          SnackBarUtil().showError(
+            failure.messageOr(
+              'Erro ao atualizar urgência do dispositivo. Tente novamente.',
+            ),
+          );
+      }
     } finally {
       isUpdating = false;
       notifyListeners();
@@ -163,20 +168,20 @@ class DeviceCustomerPageController extends ChangeNotifier
     isSaving = true;
     notifyListeners();
     try {
-      final DeviceCustomer response = await _deviceCustomerService
-          .updateDeviceCustomer(current);
-      deviceCustomer = response;
-      _editingSnapshot = null;
-      SnackBarUtil().showSuccess('Dispositivo atualizado com sucesso');
-      return true;
-    } on RequisitionException catch (e) {
-      SnackBarUtil().showError(e.message);
-      return false;
-    } catch (e) {
-      SnackBarUtil().showError(
-        'Erro ao atualizar dispositivo. Tente novamente.',
-      );
-      return false;
+      switch (await _deviceCustomerService.updateDeviceCustomer(current)) {
+        case Ok(:final value):
+          deviceCustomer = value;
+          _editingSnapshot = null;
+          SnackBarUtil().showSuccess('Dispositivo atualizado com sucesso');
+          return true;
+        case Err(:final failure):
+          SnackBarUtil().showError(
+            failure.messageOr(
+              'Erro ao atualizar dispositivo. Tente novamente.',
+            ),
+          );
+          return false;
+      }
     } finally {
       isSaving = false;
       notifyListeners();
@@ -191,17 +196,19 @@ class DeviceCustomerPageController extends ChangeNotifier
     isCreatingContact = true;
     notifyListeners();
     try {
-      await _customerContactService.createCustomerContact(customerContact);
-      await _getCustomerDevice(current.deviceId);
-
-      SnackBarUtil().showSuccess('Contato criado com sucesso');
-      return true;
-    } on RequisitionException catch (e) {
-      SnackBarUtil().showError(e.message);
-      return false;
-    } catch (e) {
-      SnackBarUtil().showError('Erro ao criar contato. Tente novamente.');
-      return false;
+      switch (await _customerContactService.createCustomerContact(
+        customerContact,
+      )) {
+        case Ok():
+          await _getCustomerDevice(current.deviceId);
+          SnackBarUtil().showSuccess('Contato criado com sucesso');
+          return true;
+        case Err(:final failure):
+          SnackBarUtil().showError(
+            failure.messageOr('Erro ao criar contato. Tente novamente.'),
+          );
+          return false;
+      }
     } finally {
       isCreatingContact = false;
       notifyListeners();
@@ -217,20 +224,20 @@ class DeviceCustomerPageController extends ChangeNotifier
     isEditingContact = true;
     notifyListeners();
     try {
-      await _customerContactService.updateCustomerContact(
+      switch (await _customerContactService.updateCustomerContact(
         contactId,
         customerContact,
-      );
-      await _getCustomerDevice(current.deviceId);
-
-      SnackBarUtil().showSuccess('Contato editado com sucesso');
-      return true;
-    } on RequisitionException catch (e) {
-      SnackBarUtil().showError(e.message);
-      return false;
-    } catch (e) {
-      SnackBarUtil().showError('Erro ao editar contato. Tente novamente.');
-      return false;
+      )) {
+        case Ok():
+          await _getCustomerDevice(current.deviceId);
+          SnackBarUtil().showSuccess('Contato editado com sucesso');
+          return true;
+        case Err(:final failure):
+          SnackBarUtil().showError(
+            failure.messageOr('Erro ao editar contato. Tente novamente.'),
+          );
+          return false;
+      }
     } finally {
       isEditingContact = false;
       notifyListeners();
@@ -243,18 +250,22 @@ class DeviceCustomerPageController extends ChangeNotifier
     isUpdating = true;
     notifyListeners();
     try {
-      final DeviceCustomer value = await _deviceCustomerService
-          .updateDeviceRevision(current.deviceId, revision);
-      _applyQuickActionResponse(value);
-      SnackBarUtil().showSuccess(
-        'Revisão do dispositivo atualizada com sucesso',
-      );
-    } on RequisitionException catch (e) {
-      SnackBarUtil().showError(e.message);
-    } catch (e) {
-      SnackBarUtil().showError(
-        'Erro ao atualizar revisão do dispositivo. Tente novamente.',
-      );
+      switch (await _deviceCustomerService.updateDeviceRevision(
+        current.deviceId,
+        revision,
+      )) {
+        case Ok(:final value):
+          _applyQuickActionResponse(value);
+          SnackBarUtil().showSuccess(
+            'Revisão do dispositivo atualizada com sucesso',
+          );
+        case Err(:final failure):
+          SnackBarUtil().showError(
+            failure.messageOr(
+              'Erro ao atualizar revisão do dispositivo. Tente novamente.',
+            ),
+          );
+      }
     } finally {
       isUpdating = false;
       notifyListeners();
@@ -267,54 +278,62 @@ class DeviceCustomerPageController extends ChangeNotifier
     isUpdating = true;
     notifyListeners();
     try {
-      final DeviceCustomer value = await _deviceCustomerService
-          .updateDeviceStatus(current.deviceId, status);
-      _applyQuickActionResponse(value);
-      SnackBarUtil().showSuccess(
-        'Status do dispositivo atualizado com sucesso',
-      );
-    } on RequisitionException catch (e) {
-      SnackBarUtil().showError(e.message);
-    } catch (e) {
-      SnackBarUtil().showError(
-        'Erro ao atualizar status do dispositivo. Tente novamente.',
-      );
+      switch (await _deviceCustomerService.updateDeviceStatus(
+        current.deviceId,
+        status,
+      )) {
+        case Ok(:final value):
+          _applyQuickActionResponse(value);
+          SnackBarUtil().showSuccess(
+            'Status do dispositivo atualizado com sucesso',
+          );
+        case Err(:final failure):
+          SnackBarUtil().showError(
+            failure.messageOr(
+              'Erro ao atualizar status do dispositivo. Tente novamente.',
+            ),
+          );
+      }
     } finally {
       isUpdating = false;
       notifyListeners();
     }
   }
 
-  Future<void> createCustomerDevicePayment(InputPayment payment) async {
+  /// Cria o pagamento e retorna `true` só quando o servidor confirma; em
+  /// erro exibe a mensagem e retorna `false` (o diálogo permanece aberto).
+  Future<bool> createCustomerDevicePayment(InputPayment payment) async {
     final current = deviceCustomer;
-    if (current == null) return;
+    if (current == null) return false;
     try {
       isCreatingPayment = true;
       notifyListeners();
-      await _paymentService.createPayment(payment);
-      final newPayment = CustomerDevicePayment(
-        paymentId: 0,
-        paymentValue: payment.value,
-        paymentDate: payment.paymentDate!,
-        paymentType: payment.paymentType!,
-        category: payment.category!,
-        receivedBy: payment.receivedBy,
-      );
-      deviceCustomer = current.copyWith(
-        payments: [...current.payments, newPayment],
-      );
-      if (_editingSnapshot != null) {
-        _editingSnapshot = _editingSnapshot!.copyWith(
-          payments: [..._editingSnapshot!.payments, newPayment],
-        );
+      switch (await _paymentService.createPayment(payment)) {
+        case Ok():
+          final newPayment = CustomerDevicePayment(
+            paymentId: 0,
+            paymentValue: payment.value,
+            paymentDate: payment.paymentDate!,
+            paymentType: payment.paymentType!,
+            category: payment.category!,
+            receivedBy: payment.receivedBy,
+          );
+          deviceCustomer = current.copyWith(
+            payments: [...current.payments, newPayment],
+          );
+          if (_editingSnapshot != null) {
+            _editingSnapshot = _editingSnapshot!.copyWith(
+              payments: [..._editingSnapshot!.payments, newPayment],
+            );
+          }
+          SnackBarUtil().showSuccess('Pagamento criado com sucesso');
+          return true;
+        case Err(:final failure):
+          SnackBarUtil().showError(
+            failure.messageOr('Erro ao criar pagamento. Tente novamente.'),
+          );
+          return false;
       }
-      SnackBarUtil().showSuccess('Pagamento criado com sucesso');
-    } on RequisitionException catch (e) {
-      SnackBarUtil().showError(e.message);
-      rethrow;
-    } catch (e) {
-      SnackBarUtil().showError('Erro ao criar pagamento. Tente novamente.');
-      rethrow;
     } finally {
       isCreatingPayment = false;
       notifyListeners();

@@ -1,20 +1,19 @@
-import 'package:dio/dio.dart';
-import 'package:flutter_workshop_front/core/http/custom_dio.dart';
+import 'package:flutter_workshop_front/core/http/api_client.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/home_table_filter.dart';
 
 class HomeService {
-  final Dio dio = CustomDio.dioInstance();
+  HomeService({ApiClient? client}) : _api = client ?? ApiClient();
 
-  Future<List<DeviceDataTable>> getTableData([HomeTableFilter? filter]) async {
-    final body = filter?.toJson();
-    final Response<List<dynamic>> result = await dio.post<List<dynamic>>(
-      '/v1/device/filter',
-      data: body,
+  final ApiClient _api;
+
+  Future<Result<List<DeviceDataTable>>> getTableData([
+    HomeTableFilter? filter,
+  ]) {
+    return _api.send(
+      (dio) => dio.post<dynamic>('/v1/device/filter', data: filter?.toJson()),
+      decode: (data) => parseList(data, DeviceDataTable.fromJson),
     );
-
-    return result.data!
-        .map((e) => DeviceDataTable.fromJson(e as Map<String, dynamic>))
-        .toList();
   }
 }

@@ -1,4 +1,5 @@
-import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
+import 'package:flutter_workshop_front/core/result/app_failure.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/customer/input_customer.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
@@ -16,15 +17,16 @@ class CustomerRegisterController extends ChangeNotifier {
     try {
       isCreatingCustomer = true;
       notifyListeners();
-      final customer = await _customerRepository.createCustomer(newCustomer);
-      SnackBarUtil().showSuccess('Cliente cadastrado com sucesso');
-      return customer.customerId;
-    } on RequisitionException catch (e) {
-      SnackBarUtil().showError(e.message);
-      return null;
-    } catch (e) {
-      SnackBarUtil().showError('Erro ao cadastrar cliente');
-      return null;
+      switch (await _customerRepository.createCustomer(newCustomer)) {
+        case Ok(:final value):
+          SnackBarUtil().showSuccess('Cliente cadastrado com sucesso');
+          return value.customerId;
+        case Err(:final failure):
+          SnackBarUtil().showError(
+            failure.messageOr('Erro ao cadastrar cliente'),
+          );
+          return null;
+      }
     } finally {
       isCreatingCustomer = false;
       notifyListeners();

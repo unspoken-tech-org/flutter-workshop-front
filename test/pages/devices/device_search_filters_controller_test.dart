@@ -8,6 +8,8 @@ import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/search_devices/controllers/search_devices_controller.dart';
 import 'package:flutter_workshop_front/repositories/all_devices/all_devices_repository.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
+import '../../helpers/result_guard.dart';
 
 class _RecordingAllDevicesRepository implements AllDevicesRepository {
   DeviceFilter? lastAllDevicesFilter;
@@ -26,26 +28,28 @@ class _RecordingAllDevicesRepository implements AllDevicesRepository {
   );
 
   @override
-  Future<Page<DeviceDataTable>> getAllDevicesFiltering([
+  Future<Result<Page<DeviceDataTable>>> getAllDevicesFiltering([
     DeviceFilter? filter,
-  ]) async {
+  ]) => guardResult(() async {
     lastAllDevicesFilter = filter;
     return _emptyPage();
-  }
+  });
 
   @override
-  Future<Page<DeviceDataTable>> searchDevices([
+  Future<Result<Page<DeviceDataTable>>> searchDevices([
     DeviceSearchFilter? filter,
-  ]) async {
+  ]) => guardResult(() async {
     lastSearchDevicesFilter = filter;
     return _emptyPage();
-  }
+  });
 
   @override
-  Future<List<DeviceBrand>> getAllDeviceBrands([String? name]) async => [];
+  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([String? name]) =>
+      guardResult(() async => []);
 
   @override
-  Future<List<DeviceType>> getAllDeviceTypes([String? name]) async => [];
+  Future<Result<List<DeviceType>>> getAllDeviceTypes([String? name]) =>
+      guardResult(() async => []);
 }
 
 void main() {

@@ -1,6 +1,8 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
+import 'package:flutter_workshop_front/core/result/app_failure.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/core/state/safe_change_notifier_mixin.dart';
 import 'package:flutter_workshop_front/models/colors/color_model.dart';
 import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
@@ -72,89 +74,109 @@ class DeviceRegisterController extends ChangeNotifier
   /// Fallback quando a rota chega só com `customerId` (deep-link ou chamador
   /// sem `extra`): o nome vem da API, nunca da URI.
   Future<void> _loadCustomerName(int customerId) async {
-    try {
-      final customer = await _customerRepository.getCustomer(customerId);
-      if (this.customerId == customerId) customerName = customer.name;
-    } catch (e) {
-      // Sem o nome não dá para confirmar o cliente: volta para a busca manual.
-      if (this.customerId == customerId) {
-        this.customerId = null;
-        customerName = null;
-      }
-      SnackBarUtil().showError(
-        e is RequisitionException ? e.message : 'Erro ao buscar o cliente',
-      );
+    switch (await _customerRepository.getCustomer(customerId)) {
+      case Ok(:final value):
+        if (this.customerId == customerId) customerName = value.name;
+      case Err(:final failure):
+        // Sem o nome não dá para confirmar o cliente: volta para a busca manual.
+        if (this.customerId == customerId) {
+          this.customerId = null;
+          customerName = null;
+        }
+        SnackBarUtil().showError(failure.messageOr('Erro ao buscar o cliente'));
     }
   }
 
   Future<void> fetchColors() async {
-    try {
-      final colors = await _colorService.getColors();
-      allColors = colors;
-    } on RequisitionException catch (e) {
-      SnackBarUtil().showError(e.message);
-    } catch (e) {
-      SnackBarUtil().showError('Erro ao buscar as cores');
+    switch (await _colorService.getColors()) {
+      case Ok(:final value):
+        allColors = value;
+      case Err(:final failure):
+        SnackBarUtil().showError(failure.messageOr('Erro ao buscar as cores'));
     }
   }
 
   Future<void> fetchTechnicians() async {
-    try {
-      final technicians = await _technicianService.getTechnicians();
-      this.technicians = technicians;
-    } on RequisitionException catch (e) {
-      SnackBarUtil().showError(e.message);
-    } catch (e) {
-      SnackBarUtil().showError('Erro ao buscar os técnicos');
+    switch (await _technicianService.getTechnicians()) {
+      case Ok(:final value):
+        technicians = value;
+      case Err(:final failure):
+        SnackBarUtil().showError(
+          failure.messageOr('Erro ao buscar os técnicos'),
+        );
     }
   }
 
   Future<List<MinifiedCustomerModel>> fetchCustomers(String query) async {
-    try {
-      final filter = CustomerSearchFilter.getCustomerSearchFilter(
-        query,
-        page: 0,
-        size: 20,
-      );
-      final customersPage = await _customerRepository.searchCustomers(filter);
-      return customersPage.content;
-    } catch (e) {
-      SnackBarUtil().showError('Erro ao buscar o cliente');
-      return [];
+    final filter = CustomerSearchFilter.getCustomerSearchFilter(
+      query,
+      page: 0,
+      size: 20,
+    );
+    switch (await _customerRepository.searchCustomers(filter)) {
+      case Ok(:final value):
+        return value.content;
+      case Err():
+        // Mensagem fixa de hoje, também para erros da API.
+        SnackBarUtil().showError('Erro ao buscar o cliente');
+        return [];
+    }
+  }
+
+  // Adaptador temporário: o autocomplete (SearchFn/CreateFn) ainda espera
+  // exceções e as trata de forma genérica.
+  T _unwrapOrThrow<T>(Result<T> result) {
+    switch (result) {
+      case Ok(:final value):
+        return value;
+      case Err(:final failure):
+        throw switch (failure) {
+          RejectedFailure(:final message, :final code) => RequisitionException(
+            message,
+            code,
+          ),
+          _ => Exception('Falha na requisição'),
+        };
     }
   }
 
   Future<List<Type>> searchTypes(String query) async {
-    final page = await _typesBrandsModelsRepository.searchTypes(query);
+    final page = _unwrapOrThrow(
+      await _typesBrandsModelsRepository.searchTypes(query),
+    );
     return page.content;
   }
 
   Future<List<Brand>> searchBrands(String query) async {
     if (selectedType == null) return [];
-    final page = await _typesBrandsModelsRepository.searchBrands(query);
+    final page = _unwrapOrThrow(
+      await _typesBrandsModelsRepository.searchBrands(query),
+    );
     return page.content;
   }
 
   Future<List<Model>> searchModels(String query) async {
     if (selectedType == null || selectedBrand == null) return [];
-    final page = await _typesBrandsModelsRepository.searchModels(
-      selectedType!.idType,
-      selectedBrand!.idBrand,
-      query,
+    final page = _unwrapOrThrow(
+      await _typesBrandsModelsRepository.searchModels(
+        selectedType!.idType,
+        selectedBrand!.idBrand,
+        query,
+      ),
     );
     return page.content;
   }
 
   Future<Type> createType(String name) async {
-    return _typesBrandsModelsRepository.createType(name);
+    return _unwrapOrThrow(await _typesBrandsModelsRepository.createType(name));
   }
 
   Future<Brand> createBrand(String name) async {
-    return _typesBrandsModelsRepository.createBrand(name);
+    return _unwrapOrThrow(await _typesBrandsModelsRepository.createBrand(name));
   }
 
   Future<Model> createModel(String name) async {
-    return _typesBrandsModelsRepository.createModel(name);
+    return _unwrapOrThrow(await _typesBrandsModelsRepository.createModel(name));
   }
 
   void setSelectedType(Type? type) {
@@ -195,18 +217,16 @@ class DeviceRegisterController extends ChangeNotifier
         colors: colors,
       );
 
-      final deviceCustomer = await _deviceCustomerService.createDeviceCustomer(
-        inputDevice,
-      );
-
-      SnackBarUtil().showSuccess('Dispositivo criado com sucesso');
-      return deviceCustomer.deviceId;
-    } on RequisitionException catch (e) {
-      SnackBarUtil().showError(e.message);
-      return null;
-    } catch (e) {
-      SnackBarUtil().showError('Erro ao criar dispositivo');
-      return null;
+      switch (await _deviceCustomerService.createDeviceCustomer(inputDevice)) {
+        case Ok(:final value):
+          SnackBarUtil().showSuccess('Dispositivo criado com sucesso');
+          return value.deviceId;
+        case Err(:final failure):
+          SnackBarUtil().showError(
+            failure.messageOr('Erro ao criar dispositivo'),
+          );
+          return null;
+      }
     } finally {
       isCreatingDevice = false;
       notifyListeners();

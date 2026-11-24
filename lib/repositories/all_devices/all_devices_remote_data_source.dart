@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/device/device_filter.dart';
 import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
 import 'package:flutter_workshop_front/models/device_brand/device_brand_model.dart';
@@ -15,26 +16,26 @@ class AllDevicesRemoteDataSource implements AllDevicesRepository {
   final DeviceBrandService _deviceBrandService = DeviceBrandService();
 
   @override
-  Future<Page<DeviceDataTable>> getAllDevicesFiltering([
+  Future<Result<Page<DeviceDataTable>>> getAllDevicesFiltering([
     DeviceFilter? filter,
-  ]) async {
+  ]) {
     return _deviceCustomerService.getAllDevicesFiltering(filter);
   }
 
   @override
-  Future<Page<DeviceDataTable>> searchDevices([
+  Future<Result<Page<DeviceDataTable>>> searchDevices([
     DeviceSearchFilter? filter,
-  ]) async {
+  ]) {
     return _deviceCustomerService.searchDevices(filter);
   }
 
   @override
-  Future<List<DeviceType>> getAllDeviceTypes([String? name]) async {
+  Future<Result<List<DeviceType>>> getAllDeviceTypes([String? name]) {
     return _deviceTypeService.getAllDeviceTypes(name);
   }
 
   @override
-  Future<List<DeviceBrand>> getAllDeviceBrands([String? name]) async {
+  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([String? name]) {
     return _deviceBrandService.getAllDeviceBrands(name);
   }
 }

@@ -5,6 +5,8 @@ import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dar
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
+import '../../helpers/result_guard.dart';
 
 DeviceCustomer _device({
   String problem = 'Não liga',
@@ -43,14 +45,15 @@ class _FakeDeviceCustomerService implements DeviceCustomerService {
   _FakeDeviceCustomerService({required this.onUpdate, required this.onUrgency});
 
   @override
-  Future<DeviceCustomer> updateDeviceCustomer(DeviceCustomer deviceCustomer) =>
-      onUpdate(deviceCustomer);
+  Future<Result<DeviceCustomer>> updateDeviceCustomer(
+    DeviceCustomer deviceCustomer,
+  ) => guardResult(() => onUpdate(deviceCustomer));
 
   @override
-  Future<DeviceCustomer> updateDeviceHasUrgency(
+  Future<Result<DeviceCustomer>> updateDeviceHasUrgency(
     int deviceId,
     bool hasUrgency,
-  ) => onUrgency(hasUrgency);
+  ) => guardResult(() => onUrgency(hasUrgency));
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

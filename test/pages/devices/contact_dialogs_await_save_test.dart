@@ -14,6 +14,8 @@ import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dial
 import 'package:flutter_workshop_front/services/customer_contact/customer_contact_service.dart';
 import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
+import '../../helpers/result_guard.dart';
 
 DeviceCustomer _sampleDevice() => DeviceCustomer.fromJson(const {
   'deviceId': 1,
@@ -46,8 +48,8 @@ DeviceCustomer _sampleDevice() => DeviceCustomer.fromJson(const {
 
 class _StubDeviceCustomerService implements DeviceCustomerService {
   @override
-  Future<DeviceCustomer> getCustomerDeviceById(int deviceId) async =>
-      _sampleDevice();
+  Future<Result<DeviceCustomer>> getCustomerDeviceById(int deviceId) async =>
+      Ok(_sampleDevice());
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -60,14 +62,15 @@ class _StubCustomerContactService implements CustomerContactService {
   _StubCustomerContactService({this.onCreate, this.onUpdate});
 
   @override
-  Future<void> createCustomerContact(InputCustomerContact customerContact) =>
-      onCreate!(customerContact);
+  Future<Result<void>> createCustomerContact(
+    InputCustomerContact customerContact,
+  ) => guardResult(() => onCreate!(customerContact));
 
   @override
-  Future<void> updateCustomerContact(
+  Future<Result<void>> updateCustomerContact(
     int id,
     InputCustomerContact customerContact,
-  ) => onUpdate!(id, customerContact);
+  ) => guardResult(() => onUpdate!(id, customerContact));
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

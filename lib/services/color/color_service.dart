@@ -1,15 +1,16 @@
-import 'package:flutter_workshop_front/core/http/custom_dio.dart';
-import 'package:flutter_workshop_front/core/http/response_validation.dart';
+import 'package:flutter_workshop_front/core/http/api_client.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/colors/color_model.dart';
 
 class ColorService {
-  Future<List<ColorModel>> getColors() async {
-    final response = await CustomDio.dioInstance().get<List<dynamic>>(
-      '/v1/colors',
+  ColorService({ApiClient? client}) : _api = client ?? ApiClient();
+
+  final ApiClient _api;
+
+  Future<Result<List<ColorModel>>> getColors() {
+    return _api.send(
+      (dio) => dio.get<dynamic>('/v1/colors'),
+      decode: (data) => parseList(data, ColorModel.fromJson),
     );
-    response.ensureSuccess();
-    return response.data!
-        .map((e) => ColorModel.fromJson(e as Map<String, dynamic>))
-        .toList();
   }
 }

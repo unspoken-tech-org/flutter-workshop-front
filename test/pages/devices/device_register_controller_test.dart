@@ -8,6 +8,8 @@ import 'package:flutter_workshop_front/repositories/types_brands_models/types_br
 import 'package:flutter_workshop_front/services/color/color_service.dart';
 import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
 import 'package:flutter_workshop_front/services/technician/technician_service.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
+import '../../helpers/result_guard.dart';
 
 class _FakeTypesBrandsModelsRepository extends Fake
     implements TypesBrandsModelsRepository {}
@@ -17,12 +19,12 @@ class _FakeDeviceCustomerService extends Fake
 
 class _StubColorService extends Fake implements ColorService {
   @override
-  Future<List<ColorModel>> getColors() async => [];
+  Future<Result<List<ColorModel>>> getColors() async => const Ok([]);
 }
 
 class _StubTechnicianService extends Fake implements TechnicianService {
   @override
-  Future<List<Technician>> getTechnicians() async => [];
+  Future<Result<List<Technician>>> getTechnicians() async => const Ok([]);
 }
 
 class _StubCustomerRepository extends Fake implements CustomerRepository {
@@ -32,9 +34,9 @@ class _StubCustomerRepository extends Fake implements CustomerRepository {
   _StubCustomerRepository(this.onGet);
 
   @override
-  Future<CustomerModel> getCustomer(int customerId) {
+  Future<Result<CustomerModel>> getCustomer(int customerId) {
     requestedIds.add(customerId);
-    return onGet(customerId);
+    return guardResult(() => onGet(customerId));
   }
 }
 
