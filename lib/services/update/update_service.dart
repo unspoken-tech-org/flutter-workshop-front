@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -241,7 +242,7 @@ class UpdateService {
        _installerLauncher = installerLauncher ?? _defaultInstallerLauncher,
        _onExit = onExit ?? (() => exit(0)),
        _tempDirectory = tempDirectory,
-       _isWindows = isWindows ?? Platform.isWindows,
+       _isWindows = isWindows ?? (!kIsWeb && Platform.isWindows),
        _packageInfoLoader = packageInfoLoader ?? PackageInfo.fromPlatform,
        _feedUrlOverride = feedUrlOverride;
 
