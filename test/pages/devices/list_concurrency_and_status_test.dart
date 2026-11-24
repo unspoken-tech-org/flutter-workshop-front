@@ -158,6 +158,35 @@ void main() {
     });
   });
 
+  group('AllCustomerController.refresh', () {
+    test('recarrega a primeira página mantendo o termo de busca', () async {
+      final repo = _FakeCustomerRepository();
+      final controller = AllCustomerController(customerRepository: repo);
+      repo.pending[0].$2.complete(_page([], number: 0, last: true));
+
+      final search = controller.searchCustomers('Maria');
+      repo.pending[1].$2.complete(
+        _page([_customer(1, 'Maria')], number: 0, last: true),
+      );
+      await search;
+
+      final refresh = controller.refresh();
+      expect(repo.pending.length, 3);
+      expect(repo.pending[2].$1?.searchName, 'Maria');
+      expect(repo.pending[2].$1?.page, 0);
+      repo.pending[2].$2.complete(
+        _page(
+          [_customer(1, 'Maria'), _customer(2, 'Maria Nova')],
+          number: 0,
+          last: true,
+        ),
+      );
+      await refresh;
+
+      expect(controller.customers.map((c) => c.name), ['Maria', 'Maria Nova']);
+    });
+  });
+
   group('3.2 — AllCustomerController concorrência e paginação', () {
     test(
       'busca iniciada durante loading não é descartada e resposta antiga é ignorada',
