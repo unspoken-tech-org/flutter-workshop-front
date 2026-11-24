@@ -1,3 +1,4 @@
+import '../../support/offline_services.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -8,7 +9,6 @@ import 'package:flutter_workshop_front/models/customer_device/device_customer.da
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_contact_modal_dialog.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/edit_contact_modal_dialog.dart';
 import 'package:flutter_workshop_front/services/customer_contact/customer_contact_service.dart';
@@ -93,7 +93,7 @@ void main() {
       );
 
       final controller =
-          DeviceCustomerPageController(
+          testDeviceCustomerPageController(
               deviceCustomerService: _StubDeviceCustomerService(),
               customerContactService: contactService,
             )
@@ -207,7 +207,7 @@ void main() {
       );
 
       final controller =
-          DeviceCustomerPageController(
+          testDeviceCustomerPageController(
               deviceCustomerService: _StubDeviceCustomerService(),
               customerContactService: contactService,
             )

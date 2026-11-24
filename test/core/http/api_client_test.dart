@@ -45,7 +45,7 @@ ApiClient _client(_Handler handler) {
       validateStatus: (s) => s! < 500 && s != 401 && s != 403 && s != 429,
     ),
   )..httpClientAdapter = _FakeAdapter(handler);
-  return ApiClient(dio: dio);
+  return ApiClient(dio);
 }
 
 Future<Result<String>> _get(

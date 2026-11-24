@@ -1,8 +1,9 @@
+import 'bound_device_id_test.dart';
+import '../support/memory_security_storage.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
-import 'bound_device_id_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -26,14 +27,14 @@ void main() {
 
   group('BoundDeviceId Reset Unit Tests', () {
     test('Should preserve boundDeviceId after logout/clearSession', () async {
-      final storage = MockSecurityStorageWithBoundId();
+      final storage = MemorySecurityStorage(boundDeviceIdFallback: 'new-uuid');
       final authService = AuthService(
         dio: MockDioSuccess(),
         storage: storage,
         authNotifier: AuthNotifier(),
       );
 
-      storage.storage['bound_device_id'] = 'original-device-id';
+      storage.values['bound_device_id'] = 'original-device-id';
 
       await authService.authenticate('key-1');
       expect(await storage.getBoundDeviceId(), equals('original-device-id'));

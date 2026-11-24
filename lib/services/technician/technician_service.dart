@@ -3,7 +3,7 @@ import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 
 class TechnicianService {
-  TechnicianService({ApiClient? client}) : _api = client ?? ApiClient();
+  TechnicianService(this._api);
 
   final ApiClient _api;
 

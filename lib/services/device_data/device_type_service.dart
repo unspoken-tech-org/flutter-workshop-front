@@ -3,7 +3,7 @@ import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 
 class DeviceTypeService {
-  DeviceTypeService({ApiClient? client}) : _api = client ?? ApiClient();
+  DeviceTypeService(this._api);
 
   final ApiClient _api;
 

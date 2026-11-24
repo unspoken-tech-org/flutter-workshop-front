@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/di/app_dependencies.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -51,7 +52,10 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
       lazy: false,
       create: (context) {
         final controller =
-            widget.controllerFactory?.call() ?? DeviceCustomerPageController();
+            widget.controllerFactory?.call() ??
+            DeviceCustomerPageController.fromDependencies(
+              context.read<AppDependencies>(),
+            );
         unawaited(controller.init(widget.deviceId));
         return controller;
       },

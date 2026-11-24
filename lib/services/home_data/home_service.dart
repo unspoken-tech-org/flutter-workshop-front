@@ -4,7 +4,7 @@ import 'package:flutter_workshop_front/models/home_table/device_data_table.dart'
 import 'package:flutter_workshop_front/models/home_table/home_table_filter.dart';
 
 class HomeService {
-  HomeService({ApiClient? client}) : _api = client ?? ApiClient();
+  HomeService(this._api);
 
   final ApiClient _api;
 

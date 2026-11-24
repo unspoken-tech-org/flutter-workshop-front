@@ -1,11 +1,12 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_workshop_front/core/security/secure_key_value_store.dart';
 import 'package:uuid/uuid.dart';
 
+/// Credenciais do aparelho (api key, tokens, `bound_device_id`) sobre um
+/// [SecureKeyValueStore].
 class SecurityStorage {
-  final FlutterSecureStorage _storage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(),
-    wOptions: WindowsOptions(),
-  );
+  SecurityStorage(this._storage);
+
+  final SecureKeyValueStore _storage;
 
   static const _kApiKey = 'api_key';
   static const _kAccessToken = 'access_token';
@@ -13,49 +14,49 @@ class SecurityStorage {
   static const _kBoundDeviceId = 'bound_device_id';
 
   Future<void> saveApiKey(String key) async {
-    await _storage.write(key: _kApiKey, value: key);
+    await _storage.write(_kApiKey, key);
   }
 
   Future<String?> getApiKey() async {
-    return await _storage.read(key: _kApiKey);
+    return await _storage.read(_kApiKey);
   }
 
   Future<void> saveTokens(String accessToken, String refreshToken) async {
-    await _storage.write(key: _kAccessToken, value: accessToken);
-    await _storage.write(key: _kRefreshToken, value: refreshToken);
+    await _storage.write(_kAccessToken, accessToken);
+    await _storage.write(_kRefreshToken, refreshToken);
   }
 
   Future<void> saveAccessToken(String accessToken) async {
-    await _storage.write(key: _kAccessToken, value: accessToken);
+    await _storage.write(_kAccessToken, accessToken);
   }
 
   Future<String?> getAccessToken() async {
-    return await _storage.read(key: _kAccessToken);
+    return await _storage.read(_kAccessToken);
   }
 
   Future<String?> getRefreshToken() async {
-    return await _storage.read(key: _kRefreshToken);
+    return await _storage.read(_kRefreshToken);
   }
 
   Future<String> getBoundDeviceId() async {
-    String? boundDeviceId = await _storage.read(key: _kBoundDeviceId);
+    String? boundDeviceId = await _storage.read(_kBoundDeviceId);
     if (boundDeviceId == null) {
       boundDeviceId = const Uuid().v4();
-      await _storage.write(key: _kBoundDeviceId, value: boundDeviceId);
+      await _storage.write(_kBoundDeviceId, boundDeviceId);
     }
     return boundDeviceId;
   }
 
   Future<void> clearSession() async {
-    await _storage.delete(key: _kAccessToken);
-    await _storage.delete(key: _kRefreshToken);
+    await _storage.delete(_kAccessToken);
+    await _storage.delete(_kRefreshToken);
   }
 
   Future<void> clearProvisioning({bool removeBoundDeviceId = false}) async {
     await clearSession();
-    await _storage.delete(key: _kApiKey);
+    await _storage.delete(_kApiKey);
     if (removeBoundDeviceId) {
-      await _storage.delete(key: _kBoundDeviceId);
+      await _storage.delete(_kBoundDeviceId);
     }
   }
 

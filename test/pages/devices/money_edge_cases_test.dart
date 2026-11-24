@@ -1,3 +1,4 @@
+import '../../support/offline_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/money/money.dart';
@@ -5,7 +6,6 @@ import 'package:flutter_workshop_front/models/customer_device/customer_device_pa
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_new_payment_dialog.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/payment_totals_widget.dart';
 import 'package:flutter_workshop_front/services/payment/payment_service.dart';
@@ -147,7 +147,7 @@ void main() {
       'DeviceValuesWidget accepts budgetFee == 101.77 when payments sum 35.10 + 66.67 and rejects 101.76',
       (tester) async {
         final formKey = GlobalKey<FormState>();
-        final controller = DeviceCustomerPageController()
+        final controller = testDeviceCustomerPageController()
           ..deviceCustomer = _deviceWithPayments(
             budgetFee: 101.77,
             payments: const [
@@ -203,7 +203,7 @@ void main() {
 
         final paymentService = _RecordingPaymentService();
         final controller =
-            DeviceCustomerPageController(paymentService: paymentService)
+            testDeviceCustomerPageController(paymentService: paymentService)
               ..technicians = [
                 Technician(id: 1, name: 'Carlos', number: '11999999999'),
               ]
@@ -271,7 +271,7 @@ void main() {
         addTearDown(tester.view.resetPhysicalSize);
 
         final paymentService = _RecordingPaymentService();
-        final controller = DeviceCustomerPageController(
+        final controller = testDeviceCustomerPageController(
           paymentService: paymentService,
         )..deviceCustomer = _deviceWithPayments(budgetFee: 100.0);
 

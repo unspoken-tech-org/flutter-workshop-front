@@ -3,7 +3,7 @@ import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 
 class CustomerContactService {
-  CustomerContactService({ApiClient? client}) : _api = client ?? ApiClient();
+  CustomerContactService(this._api);
 
   final ApiClient _api;
 

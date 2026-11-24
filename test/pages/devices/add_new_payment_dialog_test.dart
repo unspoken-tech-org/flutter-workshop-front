@@ -1,3 +1,4 @@
+import '../../support/offline_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/money/money.dart';
@@ -8,9 +9,21 @@ import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_payments.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_new_payment_dialog.dart';
+import 'package:flutter_workshop_front/services/customer_contact/customer_contact_service.dart';
+import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
+import 'package:flutter_workshop_front/services/payment/payment_service.dart';
+import 'package:flutter_workshop_front/services/technician/technician_service.dart';
 import 'package:provider/provider.dart';
 
 class _FakeDeviceCustomerPageController extends DeviceCustomerPageController {
+  _FakeDeviceCustomerPageController()
+    : super(
+        deviceCustomerService: DeviceCustomerService(offlineApiClient()),
+        technicianService: TechnicianService(offlineApiClient()),
+        customerContactService: CustomerContactService(offlineApiClient()),
+        paymentService: PaymentService(offlineApiClient()),
+      );
+
   InputPayment? lastCreatedPayment;
 
   @override
@@ -64,7 +77,7 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      final controller = DeviceCustomerPageController()
+      final controller = testDeviceCustomerPageController()
         ..deviceCustomer = _sampleDevice();
 
       await tester.pumpWidget(

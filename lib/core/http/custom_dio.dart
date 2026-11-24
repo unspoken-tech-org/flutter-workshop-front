@@ -1,76 +1,59 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_workshop_front/core/config/config.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/global_error_interceptor.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/security_interceptor.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/refresh_result.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
 
+/// Fábrica das instâncias de [Dio] da API, sem estado global.
+///
+/// O `AppDependencies` cria uma de cada no boot: [createAuthDio] para o
+/// `AuthService` e [createAppDio] (com [SecurityInterceptor]) para o
+/// `ApiClient`. Por não haver ordem de setup, o `GlobalErrorInterceptor`
+/// está presente nas duas desde a criação.
 class CustomDio {
-  static SecurityStorage? _storage;
-  static Future<RefreshResult> Function()? _onRefresh;
-  static Future<void> Function()? _onCredentialRejected;
-  static AuthNotifier? _authNotifier;
-  static Dio? _appDio;
-  static Dio? _authDio;
-  static Dio? _retryDio;
-  static bool _securityAttached = false;
+  CustomDio({
+    required this.baseUri,
+    @visibleForTesting HttpClientAdapter? adapter,
+  }) : _adapter = adapter;
 
-  /// Configures global dependencies for the security interceptor.
-  static void setup(
-    SecurityStorage storage,
-    Future<RefreshResult> Function() onRefresh,
-    AuthNotifier authNotifier, {
+  final Uri baseUri;
+  final HttpClientAdapter? _adapter;
+
+  /// Instância dedicada à autenticação, sem [SecurityInterceptor] (evita loop
+  /// de refresh).
+  Dio createAuthDio() => _baseDio()..interceptors.add(GlobalErrorInterceptor());
+
+  /// Instância das chamadas autenticadas: injeta o token, renova em 401 e
+  /// repete a requisição por um `retryDio` sem [SecurityInterceptor].
+  Dio createAppDio({
+    required SecurityStorage storage,
+    required Future<RefreshResult> Function() onRefresh,
+    required AuthNotifier authNotifier,
     Future<void> Function()? onCredentialRejected,
   }) {
-    _storage = storage;
-    _onRefresh = onRefresh;
-    _authNotifier = authNotifier;
-    _onCredentialRejected = onCredentialRejected;
+    // retryDio: mesmas BaseOptions, sem SecurityInterceptor → sem deadlock no retry.
+    final retryDio = _baseDio()..interceptors.add(GlobalErrorInterceptor());
 
-    if (_appDio != null) {
-      _ensureSecurityInterceptor(_appDio!);
-    }
+    return _baseDio()
+      ..interceptors.addAll([
+        SecurityInterceptor(
+          storage: storage,
+          retryDio: retryDio,
+          onRefresh: onRefresh,
+          authNotifier: authNotifier,
+          onCredentialRejected: onCredentialRejected,
+        ),
+        // GlobalErrorInterceptor por último: processa o erro final.
+        GlobalErrorInterceptor(),
+      ]);
   }
 
-  static Dio dioInstance() {
-    if (_appDio == null) {
-      _appDio = _baseDio();
-      _ensureSecurityInterceptor(_appDio!);
-
-      // GlobalErrorInterceptor must be added last to process final errors
-      _appDio!.interceptors.add(GlobalErrorInterceptor());
-    }
-
-    return _appDio!;
-  }
-
-  /// Dedicated instance for authentication, avoiding interceptor loops.
-  static Dio authDioInstance() {
-    _authDio ??= _baseDio()..interceptors.add(GlobalErrorInterceptor());
-    return _authDio!;
-  }
-
-  @visibleForTesting
-  static void resetForTest() {
-    _storage = null;
-    _onRefresh = null;
-    _onCredentialRejected = null;
-    _authNotifier = null;
-    _appDio = null;
-    _authDio = null;
-    _retryDio = null;
-    _securityAttached = false;
-  }
-
-  @visibleForTesting
-  static Dio? get retryDioForTest => _retryDio;
-
-  static Dio _baseDio() {
+  Dio _baseDio() {
     final dio = Dio(
       BaseOptions(
-        baseUrl: Config.baseUrl,
+        baseUrl: baseUri.toString(),
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
         sendTimeout: const Duration(seconds: 15),
@@ -84,39 +67,8 @@ class CustomDio {
         },
       ),
     );
-
+    final adapter = _adapter;
+    if (adapter != null) dio.httpClientAdapter = adapter;
     return dio;
-  }
-
-  static void _ensureSecurityInterceptor(Dio dio) {
-    if (_securityAttached) {
-      return;
-    }
-
-    if (_storage == null || _onRefresh == null || _authNotifier == null) {
-      return;
-    }
-
-    // retryDio: mesmas BaseOptions, sem SecurityInterceptor → sem deadlock no retry.
-    _retryDio = Dio(dio.options)..interceptors.add(GlobalErrorInterceptor());
-    final retryDio = _retryDio!;
-
-    final securityInterceptor = SecurityInterceptor(
-      storage: _storage!,
-      retryDio: retryDio,
-      onRefresh: _onRefresh!,
-      authNotifier: _authNotifier!,
-      onCredentialRejected: _onCredentialRejected,
-    );
-
-    final globalErrorIndex = dio.interceptors.indexWhere(
-      (interceptor) => interceptor is GlobalErrorInterceptor,
-    );
-    if (globalErrorIndex >= 0) {
-      dio.interceptors.insert(globalErrorIndex, securityInterceptor);
-    } else {
-      dio.interceptors.add(securityInterceptor);
-    }
-    _securityAttached = true;
   }
 }

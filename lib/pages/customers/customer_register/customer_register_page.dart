@@ -1,7 +1,7 @@
+import 'package:flutter_workshop_front/core/di/app_dependencies.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_register/controllers/customer_register_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_register/widgets/customer_register_form.dart';
-import 'package:flutter_workshop_front/repositories/customer/customer_remote_data_source.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
 import 'package:provider/provider.dart';
 
@@ -21,8 +21,9 @@ class _CustomerRegisterPageState extends State<CustomerRegisterPage> {
 
     return ChangeNotifierProvider(
       lazy: false,
-      create: (context) =>
-          CustomerRegisterController(CustomerRemoteDataSource()),
+      create: (context) => CustomerRegisterController(
+        context.read<AppDependencies>().customerRepository,
+      ),
       child: WsScaffold(
         backgroundColor: const Color(0xFFF5F5F5),
         child: Center(

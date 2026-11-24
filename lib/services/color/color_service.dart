@@ -3,7 +3,7 @@ import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/colors/color_model.dart';
 
 class ColorService {
-  ColorService({ApiClient? client}) : _api = client ?? ApiClient();
+  ColorService(this._api);
 
   final ApiClient _api;
 

@@ -219,7 +219,7 @@ void main() {
         final dio = Dio()..httpClientAdapter = _FeedAdapter();
         final service = UpdateService(
           dio: dio,
-          feedUrlOverride: 'http://192.168.122.1:8787/latest.json',
+          feedUrl: 'http://192.168.122.1:8787/latest.json',
           packageInfoLoader: () async => PackageInfo(
             appName: 'Workshop App',
             packageName: 'workshop',
@@ -294,7 +294,7 @@ void main() {
         final dio = Dio()..httpClientAdapter = adapter;
         final service = UpdateService(
           dio: dio,
-          feedUrlOverride: url,
+          feedUrl: url,
           packageInfoLoader: () async => PackageInfo(
             appName: 'Workshop App',
             packageName: 'workshop',
@@ -347,7 +347,7 @@ void main() {
         final dio = Dio()..httpClientAdapter = adapter;
         final service = UpdateService(
           dio: dio,
-          feedUrlOverride: url,
+          feedUrl: url,
           packageInfoLoader: () async => PackageInfo(
             appName: 'Workshop App',
             packageName: 'workshop',
@@ -392,7 +392,7 @@ void main() {
         final dio = Dio()..httpClientAdapter = adapter;
         final service = UpdateService(
           dio: dio,
-          feedUrlOverride: url,
+          feedUrl: url,
           packageInfoLoader: () async => PackageInfo(
             appName: 'Workshop App',
             packageName: 'workshop',
@@ -452,7 +452,7 @@ void main() {
         final dio = Dio()..httpClientAdapter = adapter;
         final service = UpdateService(
           dio: dio,
-          feedUrlOverride: page1,
+          feedUrl: page1,
           packageInfoLoader: () async => PackageInfo(
             appName: 'Workshop App',
             packageName: 'workshop',
@@ -514,7 +514,7 @@ void main() {
         final dio = Dio()..httpClientAdapter = adapter;
         final service = UpdateService(
           dio: dio,
-          feedUrlOverride: page1,
+          feedUrl: page1,
           packageInfoLoader: () async => PackageInfo(
             appName: 'Workshop App',
             packageName: 'workshop',

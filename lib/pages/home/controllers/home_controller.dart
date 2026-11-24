@@ -7,10 +7,9 @@ import 'package:flutter_workshop_front/services/device_statistics/device_statist
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 class HomeController extends ChangeNotifier with SafeChangeNotifierMixin {
-  final DeviceStatisticsService _deviceStatisticsService =
-      DeviceStatisticsService();
+  final DeviceStatisticsService _deviceStatisticsService;
 
-  HomeController();
+  HomeController(this._deviceStatisticsService);
 
   DeviceStatistics? deviceStatistics;
   String? errorMessage;

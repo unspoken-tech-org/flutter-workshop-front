@@ -78,20 +78,18 @@ Future<void> _pumpHost(WidgetTester tester) {
 }
 
 void main() {
-  setUp(CustomDio.resetForTest);
-  tearDown(CustomDio.resetForTest);
-
   group('CustomDio validateStatus', () {
     test('HTTP 429 vira DioException com o corpo ResponseError', () async {
-      final dio = CustomDio.authDioInstance()
-        ..options.baseUrl = 'https://test.example.com'
-        ..httpClientAdapter = _FixedAdapter(
+      final dio = CustomDio(
+        baseUri: Uri.parse('https://test.example.com'),
+        adapter: _FixedAdapter(
           429,
           _rateLimitBody,
           headers: {
             'retry-after': ['10'],
           },
-        );
+        ),
+      ).createAuthDio();
 
       final error = await dio
           .get<dynamic>('/v1/brand', options: Options(extra: {'silent': true}))
@@ -111,9 +109,10 @@ void main() {
     });
 
     test('4xx de negócio continua chegando como resposta', () async {
-      final dio = CustomDio.authDioInstance()
-        ..options.baseUrl = 'https://test.example.com'
-        ..httpClientAdapter = _FixedAdapter(422, '{}');
+      final dio = CustomDio(
+        baseUri: Uri.parse('https://test.example.com'),
+        adapter: _FixedAdapter(422, '{}'),
+      ).createAuthDio();
 
       final response = await dio.get<dynamic>('/v1/brand');
 

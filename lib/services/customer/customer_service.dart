@@ -7,7 +7,7 @@ import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
 import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 
 class CustomerService {
-  CustomerService({ApiClient? client}) : _api = client ?? ApiClient();
+  CustomerService(this._api);
 
   final ApiClient _api;
 

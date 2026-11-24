@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/di/app_dependencies.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
@@ -22,16 +23,24 @@ class DeviceCustomerPageController extends ChangeNotifier
   final PaymentService _paymentService;
 
   DeviceCustomerPageController({
-    DeviceCustomerService? deviceCustomerService,
-    TechnicianService? technicianService,
-    CustomerContactService? customerContactService,
-    PaymentService? paymentService,
-  }) : _deviceCustomerService =
-           deviceCustomerService ?? DeviceCustomerService(),
-       _technicianService = technicianService ?? TechnicianService(),
-       _customerContactService =
-           customerContactService ?? CustomerContactService(),
-       _paymentService = paymentService ?? PaymentService();
+    required DeviceCustomerService deviceCustomerService,
+    required TechnicianService technicianService,
+    required CustomerContactService customerContactService,
+    required PaymentService paymentService,
+  }) : _deviceCustomerService = deviceCustomerService,
+       _technicianService = technicianService,
+       _customerContactService = customerContactService,
+       _paymentService = paymentService;
+
+  /// Monta o controller com os services do [AppDependencies].
+  factory DeviceCustomerPageController.fromDependencies(AppDependencies deps) {
+    return DeviceCustomerPageController(
+      deviceCustomerService: deps.deviceCustomerService,
+      technicianService: deps.technicianService,
+      customerContactService: deps.customerContactService,
+      paymentService: deps.paymentService,
+    );
+  }
 
   DeviceCustomer? deviceCustomer;
   List<Technician> technicians = [];

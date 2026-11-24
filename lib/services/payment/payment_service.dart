@@ -3,7 +3,7 @@ import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
 
 class PaymentService {
-  PaymentService({ApiClient? client}) : _api = client ?? ApiClient();
+  PaymentService(this._api);
 
   final ApiClient _api;
 
