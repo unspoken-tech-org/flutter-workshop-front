@@ -31,6 +31,7 @@ dependencies:
   crypto: ^3.0.7
   path_provider: ^2.1.5
   ffi: ^2.1.5
+  mcp_toolkit: ^8.0.0
 
 
 dev_dependencies:
