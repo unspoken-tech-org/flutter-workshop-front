@@ -22,6 +22,8 @@ import 'package:flutter_workshop_front/pages/devices/search_devices/controllers/
 import 'package:flutter_workshop_front/repositories/all_devices/all_devices_repository.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/searchable_dropdown_form_field.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
+import '../../helpers/result_guard.dart';
 
 DeviceDataTable _device(int id, String name) => DeviceDataTable(
   deviceId: id,
@@ -65,25 +67,27 @@ class _FakeCustomerRepository implements CustomerRepository {
   pending = [];
 
   @override
-  Future<Page<MinifiedCustomerModel>> searchCustomers([
+  Future<Result<Page<MinifiedCustomerModel>>> searchCustomers([
     CustomerSearchFilter? filter,
-  ]) {
+  ]) => guardResult(() {
     final completer = Completer<Page<MinifiedCustomerModel>>();
     pending.add((filter, completer));
     return completer.future;
-  }
+  });
 
   @override
-  Future<CustomerModel> createCustomer(InputCustomer customer) =>
-      throw UnimplementedError();
+  Future<Result<CustomerModel>> createCustomer(InputCustomer customer) =>
+      guardResult(() => throw UnimplementedError());
 
   @override
-  Future<CustomerModel> getCustomer(int customerId) =>
-      throw UnimplementedError();
+  Future<Result<CustomerModel>> getCustomer(int customerId) =>
+      guardResult(() => throw UnimplementedError());
 
   @override
-  Future<CustomerModel> updateCustomer(int id, InputCustomer customer) =>
-      throw UnimplementedError();
+  Future<Result<CustomerModel>> updateCustomer(
+    int id,
+    InputCustomer customer,
+  ) => guardResult(() => throw UnimplementedError());
 }
 
 class _FakeAllDevicesRepository implements AllDevicesRepository {
@@ -93,24 +97,30 @@ class _FakeAllDevicesRepository implements AllDevicesRepository {
   pendingSearchDevices = [];
 
   @override
-  Future<Page<DeviceDataTable>> getAllDevicesFiltering([DeviceFilter? filter]) {
+  Future<Result<Page<DeviceDataTable>>> getAllDevicesFiltering([
+    DeviceFilter? filter,
+  ]) => guardResult(() {
     final completer = Completer<Page<DeviceDataTable>>();
     pendingAllDevices.add((filter, completer));
     return completer.future;
-  }
+  });
 
   @override
-  Future<Page<DeviceDataTable>> searchDevices([DeviceSearchFilter? filter]) {
+  Future<Result<Page<DeviceDataTable>>> searchDevices([
+    DeviceSearchFilter? filter,
+  ]) => guardResult(() {
     final completer = Completer<Page<DeviceDataTable>>();
     pendingSearchDevices.add((filter, completer));
     return completer.future;
-  }
+  });
 
   @override
-  Future<List<DeviceBrand>> getAllDeviceBrands([String? name]) async => [];
+  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([String? name]) =>
+      guardResult(() async => []);
 
   @override
-  Future<List<DeviceType>> getAllDeviceTypes([String? name]) async => [];
+  Future<Result<List<DeviceType>>> getAllDeviceTypes([String? name]) =>
+      guardResult(() async => []);
 }
 
 void main() {

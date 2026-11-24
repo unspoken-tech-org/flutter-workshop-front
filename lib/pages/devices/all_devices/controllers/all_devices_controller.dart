@@ -1,14 +1,14 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart' hide Page;
-import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/result/app_failure.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/core/state/safe_change_notifier_mixin.dart';
 import 'package:flutter_workshop_front/models/device/device_filter.dart';
 import 'package:flutter_workshop_front/models/device_brand/device_brand_model.dart';
 import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
-import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 import 'package:flutter_workshop_front/repositories/all_devices/all_devices_repository.dart';
 import 'package:flutter_workshop_front/utils/filter_utils.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
@@ -56,19 +56,19 @@ class AllDevicesController extends ChangeNotifier with SafeChangeNotifierMixin {
       notifyListeners();
       await Future<void>.delayed(const Duration(milliseconds: 200));
       if (generation != _requestGeneration) return;
-      final Page<DeviceDataTable> result = await _allDevicesRepository
-          .getAllDevicesFiltering(filter);
+      final result = await _allDevicesRepository.getAllDevicesFiltering(filter);
       if (generation != _requestGeneration) return;
-      devices = result.content;
-      _totalElements = result.totalElements;
-      _totalPages = result.totalPages;
-      _hasMore = !result.last;
-    } on RequisitionException catch (e) {
-      if (generation != _requestGeneration) return;
-      SnackBarUtil().showError(e.message);
-    } on Exception catch (_) {
-      if (generation != _requestGeneration) return;
-      SnackBarUtil().showError("Erro ao buscar aparelhos");
+      switch (result) {
+        case Ok(:final value):
+          devices = value.content;
+          _totalElements = value.totalElements;
+          _totalPages = value.totalPages;
+          _hasMore = !value.last;
+        case Err(:final failure):
+          SnackBarUtil().showError(
+            failure.messageOr('Erro ao buscar aparelhos'),
+          );
+      }
     } finally {
       if (generation == _requestGeneration) {
         isLoading = false;
@@ -86,22 +86,17 @@ class AllDevicesController extends ChangeNotifier with SafeChangeNotifierMixin {
         _allDevicesRepository.getAllDeviceTypes(),
         _allDevicesRepository.getAllDeviceBrands(),
       ).wait;
-      deviceTypes = resultTypes;
-      deviceBrands = resultBrands;
-    } on ParallelWaitError<
-      (List<DeviceType>?, List<DeviceBrand>?),
-      (AsyncError?, AsyncError?)
-    > catch (e) {
-      final error = e.errors.$1?.error ?? e.errors.$2?.error;
-      SnackBarUtil().showError(
-        error is RequisitionException
-            ? error.message
-            : "Erro ao carregar filtros",
-      );
-    } on RequisitionException catch (e) {
-      SnackBarUtil().showError(e.message);
-    } on Exception catch (_) {
-      SnackBarUtil().showError("Erro ao carregar filtros");
+      final failure = switch ((resultTypes, resultBrands)) {
+        (Err(:final failure), _) => failure,
+        (_, Err(:final failure)) => failure,
+        _ => null,
+      };
+      if (failure != null) {
+        SnackBarUtil().showError(failure.messageOr('Erro ao carregar filtros'));
+      } else {
+        deviceTypes = resultTypes.valueOrNull ?? deviceTypes;
+        deviceBrands = resultBrands.valueOrNull ?? deviceBrands;
+      }
     } finally {
       isFiltersLoading = false;
       notifyListeners();
@@ -199,22 +194,20 @@ class AllDevicesController extends ChangeNotifier with SafeChangeNotifierMixin {
       _currentPage++;
       filter.page = _currentPage;
 
-      final Page<DeviceDataTable> result = await _allDevicesRepository
-          .getAllDevicesFiltering(filter);
+      final result = await _allDevicesRepository.getAllDevicesFiltering(filter);
       if (generation != _requestGeneration) return;
-      devices.addAll(result.content);
-      _totalPages = result.totalPages;
-      _hasMore = !result.last;
-    } on RequisitionException catch (e) {
-      if (generation != _requestGeneration) return;
-      _currentPage--;
-      _loadMoreFailed = true;
-      SnackBarUtil().showError(e.message);
-    } on Exception catch (_) {
-      if (generation != _requestGeneration) return;
-      _currentPage--;
-      _loadMoreFailed = true;
-      SnackBarUtil().showError("Erro ao buscar mais aparelhos");
+      switch (result) {
+        case Ok(:final value):
+          devices.addAll(value.content);
+          _totalPages = value.totalPages;
+          _hasMore = !value.last;
+        case Err(:final failure):
+          _currentPage--;
+          _loadMoreFailed = true;
+          SnackBarUtil().showError(
+            failure.messageOr('Erro ao buscar mais aparelhos'),
+          );
+      }
     } finally {
       if (generation == _requestGeneration) {
         _isLoadingMore = false;

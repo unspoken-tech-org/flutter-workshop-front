@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
+import 'package:flutter_workshop_front/core/result/app_failure.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/customer/customer_model.dart';
 import 'package:flutter_workshop_front/models/customer/input_customer.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
@@ -35,14 +36,16 @@ class CustomerDetailController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
     try {
-      final result = await _customerRepository.getCustomer(customerId);
-      _customer = result;
-    } on RequisitionException catch (e) {
-      errorMessage = e.message;
-      _snackBarUtil.showError(e.message);
-    } catch (e) {
-      errorMessage = 'Erro ao buscar cliente. Tente novamente.';
-      _snackBarUtil.showError(errorMessage!);
+      switch (await _customerRepository.getCustomer(customerId)) {
+        case Ok(:final value):
+          _customer = value;
+        case Err(:final failure):
+          final message = failure.messageOr(
+            'Erro ao buscar cliente. Tente novamente.',
+          );
+          errorMessage = message;
+          _snackBarUtil.showError(message);
+      }
     } finally {
       isLoading = false;
       notifyListeners();
@@ -54,21 +57,22 @@ class CustomerDetailController extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
     try {
-      final result = await _customerRepository.updateCustomer(
+      switch (await _customerRepository.updateCustomer(
         customerId,
         updatedCustomerData,
-      );
-      _customer = result;
-      _isEditing = false;
-      _snackBarUtil.showSuccess('Cliente atualizado com sucesso');
-      notifyListeners();
-      return true;
-    } on RequisitionException catch (e) {
-      _snackBarUtil.showError(e.message);
-      return false;
-    } catch (e) {
-      _snackBarUtil.showError('Erro ao atualizar cliente. Tente novamente.');
-      return false;
+      )) {
+        case Ok(:final value):
+          _customer = value;
+          _isEditing = false;
+          _snackBarUtil.showSuccess('Cliente atualizado com sucesso');
+          notifyListeners();
+          return true;
+        case Err(:final failure):
+          _snackBarUtil.showError(
+            failure.messageOr('Erro ao atualizar cliente. Tente novamente.'),
+          );
+          return false;
+      }
     } finally {
       isLoading = false;
       notifyListeners();

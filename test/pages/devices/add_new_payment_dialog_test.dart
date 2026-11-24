@@ -17,8 +17,9 @@ class _FakeDeviceCustomerPageController extends DeviceCustomerPageController {
   DeviceCustomer? get persistedDeviceCustomer => deviceCustomer;
 
   @override
-  Future<void> createCustomerDevicePayment(InputPayment payment) async {
+  Future<bool> createCustomerDevicePayment(InputPayment payment) async {
     lastCreatedPayment = payment;
+    return true;
   }
 }
 

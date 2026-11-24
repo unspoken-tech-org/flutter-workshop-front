@@ -54,75 +54,48 @@ Dio _dioReturning(int status, String body, {String? contentType}) {
 }
 
 void main() {
-  group('ResponseValidation.ensureSuccess', () {
-    test('retorna a resposta em 2xx', () async {
+  group('requisitionExceptionFromResponse', () {
+    test('corpo padrão da API preserva mensagem e código', () async {
+      final body = jsonEncode({
+        'status': 400,
+        'error': {
+          'message': 'Valor do pagamento inválido',
+          'code': 'BAD_REQUEST',
+        },
+      });
       final response = await _dioReturning(
-        201,
-        '{"id": 1}',
-      ).post<dynamic>('/x');
+        400,
+        body,
+      ).post<dynamic>('/v1/payment');
 
-      expect(response.ensureSuccess(), same(response));
+      final exception = requisitionExceptionFromResponse(response);
+
+      expect(exception.message, 'Valor do pagamento inválido');
+      expect(exception.code, 'BAD_REQUEST');
     });
 
-    test(
-      '4xx com corpo padrão da API lança RequisitionException com a mensagem',
-      () async {
-        final body = jsonEncode({
-          'status': 400,
-          'error': {
-            'message': 'Valor do pagamento inválido',
-            'code': 'BAD_REQUEST',
-          },
-        });
-        final response = await _dioReturning(
-          400,
-          body,
-        ).post<dynamic>('/v1/payment');
+    test('corpo em texto cai na mensagem genérica com o status', () async {
+      final response = await _dioReturning(
+        422,
+        'Unprocessable',
+        contentType: 'text/plain',
+      ).get<dynamic>('/v1/colors');
 
-        expect(
-          () => response.ensureSuccess(),
-          throwsA(
-            isA<RequisitionException>()
-                .having(
-                  (e) => e.message,
-                  'message',
-                  'Valor do pagamento inválido',
-                )
-                .having((e) => e.code, 'code', 'BAD_REQUEST'),
-          ),
-        );
-      },
-    );
+      final exception = requisitionExceptionFromResponse(response);
 
-    test(
-      '429 com corpo em texto lança RequisitionException genérica',
-      () async {
-        final response = await _dioReturning(
-          429,
-          'Too Many Requests',
-          contentType: 'text/plain',
-        ).get<dynamic>('/v1/colors');
+      expect(exception.message, contains('422'));
+      expect(exception.code, '422');
+    });
 
-        expect(
-          () => response.ensureSuccess(),
-          throwsA(
-            isA<RequisitionException>()
-                .having((e) => e.message, 'message', contains('429'))
-                .having((e) => e.code, 'code', '429'),
-          ),
-        );
-      },
-    );
-
-    test('404 sem corpo lança RequisitionException', () async {
+    test('404 sem corpo não lança', () async {
       final response = await _dioReturning(
         404,
         '',
       ).get<dynamic>('/v1/technician');
 
       expect(
-        () => response.ensureSuccess(),
-        throwsA(isA<RequisitionException>()),
+        requisitionExceptionFromResponse(response),
+        isA<RequisitionException>(),
       );
     });
   });

@@ -1,20 +1,16 @@
-import 'package:dio/dio.dart';
-import 'package:flutter_workshop_front/core/http/custom_dio.dart';
-import 'package:flutter_workshop_front/core/http/response_validation.dart';
+import 'package:flutter_workshop_front/core/http/api_client.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 
 class DeviceTypeService {
-  final Dio dio = CustomDio.dioInstance();
+  DeviceTypeService({ApiClient? client}) : _api = client ?? ApiClient();
 
-  Future<List<DeviceType>> getAllDeviceTypes([String? name]) async {
-    final Response<List<dynamic>> result = await dio.get<List<dynamic>>(
-      '/v1/type',
-      queryParameters: {'name': name},
+  final ApiClient _api;
+
+  Future<Result<List<DeviceType>>> getAllDeviceTypes([String? name]) {
+    return _api.send(
+      (dio) => dio.get<dynamic>('/v1/type', queryParameters: {'name': name}),
+      decode: (data) => parseList(data, DeviceType.fromJson),
     );
-    result.ensureSuccess();
-
-    return result.data!
-        .map((e) => DeviceType.fromJson(e as Map<String, dynamic>))
-        .toList();
   }
 }
