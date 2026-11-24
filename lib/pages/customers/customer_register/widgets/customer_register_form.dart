@@ -10,6 +10,7 @@ import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_butto
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
 import 'package:flutter_workshop_front/widgets/shared/secondary_phones_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_workshop_front/utils/validators/text_validators.dart';
 
 class CustomerRegisterForm extends StatefulWidget {
   const CustomerRegisterForm({super.key});
@@ -69,7 +70,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
             CustomTextField(
               fieldLabel: 'Nome',
               validator: (value) {
-                if (value == null || value.isEmpty) {
+                if (!TextValidators.hasText(value)) {
                   return 'Por favor, insira o nome';
                 }
                 return null;
@@ -118,7 +119,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
                 if (value == null || value.isEmpty) {
                   return null;
                 }
-                if (!value.contains('@')) {
+                if (!TextValidators.isEmail(value)) {
                   return 'Por favor, insira um email válido';
                 }
                 return null;

@@ -3,6 +3,7 @@ import 'package:flutter_workshop_front/models/customer_device/device_customer.da
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_workshop_front/utils/validators/text_validators.dart';
 
 class DiagnosticDeviceInfoWidget extends StatelessWidget {
   final bool isEditing;
@@ -57,7 +58,7 @@ class DiagnosticDeviceInfoWidget extends StatelessWidget {
                   controller.updateNewDeviceCustomer(newDeviceCustomer);
                 },
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
+                  if (!TextValidators.hasText(value)) {
                     return 'Problema é obrigatório';
                   }
                   return null;

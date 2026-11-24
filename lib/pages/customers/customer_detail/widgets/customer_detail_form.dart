@@ -16,6 +16,7 @@ import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_butto
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/secondary_phone_form_field.dart';
 import 'package:flutter_workshop_front/widgets/shared/secondary_phones_widget.dart';
+import 'package:flutter_workshop_front/utils/validators/text_validators.dart';
 
 class CustomerDetailForm extends StatefulWidget {
   final CustomerModel customer;
@@ -200,7 +201,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                           .copyWith(name: value);
                     },
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (!TextValidators.hasText(value)) {
                         return 'Por favor, insira um nome';
                       }
                       return null;
@@ -305,7 +306,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                       if (value == null || value.isEmpty) {
                         return null;
                       }
-                      if (!value.contains('@')) {
+                      if (!TextValidators.isEmail(value)) {
                         return 'O email é inválido';
                       }
                       return null;
