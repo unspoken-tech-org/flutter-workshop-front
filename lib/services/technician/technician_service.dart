@@ -1,18 +1,16 @@
-import 'package:dio/dio.dart';
-import 'package:flutter_workshop_front/core/http/custom_dio.dart';
-import 'package:flutter_workshop_front/core/http/response_validation.dart';
+import 'package:flutter_workshop_front/core/http/api_client.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 
 class TechnicianService {
-  final Dio dio = CustomDio.dioInstance();
+  TechnicianService({ApiClient? client}) : _api = client ?? ApiClient();
 
-  Future<List<Technician>> getTechnicians() async {
-    final Response<List<dynamic>> result = await dio.get<List<dynamic>>(
-      '/v1/technician',
+  final ApiClient _api;
+
+  Future<Result<List<Technician>>> getTechnicians() {
+    return _api.send(
+      (dio) => dio.get<dynamic>('/v1/technician'),
+      decode: (data) => parseList(data, Technician.fromJson),
     );
-    result.ensureSuccess();
-    return result.data!
-        .map((e) => Technician.fromJson(e as Map<String, dynamic>))
-        .toList();
   }
 }

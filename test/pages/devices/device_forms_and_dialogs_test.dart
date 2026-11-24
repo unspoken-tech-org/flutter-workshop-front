@@ -20,6 +20,8 @@ import 'package:flutter_workshop_front/pages/setup/setup_controller.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
+import '../../helpers/result_guard.dart';
 
 class _FakeAuthService extends Fake implements AuthService {
   String? lastApiKey;
@@ -35,23 +37,23 @@ class _FakeAuthService extends Fake implements AuthService {
 
 class _StubCustomerRepository implements CustomerRepository {
   @override
-  Future<CustomerModel> createCustomer(InputCustomer customer) =>
-      throw UnimplementedError();
+  Future<Result<CustomerModel>> createCustomer(InputCustomer customer) =>
+      guardResult(() => throw UnimplementedError());
 
   @override
-  Future<CustomerModel> getCustomer(int customerId) =>
-      throw UnimplementedError();
+  Future<Result<CustomerModel>> getCustomer(int customerId) =>
+      guardResult(() => throw UnimplementedError());
 
   @override
-  Future<Page<MinifiedCustomerModel>> searchCustomers(
+  Future<Result<Page<MinifiedCustomerModel>>> searchCustomers(
     CustomerSearchFilter? filter,
-  ) => throw UnimplementedError();
+  ) => guardResult(() => throw UnimplementedError());
 
   @override
-  Future<CustomerModel> updateCustomer(
+  Future<Result<CustomerModel>> updateCustomer(
     int customerId,
     InputCustomer customer,
-  ) => throw UnimplementedError();
+  ) => guardResult(() => throw UnimplementedError());
 }
 
 DeviceCustomer _sampleDevice({

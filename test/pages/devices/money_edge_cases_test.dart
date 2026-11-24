@@ -11,6 +11,7 @@ import 'package:flutter_workshop_front/pages/devices/device_details/widgets/paym
 import 'package:flutter_workshop_front/services/payment/payment_service.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/device_values_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_workshop_front/core/result/result.dart';
 
 DeviceCustomer _deviceWithPayments({
   double? budgetFee,
@@ -47,8 +48,9 @@ class _RecordingPaymentService implements PaymentService {
   InputPayment? lastCreated;
 
   @override
-  Future<void> createPayment(InputPayment payment) async {
+  Future<Result<void>> createPayment(InputPayment payment) async {
     lastCreated = payment;
+    return const Ok(null);
   }
 
   @override
