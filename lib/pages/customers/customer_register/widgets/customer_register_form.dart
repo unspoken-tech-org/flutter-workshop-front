@@ -21,6 +21,9 @@ class CustomerRegisterForm extends StatefulWidget {
 class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
   final _formKey = GlobalKey<FormState>();
   InputCustomer _inputCustomer = InputCustomer.empty();
+  // Mudar a key recria o SecondaryPhonesWidget, descartando os telefones
+  // secundários adicionados (o reset do Form não remove campos dinâmicos).
+  int _phonesResetCount = 0;
 
   @override
   void dispose() {
@@ -43,6 +46,14 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
       _formKey.currentState?.reset();
       WsNavigator.pushCustomerDetail(context, newCustomerId, replaced: true);
     }
+  }
+
+  void _clear() {
+    _formKey.currentState?.reset();
+    setState(() {
+      _inputCustomer = InputCustomer.empty();
+      _phonesResetCount++;
+    });
   }
 
   @override
@@ -144,6 +155,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
             ),
             const SizedBox(height: 16),
             SecondaryPhonesWidget(
+              key: ValueKey('secondary_phones_$_phonesResetCount'),
               isEditing: true,
               onSaved: (value) {
                 _inputCustomer = _inputCustomer.copyWith(
@@ -166,7 +178,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
                 spacing: 16,
                 children: [
                   ElevatedButton(
-                    onPressed: _formKey.currentState?.reset,
+                    onPressed: _clear,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 32,
