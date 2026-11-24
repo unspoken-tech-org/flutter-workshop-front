@@ -65,4 +65,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(calls, 1);
   });
+
+  testWidgets('lets onReturn notify a listener above it', (tester) async {
+    final notifier = ValueNotifier<int>(0);
+    addTearDown(notifier.dispose);
+    final navigatorKey = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorKey: navigatorKey,
+        home: ValueListenableBuilder<int>(
+          valueListenable: notifier,
+          builder: (_, value, _) => RefreshOnReturn(
+            onReturn: () => notifier.value++,
+            child: Text('lista $value'),
+          ),
+        ),
+      ),
+    );
+
+    unawaited(
+      navigatorKey.currentState!.push(
+        MaterialPageRoute<void>(builder: (_) => const Text('detalhe')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    navigatorKey.currentState!.pop();
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('lista 1'), findsOneWidget);
+  });
 }

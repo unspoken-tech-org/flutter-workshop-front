@@ -28,7 +28,11 @@ class _RefreshOnReturnState extends State<RefreshOnReturn> {
     super.didChangeDependencies();
     final isCurrent = ModalRoute.isCurrentOf(context) ?? true;
     if (_wasCurrent == false && isCurrent) {
-      widget.onReturn();
+      // didChangeDependencies runs during build: a controller that notifies
+      // synchronously would mark its listeners dirty mid-build.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.onReturn();
+      });
     }
     _wasCurrent = isCurrent;
   }
