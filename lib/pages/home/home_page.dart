@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_workshop_front/core/logging/app_logger.dart';
 import 'package:flutter_workshop_front/pages/home/controllers/home_controller.dart';
 import 'package:flutter_workshop_front/pages/home/widgets/dashboard_stats_view.dart';
 import 'package:flutter_workshop_front/pages/home/widgets/quick_actions_widget.dart';
@@ -31,6 +32,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _checkForUpdatesOnStartup() async {
     if (UpdateService.hasCheckedOnStartup) return;
     UpdateService.hasCheckedOnStartup = true;
+    AppLogger.info('Update', 'Startup update check triggered');
 
     try {
       final updateService = UpdateService();
@@ -39,11 +41,20 @@ class _HomePageState extends State<HomePage> {
       if (!mounted || updateInfo == null || !updateInfo.hasUpdate) return;
 
       await Future<void>.delayed(const Duration(seconds: 2));
-      if (!mounted) return;
+      if (!mounted) {
+        AppLogger.info('Update', 'Startup dialog skipped: home unmounted');
+        return;
+      }
 
       await UpdateDialog.show(context, updateInfo, updateService);
-    } catch (e) {
+    } catch (e, st) {
       debugPrint('[HomePage] Failed to check for updates: $e');
+      AppLogger.error(
+        'Update',
+        'Startup update flow failed',
+        error: e,
+        stackTrace: st,
+      );
     }
   }
 

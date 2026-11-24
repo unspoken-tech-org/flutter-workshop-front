@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -6,6 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:flutter_workshop_front/app_route.dart';
 import 'package:flutter_workshop_front/core/config/config.dart';
 import 'package:flutter_workshop_front/core/http/custom_dio.dart';
+import 'package:flutter_workshop_front/core/logging/app_logger.dart';
+import 'package:flutter_workshop_front/core/logging/global_error_logging.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
@@ -14,6 +18,9 @@ import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controll
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppLogger.init();
+  installGlobalErrorLogging();
+  unawaited(logAppStart());
   Config.validateBaseUrl(Config.baseUrl, isReleaseMode: kReleaseMode);
 
   // Inicialização da Camada de Segurança
@@ -31,9 +38,19 @@ Future<void> main() async {
     await authService.initializeAuthState();
   } catch (e, st) {
     debugPrint('[AuthDebug] Unexpected bootstrap error: $e\n$st');
+    AppLogger.error(
+      'Bootstrap',
+      'Unexpected auth bootstrap error',
+      error: e,
+      stackTrace: st,
+    );
     authNotifier.setState(AuthRouteState.storageError, notify: false);
   }
   final router = buildRouter(authNotifier);
+  AppLogger.info(
+    'Bootstrap',
+    'Auth state restored: ${authNotifier.state.name}',
+  );
 
   runApp(
     MyApp(router: router, authNotifier: authNotifier, authService: authService),
