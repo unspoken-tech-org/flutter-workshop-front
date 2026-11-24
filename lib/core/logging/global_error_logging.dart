@@ -44,7 +44,9 @@ Future<void> logAppStart({
   var version = 'unknown';
   try {
     final info = await packageInfoLoader();
-    version = '${info.version}+${info.buildNumber}';
+    version = info.buildNumber.isEmpty
+        ? info.version
+        : '${info.version}+${info.buildNumber}';
   } catch (_) {
     // Version is informative only; log the start anyway.
   }
