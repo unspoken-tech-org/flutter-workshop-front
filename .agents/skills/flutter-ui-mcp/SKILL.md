@@ -5,139 +5,55 @@ description: Dirige a UI do flutter-workshop-front em execução (Linux desktop 
 
 # Dirigir a UI com o mcp_flutter
 
-O Flutter desenha num canvas, então navegador e leitores de DOM não enxergam os widgets. O mcp_flutter conecta na VM service do app (debug ou profile) e expõe a árvore de semântica: cada campo e botão aparece com tipo, rótulo e valor, e as ações usam o `ref` desse nó (`s_12`).
-
-> **Status:** rascunho tirado do spike de 24/11/2026. A CLI e o servidor MCP foram validados no Linux desktop. No mesmo dia, as 34 tools `fmt_` foram testadas uma a uma de dentro do Claude Code (resultado nas seções 4 a 7).
+As tools leem a árvore de semântica do app em debug: cada campo e botão vem com tipo, rótulo, valor e um `ref` (`s_12`), que é o alvo das ações. Instalação e registro do servidor MCP: `instructions/agents/flutter-ui-mcp.md`.
 
 ## Regras
-- Nunca imprima a API key. Leia de arquivo e passe por variável.
-- Antes de concluir que a ferramenta falhou, confira se o valor que você digitou não está vazio (o `DEV_API_KEY` dos `.env-local` está vazio).
-- Rode o app **sem tela** (seção 2). Na tela do usuário, um clique dele em outra janela muda foco e estado.
-- Não use `pkill -f`/`pgrep -f` com um padrão que apareça no próprio comando: isso mata o seu shell (exit 144). Use `pgrep -f '[b]undle/flutter_workshop_front'` ou arquivos `*.pid`.
-- `sleep` em primeiro plano é bloqueado: use `wait_for` (seção 4) ou `timeout N bash -c 'until …; do sleep 1; done'`.
+- Rode o app **sem tela** (abaixo). Na tela do usuário, um clique dele muda foco e estado.
+- Nunca imprima a API key nem leia configuração com `evaluate_dart_expression`.
+- O logout (último ícone do menu lateral, `center.y` > 670) apaga o setup salvo, sem confirmação. Toque nele só para testar o setup de novo.
+- Não use `pkill -f`/`pgrep -f` com padrão que apareça no próprio comando (mata o seu shell). Use `pgrep -f '[b]undle/flutter_workshop_front'` ou os `*.pid`.
+- `sleep` em primeiro plano é bloqueado: espere com `wait_for` ou `timeout N bash -c 'until …; do sleep 1; done'`.
 
-## 1. Pré-requisitos
-- **Flutter 3.47.9**, a versão do CI (o `mcp_toolkit` 8.x exige Flutter 3.44+). Se o `flutter` do PATH for mais antigo, use o fvm: `~/fvm/versions/3.47.9/bin/flutter`. Os scripts usam esse caminho quando ele existe.
-- **Lado do app:** já está no código. `lib/core/agent/agent_toolkit.dart` envolve o `main` inteiro com o bootstrap do `mcp_toolkit` quando o app roda com `--dart-define=MCP_TOOLKIT=true`. Em release ele nunca liga.
-- **CLI/servidor:** binários `flutter-mcp-toolkit` (CLI, alias `fmtk`) e `flutter-mcp-toolkit-server` (MCP) de [Arenukvern/mcp_flutter](https://github.com/Arenukvern/mcp_flutter). Instale pelo script oficial, com a versão fixa igual à do `mcp_toolkit` do `pubspec.yaml` (8.0.0). Ele baixa o asset `linux-x64` da release e confere o sha256:
+## 1. Subir o app
+Em background, a partir da raiz do repositório:
+```bash
+VM_PORT=8181 bash $SKILL/scripts/run_desktop_headless.sh $STATE   # Linux desktop (KWin sem tela)
+VM_PORT=8181 bash $SKILL/scripts/run_web_headless.sh $STATE       # web (porta 3000 + Chrome headless)
+```
+Espere `$STATE/vm.txt` existir. `VM_PORT=8181` é a porta que o servidor MCP espera. Outras variáveis estão no cabeçalho dos scripts (`FLUTTER`, `DEFINES`, `APP_DIR`). O app precisa de backend: use a skill `e2e-local-api`. Sem backend ele abre, mas as chamadas falham.
+
+## 2. Conectar
+- **MCP (preferido):** tools `mcp__flutter-ui__fmt_*`. Se não estiverem na sessão, veja as instruções de setup.
+- **CLI (alternativa):** mesmos comandos e argumentos, sem o prefixo `fmt_`:
   ```bash
-  curl -fsSL https://raw.githubusercontent.com/Arenukvern/mcp_flutter/v8.0.0/install.sh -o /tmp/fmtk-install.sh
-  bash /tmp/fmtk-install.sh --version 8.0.0 --install-dir ~/.local/share/flutter-mcp-toolkit/bin
+  F() { bash "$SKILL/scripts/fmtk.sh" "$STATE/vm.txt" "$@"; }
+  F snap                                  # resumo: ref, tipo, rótulo, valor, enabled
+  F tap_widget '{"ref":"s_10"}'           # JSON: confira "ok": true
   ```
-  - Os scripts desta skill procuram os binários nessa pasta. Para outra, defina `FMTK_BIN`.
-  - O instalador acrescenta a pasta ao PATH no `.bashrc`/`.zshrc` (não no fish). A skill não depende do PATH.
-  - O sha256 só confere com o `checksums.txt` da mesma release: não há assinatura.
-  - Só existem binários para Linux x64 e macOS arm64. O servidor não está no pub.dev nem no npm.
-- **Backend:** a API local com uma chave válida. Por enquanto, use a skill `e2e-local-api` para subir a API isolada e obter a chave.
+Conexão perdida (por exemplo depois de um hot restart): `discover_debug_apps`.
 
-## 2. Rodar o app sem tela
+## 3. O ciclo: ler, agir, esperar, conferir
+1. **Ler:** `semantic_snapshot` com `fields` (`["ref","type","label","value","enabled"]`) para uma resposta curta. Guarde o `snapshot_id`.
+2. **Agir pelo ref**, passando `snapshotId`: `tap_widget`, `enter_text`, `fill_form`. Se a tela mudou desde o snapshot, a ação falha com `stale_snapshot` em vez de agir num ref velho.
+3. **Esperar** a consequência com `wait_for`: `{"kind":"text","text":"Cadastro de Cliente"}`, `noText`, `stable` (`stableWindowMs`), `noError`. Ele devolve um snapshot novo.
+4. **Conferir:** valores e `enabled` no snapshot, e `get_app_errors`. Para efeito no backend, consulte a API ou o banco.
 
-**Linux desktop** (validado): um KWin sem tela e o app dentro dele.
-```bash
-bash $SKILL/scripts/run_desktop_headless.sh $STATE   # em background
-```
-O script sobe `kwin_wayland --virtual --socket wayland-agent` (se ainda não existir), roda `flutter run -d linux` com `WAYLAND_DISPLAY=wayland-agent` e grava a URI da VM service em `$STATE/vm.txt`.
+Refs mudam a cada navegação, abertura de menu ou rebuild grande: tire outro snapshot antes de agir de novo.
 
-**Web** (validado): `flutter run -d web-server` mais um Chrome headless aberto à parte.
-```bash
-bash $SKILL/scripts/run_web_headless.sh $STATE   # em background
-```
-- A porta é a **3000**, porque o CORS da API local só aceita `localhost:3000`, `:8080` e `:8081`. Isso não se aplica se você usa o proxy da skill `e2e-local-api`, que responde o CORS.
-- **Não funcionam:** `flutter run -d chrome --web-browser-flag=--headless=new` (*"Multiple targets are not supported in headless mode"*), nem Chrome normal dentro do KWin sem tela. Nesse caso a página fica `visible`, mas o `requestAnimationFrame` nunca dispara, e a tela não atualiza depois de digitar.
+## 4. O que não funciona ou exige cuidado
+- **`wait_for` com `changed`:** sempre expira. **`node` por `identifier`** e **`identifierPrefix`:** voltam vazios, porque o app não define `Semantics(identifier:)`.
+- **`navigate`:** só `{"action":"pop"}`. `push` falha (`push_rejected`), porque o app usa go_router. Navegue tocando na UI.
+- **`scroll`, `swipe`, `reveal_search`:** precisam do `ref` de um nó `scrollable`. O Dashboard tem um, o formulário de cliente não.
+- **Screenshots (`get_screenshots`, `capture_ui_snapshot`):** no Linux, só com `mode` (ou `screenshotMode`) `"flutter_layer"`. O arquivo sai em `.mcp_screenshots/`, no diretório do servidor.
+- **Respostas enormes**, que estouram o limite de tokens: `hot_reload_and_capture` (PNG em base64), `get_view_details`, `inspect_widget_at_point`. Prefira `hot_reload_flutter` seguido de `get_screenshots`.
+- **`focus_window`:** só macOS e iOS. Não existe tecla "Back": use `navigate` `pop`, `handle_dialog` `dismiss` ou `press_key` `Escape`.
+- **`hot_restart_flutter`:** reconecta sozinho, volta o app para o Dashboard e reinicia o `snapshot_id` em 1.
 
-As variáveis de ambiente que os scripts usam:
-- `FLUTTER`: binário do Flutter. Padrão: fvm 3.47.9 ou o `flutter` do PATH.
-- `DEFINES`: padrão `--dart-define-from-file=.env-local`.
-- `APP_DIR`: padrão o diretório atual.
-- `VM_PORT`: porta fixa da VM service, sem código de autenticação. É o que o servidor MCP precisa (seção 7). Sem ela, a porta é aleatória e a URI fica em `$STATE/vm.txt`.
+## 5. Armadilhas deste app
+- **CPF e telefone** voltam `verified: false`, porque o campo formata o valor. Confira `appliedText` (`529.982.247-25`).
+- **Botões só com ícone** (menu lateral) vêm sem rótulo: ache pelo `center` no snapshot com `fields` incluindo `center`.
+- **Dropdown Sexo:** tap no botão `Sexo`, snapshot, tap no item. Logo depois o snapshot vem vazio (animação): espere `{"kind":"stable","stableWindowMs":300}`. `handle_dialog` `dismiss` fecha o menu aberto.
+- **Setup:** `Conectar ao Servidor` só habilita com texto no campo e leva ao `Dashboard Aparelhos`. A chave fica presa ao primeiro dispositivo: setup em outro alvo dá 409 `auth.api_key.device.bound`.
 
-## 3. Conectar
-```bash
-F() { bash "$SKILL/scripts/fmtk.sh" "$STATE/vm.txt" "$@"; }   # função, não variável: o zsh não divide "$F"
-F status
-F snap        # resumo: ref, tipo, rótulo, valor, enabled
-```
-Nomes de uma letra em minúscula (`g`, `f`) podem colidir com aliases do shell.
-O `fmtk.sh` é um atalho para `flutter-mcp-toolkit --vm-service-uri <uri> exec --name <comando> --args '<json>'`. A resposta é JSON: confira `"ok": true`. Em falha vem `"ok": false` com `error.code` e, em geral, `recovery.fix_command`.
-
-Se a conexão falhar (`vm_not_connected`, por exemplo depois de um hot restart), `F discover_debug_apps` lista os apps em debug com a URI atual de cada um. O `fmtk doctor --json` não ajuda aqui: com a VM service sem código de autenticação (`VM_PORT`), ele acusa `vm_target_reachable: fail` mesmo com o app respondendo.
-
-## 4. O ciclo: ler, agir, esperar, conferir
-1. **Ler:** `F snap`, ou o JSON completo com `F semantic_snapshot '{}'`, que traz bounds e `center` de cada nó.
-2. **Agir pelo ref:**
-   ```bash
-   F tap_widget '{"ref":"s_10"}'
-   F enter_text '{"ref":"s_4","text":"..."}'
-   F fill_form  '{"fields":[{"ref":"s_9","text":"Fulano"},{"ref":"s_10","text":"52998224725"}]}'
-   ```
-3. **Esperar** pela consequência, em vez de usar `sleep`:
-   ```bash
-   F wait_for '{"predicate":{"kind":"text","text":"Detalhes do Cliente"},"timeoutMs":8000}'
-   ```
-   Predicados: `text`, `noText`, `node` (com `identifier` e estado), `stable` (`stableWindowMs`), `noError` e `time`. Nenhum widget do app tem `Semantics(identifier:)`, então `node` só serve com `absent:true`. O predicado `changed` (`since`) não funciona: expira mesmo com a tela mudando, pela CLI e pelo MCP.
-4. **Conferir:** `F snap` de novo, que mostra os valores dos campos e o `enabled` dos botões, e `F get_app_errors`. Para provar efeito no backend, consulte o banco ou a API.
-
-**Refs mudam** depois de navegação, abertura de dropdown ou rebuild grande. Tire um novo `snap` antes de agir de novo.
-
-Passe o `snapshot_id` do último snapshot como `snapshotId` nas ações: se outro snapshot foi tirado depois, a ação falha com `stale_snapshot` em vez de agir num ref velho. Funciona pela CLI e pelo MCP. O contador só avança quando há um snapshot novo (`semantic_snapshot`, `wait_for`, `reveal_search`), não quando a tela muda. É o mesmo contador para a CLI e o MCP, e um hot restart volta ele para 1.
-
-## 5. Comandos úteis
-| Comando | Para quê |
-| --- | --- |
-| `semantic_snapshot` | Árvore de semântica com refs. Aceita `fields`, `subtreeOf` e `lens` (`compact`, `design`). `identifierPrefix` volta vazio: o app não define `identifier` |
-| `tap_widget`, `long_press`, `hover`, `drag` | Gestos por ref |
-| `scroll`, `swipe` | Precisam do `ref` de um nó `scrollable`. O Dashboard tem um, e lá `{"ref":"s_15","direction":"down"}` rola. O formulário de cliente não tem: `no_scrollable_at_point`, e o `swipe` volta `verified:false` |
-| `enter_text`, `fill_form` | Digitação; devolve `verified` e `appliedText` |
-| `reveal_search` | Rola até achar um nó fora da tela e devolve `ref` e `snapshotId`, por exemplo `{"query":"Dashboard Aparelhos","matchBy":"label","direction":"up","maxAttempts":3}` depois de rolar o Dashboard. Sem lista rolável: `scroll_blocked` |
-| `press_key`, `focus_widget` | Teclado e foco. Não há tecla "Back": use `navigate` com `pop` ou `press_key` `Escape` |
-| `handle_dialog` | Fecha o diálogo ou menu do topo (`{"action":"dismiss"}`), inclusive o dropdown aberto. Sem popup: `no_popup_route` |
-| `navigate` | Só `{"action":"pop"}` funciona. `push` falha com `push_rejected`, porque o app usa go_router e o Navigator não tem rotas nomeadas. Navegue pela UI |
-| `wait_for` | Espera por condição |
-| `get_app_errors`, `get_recent_logs` | Erros e logs do app |
-| `get_screenshots`, `capture_ui_snapshot` | Imagem da tela. No Linux, só com `{"mode":"flutter_layer"}` (`screenshotMode` no `capture_ui_snapshot`). O modo padrão dá `visual_capture_unsupported` |
-| `hot_reload_flutter`, `hot_restart_flutter` | Recarregar depois de editar código. O restart reconecta sozinho e volta o app para o Dashboard |
-| `hot_reload_and_capture` | Hot reload e screenshot numa chamada. O PNG vem em base64 no JSON (cerca de 50 mil caracteres), também pelo MCP e mesmo com `--save-images`. Evite: use `hot_reload_flutter` e depois `get_screenshots` |
-| `get_view_details`, `inspect_widget_at_point` | Funcionam, mas a resposta é enorme (`get_view_details` passa de 60 mil caracteres). Use só quando o snapshot não basta |
-| `focus_window` | Não existe no Linux: só macOS e iOS |
-| `evaluate_dart_expression` | Avaliar Dart no app (desktop; no web depende do DWDS) |
-
-A lista completa sai de `flutter-mcp-toolkit capabilities` e os argumentos de `flutter-mcp-toolkit schema`.
-
-## 6. Armadilhas conhecidas neste app
-- **Campos com máscara** (CPF, telefone) voltam com `verified: false`, porque o valor final é o formatado (`529.982.247-25`). Confira `appliedText` em vez de tratar isso como falha.
-- **Botões só com ícone** (menu lateral, logout) aparecem como `button`/`tappable` sem rótulo. Ache pelo `center`/bounds no `semantic_snapshot` completo. O logout é o último item à esquerda, com `center.y` acima de 670 numa janela de 1280x720.
-- **Dropdown de Sexo:** `tap_widget` no botão `Sexo`, novo `snap` e tap no item (`Masculino`, `Feminino`, `Outro`). Logo depois do tap no item, o snapshot vem vazio durante a animação de fechamento: espere com `wait_for` `{"kind":"stable","stableWindowMs":300}`. O botão passa a mostrar `Sexo\nMasculino`.
-- **Setup:** o botão `Conectar ao Servidor` só fica `enabled` com texto no campo. Logo depois do setup, o app vai para `Dashboard Aparelhos`.
-- **Chave presa a um dispositivo:** depois do setup num alvo (desktop), o setup em outro (web) recebe 409 `auth.api_key.device.bound`. No banco local, limpe `bound_device_id`/`bound_at` da chave.
-- **Logout:** volta para a tela de setup sem confirmação. É o caminho mais curto para testar o setup de novo.
-
-## 7. Servidor MCP
-O mesmo catálogo existe como servidor MCP (`flutter-mcp-toolkit-server`). Ele conecta num host e numa porta, sem o código da URI, então o app precisa subir com porta fixa:
-```bash
-VM_PORT=8181 bash $SKILL/scripts/run_desktop_headless.sh $STATE   # em background
-claude mcp add flutter-ui -s local -- "$FMTK_BIN/flutter-mcp-toolkit-server" \
-  --dart-vm-host=localhost --dart-vm-port=8181 --save-images --idle-exit-minutes=60
-```
-- `-s local` deixa a configuração só na sua máquina. O caminho do binário muda de pessoa para pessoa, por isso o servidor não vai no `.mcp.json` do repositório.
-- `--save-images` grava os screenshots em arquivo, em vez de devolver base64 no contexto.
-- As tools têm prefixo `fmt_` (`fmt_semantic_snapshot`, `fmt_tap_widget`, `fmt_fill_form`, `fmt_wait_for` etc.) e aceitam os mesmos argumentos da CLI.
-- As tools só aparecem numa sessão nova do Claude Code. Confira com `claude mcp list`.
-- `--disable-service-auth-codes` deixa a VM service aberta a qualquer processo local na porta 8181. Use só em máquina de desenvolvimento.
-
-- Com `--save-images`, só `get_screenshots` e `capture_ui_snapshot` gravam arquivo (devolvem `file://`). A pasta é `.mcp_screenshots/`, no diretório onde o servidor foi iniciado. Pode cair fora do repositório.
-- Servidor declarado num `.mcp.json` de projeto só carrega depois que o usuário o aprova no `claude`. Enquanto isso, `claude mcp list` mostra *Pending approval*.
-
-Se as tools não aparecerem, use a CLI desta skill: o catálogo e o comportamento são os mesmos.
-
-**Plugin oficial (alternativa, não usado aqui):** `/plugin marketplace add Arenukvern/mcp_flutter` e `/plugin install flutter-mcp-toolkit@flutter-mcp-toolkit`. Ele não instala o binário: o servidor continua vindo do `install.sh`. Também registra o próprio servidor MCP, que duplica as tools se o `claude mcp add` acima também estiver ativo. E traz 16 skills genéricas, algumas de manutenção do próprio mcp_flutter, que concorrem com esta. Use o plugin ou esta seção, nunca os dois.
-
-## 8. Tools do próprio app (nenhuma ainda)
-O `mcp_toolkit` deixa o app registrar tools e resources próprios, que o agente chama por `fmt_list_client_tools_and_resources`, `fmt_client_tool` e `fmt_client_resource`. Hoje a lista só traz as duas que o próprio toolkit registra, `app_identity` e `select_widget_at_point`. Pode servir, por exemplo, para expor a rota atual do go_router ou navegar direto para ela, já que o `navigate` não funciona com go_router. Se for usar:
-- Registre com `MCPToolkitBinding.instance.addEntries(entries: {AgentCallEntry.tool(...)})` em `lib/core/agent/agent_toolkit.dart`, antes do `bootstrapFlutter`. Assim continua só com `MCP_TOOLKIT=true` e fora do release.
-- Use namespace e nome próprios em `snake_case` (`workshop_…`). Se o nome colidir com uma tool nativa, a sua é ignorada sem aviso.
-- Nunca devolva chave, token ou dado de cliente: as regras do `AppLogger` valem aqui.
-- Na 8.0.0, registrar de novo o mesmo nome depois de um hot reload pode manter o handler antigo. Faça hot restart.
-- Receitas em `plugin/skills/flutter-mcp-toolkit-custom-tools/SKILL.md` do repositório do mcp_flutter.
-
-## 9. Encerrar
-Mate o `flutter run` (e o Chrome headless no web) pelos PIDs gravados em `$STATE`. O KWin sem tela pode ficar para a próxima execução, ou `kill $(cat $STATE/kwin.pid)`.
+## 6. Encerrar
+`kill $(cat $STATE/flutter.pid)` (no web o script fecha o Chrome) e, se quiser, `kill $(cat $STATE/kwin.pid)`.
