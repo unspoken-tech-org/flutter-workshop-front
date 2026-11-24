@@ -34,6 +34,31 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Full history and tags for the version check.
+          fetch-depth: 0
+
+      # pubspec.yaml version: must not be below the last final tag (vX.Y.Z,
+      # no suffix) reachable from this commit. It only blocks a version going
+      # backwards; PRs that do not bump the version pass. The tag workflow
+      # checks that the tag matches pubspec.yaml exactly.
+      - name: Check pubspec version
+        shell: bash
+        run: |
+          pubspec_version="$(sed -nE 's/^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' pubspec.yaml)"
+          [[ -n "$pubspec_version" ]] || { echo "::error file=pubspec.yaml::could not read version: X.Y.Z"; exit 1; }
+          last_tag="$(git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-9]*' --exclude '*-*' 2>/dev/null || true)"
+          if [[ -z "$last_tag" ]]; then
+            echo "No final tag reachable; skipping."
+            exit 0
+          fi
+          last_version="${last_tag#v}"
+          lowest="$(printf '%s\n%s\n' "$pubspec_version" "$last_version" | sort -V | head -n1)"
+          if [[ "$lowest" != "$last_version" ]]; then
+            echo "::error file=pubspec.yaml::version $pubspec_version is below the last release $last_tag; set it to at least $last_version"
+            exit 1
+          fi
+          echo "pubspec.yaml $pubspec_version >= $last_tag"
 
       # Same version as release-flutter-windows.yml.
       - name: Setup Flutter
