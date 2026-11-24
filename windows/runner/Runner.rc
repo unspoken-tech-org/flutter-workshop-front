@@ -89,11 +89,15 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
+            // CompanyName and ProductName name the data folder
+            // (%APPDATA%\com.example\flutter_workshop_front) through
+            // path_provider: changing them orphans the logs and stored data
+            // of installed apps. Keep them as they are.
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "flutter_workshop_front" "\0"
+            VALUE "FileDescription", "Workshop App" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "flutter_workshop_front" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2024 com.example. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) Unspoken Tech Org. All rights reserved." "\0"
             VALUE "OriginalFilename", "flutter_workshop_front.exe" "\0"
             VALUE "ProductName", "flutter_workshop_front" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
