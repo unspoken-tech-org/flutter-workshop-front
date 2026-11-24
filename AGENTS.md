@@ -13,6 +13,11 @@ Only what the code does not tell you.
 - Never convert transient network/refresh failures into `DioExceptionType.cancel` (`GlobalErrorInterceptor` silences `cancel`); return/propagate them so errors surface and the session stays intact.
 - Offline or storage failures at boot preserve `apiKey` and route via `AuthRouteState.offline` / `AuthRouteState.storageError` (`BootstrapErrorPage`), never to `needsSetup`.
 
+## HTTP & Logging
+
+- Services call the API through `ApiClient.send` (`lib/core/http/api_client.dart`) with the endpoint's `expectedStatus` and return `Result<T>` (`lib/core/result/`); never check status codes in services. Controllers handle `Ok`/`Err` with an exhaustive `switch` on `AppFailure`. Exceptions: `AuthService` and `UpdateService`.
+- `AppLogger` messages record events and codes, never request/response payloads, tokens or customer data; `LogSanitizer` is a safety net, not the filter.
+
 ## State, UI & Domain
 
 - Always use `ChangeNotifierProvider` (never `InheritedWidget`/`InheritedNotifier`, despite the legacy `InheritedAllCustomerController`) and `try-finally` around loading flags; canonical reference: `DeviceDetailsPage`.

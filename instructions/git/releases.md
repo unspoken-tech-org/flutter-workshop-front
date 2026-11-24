@@ -5,7 +5,9 @@ the installer every app installs on its own from `/releases/latest`, and only
 a new release undoes it. Workflow: `.github/workflows/release-flutter-windows.yml`.
 
 - Semver: minor = feature, patch = fix, major = breaking change.
-- The build takes the version from the tag: do not bump `pubspec.yaml`.
+- The build takes the version from the tag (`--build-name`), but keep
+  `version:` in `pubspec.yaml` at the released `X.Y.Z`: bump it in the release
+  or hotfix PR, before the tag, so local builds report the right version.
 - `vX.Y.Z-rc.N` (with a dot) becomes a pre-release, ignored by
   `/releases/latest`. `vX.Y.Z` on the same commit as the approved rc becomes
   `latest`. A hotfix patch skips the rc. The API uses the same suffixes.
