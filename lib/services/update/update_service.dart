@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/config/env_config.dart';
+import '../../core/logging/app_logger.dart';
 
 enum UpdateInstallStage { downloading, verifying, launching }
 
@@ -163,6 +164,7 @@ class _ParsedRelease {
 }
 
 class UpdateService {
+  static const String _logTag = 'Update';
   static bool hasCheckedOnStartup = false;
   static const int _maxPages = 3;
   static const String _emptyNotesFallback = 'Sem notas de atualização';
@@ -221,6 +223,7 @@ class UpdateService {
       final repo = EnvConfig.githubRepo;
 
       if (owner.isEmpty || repo.isEmpty) {
+        AppLogger.info(_logTag, 'Check skipped: no release feed configured');
         return null;
       }
       releaseUrl =
@@ -229,6 +232,12 @@ class UpdateService {
 
     final packageInfo = await _packageInfoLoader();
     final currentVersion = packageInfo.version;
+    AppLogger.info(
+      _logTag,
+      'Check started: current=$currentVersion '
+      'source=${configuredFeedUrl.isNotEmpty ? 'feed' : 'github'} '
+      'host=${Uri.tryParse(releaseUrl)?.host}',
+    );
 
     try {
       String? nextUrl = releaseUrl;
@@ -240,6 +249,10 @@ class UpdateService {
         final response = await _dio.get<dynamic>(nextUrl);
 
         if (response.statusCode != 200) {
+          AppLogger.warning(
+            _logTag,
+            'Check got status=${response.statusCode} page=${pagesFetched + 1}',
+          );
           if (pagesFetched == 0) return null;
           break;
         }
@@ -256,6 +269,11 @@ class UpdateService {
           isListResponse = true;
           rawItems = rawData;
         } else {
+          AppLogger.warning(
+            _logTag,
+            'Check got unexpected payload type=${rawData.runtimeType} '
+            'page=$pagesFetched',
+          );
           if (pagesFetched == 1) return null;
           break;
         }
@@ -294,7 +312,10 @@ class UpdateService {
         nextUrl = nextLink;
       }
 
-      if (parsedReleases.isEmpty) return null;
+      if (parsedReleases.isEmpty) {
+        AppLogger.info(_logTag, 'Check result: no published releases found');
+        return null;
+      }
 
       parsedReleases.sort(
         (a, b) => UpdateInfo.compareVersions(b.version, a.version),
@@ -314,7 +335,7 @@ class UpdateService {
           )
           .toList(growable: false);
 
-      return UpdateInfo(
+      final info = UpdateInfo(
         latestVersion: latest.version,
         currentVersion: currentVersion,
         downloadUrl: latest.downloadUrl,
@@ -324,8 +345,18 @@ class UpdateService {
         releaseHistory: releaseHistory,
         hasTruncatedHistory: hasTruncatedHistory,
       );
-    } catch (e) {
+      AppLogger.info(
+        _logTag,
+        'Check result: current=$currentVersion latest=${info.latestVersion} '
+        'hasUpdate=${info.hasUpdate} '
+        'silentInstall=${info.supportsSilentInstall} '
+        'newerVersions=${releaseHistory.length} pages=$pagesFetched '
+        'truncated=$hasTruncatedHistory',
+      );
+      return info;
+    } catch (e, st) {
       debugPrint('Erro ao verificar atualizações: $e');
+      AppLogger.warning(_logTag, 'Check failed', error: e, stackTrace: st);
       return null;
     }
   }
@@ -393,25 +424,44 @@ class UpdateService {
     void Function(double? progress)? onProgress,
     void Function(UpdateInstallStage stage)? onStageChange,
   }) async {
+    AppLogger.info(
+      _logTag,
+      'Install started: ${updateInfo.currentVersion} -> '
+      '${updateInfo.latestVersion}',
+    );
     if (!_isWindows) {
+      AppLogger.warning(_logTag, 'Install aborted: not running on Windows');
       throw const UpdateInstallException(
         'Atualização automática disponível apenas no Windows.',
       );
     }
     final checksumUrl = updateInfo.checksumUrl;
     if (checksumUrl == null || checksumUrl.isEmpty) {
+      AppLogger.warning(_logTag, 'Install aborted: release has no .sha256');
       throw const UpdateInstallException(
         'Arquivo de verificação SHA-256 não encontrado nesta versão.',
       );
     }
 
     onStageChange?.call(UpdateInstallStage.downloading);
-    final checksumResponse = await _dio.get<String>(
-      checksumUrl,
-      options: Options(responseType: ResponseType.plain),
-    );
+    final Response<String> checksumResponse;
+    try {
+      checksumResponse = await _dio.get<String>(
+        checksumUrl,
+        options: Options(responseType: ResponseType.plain),
+      );
+    } catch (e, st) {
+      AppLogger.error(
+        _logTag,
+        'Checksum download failed',
+        error: e,
+        stackTrace: st,
+      );
+      rethrow;
+    }
     final expectedHash = _parseSha256(checksumResponse.data);
     if (expectedHash == null) {
+      AppLogger.error(_logTag, 'Checksum file has invalid format');
       throw const UpdateInstallException(
         'Formato inválido no arquivo de verificação SHA-256.',
       );
@@ -421,6 +471,10 @@ class UpdateService {
     final savePath =
         '${dir.path}${Platform.pathSeparator}workshop_update_${DateTime.now().millisecondsSinceEpoch}.exe';
     final installerFile = File(savePath);
+    AppLogger.info(_logTag, 'Checksum fetched; installer download started');
+    final stopwatch = Stopwatch()..start();
+    var lastLoggedBucket = -1;
+    var loggedUnknownSize = false;
 
     try {
       await _dio.download(
@@ -429,26 +483,54 @@ class UpdateService {
         options: Options(receiveTimeout: const Duration(minutes: 5)),
         onReceiveProgress: (received, total) {
           if (total <= 0) {
+            if (!loggedUnknownSize) {
+              loggedUnknownSize = true;
+              AppLogger.info(_logTag, 'Download progress: size unknown');
+            }
             onProgress?.call(null);
           } else {
-            onProgress?.call((received / total).clamp(0.0, 1.0));
+            final fraction = (received / total).clamp(0.0, 1.0);
+            final bucket = (fraction * 4).floor();
+            if (bucket > lastLoggedBucket) {
+              lastLoggedBucket = bucket;
+              AppLogger.info(
+                _logTag,
+                'Download progress: ${bucket * 25}% ($received/$total bytes)',
+              );
+            }
+            onProgress?.call(fraction);
           }
         },
+      );
+
+      AppLogger.info(
+        _logTag,
+        'Download completed in ${stopwatch.elapsedMilliseconds}ms',
       );
 
       onStageChange?.call(UpdateInstallStage.verifying);
       final digest = await sha256.bind(installerFile.openRead()).first;
       final actualHash = digest.toString().toLowerCase();
       if (actualHash != expectedHash) {
+        AppLogger.error(_logTag, 'SHA-256 verification failed');
         throw const UpdateInstallException(
           'Falha na verificação de integridade (SHA-256) do instalador.',
         );
       }
 
+      AppLogger.info(_logTag, 'SHA-256 verification ok');
+
       onStageChange?.call(UpdateInstallStage.launching);
+      AppLogger.info(_logTag, 'Launching installer');
       await _installerLauncher(savePath);
+      AppLogger.info(_logTag, 'Installer launched; exiting app');
+      await AppLogger.flush().timeout(
+        const Duration(seconds: 2),
+        onTimeout: () {},
+      );
       _onExit();
-    } catch (_) {
+    } catch (e, st) {
+      AppLogger.error(_logTag, 'Install failed', error: e, stackTrace: st);
       if (await installerFile.exists()) {
         try {
           await installerFile.delete();
