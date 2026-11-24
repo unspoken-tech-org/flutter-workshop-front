@@ -18,6 +18,12 @@ Only what the code does not tell you.
 - Services call the API through `ApiClient.send` (`lib/core/http/api_client.dart`) with the endpoint's `expectedStatus` and return `Result<T>` (`lib/core/result/`); never check status codes in services. Controllers handle `Ok`/`Err` with an exhaustive `switch` on `AppFailure`. Exceptions: `AuthService` and `UpdateService`.
 - `AppLogger` messages record events and codes, never request/response payloads, tokens or customer data; `LogSanitizer` is a safety net, not the filter.
 
+## Configuration & Dependencies
+
+- Build config is read only by `AppConfig.fromEnvironment()` (`lib/core/config/app_config.dart`), validated at boot; an invalid config shows `ConfigErrorApp` instead of crashing later. Never call `String.fromEnvironment` elsewhere.
+- `AppDependencies.create` (`lib/core/di/app_dependencies.dart`) is the only place that builds services, repositories, `Dio` and storage. Pages build controllers from `context.read<AppDependencies>()`; controllers and services receive dependencies through the constructor, with no defaults and no statics.
+- Tests reuse `test/support/` (`MemorySecurityStorage`, `InMemorySecureKeyValueStore`, `offlineApiClient`, `testDeviceCustomerPageController`) instead of copying fakes.
+
 ## State, UI & Domain
 
 - Always use `ChangeNotifierProvider` (never `InheritedWidget`/`InheritedNotifier`, despite the legacy `InheritedAllCustomerController`) and `try-finally` around loading flags; canonical reference: `DeviceDetailsPage`.
