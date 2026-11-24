@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/logging/app_logger.dart';
@@ -46,6 +48,7 @@ void main() {
     AppLogger.minLevel = originalLevel;
     AppLogger.mirrorToConsole = originalMirror;
     AppLogger.setSinkForTesting(const NoopLogSink());
+    AppLogger.setOpenDirectoryForTesting(null);
   });
 
   group('AppLogger', () {
@@ -86,6 +89,42 @@ void main() {
         returnsNormally,
       );
       await expectLater(AppLogger.flush(), completes);
+    });
+
+    test('ignores repeated open requests while one is in progress', () async {
+      final sink = _MemorySink();
+      AppLogger.setSinkForTesting(sink);
+      final release = Completer<bool>();
+      final opened = <String>[];
+      AppLogger.setOpenDirectoryForTesting((path) {
+        opened.add(path);
+        return release.future;
+      });
+
+      final first = AppLogger.openLogDirectory();
+      await Future<void>.delayed(Duration.zero);
+      final second = await AppLogger.openLogDirectory();
+      release.complete(true);
+
+      expect(await first, isTrue);
+      expect(second, isTrue);
+      expect(opened, ['/tmp/logs']);
+      expect(
+        sink.lines.where((l) => l.contains('ignored: already in progress')),
+        hasLength(1),
+      );
+      expect(
+        sink.lines.last,
+        matches(RegExp(r'launch returned after \d+ms \(opened=true\)')),
+      );
+
+      // Once finished, a new request opens the folder again.
+      AppLogger.setOpenDirectoryForTesting((path) async {
+        opened.add(path);
+        return true;
+      });
+      expect(await AppLogger.openLogDirectory(), isTrue);
+      expect(opened, hasLength(2));
     });
   });
 

@@ -58,18 +58,47 @@ abstract final class AppLogger {
     }
   }
 
+  static Future<bool> Function(String path) _openDirectory =
+      platform.openDirectory;
+  static bool _openingLogDirectory = false;
+
   /// Opens the log directory in the system file manager.
+  ///
+  /// Repeated calls while one is in progress are ignored (and report success,
+  /// so the caller shows no error): on a slow shell every queued click would
+  /// otherwise open another window. The launch time is logged because a slow
+  /// File Explorer looks to the user like the action did nothing.
   static Future<bool> openLogDirectory() async {
     final path = logDirectoryPath;
     if (path == null) return false;
+    if (_openingLogDirectory) {
+      info('Logs', 'Open logs folder ignored: already in progress');
+      return true;
+    }
+    _openingLogDirectory = true;
+    final stopwatch = Stopwatch()..start();
+    info('Logs', 'Open logs folder requested');
     try {
       await _sink.flush();
-      return await platform.openDirectory(path);
+      final opened = await _openDirectory(path);
+      info(
+        'Logs',
+        'Logs folder launch returned after ${stopwatch.elapsedMilliseconds}ms '
+            '(opened=$opened)',
+      );
+      return opened;
     } catch (e) {
-      warning('AppLogger', 'Failed to open log directory', error: e);
+      warning('Logs', 'Failed to open log directory', error: e);
       return false;
+    } finally {
+      _openingLogDirectory = false;
     }
   }
+
+  @visibleForTesting
+  static void setOpenDirectoryForTesting(
+    Future<bool> Function(String path)? opener,
+  ) => _openDirectory = opener ?? platform.openDirectory;
 
   static void debug(String tag, String message) =>
       log(LogLevel.debug, tag, message);
