@@ -589,11 +589,25 @@ class UpdateService {
       RegExp(r'\*\*(.+?)\*\*'),
       (m) => m.group(1)!,
     );
-    result = result.replaceAllMapped(RegExp(r'__(.+?)__'), (m) => m.group(1)!);
+    // Only at word boundaries, so identifiers like `__init__` stay intact.
+    result = result.replaceAllMapped(
+      RegExp(
+        r'(?<![\p{L}\p{N}_])__(?!\s)(.+?)(?<!\s)__(?![\p{L}\p{N}_])',
+        unicode: true,
+      ),
+      (m) => m.group(1)!,
+    );
 
     // Remove italic (*texto* ou _texto_)
     result = result.replaceAllMapped(RegExp(r'\*(.+?)\*'), (m) => m.group(1)!);
-    result = result.replaceAllMapped(RegExp(r'_(.+?)_'), (m) => m.group(1)!);
+    // Only at word boundaries, so names like `device_customer_id` stay intact.
+    result = result.replaceAllMapped(
+      RegExp(
+        r'(?<![\p{L}\p{N}_])_(?![\s_])(.+?)(?<![\s_])_(?![\p{L}\p{N}_])',
+        unicode: true,
+      ),
+      (m) => m.group(1)!,
+    );
 
     // Remove horizontal rules
     result = result.replaceAll(

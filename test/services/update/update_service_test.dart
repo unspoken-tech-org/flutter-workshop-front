@@ -537,6 +537,45 @@ void main() {
     );
   });
 
+  group('UpdateService release notes', () {
+    Future<String> notesFor(String body) async {
+      const url = 'https://example.com/latest.json';
+      final adapter = _DynamicFeedAdapter({
+        url: (body: _releaseJson(tagName: 'v2.0.0', body: body), headers: {}),
+      });
+      final service = UpdateService(
+        dio: Dio()..httpClientAdapter = adapter,
+        feedUrlOverride: url,
+        packageInfoLoader: () async => PackageInfo(
+          appName: 'Workshop App',
+          packageName: 'workshop',
+          version: '1.0.0',
+          buildNumber: '1',
+        ),
+      );
+      final info = await service.checkForUpdates();
+      return info!.releaseNotes;
+    }
+
+    test('keeps underscores inside names', () async {
+      expect(
+        await notesFor('- Corrige device_customer_id e update_service.dart'),
+        '- Corrige device_customer_id e update_service.dart',
+      );
+      expect(
+        await notesFor('- Usa MAX__SIZE e A_B_C'),
+        '- Usa MAX__SIZE e A_B_C',
+      );
+    });
+
+    test('still strips underscore emphasis', () async {
+      expect(
+        await notesFor('- _Importante_: veja __aqui__ (ação_rápida)'),
+        '- Importante: veja aqui (ação_rápida)',
+      );
+    });
+  });
+
   group('UpdateService.downloadAndInstall', () {
     test('verifies SHA-256, launches installer, and exits on match', () async {
       final tempDir = await Directory.systemTemp.createTemp('update_test_ok_');
