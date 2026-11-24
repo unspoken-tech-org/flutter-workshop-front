@@ -4,13 +4,14 @@
 # fmtk.sh <vm-uri-file> snap
 #   Compact semantic snapshot: one line per labeled node or text field
 #   (ref, type, label, value, enabled).
-# Needs FMTK_BIN pointing at the extracted flutter-mcp-toolkit bin/ folder.
+# FMTK_BIN: flutter-mcp-toolkit bin folder (default ~/.local/share/flutter-mcp-toolkit/bin).
 set -u
 VMFILE=${1:?usage: fmtk.sh <vm-uri-file> <command> [argsJSON]}
 CMD=${2:?usage: fmtk.sh <vm-uri-file> <command> [argsJSON]}
 ARGS=${3:-}
 [ -z "$ARGS" ] && ARGS='{}'
-CLI="${FMTK_BIN:?set FMTK_BIN to the flutter-mcp-toolkit bin folder}/flutter-mcp-toolkit"
+CLI="${FMTK_BIN:-$HOME/.local/share/flutter-mcp-toolkit/bin}/flutter-mcp-toolkit"
+[ -x "$CLI" ] || { echo "flutter-mcp-toolkit not found at $CLI; set FMTK_BIN" >&2; exit 1; }
 URI=$(cat "$VMFILE")
 
 if [ "$CMD" = "snap" ]; then
