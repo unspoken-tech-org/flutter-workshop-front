@@ -1,5 +1,7 @@
 #include "my_application.h"
 
+#include <cstdio>
+
 #include <flutter_linux/flutter_linux.h>
 #ifdef GDK_WINDOWING_X11
 #include <gdk/gdkx.h>
@@ -47,7 +49,20 @@ static void my_application_activate(GApplication* application) {
     gtk_window_set_title(window, "flutter_workshop_front");
   }
 
-  gtk_window_set_default_size(window, 1280, 720);
+  // WORKSHOP_WINDOW_SIZE=<width>x<height> overrides the initial size, so
+  // headless agent runs get a taller window (see run_desktop_headless.sh).
+  gint width = 1280;
+  gint height = 720;
+  const gchar* size = g_getenv("WORKSHOP_WINDOW_SIZE");
+  if (size != nullptr) {
+    gint w = 0;
+    gint h = 0;
+    if (sscanf(size, "%dx%d", &w, &h) == 2 && w > 0 && h > 0) {
+      width = w;
+      height = h;
+    }
+  }
+  gtk_window_set_default_size(window, width, height);
   gtk_widget_show(GTK_WIDGET(window));
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
