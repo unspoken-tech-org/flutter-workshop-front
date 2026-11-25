@@ -1,16 +1,10 @@
+import '../support/memory_security_storage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import '../auth_pvt_test.dart';
-
-class MockSecurityStorageWithBoundId extends MockSecurityStorage {
-  @override
-  Future<String> getBoundDeviceId() async {
-    return storage['bound_device_id'] ?? 'new-uuid';
-  }
-}
 
 class MockDioSuccess extends MockDio {
   @override
@@ -62,11 +56,11 @@ void main() {
   });
 
   group('BoundDeviceId Unit Tests', () {
-    late MockSecurityStorageWithBoundId storage;
+    late MemorySecurityStorage storage;
     late AuthService authService;
 
     setUp(() {
-      storage = MockSecurityStorageWithBoundId();
+      storage = MemorySecurityStorage(boundDeviceIdFallback: 'new-uuid');
       authService = AuthService(
         dio: MockDioSuccess(),
         storage: storage,
@@ -75,7 +69,7 @@ void main() {
     });
 
     test('Should use boundDeviceId in TokenRequest', () async {
-      storage.storage['bound_device_id'] = 'test-bound-id';
+      storage.values['bound_device_id'] = 'test-bound-id';
 
       await authService.authenticate('some-api-key');
     });

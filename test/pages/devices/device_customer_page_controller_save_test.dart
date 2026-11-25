@@ -1,9 +1,9 @@
+import '../../support/offline_services.dart';
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 import '../../helpers/result_guard.dart';
@@ -67,7 +67,7 @@ void main() {
       'retorna true e aplica a resposta quando o servidor confirma',
       () async {
         final saved = _device(problem: 'Tela quebrada');
-        final controller = DeviceCustomerPageController(
+        final controller = testDeviceCustomerPageController(
           deviceCustomerService: _FakeDeviceCustomerService(
             onUpdate: (_) async => saved,
             onUrgency: (_) async => throw UnimplementedError(),
@@ -81,7 +81,7 @@ void main() {
     );
 
     test('retorna false quando o servidor rejeita', () async {
-      final controller = DeviceCustomerPageController(
+      final controller = testDeviceCustomerPageController(
         deviceCustomerService: _FakeDeviceCustomerService(
           onUpdate: (_) async => throw RequisitionException('Inválido', '400'),
           onUrgency: (_) async => throw UnimplementedError(),
@@ -95,7 +95,7 @@ void main() {
     test('save não é descartado por uma ação rápida em andamento', () async {
       final urgency = Completer<DeviceCustomer>();
       var saveCalls = 0;
-      final controller = DeviceCustomerPageController(
+      final controller = testDeviceCustomerPageController(
         deviceCustomerService: _FakeDeviceCustomerService(
           onUpdate: (d) async {
             saveCalls++;
@@ -116,7 +116,7 @@ void main() {
     });
 
     test('cancelar após ação rápida mantém o que o servidor gravou', () async {
-      final controller = DeviceCustomerPageController(
+      final controller = testDeviceCustomerPageController(
         deviceCustomerService: _FakeDeviceCustomerService(
           onUpdate: (d) async => d,
           onUrgency: (value) async => _device(hasUrgency: value),

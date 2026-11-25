@@ -5,7 +5,6 @@ import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
-import 'package:flutter_workshop_front/repositories/customer/customer_remote_data_source.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
@@ -39,8 +38,8 @@ class AllCustomerController extends ChangeNotifier {
   int _requestGeneration = 0;
   String? _searchTerm;
 
-  AllCustomerController({CustomerRepository? customerRepository})
-    : _customerRepository = customerRepository ?? CustomerRemoteDataSource() {
+  AllCustomerController({required CustomerRepository customerRepository})
+    : _customerRepository = customerRepository {
     unawaited(searchCustomers(null));
   }
 

@@ -1,3 +1,4 @@
+import '../../support/offline_services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/money/money.dart';
 import 'package:flutter_workshop_front/core/result/app_failure.dart';
@@ -5,7 +6,6 @@ import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/services/payment/payment_service.dart';
 
 class _StubPaymentService implements PaymentService {
@@ -60,7 +60,7 @@ void main() {
 
   group('DeviceCustomerPageController.createCustomerDevicePayment', () {
     test('Ok adiciona o pagamento e devolve true', () async {
-      final controller = DeviceCustomerPageController(
+      final controller = testDeviceCustomerPageController(
         paymentService: _StubPaymentService(const Ok(null)),
       )..deviceCustomer = _device();
 
@@ -72,7 +72,7 @@ void main() {
     });
 
     test('Err devolve false e não altera os pagamentos', () async {
-      final controller = DeviceCustomerPageController(
+      final controller = testDeviceCustomerPageController(
         paymentService: _StubPaymentService(
           const Err(
             ValidationFailure(
@@ -92,7 +92,7 @@ void main() {
     });
 
     test('falha de rede também devolve false', () async {
-      final controller = DeviceCustomerPageController(
+      final controller = testDeviceCustomerPageController(
         paymentService: _StubPaymentService(const Err(NetworkFailure())),
       )..deviceCustomer = _device();
 

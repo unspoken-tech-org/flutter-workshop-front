@@ -1,3 +1,4 @@
+import '../../support/offline_services.dart';
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
@@ -12,7 +13,6 @@ import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/controllers/customer_detail_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/widgets/customer_detail_form.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/device_details_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/contact_card.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_info_header_widget.dart';
@@ -148,7 +148,7 @@ void main() {
           _wrapWithRouter(
             DeviceDetailsPage(
               deviceId: 42,
-              controllerFactory: () => DeviceCustomerPageController(
+              controllerFactory: () => testDeviceCustomerPageController(
                 deviceCustomerService: deviceService,
                 technicianService: technicianService,
               ),
@@ -186,7 +186,7 @@ void main() {
           _wrapWithRouter(
             DeviceDetailsPage(
               deviceId: 42,
-              controllerFactory: () => DeviceCustomerPageController(
+              controllerFactory: () => testDeviceCustomerPageController(
                 deviceCustomerService: deviceService,
                 technicianService: technicianService,
               ),
@@ -209,7 +209,7 @@ void main() {
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.resetPhysicalSize);
 
-        final controller = DeviceCustomerPageController()
+        final controller = testDeviceCustomerPageController()
           ..deviceCustomer = _sampleDevice(customerPhones: const []);
 
         await tester.pumpWidget(
@@ -231,7 +231,7 @@ void main() {
       'CustomerDeviceTechnicalInfoWidget preserves technician when missing from list',
       (tester) async {
         final formKey = GlobalKey<FormState>();
-        final controller = DeviceCustomerPageController()
+        final controller = testDeviceCustomerPageController()
           ..deviceCustomer = _sampleDevice(
             technicianId: 99,
             technicianName: 'Técnico Antigo',

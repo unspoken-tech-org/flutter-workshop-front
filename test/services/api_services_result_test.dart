@@ -45,7 +45,7 @@ ApiClient _client(_FixedAdapter adapter) {
       validateStatus: (s) => s! < 500 && s != 401 && s != 403 && s != 429,
     ),
   )..httpClientAdapter = adapter;
-  return ApiClient(dio: dio);
+  return ApiClient(dio);
 }
 
 InputPayment _payment() => InputPayment(
@@ -60,7 +60,7 @@ void main() {
   group('PaymentService', () {
     test('201 devolve Ok e envia o corpo no endpoint de pagamento', () async {
       final adapter = _FixedAdapter(201, '{"paymentId":9}');
-      final service = PaymentService(client: _client(adapter));
+      final service = PaymentService(_client(adapter));
 
       final result = await service.createPayment(_payment());
 
@@ -74,7 +74,7 @@ void main() {
         400,
         '{"error":{"code":"payment.invalid","message":"Pagamento recusado"}}',
       );
-      final service = PaymentService(client: _client(adapter));
+      final service = PaymentService(_client(adapter));
 
       final result = await service.createPayment(_payment());
 
@@ -91,7 +91,7 @@ void main() {
         200,
         '[{"id":1,"name":"Ana","number":"11999999999"}]',
       );
-      final service = TechnicianService(client: _client(adapter));
+      final service = TechnicianService(_client(adapter));
 
       final result = await service.getTechnicians();
 
@@ -100,7 +100,7 @@ void main() {
 
     test('corpo que não é lista vira UnexpectedFailure', () async {
       final adapter = _FixedAdapter(200, '{"oops":true}');
-      final service = TechnicianService(client: _client(adapter));
+      final service = TechnicianService(_client(adapter));
 
       final result = await service.getTechnicians();
 
@@ -109,7 +109,7 @@ void main() {
 
     test('500 vira ServerFailure', () async {
       final adapter = _FixedAdapter(500, '{}');
-      final service = TechnicianService(client: _client(adapter));
+      final service = TechnicianService(_client(adapter));
 
       final result = await service.getTechnicians();
 

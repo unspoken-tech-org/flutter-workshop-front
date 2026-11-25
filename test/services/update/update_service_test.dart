@@ -278,7 +278,7 @@ void main() {
         final dio = Dio()..httpClientAdapter = _FeedAdapter();
         final service = UpdateService(
           dio: dio,
-          feedUrlOverride: 'http://192.168.122.1:8787/latest.json',
+          feedUrl: 'http://192.168.122.1:8787/latest.json',
           packageInfoLoader: () async => PackageInfo(
             appName: 'Workshop App',
             packageName: 'workshop',
@@ -353,7 +353,7 @@ void main() {
         final dio = Dio()..httpClientAdapter = adapter;
         final service = UpdateService(
           dio: dio,
-          feedUrlOverride: url,
+          feedUrl: url,
           packageInfoLoader: () async => PackageInfo(
             appName: 'Workshop App',
             packageName: 'workshop',
@@ -406,7 +406,7 @@ void main() {
         final dio = Dio()..httpClientAdapter = adapter;
         final service = UpdateService(
           dio: dio,
-          feedUrlOverride: url,
+          feedUrl: url,
           packageInfoLoader: () async => PackageInfo(
             appName: 'Workshop App',
             packageName: 'workshop',
@@ -451,7 +451,7 @@ void main() {
         final dio = Dio()..httpClientAdapter = adapter;
         final service = UpdateService(
           dio: dio,
-          feedUrlOverride: url,
+          feedUrl: url,
           packageInfoLoader: () async => PackageInfo(
             appName: 'Workshop App',
             packageName: 'workshop',
@@ -511,7 +511,7 @@ void main() {
         final dio = Dio()..httpClientAdapter = adapter;
         final service = UpdateService(
           dio: dio,
-          feedUrlOverride: page1,
+          feedUrl: page1,
           packageInfoLoader: () async => PackageInfo(
             appName: 'Workshop App',
             packageName: 'workshop',
@@ -573,7 +573,7 @@ void main() {
         final dio = Dio()..httpClientAdapter = adapter;
         final service = UpdateService(
           dio: dio,
-          feedUrlOverride: page1,
+          feedUrl: page1,
           packageInfoLoader: () async => PackageInfo(
             appName: 'Workshop App',
             packageName: 'workshop',
@@ -609,7 +609,7 @@ void main() {
     UpdateService serviceWith(HttpClientAdapter adapter, {String? feed}) =>
         UpdateService(
           dio: Dio()..httpClientAdapter = adapter,
-          feedUrlOverride: feed ?? 'https://api.github.com/repos/o/r/releases',
+          feedUrl: feed ?? 'https://api.github.com/repos/o/r/releases',
           packageInfoLoader: () async => PackageInfo(
             appName: 'Workshop App',
             packageName: 'workshop',
@@ -717,7 +717,7 @@ void main() {
       });
       final service = UpdateService(
         dio: Dio()..httpClientAdapter = adapter,
-        feedUrlOverride: url,
+        feedUrl: url,
         packageInfoLoader: () async => PackageInfo(
           appName: 'Workshop App',
           packageName: 'workshop',

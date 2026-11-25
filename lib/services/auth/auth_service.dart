@@ -1,12 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:synchronized/synchronized.dart';
 import '../../core/exceptions/requisition_exception.dart';
-import '../../core/config/config.dart';
 
 import '../../core/http/api_auth_error.dart';
-import '../../core/http/custom_dio.dart';
 import '../../core/http/response_validation.dart';
 import '../../core/security/auth_debug_log.dart';
 import '../../core/security/auth_notifier.dart';
@@ -33,6 +32,8 @@ class AuthService {
   final SecurityStorage _storage;
   final AuthNotifier _authNotifier;
   final DateTime Function() _now;
+  final Future<String> Function() _appVersion;
+  final String _devApiKey;
   final Lock _storageLock = Lock();
   int _sessionEpoch = 0;
 
@@ -40,15 +41,24 @@ class AuthService {
   DateTime? _refreshBlockedUntil;
   Response<dynamic>? _refreshRateLimitResponse;
 
+  /// [devApiKey] provisiona sozinho em debug quando não há api key salva
+  /// (vem do `AppConfig`, vazio em release).
   AuthService({
-    Dio? dio,
-    SecurityStorage? storage,
+    required Dio dio,
+    required SecurityStorage storage,
     required AuthNotifier authNotifier,
+    String devApiKey = '',
+    Future<String> Function()? appVersion,
     @visibleForTesting DateTime Function()? clock,
   }) : _authNotifier = authNotifier,
-       _dio = dio ?? CustomDio.authDioInstance(),
-       _storage = storage ?? SecurityStorage(),
+       _dio = dio,
+       _storage = storage,
+       _devApiKey = devApiKey,
+       _appVersion = appVersion ?? _packageVersion,
        _now = clock ?? DateTime.now;
+
+  static Future<String> _packageVersion() async =>
+      (await PackageInfo.fromPlatform()).version;
 
   Future<String?> get apiKey async => (await _storage.getApiKey());
   Future<bool> get hasApiKey async => (await apiKey) != null;
@@ -94,7 +104,7 @@ class AuthService {
     final epochAtStart = ++_sessionEpoch;
     try {
       final boundDeviceId = await _storage.getBoundDeviceId();
-      final appVersion = await Config.appVersion;
+      final appVersion = await _appVersion();
 
       final response = await _dio.post<dynamic>(
         '/api/auth/token',
@@ -476,7 +486,7 @@ class AuthService {
       if (!hasStoredApiKey) {
         if (kDebugMode) {
           try {
-            final devApiKey = Config.devApiKey;
+            final devApiKey = _devApiKey;
             if (devApiKey.isNotEmpty) {
               await authenticate(devApiKey);
               _authNotifier.setState(AuthRouteState.authenticated);

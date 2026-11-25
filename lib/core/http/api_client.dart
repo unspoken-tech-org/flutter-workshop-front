@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter_workshop_front/core/http/custom_dio.dart';
 import 'package:flutter_workshop_front/core/http/response_validation.dart';
 import 'package:flutter_workshop_front/core/logging/app_logger.dart';
 import 'package:flutter_workshop_front/core/result/app_failure.dart';
@@ -19,11 +18,9 @@ import 'package:flutter_workshop_front/core/result/result.dart';
 class ApiClient {
   static const _tag = 'ApiClient';
 
-  ApiClient({Dio? dio}) : _dioOverride = dio;
+  ApiClient(this._dio);
 
-  final Dio? _dioOverride;
-
-  Dio get _dio => _dioOverride ?? CustomDio.dioInstance();
+  final Dio _dio;
 
   /// Executa [call] e devolve `Ok(decode(body))` se o status estiver em
   /// [expectedStatus]; do contrário, `Err` com a falha classificada.

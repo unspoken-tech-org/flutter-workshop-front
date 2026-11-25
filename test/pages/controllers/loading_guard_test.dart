@@ -1,10 +1,12 @@
 // ignore_for_file: unawaited_futures
+import '../../support/memory_security_storage.dart';
+import '../../support/offline_services.dart';
+import 'package:flutter_workshop_front/services/device_statistics/device_statistics_service.dart';
 import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
-import 'package:flutter_workshop_front/core/security/security_storage.dart';
 import 'package:flutter_workshop_front/models/customer/customer_model.dart';
 import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
 import 'package:flutter_workshop_front/models/customer/input_customer.dart';
@@ -20,7 +22,6 @@ import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/controllers/customer_detail_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_register/controllers/customer_register_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/home/controllers/home_controller.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_controller.dart';
 import 'package:flutter_workshop_front/repositories/all_devices/all_devices_repository.dart';
@@ -33,53 +34,9 @@ import '../../helpers/result_guard.dart';
 // Stubs
 // ---------------------------------------------------------------------------
 
-class _MemorySecurityStorage implements SecurityStorage {
-  final _data = <String, String>{};
-
-  @override
-  Future<void> saveApiKey(String key) async => _data['api_key'] = key;
-
-  @override
-  Future<String?> getApiKey() async => _data['api_key'];
-
-  @override
-  Future<void> saveTokens(String accessToken, String refreshToken) async {
-    _data['at'] = accessToken;
-    _data['rt'] = refreshToken;
-  }
-
-  @override
-  Future<void> saveAccessToken(String accessToken) async =>
-      _data['at'] = accessToken;
-
-  @override
-  Future<String?> getAccessToken() async => _data['at'];
-
-  @override
-  Future<String?> getRefreshToken() async => _data['rt'];
-
-  @override
-  Future<String> getBoundDeviceId() async => 'test-device';
-
-  @override
-  Future<void> clearSession() async {
-    _data.remove('at');
-    _data.remove('rt');
-  }
-
-  @override
-  Future<void> clearProvisioning({bool removeBoundDeviceId = false}) async {
-    await clearSession();
-    _data.remove('api_key');
-  }
-
-  @override
-  Future<void> clearAll() async => _data.clear();
-}
-
 AuthService _stubAuthService() => AuthService(
   dio: Dio(),
-  storage: _MemorySecurityStorage(),
+  storage: MemorySecurityStorage(),
   authNotifier: AuthNotifier(),
 );
 
@@ -337,7 +294,9 @@ void main() {
     test(
       'getDeviceStatistics retorna sem side effects quando isLoading=true',
       () async {
-        final controller = HomeController();
+        final controller = HomeController(
+          DeviceStatisticsService(offlineApiClient()),
+        );
         controller.isLoading = true;
         int notifyCount = 0;
         controller.addListener(() => notifyCount++);
@@ -359,7 +318,7 @@ void main() {
     test(
       'updateDeviceCustomer retorna sem side effects quando isSaving=true',
       () async {
-        final controller = DeviceCustomerPageController();
+        final controller = testDeviceCustomerPageController();
         controller.isSaving = true;
         int notifyCount = 0;
         controller.addListener(() => notifyCount++);
@@ -375,7 +334,7 @@ void main() {
     test(
       'updateDeviceHasUrgency retorna sem side effects quando isUpdating=true',
       () async {
-        final controller = DeviceCustomerPageController();
+        final controller = testDeviceCustomerPageController();
         controller.isUpdating = true;
         int notifyCount = 0;
         controller.addListener(() => notifyCount++);
@@ -390,7 +349,7 @@ void main() {
     test(
       'updateDeviceRevision retorna sem side effects quando isUpdating=true',
       () async {
-        final controller = DeviceCustomerPageController();
+        final controller = testDeviceCustomerPageController();
         controller.isUpdating = true;
         int notifyCount = 0;
         controller.addListener(() => notifyCount++);
@@ -405,7 +364,7 @@ void main() {
     test(
       'updateDeviceStatus retorna sem side effects quando isUpdating=true',
       () async {
-        final controller = DeviceCustomerPageController();
+        final controller = testDeviceCustomerPageController();
         controller.isUpdating = true;
         int notifyCount = 0;
         controller.addListener(() => notifyCount++);
@@ -420,7 +379,7 @@ void main() {
     test(
       'createCustomerContact retorna sem side effects quando isCreatingContact=true',
       () async {
-        final controller = DeviceCustomerPageController();
+        final controller = testDeviceCustomerPageController();
         controller.isCreatingContact = true;
         int notifyCount = 0;
         controller.addListener(() => notifyCount++);

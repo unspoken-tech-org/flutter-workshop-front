@@ -11,9 +11,15 @@ import 'package:flutter_workshop_front/services/device_data/device_customer_serv
 import 'package:flutter_workshop_front/services/device_data/device_type_service.dart';
 
 class AllDevicesRemoteDataSource implements AllDevicesRepository {
-  final DeviceCustomerService _deviceCustomerService = DeviceCustomerService();
-  final DeviceTypeService _deviceTypeService = DeviceTypeService();
-  final DeviceBrandService _deviceBrandService = DeviceBrandService();
+  AllDevicesRemoteDataSource(
+    this._deviceCustomerService,
+    this._deviceTypeService,
+    this._deviceBrandService,
+  );
+
+  final DeviceCustomerService _deviceCustomerService;
+  final DeviceTypeService _deviceTypeService;
+  final DeviceBrandService _deviceBrandService;
 
   @override
   Future<Result<Page<DeviceDataTable>>> getAllDevicesFiltering([

@@ -10,7 +10,7 @@ import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 
 class DeviceCustomerService {
-  DeviceCustomerService({ApiClient? client}) : _api = client ?? ApiClient();
+  DeviceCustomerService(this._api);
 
   final ApiClient _api;
 

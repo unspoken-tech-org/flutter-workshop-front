@@ -1,3 +1,4 @@
+import '../../support/memory_security_storage.dart';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -7,8 +8,6 @@ import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dar
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_controller.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
-
-import '../../auth/bound_device_id_test.dart';
 
 class _FixedAdapter implements HttpClientAdapter {
   final int status;
@@ -73,7 +72,9 @@ void main() {
       test(
         '$status lança RequisitionException e não salva a API key',
         () async {
-          final storage = MockSecurityStorageWithBoundId();
+          final storage = MemorySecurityStorage(
+            boundDeviceIdFallback: 'new-uuid',
+          );
           final notifier = AuthNotifier();
           final service = AuthService(
             dio: _authDio(
@@ -108,7 +109,7 @@ void main() {
         final controller = SetupController(
           authService: AuthService(
             dio: _authDio(429, 'Too Many Requests', contentType: 'text/plain'),
-            storage: MockSecurityStorageWithBoundId(),
+            storage: MemorySecurityStorage(boundDeviceIdFallback: 'new-uuid'),
             authNotifier: AuthNotifier(),
           ),
         );

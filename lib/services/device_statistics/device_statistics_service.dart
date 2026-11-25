@@ -3,7 +3,7 @@ import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/device_statistics/device_statistics.dart';
 
 class DeviceStatisticsService {
-  DeviceStatisticsService({ApiClient? client}) : _api = client ?? ApiClient();
+  DeviceStatisticsService(this._api);
 
   final ApiClient _api;
 

@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/di/app_dependencies.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -12,11 +13,11 @@ import 'package:flutter_workshop_front/pages/devices/search_devices/search_devic
 import 'package:flutter_workshop_front/pages/home/home_page.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
-import 'package:flutter_workshop_front/services/update/update_service.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/widgets/ws_drawer_item.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controller.dart';
 import 'package:flutter_workshop_front/widgets/shared/update_dialog.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_workshop_front/services/update/update_service.dart';
 import 'package:provider/provider.dart';
 
 class WsDrawer extends StatelessWidget {
@@ -200,7 +201,9 @@ class WsDrawer extends StatelessWidget {
                   ),
                 );
 
-                final updateService = UpdateService();
+                final updateService = context
+                    .read<AppDependencies>()
+                    .updateService;
                 final result = await updateService.checkForUpdates();
 
                 if (!context.mounted) return;

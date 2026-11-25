@@ -7,7 +7,6 @@ import 'package:flutter/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../core/config/env_config.dart';
 import '../../core/logging/app_logger.dart';
 
 enum UpdateInstallStage { downloading, verifying, launching }
@@ -210,7 +209,6 @@ class _ParsedRelease {
 
 class UpdateService {
   static const String _logTag = 'Update';
-  static bool hasCheckedOnStartup = false;
   static const int _maxPages = 3;
   static const String _emptyNotesFallback = 'Sem notas de atualização';
 
@@ -220,7 +218,12 @@ class UpdateService {
   final Directory? _tempDirectory;
   final bool _isWindows;
   final Future<PackageInfo> Function() _packageInfoLoader;
-  final String? _feedUrlOverride;
+  final String _feedUrl;
+  final String _githubOwner;
+  final String _githubRepo;
+
+  /// Se a checagem automática do boot já rodou nesta execução do app.
+  bool hasCheckedOnStartup = false;
 
   UpdateService({
     Dio? dio,
@@ -229,7 +232,9 @@ class UpdateService {
     Directory? tempDirectory,
     bool? isWindows,
     Future<PackageInfo> Function()? packageInfoLoader,
-    String? feedUrlOverride,
+    String feedUrl = '',
+    String githubOwner = '',
+    String githubRepo = '',
   }) : _dio =
            dio ??
            Dio(
@@ -244,7 +249,9 @@ class UpdateService {
        _tempDirectory = tempDirectory,
        _isWindows = isWindows ?? (!kIsWeb && Platform.isWindows),
        _packageInfoLoader = packageInfoLoader ?? PackageInfo.fromPlatform,
-       _feedUrlOverride = feedUrlOverride;
+       _feedUrl = feedUrl,
+       _githubOwner = githubOwner,
+       _githubRepo = githubRepo;
 
   static Future<void> _defaultInstallerLauncher(String exePath) async {
     await Process.start('cmd', [
@@ -259,13 +266,13 @@ class UpdateService {
   }
 
   Future<UpdateCheckResult> checkForUpdates() async {
-    final configuredFeedUrl = _feedUrlOverride ?? EnvConfig.updateFeedUrl;
+    final configuredFeedUrl = _feedUrl;
     final String releaseUrl;
     if (configuredFeedUrl.isNotEmpty) {
       releaseUrl = configuredFeedUrl;
     } else {
-      final owner = EnvConfig.githubOwner;
-      final repo = EnvConfig.githubRepo;
+      final owner = _githubOwner;
+      final repo = _githubRepo;
 
       if (owner.isEmpty || repo.isEmpty) {
         AppLogger.info(_logTag, 'Check skipped: no release feed configured');

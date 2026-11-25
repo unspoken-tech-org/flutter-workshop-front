@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_workshop_front/core/config/config.dart';
+import 'package:flutter_workshop_front/core/config/app_config.dart';
 import 'package:flutter_workshop_front/main.dart' as app;
 
 /// Boots the real app (`main`) against the local E2E API and runs [body].
@@ -123,7 +123,7 @@ Future<void> setProxyMode(String mode) async {
   final client = HttpClient();
   try {
     final request = await client.getUrl(
-      Uri.parse('${Config.baseUrl}/__e2e/mode/$mode'),
+      Uri.parse('${AppConfig.fromEnvironment().baseUri}/__e2e/mode/$mode'),
     );
     final response = await request.close();
     await response.drain<void>();

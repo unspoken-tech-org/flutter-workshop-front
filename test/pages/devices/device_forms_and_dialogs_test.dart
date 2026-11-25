@@ -1,3 +1,4 @@
+import '../../support/offline_services.dart';
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
@@ -12,7 +13,6 @@ import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/controllers/customer_detail_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/widgets/customer_detail_form.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_payments.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/device_status_chip.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_new_payment_dialog.dart';
@@ -181,7 +181,7 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      final controller = DeviceCustomerPageController()
+      final controller = testDeviceCustomerPageController()
         ..deviceCustomer = _sampleDevice(serviceValue: 100.0);
       controller.onEditingStarted();
       controller.updateNewDeviceCustomer(
@@ -211,7 +211,7 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
 
-    final controller = DeviceCustomerPageController()
+    final controller = testDeviceCustomerPageController()
       ..technicians = [Technician(id: 1, name: 'Carlos', number: '11999999999')]
       ..deviceCustomer = _sampleDevice(serviceValue: 100.0);
 

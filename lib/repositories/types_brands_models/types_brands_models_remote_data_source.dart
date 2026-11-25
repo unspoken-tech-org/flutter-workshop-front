@@ -5,8 +5,9 @@ import 'package:flutter_workshop_front/repositories/types_brands_models/types_br
 import 'package:flutter_workshop_front/services/types_brands_models/type_brand_model_search_service.dart';
 
 class TypesBrandsModelsRemoteDataSource implements TypesBrandsModelsRepository {
-  final TypeBrandModelSearchService _searchService =
-      TypeBrandModelSearchService();
+  TypesBrandsModelsRemoteDataSource(this._searchService);
+
+  final TypeBrandModelSearchService _searchService;
 
   @override
   Future<Result<Page<Type>>> searchTypes(

@@ -4,8 +4,7 @@ import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 import 'package:flutter_workshop_front/models/types_brands_models/types_brands_models.dart';
 
 class TypeBrandModelSearchService {
-  TypeBrandModelSearchService({ApiClient? client})
-    : _api = client ?? ApiClient();
+  TypeBrandModelSearchService(this._api);
 
   final ApiClient _api;
 

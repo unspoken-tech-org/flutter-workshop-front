@@ -47,7 +47,7 @@ ApiClient _client(_Handler handler) {
       validateStatus: (s) => s! < 500 && s != 401 && s != 403 && s != 429,
     ),
   )..httpClientAdapter = _FakeAdapter(handler);
-  return ApiClient(dio: dio);
+  return ApiClient(dio);
 }
 
 Future<Result<String>> _get(
@@ -399,7 +399,7 @@ void main() {
     });
 
     test('exceção fora do Dio registra ERROR com stack', () async {
-      final client = ApiClient(dio: Dio());
+      final client = ApiClient(Dio());
 
       final result = await client.send<String>(
         (_) => throw StateError('boom'),

@@ -1,3 +1,4 @@
+import '../support/memory_security_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
@@ -5,16 +6,15 @@ import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_controller.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import '../auth_pvt_test.dart';
-import '../auth/bound_device_id_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late SetupController mockController;
-  late MockSecurityStorageWithBoundId mockStorage;
+  late MemorySecurityStorage mockStorage;
 
   setUp(() {
-    mockStorage = MockSecurityStorageWithBoundId();
+    mockStorage = MemorySecurityStorage(boundDeviceIdFallback: 'new-uuid');
     final mockAuthService = AuthService(
       dio: MockDio(),
       storage: mockStorage,

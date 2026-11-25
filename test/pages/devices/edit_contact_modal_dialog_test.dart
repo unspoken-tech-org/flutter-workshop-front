@@ -1,10 +1,10 @@
+import '../../support/offline_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
-import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/edit_contact_modal_dialog.dart';
 import 'package:provider/provider.dart';
 
@@ -45,7 +45,7 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      final controller = DeviceCustomerPageController()
+      final controller = testDeviceCustomerPageController()
         ..deviceCustomer = _sampleDevice()
         ..technicians = [
           Technician(id: 2, name: 'Carlos', number: '11988888888'),

@@ -1,3 +1,4 @@
+import '../../../support/memory_security_storage.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -9,7 +10,6 @@ import 'package:flutter_workshop_front/core/http/interceptors/global_error_inter
 import 'package:flutter_workshop_front/core/http/interceptors/security_interceptor.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/refresh_result.dart';
-import 'package:flutter_workshop_front/core/security/security_storage.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
@@ -39,81 +39,6 @@ String get expiringToken => makeJwt(_nowSeconds + 30);
 String get validToken => makeJwt(_nowSeconds + 3600);
 
 // ── Fakes ─────────────────────────────────────────────────────────────────────
-
-class _MemorySecurityStorage implements SecurityStorage {
-  final Map<String, String> _storage = {};
-  int clearSessionCalls = 0;
-  int clearProvisioningCalls = 0;
-  int getAccessTokenCalls = 0;
-  Object? Function(int callIndex)? getAccessTokenErrorOnCall;
-  Object? clearProvisioningError;
-
-  void seedTokens({String? accessToken, String? refreshToken, String? apiKey}) {
-    if (accessToken != null) _storage['access_token'] = accessToken;
-    if (refreshToken != null) _storage['refresh_token'] = refreshToken;
-    if (apiKey != null) _storage['api_key'] = apiKey;
-  }
-
-  @override
-  Future<void> clearAll() async => _storage.clear();
-
-  @override
-  Future<void> clearSession() async {
-    clearSessionCalls += 1;
-    _storage.remove('access_token');
-    _storage.remove('refresh_token');
-  }
-
-  @override
-  Future<void> clearProvisioning({bool removeBoundDeviceId = false}) async {
-    clearProvisioningCalls += 1;
-    if (clearProvisioningError != null) {
-      throw clearProvisioningError!;
-    }
-    await clearSession();
-    _storage.remove('api_key');
-    if (removeBoundDeviceId) {
-      _storage.remove('bound_device_id');
-    }
-  }
-
-  @override
-  Future<String?> getAccessToken() async {
-    getAccessTokenCalls += 1;
-    final err = getAccessTokenErrorOnCall?.call(getAccessTokenCalls);
-    if (err != null) throw err;
-    return _storage['access_token'];
-  }
-
-  @override
-  Future<String?> getApiKey() async => _storage['api_key'];
-
-  @override
-  Future<String> getBoundDeviceId() async =>
-      _storage['bound_device_id'] ?? 'device-1';
-
-  @override
-  Future<String?> getRefreshToken() async => _storage['refresh_token'];
-
-  @override
-  Future<void> saveAccessToken(String accessToken) async {
-    _storage['access_token'] = accessToken;
-  }
-
-  @override
-  Future<void> saveApiKey(String key) async {
-    _storage['api_key'] = key;
-  }
-
-  @override
-  Future<void> saveTokens(String accessToken, String refreshToken) async {
-    _storage['access_token'] = accessToken;
-    _storage['refresh_token'] = refreshToken;
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
 
 class _AdapterResult {
   final int statusCode;
@@ -163,7 +88,7 @@ class _TestHttpClientAdapter implements HttpClientAdapter {
 
 void main() {
   group('SecurityInterceptor', () {
-    late _MemorySecurityStorage storage;
+    late MemorySecurityStorage storage;
     late Dio dio;
     late Dio retryDio;
     late int refreshCalls;
@@ -184,7 +109,7 @@ void main() {
     }
 
     setUp(() {
-      storage = _MemorySecurityStorage();
+      storage = MemorySecurityStorage();
       authNotifier = AuthNotifier();
       refreshCalls = 0;
 

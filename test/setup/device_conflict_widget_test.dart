@@ -1,3 +1,4 @@
+import '../support/memory_security_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,7 +6,6 @@ import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_controller.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
-import '../auth/bound_device_id_test.dart';
 import '../auth/device_conflict_test.dart';
 
 void main() {
@@ -33,7 +33,7 @@ void main() {
   setUp(() {
     final mockAuthService = AuthService(
       dio: MockDioConflict(),
-      storage: MockSecurityStorageWithBoundId(),
+      storage: MemorySecurityStorage(boundDeviceIdFallback: 'new-uuid'),
       authNotifier: AuthNotifier(),
     );
     controller = SetupController(authService: mockAuthService);

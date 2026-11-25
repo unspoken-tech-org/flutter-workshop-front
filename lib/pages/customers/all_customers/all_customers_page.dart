@@ -1,3 +1,5 @@
+import 'package:provider/provider.dart';
+import 'package:flutter_workshop_front/core/di/app_dependencies.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -27,7 +29,9 @@ class _AllCustomersPageState extends State<AllCustomersPage> {
   @override
   void initState() {
     super.initState();
-    _controller = AllCustomerController();
+    _controller = AllCustomerController(
+      customerRepository: context.read<AppDependencies>().customerRepository,
+    );
   }
 
   @override

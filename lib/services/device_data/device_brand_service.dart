@@ -3,7 +3,7 @@ import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/device_brand/device_brand_model.dart';
 
 class DeviceBrandService {
-  DeviceBrandService({ApiClient? client}) : _api = client ?? ApiClient();
+  DeviceBrandService(this._api);
 
   final ApiClient _api;
 

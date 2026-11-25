@@ -1,3 +1,4 @@
+import '../../support/memory_security_storage.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -7,86 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/http/custom_dio.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/refresh_result.dart';
-import 'package:flutter_workshop_front/core/security/security_storage.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
-
-class _MemorySecurityStorage implements SecurityStorage {
-  final Map<String, String> _storage = {};
-  int clearSessionCalls = 0;
-  int clearProvisioningCalls = 0;
-  int saveAccessTokenCalls = 0;
-  int saveTokensCalls = 0;
-  Object? getRefreshTokenError;
-  Object? getApiKeyError;
-  Object? getBoundDeviceIdError;
-
-  void seedTokens({String? accessToken, String? refreshToken}) {
-    if (accessToken != null) _storage['access_token'] = accessToken;
-    if (refreshToken != null) _storage['refresh_token'] = refreshToken;
-  }
-
-  @override
-  Future<void> clearAll() async => _storage.clear();
-
-  @override
-  Future<void> clearSession() async {
-    clearSessionCalls += 1;
-    _storage.remove('access_token');
-    _storage.remove('refresh_token');
-  }
-
-  @override
-  Future<void> clearProvisioning({bool removeBoundDeviceId = false}) async {
-    clearProvisioningCalls += 1;
-    await clearSession();
-    _storage.remove('api_key');
-    if (removeBoundDeviceId) {
-      _storage.remove('bound_device_id');
-    }
-  }
-
-  @override
-  Future<String?> getAccessToken() async => _storage['access_token'];
-
-  @override
-  Future<String?> getApiKey() async {
-    if (getApiKeyError != null) throw getApiKeyError!;
-    return _storage['api_key'];
-  }
-
-  @override
-  Future<String> getBoundDeviceId() async {
-    if (getBoundDeviceIdError != null) throw getBoundDeviceIdError!;
-    return _storage['bound_device_id'] ?? 'device-1';
-  }
-
-  @override
-  Future<String?> getRefreshToken() async {
-    if (getRefreshTokenError != null) throw getRefreshTokenError!;
-    return _storage['refresh_token'];
-  }
-
-  @override
-  Future<void> saveAccessToken(String accessToken) async {
-    saveAccessTokenCalls += 1;
-    _storage['access_token'] = accessToken;
-  }
-
-  @override
-  Future<void> saveApiKey(String key) async {
-    _storage['api_key'] = key;
-  }
-
-  @override
-  Future<void> saveTokens(String accessToken, String refreshToken) async {
-    saveTokensCalls += 1;
-    _storage['access_token'] = accessToken;
-    _storage['refresh_token'] = refreshToken;
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
 
 typedef _PostHandler = Future<Response<dynamic>> Function(Object? data);
 
@@ -241,7 +163,7 @@ void main() {
     test(
       'deve salvar access e refresh quando backend rotaciona token',
       () async {
-        final storage = _MemorySecurityStorage()
+        final storage = MemorySecurityStorage()
           ..seedTokens(refreshToken: 'rt-1');
         final dio = _FakeDio({
           '/api/auth/refresh': (data) async => _response(
@@ -280,7 +202,7 @@ void main() {
     test(
       'deve salvar apenas access token quando refresh token nao vem na resposta',
       () async {
-        final storage = _MemorySecurityStorage()
+        final storage = MemorySecurityStorage()
           ..seedTokens(refreshToken: 'rt-1');
         final dio = _FakeDio({
           '/api/auth/refresh': (data) async => _response(
@@ -315,7 +237,7 @@ void main() {
     test(
       'deve invalidar sessao quando payload de refresh for invalido',
       () async {
-        final storage = _MemorySecurityStorage()
+        final storage = MemorySecurityStorage()
           ..seedTokens(refreshToken: 'rt-1');
         final dio = _FakeDio({
           '/api/auth/refresh': (data) async => _response(
@@ -344,8 +266,7 @@ void main() {
     );
 
     test('deve invalidar sessao em status 401 do refresh', () async {
-      final storage = _MemorySecurityStorage()
-        ..seedTokens(refreshToken: 'rt-1');
+      final storage = MemorySecurityStorage()..seedTokens(refreshToken: 'rt-1');
       final dio = _FakeDio({
         '/api/auth/refresh': (data) async =>
             _response('/api/auth/refresh', statusCode: 401),
@@ -365,8 +286,7 @@ void main() {
     });
 
     test('nao deve deslogar em 400 Invalid Host Header do gateway', () async {
-      final storage = _MemorySecurityStorage()
-        ..seedTokens(refreshToken: 'rt-1');
+      final storage = MemorySecurityStorage()..seedTokens(refreshToken: 'rt-1');
       await storage.saveApiKey('key-1');
       final authNotifier = AuthNotifier(
         initialState: AuthRouteState.authenticated,
@@ -404,8 +324,7 @@ void main() {
     });
 
     test('nao deve deslogar em 403 HTML do WAF lancado pelo Dio', () async {
-      final storage = _MemorySecurityStorage()
-        ..seedTokens(refreshToken: 'rt-1');
+      final storage = MemorySecurityStorage()..seedTokens(refreshToken: 'rt-1');
       await storage.saveApiKey('key-1');
       final authNotifier = AuthNotifier(
         initialState: AuthRouteState.authenticated,
@@ -450,7 +369,7 @@ void main() {
     test(
       'deve encerrar sessao quando a API recusa o refresh por chave inativa',
       () async {
-        final storage = _MemorySecurityStorage()
+        final storage = MemorySecurityStorage()
           ..seedTokens(refreshToken: 'rt-1');
         await storage.saveApiKey('key-1');
         final authNotifier = AuthNotifier(
@@ -494,7 +413,7 @@ void main() {
     test(
       'deve fazer logout completo quando a API sinaliza API key invalida',
       () async {
-        final storage = _MemorySecurityStorage()
+        final storage = MemorySecurityStorage()
           ..seedTokens(refreshToken: 'rt-1');
         await storage.saveApiKey('key-1');
         final authNotifier = AuthNotifier(
@@ -531,8 +450,7 @@ void main() {
     );
 
     test('nao deve invalidar sessao em status 500 do refresh', () async {
-      final storage = _MemorySecurityStorage()
-        ..seedTokens(refreshToken: 'rt-1');
+      final storage = MemorySecurityStorage()..seedTokens(refreshToken: 'rt-1');
       final dio = _FakeDio({
         '/api/auth/refresh': (data) async =>
             _response('/api/auth/refresh', statusCode: 500),
@@ -567,7 +485,7 @@ void main() {
           DioExceptionType.receiveTimeout,
           DioExceptionType.sendTimeout,
         ]) {
-          final storage = _MemorySecurityStorage()
+          final storage = MemorySecurityStorage()
             ..seedTokens(refreshToken: 'rt-1');
           final authNotifier = AuthNotifier(
             initialState: AuthRouteState.authenticated,
@@ -605,13 +523,13 @@ void main() {
   });
 
   group('AuthService.refreshToken com HTTP 429', () {
-    late _MemorySecurityStorage storage;
+    late MemorySecurityStorage storage;
     late AuthNotifier authNotifier;
     late _FakeClock clock;
     late int refreshCalls;
 
     setUp(() async {
-      storage = _MemorySecurityStorage()..seedTokens(refreshToken: 'rt-1');
+      storage = MemorySecurityStorage()..seedTokens(refreshToken: 'rt-1');
       await storage.saveApiKey('key-1');
       authNotifier = AuthNotifier(initialState: AuthRouteState.authenticated);
       clock = _FakeClock();
@@ -781,8 +699,6 @@ void main() {
 
     test('via CustomDio real: 429 com Retry-After vira DioException e '
         'bloqueia novas chamadas HTTP', () async {
-      CustomDio.resetForTest();
-      addTearDown(CustomDio.resetForTest);
       final adapter = _FixedAdapter(
         429,
         jsonEncode(_rateLimitBody),
@@ -790,9 +706,10 @@ void main() {
           'retry-after': ['10'],
         },
       );
-      final dio = CustomDio.authDioInstance()
-        ..options.baseUrl = 'https://test.example.com'
-        ..httpClientAdapter = adapter;
+      final dio = CustomDio(
+        baseUri: Uri.parse('https://test.example.com'),
+        adapter: adapter,
+      ).createAuthDio();
       final service = AuthService(
         dio: dio,
         storage: storage,
@@ -826,7 +743,7 @@ void main() {
     test(
       'deve restaurar sessao via api key salva quando nao ha tokens',
       () async {
-        final storage = _MemorySecurityStorage();
+        final storage = MemorySecurityStorage();
         await storage.saveApiKey('key-1');
         final dio = _FakeDio({
           '/api/auth/token': (data) async => _response(
@@ -858,7 +775,7 @@ void main() {
     test(
       'deve limpar provisioning quando authenticate falha com 401',
       () async {
-        final storage = _MemorySecurityStorage();
+        final storage = MemorySecurityStorage();
         await storage.saveApiKey('invalid-key');
         final dio = _FakeDio({
           '/api/auth/token': (data) async {
@@ -890,7 +807,7 @@ void main() {
     test(
       'authenticate nao deve definir needsSetup em erro transitorio de rede',
       () async {
-        final storage = _MemorySecurityStorage();
+        final storage = MemorySecurityStorage();
         await storage.saveApiKey('key-1');
         final notifier = AuthNotifier(initialState: AuthRouteState.offline);
         final dio = _FakeDio({
@@ -920,7 +837,7 @@ void main() {
     test(
       'deve falhar restore e limpar provisioning em api key invalida',
       () async {
-        final storage = _MemorySecurityStorage();
+        final storage = MemorySecurityStorage();
         await storage.saveApiKey('invalid-key');
         final dio = _FakeDio({
           '/api/auth/token': (data) async {
@@ -947,7 +864,7 @@ void main() {
     test(
       'restoreSessionFromStoredApiKey retorna noApiKey quando nao ha chave salva',
       () async {
-        final storage = _MemorySecurityStorage();
+        final storage = MemorySecurityStorage();
         final service = AuthService(
           dio: _FakeDio({}),
           storage: storage,
@@ -963,7 +880,7 @@ void main() {
     test(
       'initializeAuthState deve autenticar quando sessao ja existe',
       () async {
-        final storage = _MemorySecurityStorage()
+        final storage = MemorySecurityStorage()
           ..seedTokens(accessToken: 'at-1', refreshToken: 'rt-1');
         final dio = _FakeDio({});
         final service = AuthService(
@@ -982,7 +899,7 @@ void main() {
     test(
       'initializeAuthState deve ir para offline e preservar apiKey em erro de rede no bootstrap',
       () async {
-        final storage = _MemorySecurityStorage();
+        final storage = MemorySecurityStorage();
         await storage.saveApiKey('key-1');
         final dio = _FakeDio({
           '/api/auth/token': (data) async {
@@ -1009,7 +926,7 @@ void main() {
     test(
       'initializeAuthState deve ir para storageError quando storage lanca excecao no boot',
       () async {
-        final storage = _MemorySecurityStorage()
+        final storage = MemorySecurityStorage()
           ..getRefreshTokenError = PlatformException(
             code: 'KEYSTORE_ERR',
             message: 'Keystore unavailable',
@@ -1030,7 +947,7 @@ void main() {
     test(
       'initializeAuthState deve ir para storageError quando getBoundDeviceId falha durante restore',
       () async {
-        final storage = _MemorySecurityStorage();
+        final storage = MemorySecurityStorage();
         await storage.saveApiKey('key-1');
         storage.getBoundDeviceIdError = PlatformException(
           code: 'KEYSTORE_WRITE_ERR',
@@ -1054,7 +971,7 @@ void main() {
     test(
       'logout durante refresh em voo descarta token do refresh e mantém storage limpo',
       () async {
-        final storage = _MemorySecurityStorage()
+        final storage = MemorySecurityStorage()
           ..seedTokens(accessToken: 'at-old', refreshToken: 'rt-1');
         await storage.saveApiKey('key-1');
         final authNotifier = AuthNotifier(
@@ -1103,7 +1020,7 @@ void main() {
     test(
       'forceLogout durante refresh em voo descarta token do refresh e mantém storage limpo',
       () async {
-        final storage = _MemorySecurityStorage()
+        final storage = MemorySecurityStorage()
           ..seedTokens(accessToken: 'at-old', refreshToken: 'rt-1');
         await storage.saveApiKey('key-1');
         final authNotifier = AuthNotifier(
@@ -1146,7 +1063,7 @@ void main() {
     test(
       'novo authenticate durante refresh em voo não é sobrescrito pelo token antigo',
       () async {
-        final storage = _MemorySecurityStorage()
+        final storage = MemorySecurityStorage()
           ..seedTokens(accessToken: 'at-old', refreshToken: 'rt-1');
         final authNotifier = AuthNotifier(
           initialState: AuthRouteState.needsSetup,
@@ -1202,7 +1119,7 @@ void main() {
         final expiredJwt = _makeJwt(nowSec - 300);
         final validJwt = _makeJwt(nowSec + 3600);
 
-        final storageExpired = _MemorySecurityStorage()
+        final storageExpired = MemorySecurityStorage()
           ..seedTokens(accessToken: expiredJwt);
         final serviceExpired = AuthService(
           dio: _FakeDio({}),
@@ -1211,7 +1128,7 @@ void main() {
         );
         expect(await serviceExpired.hasSession, isFalse);
 
-        final storageMalformed = _MemorySecurityStorage()
+        final storageMalformed = MemorySecurityStorage()
           ..seedTokens(accessToken: 'not-a-jwt');
         final serviceMalformed = AuthService(
           dio: _FakeDio({}),
@@ -1220,7 +1137,7 @@ void main() {
         );
         expect(await serviceMalformed.hasSession, isFalse);
 
-        final storageValid = _MemorySecurityStorage()
+        final storageValid = MemorySecurityStorage()
           ..seedTokens(accessToken: validJwt);
         final serviceValid = AuthService(
           dio: _FakeDio({}),
@@ -1229,7 +1146,7 @@ void main() {
         );
         expect(await serviceValid.hasSession, isTrue);
 
-        final storageWithRefresh = _MemorySecurityStorage()
+        final storageWithRefresh = MemorySecurityStorage()
           ..seedTokens(accessToken: expiredJwt, refreshToken: 'rt-1');
         final serviceWithRefresh = AuthService(
           dio: _FakeDio({}),

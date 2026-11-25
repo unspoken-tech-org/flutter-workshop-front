@@ -1,25 +1,21 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_workshop_front/core/security/secure_key_value_store.dart';
 import 'package:uuid/uuid.dart';
 
+/// Credenciais do aparelho (api key, tokens, `bound_device_id`) sobre um
+/// [SecureKeyValueStore].
 class SecurityStorage {
-  /// [namespace] prefixes the API key and the tokens (`<namespace>.api_key`),
-  /// so a debug run for agents or E2E (`Config.storageNamespace`) never reads
-  /// or overwrites the setup of the developer's own runs, which share the same
-  /// keyring. The `bound_device_id` is not namespaced: it identifies the
-  /// machine, and the API binds a key to the first device that uses it.
-  SecurityStorage({
-    String namespace = '',
-    FlutterSecureStorage storage = const FlutterSecureStorage(
-      aOptions: AndroidOptions(),
-      wOptions: WindowsOptions(),
-    ),
-  }) : _storage = storage,
-       _kApiKey = _key(namespace, 'api_key'),
-       _kAccessToken = _key(namespace, 'access_token'),
-       _kRefreshToken = _key(namespace, 'refresh_token'),
-       _namespaced = namespace.isNotEmpty;
+  /// [namespace] prefixa a API key e os tokens (`<namespace>.api_key`), para
+  /// que um run de agente/E2E em debug (`AppConfig.storageNamespace`) nunca
+  /// leia nem sobrescreva o setup do dev, que divide o mesmo keyring. O
+  /// `bound_device_id` não tem namespace: identifica a máquina, e a API
+  /// prende a chave ao primeiro aparelho que a usa.
+  SecurityStorage(this._storage, {String namespace = ''})
+    : _kApiKey = _key(namespace, 'api_key'),
+      _kAccessToken = _key(namespace, 'access_token'),
+      _kRefreshToken = _key(namespace, 'refresh_token'),
+      _namespaced = namespace.isNotEmpty;
 
-  final FlutterSecureStorage _storage;
+  final SecureKeyValueStore _storage;
   final String _kApiKey;
   final String _kAccessToken;
   final String _kRefreshToken;
@@ -31,49 +27,49 @@ class SecurityStorage {
       namespace.isEmpty ? name : '$namespace.$name';
 
   Future<void> saveApiKey(String key) async {
-    await _storage.write(key: _kApiKey, value: key);
+    await _storage.write(_kApiKey, key);
   }
 
   Future<String?> getApiKey() async {
-    return await _storage.read(key: _kApiKey);
+    return await _storage.read(_kApiKey);
   }
 
   Future<void> saveTokens(String accessToken, String refreshToken) async {
-    await _storage.write(key: _kAccessToken, value: accessToken);
-    await _storage.write(key: _kRefreshToken, value: refreshToken);
+    await _storage.write(_kAccessToken, accessToken);
+    await _storage.write(_kRefreshToken, refreshToken);
   }
 
   Future<void> saveAccessToken(String accessToken) async {
-    await _storage.write(key: _kAccessToken, value: accessToken);
+    await _storage.write(_kAccessToken, accessToken);
   }
 
   Future<String?> getAccessToken() async {
-    return await _storage.read(key: _kAccessToken);
+    return await _storage.read(_kAccessToken);
   }
 
   Future<String?> getRefreshToken() async {
-    return await _storage.read(key: _kRefreshToken);
+    return await _storage.read(_kRefreshToken);
   }
 
   Future<String> getBoundDeviceId() async {
-    String? boundDeviceId = await _storage.read(key: _kBoundDeviceId);
+    String? boundDeviceId = await _storage.read(_kBoundDeviceId);
     if (boundDeviceId == null) {
       boundDeviceId = const Uuid().v4();
-      await _storage.write(key: _kBoundDeviceId, value: boundDeviceId);
+      await _storage.write(_kBoundDeviceId, boundDeviceId);
     }
     return boundDeviceId;
   }
 
   Future<void> clearSession() async {
-    await _storage.delete(key: _kAccessToken);
-    await _storage.delete(key: _kRefreshToken);
+    await _storage.delete(_kAccessToken);
+    await _storage.delete(_kRefreshToken);
   }
 
   Future<void> clearProvisioning({bool removeBoundDeviceId = false}) async {
     await clearSession();
-    await _storage.delete(key: _kApiKey);
+    await _storage.delete(_kApiKey);
     if (removeBoundDeviceId) {
-      await _storage.delete(key: _kBoundDeviceId);
+      await _storage.delete(_kBoundDeviceId);
     }
   }
 
