@@ -41,25 +41,28 @@ class SearchDevicesFilterListView extends StatelessWidget {
                   color: Colors.black,
                 ),
               ),
-              OutlinedButton.icon(
-                onPressed: () {
-                  unawaited(controller.clearFilters());
-                },
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.transparent),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              Semantics(
+                identifier: 'searchDevices.filter.clear',
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    unawaited(controller.clearFilters());
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.transparent),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
-                ),
-                label: const Text(
-                  'Limpar filtros',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
+                  label: const Text(
+                    'Limpar filtros',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
                   ),
+                  icon: const Icon(Icons.close, color: Colors.black),
                 ),
-                icon: const Icon(Icons.close, color: Colors.black),
               ),
             ],
           ),
@@ -99,6 +102,7 @@ class SearchDevicesFilterListView extends StatelessWidget {
                   ),
                   Flexible(
                     child: CustomDropdownButtonFormField(
+                      semanticsIdentifier: 'searchDevices.filter.status',
                       key: GlobalKey(),
                       headerLabel: 'Status do aparelho',
                       hintText: 'Busque pelo status',
@@ -131,6 +135,7 @@ class SearchDevicesFilterListView extends StatelessWidget {
                             ),
                           ),
                           SwitchFormField(
+                            semanticsIdentifier: 'searchDevices.filter.urgency',
                             initialValue: filter.hasUrgency,
                             onChanged: (value) {
                               controller.toggleUrgency();
@@ -149,6 +154,8 @@ class SearchDevicesFilterListView extends StatelessWidget {
                             ),
                           ),
                           SwitchFormField(
+                            semanticsIdentifier:
+                                'searchDevices.filter.revision',
                             initialValue: filter.hasRevision,
                             onChanged: (value) {
                               controller.toggleRevision();

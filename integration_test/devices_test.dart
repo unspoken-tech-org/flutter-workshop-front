@@ -107,4 +107,48 @@ void main() {
       await pumpUntilFound(tester, byId('deviceDetail.edit'));
     });
   });
+
+  testWidgets('date field: X clears it, then the calendar icon is inert', (
+    tester,
+  ) async {
+    await bootApp(tester, (tester) async {
+      final entry = field(identifier: 'deviceDetail.entryDate');
+      final suffix = find.descendant(
+        of: byId('deviceDetail.entryDate'),
+        matching: find.byType(IconButton),
+      );
+
+      await tapId(tester, 'drawer.searchDevices');
+      await tapId(tester, 'device.card.1');
+      await tapId(tester, 'deviceDetail.edit');
+      await pumpUntilFound(tester, byId('deviceDetail.save'));
+      final original = fieldText(tester, entry);
+      expect(original, isNotEmpty);
+
+      await tester.ensureVisible(suffix);
+      await tester.pump();
+      expect(
+        find.descendant(of: suffix, matching: find.byIcon(Icons.close)),
+        findsOneWidget,
+      );
+      await tester.tap(suffix);
+      await tester.pump();
+      expect(fieldText(tester, entry), isEmpty);
+
+      // Empty: the icon turns into a disabled calendar and clears nothing.
+      expect(
+        find.descendant(
+          of: suffix,
+          matching: find.byIcon(Icons.calendar_today),
+        ),
+        findsOneWidget,
+      );
+      expect(tester.widget<IconButton>(suffix).onPressed, isNull);
+
+      // Cancel restores the saved date.
+      await tapId(tester, 'deviceDetail.cancel');
+      await pumpUntilFound(tester, byId('deviceDetail.edit'));
+      expect(fieldText(tester, entry), original);
+    });
+  });
 }

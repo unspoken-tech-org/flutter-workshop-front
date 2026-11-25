@@ -69,51 +69,54 @@ class _CustomerDevicePaymentsState extends State<CustomerDevicePayments> {
                             message: isDisposed
                                 ? 'Pagamentos não são permitidos para aparelho descartado'
                                 : '',
-                            child: OutlinedButton(
-                              onPressed: isDisposed
-                                  ? null
-                                  : () {
-                                      unawaited(
-                                        showDialog<void>(
-                                          context: context,
-                                          builder: (context) {
-                                            return ChangeNotifierProvider.value(
-                                              value: controller,
-                                              child:
-                                                  const AddNewPaymentDialog(),
-                                            );
-                                          },
-                                        ),
-                                      );
-                                    },
-                              style: OutlinedButton.styleFrom(
-                                alignment: Alignment.center,
-                                iconColor: isDisposed
-                                    ? Colors.grey.shade400
-                                    : Colors.black,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(6),
-                                  side: BorderSide(
-                                    color: isDisposed
-                                        ? Colors.grey.shade400
-                                        : Colors.black,
+                            child: Semantics(
+                              identifier: 'deviceDetail.addPayment',
+                              child: OutlinedButton(
+                                onPressed: isDisposed
+                                    ? null
+                                    : () {
+                                        unawaited(
+                                          showDialog<void>(
+                                            context: context,
+                                            builder: (context) {
+                                              return ChangeNotifierProvider.value(
+                                                value: controller,
+                                                child:
+                                                    const AddNewPaymentDialog(),
+                                              );
+                                            },
+                                          ),
+                                        );
+                                      },
+                                style: OutlinedButton.styleFrom(
+                                  alignment: Alignment.center,
+                                  iconColor: isDisposed
+                                      ? Colors.grey.shade400
+                                      : Colors.black,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                    side: BorderSide(
+                                      color: isDisposed
+                                          ? Colors.grey.shade400
+                                          : Colors.black,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              child: Row(
-                                spacing: 6,
-                                children: [
-                                  if (showLabel)
-                                    Text(
-                                      'Adicionar',
-                                      style: TextStyle(
-                                        color: isDisposed
-                                            ? Colors.grey.shade400
-                                            : Colors.black,
+                                child: Row(
+                                  spacing: 6,
+                                  children: [
+                                    if (showLabel)
+                                      Text(
+                                        'Adicionar',
+                                        style: TextStyle(
+                                          color: isDisposed
+                                              ? Colors.grey.shade400
+                                              : Colors.black,
+                                        ),
                                       ),
-                                    ),
-                                  const Icon(Icons.add, size: 16),
-                                ],
+                                    const Icon(Icons.add, size: 16),
+                                  ],
+                                ),
                               ),
                             ),
                           ),

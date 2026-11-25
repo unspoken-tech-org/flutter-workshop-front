@@ -46,6 +46,7 @@ class DiagnosticDeviceInfoWidget extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               CustomTextField(
+                semanticsIdentifier: 'deviceDetail.problem',
                 headerLabel: 'Problema',
                 value: deviceCustomer.problem,
                 readOnly: !isEditing,
@@ -66,6 +67,7 @@ class DiagnosticDeviceInfoWidget extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               CustomTextField(
+                semanticsIdentifier: 'deviceDetail.budget',
                 headerLabel: 'Orçamento',
                 value: deviceCustomer.budget,
                 readOnly: !isEditing,

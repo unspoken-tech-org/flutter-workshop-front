@@ -74,12 +74,15 @@ class DashboardStatsView extends StatelessWidget {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 12),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            unawaited(controller.getDeviceStatistics());
-                          },
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Tentar novamente'),
+                        Semantics(
+                          identifier: 'home.stats.retry',
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              unawaited(controller.getDeviceStatistics());
+                            },
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Tentar novamente'),
+                          ),
                         ),
                       ],
                     ),

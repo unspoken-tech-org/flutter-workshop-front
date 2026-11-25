@@ -2,18 +2,26 @@
 
 Usage: python3 -I ui.py --vm <vm-uri-file> <command> [args]
 
-Targets: `id=<identifier>`, `label=<text>`, or bare text (an exact
-identifier first, then an exact label or label line, then a unique label
-substring). Among several matches, nodes inside the viewport win.
+Targets: `id=<identifier>`, `label=<text>`, `hint=<text>`, `value=<text>`,
+`ref=<s_N>` (from the `snap` just before, with the screen unchanged), or bare
+text (an exact identifier first, then an exact label or label line, then a
+unique label substring, then the hint). Labels match as `snap` prints them
+(lines joined by " / ") or line by line. Among several matches, nodes inside
+the viewport win.
 
 Commands (print `ok`, or `error: <code>: <detail>` and exit 1):
-  snap [--id PREFIX] [--under TARGET]   compact tree: no empty nodes, no bounds
+  snap [--id PREFIX] [--under TARGET]   compact tree: no empty nodes, no bounds;
+                                        first line has the viewport size
+  size                                  viewport size, and the size requested
+                                        with WINDOW (warns when they differ)
   tap TARGET                            scrolls the target into view first
-  type TARGET TEXT                      types into the target's text field
+  type TARGET TEXT                      focuses the target's text field, then
+                                        types (autocomplete fields need focus)
   type-secret TARGET VAR FILE           types VAR's value from an env FILE;
                                         never prints the value
-  wait TARGET [--gone] [--timeout MS]   identifier -> node predicate; text ->
-                                        text/noText predicate
+  wait TARGET [--gone] [--timeout MS]   id= waits in the app (node predicate);
+                                        other targets poll `snap` with the
+                                        same matching as tap
   assert-text TEXT / assert-no-text TEXT
   errors [COUNT]                        app errors, first line of each
   back                                  navigate pop
@@ -24,6 +32,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 
 FIELDS = ["ref", "type", "identifier", "label", "value", "hint", "enabled",
           "actions", "children", "visibleInViewport", "center"]
@@ -73,6 +82,39 @@ class App:
         return Snapshot(self.call("semantic_snapshot", {"fields": FIELDS, **extra}))
 
 
+KINDS = ("id", "label", "hint", "value", "ref")
+
+
+SPACES = str.maketrans({"\u00a0": " ", "\u202f": " ", "\u2007": " "})
+
+
+def norm(text):
+    """Currency and date formats use non-breaking spaces; `snap` shows them
+    as plain spaces, so matching treats them alike."""
+    return str(text or "").translate(SPACES)
+
+
+def split_target(target):
+    """(kind, text); kind "any" for bare text."""
+    kind, _, text = target.partition("=")
+    if kind in KINDS and text:
+        return kind, norm(text)
+    return "any", norm(target)
+
+
+def unique(nodes):
+    seen, out = set(), []
+    for n in nodes:
+        if n["ref"] not in seen:
+            seen.add(n["ref"])
+            out.append(n)
+    return out
+
+
+def size_text(width, height):
+    return f"{round(width)}x{round(height)}"
+
+
 class Snapshot:
     def __init__(self, data):
         self.id = data.get("snapshot_id")
@@ -100,17 +142,28 @@ class Snapshot:
             ref = self.parent.get(ref)
 
     def find(self, target):
-        kind, _, text = target.partition("=")
-        if kind not in ("id", "label") or not text:
-            kind, text = "any", target
+        kind, text = split_target(target)
+        if kind == "ref":
+            node = self.by_ref.get(text)
+            return [node] if node else []
         found = []
         if kind in ("id", "any"):
             found = [n for n in self.nodes if n.get("identifier") == text]
         if not found and kind in ("label", "any"):
-            labels = [(n, n.get("label") or "") for n in self.nodes]
-            found = [n for n, lab in labels if lab == text] or \
-                [n for n, lab in labels if text in lab.split("\n")] or \
-                [n for n, lab in labels if text in lab]
+            # `snap` prints label lines joined by " / ": accept both forms.
+            labels = [(n, norm(n.get("label"))) for n in self.nodes]
+            labels += [(n, lab.replace("\n", " / ")) for n, lab in labels
+                       if "\n" in lab]
+            found = unique([n for n, lab in labels if lab == text] or
+                           [n for n, lab in labels if text in lab.split("\n")] or
+                           [n for n, lab in labels if text in lab])
+        for field in ("hint", "value"):
+            if not found and kind in (field, "any"):
+                values = [(n, norm(n.get(field))) for n in self.nodes]
+                found = [n for n, v in values if v == text] or \
+                    [n for n, v in values if text and text in v]
+            if field == "hint" and kind == "any":
+                break  # bare text never matches a field's typed value
         visible = [n for n in found if n.get("visibleInViewport")]
         return visible or found
 
@@ -159,10 +212,10 @@ def in_view(snap, node):
 def reveal(app, target, want):
     """Snapshot, resolve, scroll into view; returns (snapshot, node)."""
     snap = app.snapshot()
-    if not snap.find(target):
-        kind, _, text = target.partition("=")
+    kind, text = split_target(target)
+    if not snap.find(target) and kind in ("id", "label", "any"):
         by = "identifier" if kind == "id" else "text"
-        query = text if kind in ("id", "label") else target
+        query = text
         try:
             app.call("reveal_search", {"query": query, "matchBy": by,
                                        "maxAttempts": 5})
@@ -194,6 +247,16 @@ def scroll_into_view(app, snap, node):
                         "distance": int(max(dist, 50)), "snapshotId": snap.id})
 
 
+def focus(app, target):
+    """Focuses the field first: an Autocomplete shows its options only while
+    its field has focus, and enter_text alone does not give it."""
+    snap, node = reveal(app, target, "text")
+    try:
+        app.call("focus_widget", {"ref": node["ref"], "snapshotId": snap.id})
+    except UiError:
+        pass  # typing still works; only the options overlay may not open
+
+
 def describe(snap, node):
     parts = [node["ref"], node.get("type") or "?"]
     if node.get("identifier"):
@@ -222,6 +285,15 @@ def is_noise(node):
     return not (node.get("actions") and node.get("children"))
 
 
+def subtree_root(app, target):
+    """subtreeOf takes a bare identifier or a ref of the latest snapshot;
+    other targets resolve to the ref of a fresh snapshot."""
+    kind, text = split_target(target)
+    if kind in ("id", "ref"):
+        return text
+    return app.snapshot().one(target)["ref"]
+
+
 def cmd_snap(app, args):
     extra = {}
     while args:
@@ -229,11 +301,13 @@ def cmd_snap(app, args):
         if flag == "--id":
             extra["identifierPrefix"] = args.pop(0)
         elif flag == "--under":
-            extra["subtreeOf"] = args.pop(0)
+            extra["subtreeOf"] = subtree_root(app, args.pop(0))
         else:
             raise UiError("bad_args", flag)
     snap = app.snapshot(**extra)
-    print("snapshot", snap.id)
+    vp = snap.viewport
+    size = f" viewport {size_text(vp['width'], vp['height'])}" if vp else ""
+    print(f"snapshot {snap.id}{size}")
     for n in snap.nodes:
         if not is_noise(n):
             print(describe(snap, n))
@@ -248,8 +322,39 @@ def env_value(path, var):
     raise UiError("var_not_found", f"{var} in {path}")
 
 
+def wait_match(app, target, gone, timeout_ms):
+    """Polls snapshots with the same matching as tap/type."""
+    deadline = time.monotonic() + timeout_ms / 1000
+    while True:
+        if bool(app.snapshot().find(target)) != gone:
+            return
+        if time.monotonic() >= deadline:
+            raise UiError("wait_timeout", f"{target} after {timeout_ms}ms")
+        time.sleep(0.3)
+
+
+def cmd_size(app, vm_file):
+    """Prints the real viewport and the WINDOW the run script asked for."""
+    vp = app.snapshot().viewport
+    if not vp:
+        raise UiError("no_viewport", "snapshot without viewport")
+    real = size_text(vp["width"], vp["height"])
+    line = f"viewport {real} (logical px)"
+    try:
+        with open(os.path.join(os.path.dirname(vm_file), "window.txt")) as f:
+            requested = f.read().strip()
+    except OSError:
+        requested = ""
+    if requested:
+        line += f"; requested WINDOW={requested}"
+        if requested != real:
+            line += " MISMATCH: the window manager kept another size (headed"\
+                " KDE often does); judge layout by the viewport"
+    print(line)
+
+
 def has_text(snap, text):
-    return any(text in (n.get(k) or "") for n in snap.nodes
+    return any(norm(text) in norm(n.get(k)) for n in snap.nodes
                for k in ("label", "value", "hint"))
 
 
@@ -262,10 +367,14 @@ def main(argv):
     if cmd == "snap":
         cmd_snap(app, args)
         return 0
+    if cmd == "size":
+        cmd_size(app, argv[1])
+        return 0
     if cmd == "tap":
         snap, node = reveal(app, args[0], "tap")
         app.call("tap_widget", {"ref": node["ref"], "snapshotId": snap.id})
     elif cmd == "type":
+        focus(app, args[0])
         snap, node = reveal(app, args[0], "text")
         app.call("enter_text", {"ref": node["ref"], "text": args[1],
                                 "snapshotId": snap.id})
@@ -279,13 +388,12 @@ def main(argv):
         target, gone, timeout = args[0], "--gone" in args, 10000
         if "--timeout" in args:
             timeout = int(args[args.index("--timeout") + 1])
-        kind, _, text = target.partition("=")
+        kind, text = split_target(target)
         if kind == "id":
             pred = {"kind": "node", "identifier": text, "absent": gone}
+            app.call("wait_for", {"predicate": pred, "timeoutMs": timeout})
         else:
-            text = text if kind == "label" else target
-            pred = {"kind": "noText" if gone else "text", "text": text}
-        app.call("wait_for", {"predicate": pred, "timeoutMs": timeout})
+            wait_match(app, target, gone, timeout)
     elif cmd in ("assert-text", "assert-no-text"):
         present = has_text(app.snapshot(), args[0])
         if present != (cmd == "assert-text"):

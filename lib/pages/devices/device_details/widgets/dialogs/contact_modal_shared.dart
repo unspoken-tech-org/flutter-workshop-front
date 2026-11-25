@@ -21,42 +21,48 @@ class ActionButtonsWidget extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        OutlinedButton(
-          onPressed: isSaving
-              ? null
-              : () {
-                  formKey.currentState?.reset();
-                  dateController.clear();
-                },
-          child: const Text('Limpar'),
+        Semantics(
+          identifier: 'contactDialog.clear',
+          child: OutlinedButton(
+            onPressed: isSaving
+                ? null
+                : () {
+                    formKey.currentState?.reset();
+                    dateController.clear();
+                  },
+            child: const Text('Limpar'),
+          ),
         ),
         const SizedBox(width: 16),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: WsColors.dark,
-            foregroundColor: Colors.white,
-          ),
-          onPressed: isSaving
-              ? null
-              : () async {
-                  if (formKey.currentState?.validate() ?? false) {
-                    formKey.currentState?.save();
-                    final saved = await onSave();
-                    if (saved && context.mounted) {
-                      Navigator.of(context).pop();
+        Semantics(
+          identifier: 'contactDialog.save',
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: WsColors.dark,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: isSaving
+                ? null
+                : () async {
+                    if (formKey.currentState?.validate() ?? false) {
+                      formKey.currentState?.save();
+                      final saved = await onSave();
+                      if (saved && context.mounted) {
+                        Navigator.of(context).pop();
+                      }
                     }
-                  }
-                },
-          child: isSaving
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : const Text('Salvar'),
+                  },
+            child: isSaving
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Salvar'),
+          ),
         ),
       ],
     );

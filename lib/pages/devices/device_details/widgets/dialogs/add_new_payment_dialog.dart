@@ -77,9 +77,12 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text('+ Adicionar Pagamento'),
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.of(context).pop(),
+          Semantics(
+            identifier: 'paymentDialog.close',
+            child: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
           ),
         ],
       ),
@@ -91,6 +94,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               CustomDropdownButtonFormField(
+                semanticsIdentifier: 'paymentDialog.category',
                 headerLabel: 'Categoria',
                 errorMaxLines: 2,
                 items: PaymentCategory.values
@@ -134,6 +138,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
               ),
               const SizedBox(height: 16),
               CustomDropdownButtonFormField(
+                semanticsIdentifier: 'paymentDialog.type',
                 headerLabel: 'Tipo de Pagamento',
                 items: PaymentType.values.map((e) => e.displayName).toList(),
                 onSave: (value) {
@@ -155,6 +160,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
               ),
               const SizedBox(height: 16),
               CustomTextField(
+                semanticsIdentifier: 'paymentDialog.value',
                 headerLabel: 'Valor',
                 controller: _valueController,
                 onSave: (value) {
@@ -205,6 +211,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
               ),
               const SizedBox(height: 16),
               CustomDateFormField(
+                semanticsIdentifier: 'paymentDialog.date',
                 dateController: _dateController,
                 label: 'Data do Pagamento',
                 errorMaxLines: 2,
@@ -242,6 +249,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
               ),
               const SizedBox(height: 16),
               CustomDropdownButtonFormField(
+                semanticsIdentifier: 'paymentDialog.receivedBy',
                 headerLabel: 'Recebido por',
                 hintText: 'Selecione quem recebeu',
                 items: controller.technicians
@@ -269,31 +277,40 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
+        Semantics(
+          identifier: 'paymentDialog.cancel',
+          child: TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+              side: BorderSide(color: Colors.grey.shade300),
+              foregroundColor: Colors.black,
             ),
-            side: BorderSide(color: Colors.grey.shade300),
-            foregroundColor: Colors.black,
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: Colors.black),
+            ),
           ),
-          child: const Text('Cancelar', style: TextStyle(color: Colors.black)),
         ),
-        ElevatedButton(
-          onPressed: () async => await _createNewPayment(context),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
+        Semantics(
+          identifier: 'paymentDialog.submit',
+          child: ElevatedButton(
+            onPressed: () async => await _createNewPayment(context),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+              side: BorderSide(color: Colors.indigo.shade900),
+              backgroundColor: Colors.indigo.shade900,
             ),
-            side: BorderSide(color: Colors.indigo.shade900),
-            backgroundColor: Colors.indigo.shade900,
-          ),
-          child: const Text(
-            'Adicionar Pagamento',
-            style: TextStyle(color: Colors.white),
+            child: const Text(
+              'Adicionar Pagamento',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ),
       ],

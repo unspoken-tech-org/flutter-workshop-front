@@ -63,13 +63,16 @@ class _WsSearchBarWidgetState extends State<WsSearchBarWidget> {
             borderSide: BorderSide(color: Colors.blue.shade700),
           ),
           suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _debouncer.cancel();
-                    _searchController.clear();
-                    widget.onClear?.call();
-                  },
+              ? Semantics(
+                  identifier: '${widget.semanticsIdentifier}.clear',
+                  child: IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _debouncer.cancel();
+                      _searchController.clear();
+                      widget.onClear?.call();
+                    },
+                  ),
                 )
               : null,
         ),

@@ -64,14 +64,19 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                                 message: controller.errorMessage!,
                               ),
                               const SizedBox(height: 12),
-                              OutlinedButton.icon(
-                                onPressed: () {
-                                  unawaited(
-                                    controller.fetchCustomer(widget.customerId),
-                                  );
-                                },
-                                icon: const Icon(Icons.refresh),
-                                label: const Text('Tentar novamente'),
+                              Semantics(
+                                identifier: 'customerDetail.retry',
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    unawaited(
+                                      controller.fetchCustomer(
+                                        widget.customerId,
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('Tentar novamente'),
+                                ),
                               ),
                             ],
                           ),

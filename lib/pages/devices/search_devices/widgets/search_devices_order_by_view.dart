@@ -30,25 +30,28 @@ class SearchOrderByView extends StatelessWidget {
                 ),
               ),
               Flexible(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    context.read<SearchDevicesController>().clearOrderBy();
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.transparent),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                child: Semantics(
+                  identifier: 'searchDevices.orderBy.clear',
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      context.read<SearchDevicesController>().clearOrderBy();
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.transparent),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                  ),
-                  label: const Text(
-                    'Limpar ordenação',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
+                    label: const Text(
+                      'Limpar ordenação',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
                     ),
+                    icon: const Icon(Icons.close, color: Colors.black),
                   ),
-                  icon: const Icon(Icons.close, color: Colors.black),
                 ),
               ),
             ],

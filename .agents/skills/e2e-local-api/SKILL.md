@@ -12,6 +12,7 @@ Sobe a API a partir do HEAD do repo `workshop_rest_api`, sem tocar no checkout d
 - Nunca leia nem imprima o `.env` do checkout principal, nem a API key gerada. A chave só circula por arquivo (`test-auth.env`).
 - Arquivos temporários ficam no scratchpad da sessão (`STATE`).
 - `sleep` em primeiro plano é bloqueado: espere com `timeout N bash -c 'until …; do sleep 2; done'`.
+- O shell é zsh: variável com comando (`P="docker exec ..."; $P`) não se divide em palavras e glob sem match (`--include=*.java`) aborta o comando. Use função ou script e ponha aspas no glob.
 - Não use `pkill -f`/`pgrep -f` com um padrão que apareça no próprio comando, porque isso mata o seu shell (exit 144). Use os arquivos `*.pid`.
 - Na limpeza, nunca rode `docker builder prune`: ele apaga o cache de build da máquina inteira.
 
@@ -24,14 +25,21 @@ O que o script faz:
 - **Código da API:** `git archive HEAD` copiado para `$STATE/api-src`, e o build da imagem `e2e-local-api:local` sai dessa cópia (reutilizada automaticamente enquanto o `HEAD` da API não mudar; passe `E2E_REBUILD=1` para forçar rebuild). Para testar outro branch da API, troque `HEAD` no script.
 - **Banco:** Postgres `16.15-alpine3.24` em tmpfs. Sem `--user`, porque com ele o initdb falha.
 - **API:** perfil `qa`. A senha do banco entra via configtree e as chaves JWT de dev do repo ficam em `/app/config/qa_keys`.
-- **Seed:** a API key sintética vem do `seed.sql` do projeto (role ADMIN). Os dados de referência vêm de `scripts/seed_reference.sql`: 1 técnico, tipo/marca/modelo, cor, cliente com telefone e o aparelho #1 com status `NOVO`.
+- **Seed:** a API key sintética vem do `seed.sql` do projeto (role ADMIN). `scripts/seed_reference.sql` é só a base mínima e um exemplo de inserts: 1 técnico, tipo/marca/modelo, cor, cliente com telefone e o aparelho #1 com status `NOVO`. Não o amplie para um plano: os dados de cada cenário vêm da seção "Dados do cenário".
 - **Proxy de falhas:** fica numa porta fixa. É ele que o app usa como `BASE_URL`, e ele também responde o CORS do Flutter web.
 - **Arquivos gerados:** `$STATE/test.env` (sem chave), `$STATE/test-auth.env` (com `DEV_API_KEY`), `$STATE/proxy.log` e `$STATE/state.env`.
 
 Para saber mais sobre o schema:
+- Colunas e tipos: `bash $SKILL/scripts/sql.sh --schema devices` (sem tabela, lista as tabelas). Consulte antes de escrever SQL; não adivinhe nomes (`payments` não tem `value`) nem tipos (`entry_date` é timestamp: `+ interval '1 day'`).
 - Tabelas: `api_keys`, `technicians`, `types`, `brands`, `models`, `brands_models_types`, `colors`, `customers`, `phones`, `customer_phones`, `devices`, `customer_contact`, `payments`, `refresh_tokens`.
 - Status do aparelho: `NOVO`, `EM_ANDAMENTO`, `AGUARDANDO`, `ENTREGUE`, `DESCARTADO`, `APROVADO`, `NAO_APROVADO`, `PRONTO`.
 - Rotas: as de negócio são `/v1/...` e as de auth são `/api/auth/{token,refresh,revoke}`.
+
+### Dados do cenário
+Antes de cada cenário, crie o que ele precisa e anote no relatório como criou:
+- **Pela UI** quando criar o dado também exercita um fluxo (cadastrar cliente/aparelho, trocar status pelo chip, registrar pagamento).
+- **Por SQL** (`sql.sh`) quando o dado é só pré-condição: aparelho `ENTREGUE` com `departure_date`, vários aparelhos para um filtro ter o que excluir, status que aceita pagamento de serviço (`NOVO` recusa).
+- Um filtro ou contagem só prova algo com dados que ele deveria excluir: crie pelo menos um aparelho fora do critério.
 
 ## 2. Rodar o app
 Cenários que se repetem (recarga da lista de clientes, validação, total com 502, pickers de data) já estão em `integration_test/`: rode `bash .agents/skills/flutter-ui-mcp/scripts/run_integration_tests.sh $STATE`, que imprime só PASS/FAIL. Para dirigir o Linux desktop à mão, use a skill `flutter-ui-mcp` (`run_desktop_headless.sh` + `ui.py`).
@@ -76,8 +84,7 @@ bash $SKILL/scripts/api_restart.sh $STATE up     # religa a API e reaponta o pro
 
 ## 4. Coletar evidências
 - **`$STATE/proxy.log`:** método, caminho, status e modo de cada requisição, sem headers nem corpo. Prova o que foi enviado e o que voltou.
-- **Banco**, para confirmar persistência ou rejeição:
-  `docker exec e2e-local-db psql -U workshop_synthetic -d workshop_synthetic -tAc "select ... from devices where id=N"`
+- **Banco**, para confirmar persistência ou rejeição: `bash $SKILL/scripts/sql.sh "select ... from devices where id=N"`.
 - **Corpo de uma resposta:** inspecione as requisições de rede (via `read_network_requests` ou rede do Playwright/browser).
 - **Screenshot** de cada passo/falha, e console para exceções.
 - Monte o relatório por cenário: passou/falhou, a evidência e, quando algo não pôde ser testado, o motivo e como validar depois.
@@ -96,7 +103,7 @@ bash $SKILL/scripts/api_restart.sh $STATE up     # religa a API e reaponta o pro
   - Em edição, alterar o rascunho de `Valor do serviço` sem salvar não altera `"Valor a ser pago"` no card `Pagamentos` (mostra só o valor persistido).
 - **Aparelho (`Status chip` e `departureDate`):**
   - `DeviceStatusChip` abre o menu por **clique/toque** (sem depender de hover) e mantém todas as opções visíveis no viewport.
-  - Limpar `Data de saída` e salvar persiste `departure_date = NULL` no banco.
+  - Limpar `Data de saída` e salvar hoje **não** persiste: o front envia `departureDate: null` e a API trata como campo omitido, mantendo a data (só limpa ao reabrir um `ENTREGUE`/`DESCARTADO`). Item aberto no backlog; não registre como falha do front.
 - **Cliente com `gender` legado (`MALE`/`FEMALE`):**
   - Abrir o cliente do `seed_reference.sql` (`gender = 'MALE'`): o dropdown exibe `"Masculino"` sem assertion.
 - **Contato "Realizado":** `has_made_contact=t`. A edição abre com duplo clique no card (use o JS acima) e deve vir preenchida.
