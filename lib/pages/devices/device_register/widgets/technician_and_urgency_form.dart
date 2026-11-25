@@ -38,6 +38,7 @@ class TechnicianAndUrgencyForm extends StatelessWidget {
             children: [
               Flexible(
                 child: CustomDropdownButtonFormField(
+                  semanticsIdentifier: 'deviceRegister.technician',
                   hintText: 'Selecione um técnico',
                   items: controller.technicians
                       .map((technician) => technician.name.capitalizeAllWords)

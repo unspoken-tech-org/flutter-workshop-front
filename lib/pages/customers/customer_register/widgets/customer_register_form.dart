@@ -68,6 +68,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
             const CustomerRegistrationHeader(),
             const SizedBox(height: 32),
             CustomTextField(
+              semanticsIdentifier: 'customerRegister.name',
               fieldLabel: 'Nome',
               validator: (value) {
                 if (!TextValidators.hasText(value)) {
@@ -81,6 +82,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
             ),
             const SizedBox(height: 16),
             CustomTextField(
+              semanticsIdentifier: 'customerRegister.cpf',
               fieldLabel: 'CPF',
               inputFormatters: [CpfFormatter()],
               validator: (value) {
@@ -99,6 +101,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
             ),
             const SizedBox(height: 16),
             CustomDropdownButtonFormField(
+              semanticsIdentifier: 'customerRegister.gender',
               fieldLabel: 'Sexo',
               items: const ['Masculino', 'Feminino', 'Outro'],
               validator: (value) {
@@ -113,6 +116,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
             ),
             const SizedBox(height: 16),
             CustomTextField(
+              semanticsIdentifier: 'customerRegister.email',
               fieldLabel: 'Email (opcional)',
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
@@ -130,6 +134,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
             ),
             const SizedBox(height: 16),
             CustomTextField(
+              semanticsIdentifier: 'customerRegister.mainPhone',
               fieldLabel: 'Telefone Principal',
               inputFormatters: [PhoneNumberFormatter()],
               keyboardType: TextInputType.phone,
@@ -178,20 +183,23 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 spacing: 16,
                 children: [
-                  ElevatedButton(
-                    onPressed: _clear,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 16,
+                  Semantics(
+                    identifier: 'customerRegister.clear',
+                    child: ElevatedButton(
+                      onPressed: _clear,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        foregroundColor: Colors.black87,
+                        backgroundColor: Colors.white.withAlpha(230),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      foregroundColor: Colors.black87,
-                      backgroundColor: Colors.white.withAlpha(230),
+                      child: const Text('Limpar'),
                     ),
-                    child: const Text('Limpar'),
                   ),
                   Selector<CustomerRegisterController, bool>(
                     selector: (context, controller) =>

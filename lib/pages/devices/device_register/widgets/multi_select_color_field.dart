@@ -19,8 +19,12 @@ class MultiSelectColorField extends StatefulWidget {
   final void Function(ColorModel color) onColorRemoved;
   final String? Function(List<ColorModel> selectedColors)? fieldValidator;
 
+  /// `Semantics.identifier` (`<page>.<element>`) for UI tests and agents.
+  final String? semanticsIdentifier;
+
   const MultiSelectColorField({
     super.key,
+    this.semanticsIdentifier,
     this.headerLabelText,
     this.hintText,
     required this.suggestions,
@@ -436,6 +440,7 @@ class _MultiSelectColorFieldState extends State<MultiSelectColorField> {
                     return _buildDropdownContent(context, info);
                   },
               child: CustomTextField(
+                semanticsIdentifier: widget.semanticsIdentifier,
                 headerLabel: widget.headerLabelText,
                 hintText: _isAtLimit
                     ? 'Máximo de ${widget.maxSelections} cores atingido'
@@ -444,16 +449,21 @@ class _MultiSelectColorFieldState extends State<MultiSelectColorField> {
                 focusNode: _focusNode,
                 enabled: !_isAtLimit,
                 suffixIcon: _controller.text.isNotEmpty
-                    ? IconButton(
-                        onPressed: () {
-                          _controller.clear();
-                          _removeOverlay();
-                          setState(() => _suggestions = []);
-                        },
-                        icon: Icon(
-                          Icons.close,
-                          color: Colors.grey.shade600,
-                          size: 20,
+                    ? Semantics(
+                        identifier: widget.semanticsIdentifier == null
+                            ? null
+                            : '${widget.semanticsIdentifier}.clear',
+                        child: IconButton(
+                          onPressed: () {
+                            _controller.clear();
+                            _removeOverlay();
+                            setState(() => _suggestions = []);
+                          },
+                          icon: Icon(
+                            Icons.close,
+                            color: Colors.grey.shade600,
+                            size: 20,
+                          ),
                         ),
                       )
                     : null,

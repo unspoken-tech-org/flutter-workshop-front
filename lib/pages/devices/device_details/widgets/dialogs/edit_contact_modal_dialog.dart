@@ -117,6 +117,7 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
+                                    semanticsIdentifier: 'contactDialog.type',
                                     headerLabel: 'Tipo de contato',
                                     initialValue:
                                         _initialContactTypeDisplayName(),
@@ -160,6 +161,8 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                   ],
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
+                                    semanticsIdentifier:
+                                        'contactDialog.contactant',
                                     headerLabel: 'Contactante',
                                     hintText: initialTechName == null
                                         ? widget.contact.technicianName
@@ -186,6 +189,7 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
+                                    semanticsIdentifier: 'contactDialog.phone',
                                     key: ValueKey(isContactTypePersonally),
                                     headerLabel: 'Número de telefone',
                                     enabled: !isContactTypePersonally,
@@ -236,6 +240,8 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
+                                    semanticsIdentifier:
+                                        'contactDialog.deviceStatus',
                                     headerLabel: 'Status do aparelho',
                                     initialValue:
                                         widget.contact.deviceStatus ==
@@ -268,6 +274,8 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
+                                    semanticsIdentifier:
+                                        'contactDialog.contactStatus',
                                     headerLabel: 'Status do contato',
                                     initialValue:
                                         _initialContactStatusDisplayName(),
@@ -289,6 +297,7 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDateFormField(
+                                    semanticsIdentifier: 'contactDialog.date',
                                     label: 'Data do contato',
                                     dateController: _dateController,
                                     onSave: (value) {
@@ -318,24 +327,27 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                     icon: Icons.message_outlined,
                                   ),
                                   const SizedBox(height: 16),
-                                  TextFormField(
-                                    initialValue: widget.contact.conversation,
-                                    maxLines: 12,
-                                    decoration: const InputDecoration(
-                                      hintText:
-                                          'Digite aqui os detalhes da conversa, observações importantes ou próximos passos...',
-                                      border: OutlineInputBorder(),
+                                  Semantics(
+                                    identifier: 'contactDialog.message',
+                                    child: TextFormField(
+                                      initialValue: widget.contact.conversation,
+                                      maxLines: 12,
+                                      decoration: const InputDecoration(
+                                        hintText:
+                                            'Digite aqui os detalhes da conversa, observações importantes ou próximos passos...',
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      onSaved: (value) {
+                                        inputCustomerContact.message =
+                                            value ?? '';
+                                      },
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Digite aqui os detalhes da conversa';
+                                        }
+                                        return null;
+                                      },
                                     ),
-                                    onSaved: (value) {
-                                      inputCustomerContact.message =
-                                          value ?? '';
-                                    },
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Digite aqui os detalhes da conversa';
-                                      }
-                                      return null;
-                                    },
                                   ),
                                 ],
                               ),
@@ -394,9 +406,12 @@ class _EditContactHeader extends StatelessWidget {
             ),
           ],
         ),
-        IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.close),
+        Semantics(
+          identifier: 'contactDialog.close',
+          child: IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.close),
+          ),
         ),
       ],
     );

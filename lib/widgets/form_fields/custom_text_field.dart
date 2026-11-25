@@ -23,8 +23,12 @@ class CustomTextField extends StatefulWidget {
   final void Function(String)? onFieldSubmitted;
   final void Function(String)? onChanged;
 
+  /// `Semantics.identifier` (`<page>.<element>`) for UI tests and agents.
+  final String? semanticsIdentifier;
+
   const CustomTextField({
     super.key,
+    this.semanticsIdentifier,
     this.headerLabel,
     this.fieldLabel,
     this.value,
@@ -128,54 +132,60 @@ class _CustomTextFieldState extends State<CustomTextField> {
           ),
           const SizedBox(height: 8),
         ],
-        TextFormField(
-          controller: _effectiveController,
-          readOnly: widget.readOnly,
-          enabled: widget.enabled,
-          inputFormatters: widget.inputFormatters,
-          keyboardType: widget.keyboardType,
-          maxLines: widget.maxLines,
-          focusNode: widget.focusNode,
-          validator: widget.validator,
-          onSaved: widget.onSave,
-          onFieldSubmitted: widget.onFieldSubmitted,
-          onChanged: widget.onChanged,
-          decoration: InputDecoration(
-            labelText: widget.fieldLabel,
-            hintText: widget.hintText,
-            suffixIcon: widget.suffixIcon,
-            errorMaxLines: widget.errorMaxLines,
-            hintStyle: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
-            prefixText: widget.prefixText,
-            prefixIcon: widget.icon != null
-                ? Icon(widget.icon, size: 20, color: Colors.grey.shade600)
-                : null,
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 12.0,
-              horizontal: 12.0,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(
-                color: widget.selectedBorderColor ?? Colors.grey.shade300,
+        Semantics(
+          identifier: widget.semanticsIdentifier,
+          child: TextFormField(
+            controller: _effectiveController,
+            readOnly: widget.readOnly,
+            enabled: widget.enabled,
+            inputFormatters: widget.inputFormatters,
+            keyboardType: widget.keyboardType,
+            maxLines: widget.maxLines,
+            focusNode: widget.focusNode,
+            validator: widget.validator,
+            onSaved: widget.onSave,
+            onFieldSubmitted: widget.onFieldSubmitted,
+            onChanged: widget.onChanged,
+            decoration: InputDecoration(
+              labelText: widget.fieldLabel,
+              hintText: widget.hintText,
+              suffixIcon: widget.suffixIcon,
+              errorMaxLines: widget.errorMaxLines,
+              hintStyle: const TextStyle(
+                color: Color(0xFF6B7280),
+                fontSize: 14,
               ),
+              prefixText: widget.prefixText,
+              prefixIcon: widget.icon != null
+                  ? Icon(widget.icon, size: 20, color: Colors.grey.shade600)
+                  : null,
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 12.0,
+                horizontal: 12.0,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(
+                  color: widget.selectedBorderColor ?? Colors.grey.shade300,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(color: Colors.blue.shade300, width: 1.5),
+              ),
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              fillColor: Colors.white,
+              filled: true,
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.blue.shade300, width: 1.5),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            fillColor: Colors.white,
-            filled: true,
+            style: const TextStyle(color: Color(0xFF1F2937), fontSize: 14),
           ),
-          style: const TextStyle(color: Color(0xFF1F2937), fontSize: 14),
         ),
       ],
     );

@@ -30,27 +30,30 @@ class CustomerContactsListWidget extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton.icon(
-                onPressed: () => showDialog<void>(
-                  context: context,
-                  builder: (context) => ChangeNotifierProvider.value(
-                    value: controller,
-                    child: const AddContactModalDialog(),
+              Semantics(
+                identifier: 'deviceDetail.addContact',
+                child: TextButton.icon(
+                  onPressed: () => showDialog<void>(
+                    context: context,
+                    builder: (context) => ChangeNotifierProvider.value(
+                      value: controller,
+                      child: const AddContactModalDialog(),
+                    ),
                   ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 18,
+                    ),
+                    backgroundColor: const Color(0xFF6366F1),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Adicionar Contato'),
                 ),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 18,
-                  ),
-                  backgroundColor: const Color(0xFF6366F1),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                icon: const Icon(Icons.add),
-                label: const Text('Adicionar Contato'),
               ),
             ],
           ),

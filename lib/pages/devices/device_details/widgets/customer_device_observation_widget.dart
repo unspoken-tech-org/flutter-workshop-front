@@ -42,6 +42,7 @@ class CustomerDeviceObservationWidget extends StatelessWidget {
             builder: (context, deviceCustomer, child) {
               if (deviceCustomer == null) return const SizedBox.shrink();
               return CustomTextField(
+                semanticsIdentifier: 'deviceDetail.observation',
                 value: deviceCustomer.observation,
                 readOnly: !isEditing,
                 hintText: 'Descreva a observação...',

@@ -29,8 +29,12 @@ class TypeBrandModelAutocompleteFormField<T extends ITypeBrandModelColor>
   final String createLabel;
   final String createSuccessMessage;
 
+  /// `Semantics.identifier` (`<page>.<element>`) for UI tests and agents.
+  final String? semanticsIdentifier;
+
   const TypeBrandModelAutocompleteFormField({
     super.key,
+    this.semanticsIdentifier,
     TextEditingController? controller,
     this.headerLabelText,
     this.hintText,
@@ -429,6 +433,7 @@ class _TypeBrandModelAutocompleteFormFieldState<T extends ITypeBrandModelColor>
         return _buildDropdownContent(context, info);
       },
       child: CustomTextField(
+        semanticsIdentifier: widget.semanticsIdentifier,
         headerLabel: widget.headerLabelText,
         hintText: _isSelected ? null : widget.hintText,
         controller: _controller,
@@ -436,9 +441,18 @@ class _TypeBrandModelAutocompleteFormFieldState<T extends ITypeBrandModelColor>
         readOnly: _isSelected,
         enabled: widget.enabled,
         suffixIcon: _isSelected
-            ? IconButton(
-                onPressed: _clearSelection,
-                icon: Icon(Icons.close, color: Colors.grey.shade600, size: 20),
+            ? Semantics(
+                identifier: widget.semanticsIdentifier == null
+                    ? null
+                    : '${widget.semanticsIdentifier}.clear',
+                child: IconButton(
+                  onPressed: _clearSelection,
+                  icon: Icon(
+                    Icons.close,
+                    color: Colors.grey.shade600,
+                    size: 20,
+                  ),
+                ),
               )
             : null,
         selectedBorderColor: _isSelected ? _kSelectedBorderColor : null,

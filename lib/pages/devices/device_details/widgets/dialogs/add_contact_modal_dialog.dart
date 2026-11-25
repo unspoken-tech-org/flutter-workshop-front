@@ -91,6 +91,7 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
+                                    semanticsIdentifier: 'contactDialog.type',
                                     headerLabel: 'Tipo de contato',
                                     items: InputCustomerContact.contactTypes
                                         .map((e) => e.displayName)
@@ -116,6 +117,8 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
+                                    semanticsIdentifier:
+                                        'contactDialog.contactant',
                                     headerLabel: 'Contactante',
                                     items: technicians
                                         .map((e) => e.name)
@@ -137,6 +140,7 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
+                                    semanticsIdentifier: 'contactDialog.phone',
                                     key: ValueKey(isContactTypePersonally),
                                     headerLabel: 'Número de telefone',
                                     enabled: !isContactTypePersonally,
@@ -166,6 +170,8 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
+                                    semanticsIdentifier:
+                                        'contactDialog.deviceStatus',
                                     headerLabel: 'Status do aparelho',
                                     items: StatusEnum.selectableValues
                                         .map((e) => e.displayName)
@@ -190,6 +196,8 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
+                                    semanticsIdentifier:
+                                        'contactDialog.contactStatus',
                                     headerLabel: 'Status do contato',
                                     items: InputCustomerContact.contactStatuses
                                         .map((e) => e.displayName)
@@ -209,6 +217,7 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDateFormField(
+                                    semanticsIdentifier: 'contactDialog.date',
                                     label: 'Data do contato',
                                     dateController: _dateController,
                                     onSave: (value) {
@@ -238,23 +247,26 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                     icon: Icons.message_outlined,
                                   ),
                                   const SizedBox(height: 16),
-                                  TextFormField(
-                                    maxLines: 12,
-                                    decoration: const InputDecoration(
-                                      hintText:
-                                          'Digite aqui os detalhes da conversa, observações importantes ou próximos passos...',
-                                      border: OutlineInputBorder(),
+                                  Semantics(
+                                    identifier: 'contactDialog.message',
+                                    child: TextFormField(
+                                      maxLines: 12,
+                                      decoration: const InputDecoration(
+                                        hintText:
+                                            'Digite aqui os detalhes da conversa, observações importantes ou próximos passos...',
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      onSaved: (value) {
+                                        inputCustomerContact.message =
+                                            value ?? '';
+                                      },
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Digite aqui os detalhes da conversa';
+                                        }
+                                        return null;
+                                      },
                                     ),
-                                    onSaved: (value) {
-                                      inputCustomerContact.message =
-                                          value ?? '';
-                                    },
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Digite aqui os detalhes da conversa';
-                                      }
-                                      return null;
-                                    },
                                   ),
                                 ],
                               ),
@@ -312,9 +324,12 @@ class CustomerContactHeader extends StatelessWidget {
             ),
           ],
         ),
-        IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.close),
+        Semantics(
+          identifier: 'contactDialog.close',
+          child: IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.close),
+          ),
         ),
       ],
     );

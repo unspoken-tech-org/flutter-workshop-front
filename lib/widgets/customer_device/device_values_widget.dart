@@ -50,6 +50,7 @@ class DeviceValuesWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CustomTextField(
+                      semanticsIdentifier: 'deviceDetail.budgetFee',
                       headerLabel: 'Taxa de orçamento',
                       maxLines: 1,
                       errorMaxLines: 2,
@@ -83,6 +84,7 @@ class DeviceValuesWidget extends StatelessWidget {
                   const SizedBox(width: 16),
                   Expanded(
                     child: CustomTextField(
+                      semanticsIdentifier: 'deviceDetail.serviceValue',
                       headerLabel: 'Valor do serviço',
                       maxLines: 1,
                       value: (deviceCustomer.serviceValue ?? Money.zero)

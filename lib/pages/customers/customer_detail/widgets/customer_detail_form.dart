@@ -124,27 +124,30 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton.icon(
-                    onPressed: () {
-                      WsNavigator.pushDeviceRegister(
-                        context,
-                        customerId: customer.customerId,
-                        customerName: customer.name,
-                      );
-                    },
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 18,
+                  Semantics(
+                    identifier: 'customerDetail.registerDevice',
+                    child: TextButton.icon(
+                      onPressed: () {
+                        WsNavigator.pushDeviceRegister(
+                          context,
+                          customerId: customer.customerId,
+                          customerName: customer.name,
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 18,
+                        ),
+                        backgroundColor: Colors.blue.shade700,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
                       ),
-                      backgroundColor: Colors.blue.shade700,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Adicionar aparelho'),
                     ),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Adicionar aparelho'),
                   ),
                 ],
               ),
@@ -164,6 +167,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: CustomDropdownButtonFormField(
+                    semanticsIdentifier: 'customerDetail.gender',
                     initialValue: _normalizeGender(customer.gender),
                     fieldLabel: 'Sexo',
                     items: const ['Masculino', 'Feminino', 'Outro'],
@@ -190,6 +194,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                 Flexible(
                   flex: 2,
                   child: CustomTextField(
+                    semanticsIdentifier: 'customerDetail.name',
                     fieldLabel: 'Nome',
                     readOnly: !isEditing,
                     value: customer.name.capitalizeAllWords,
@@ -212,6 +217,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                 Flexible(
                   flex: 1,
                   child: CustomTextField(
+                    semanticsIdentifier: 'customerDetail.cpf',
                     fieldLabel: 'CPF',
                     readOnly: !isEditing,
                     value: CpfUtils.formatCpf(customer.cpf),
@@ -250,6 +256,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                           ) ??
                           customer.phones.firstOrNull;
                       return CustomTextField(
+                        semanticsIdentifier: 'customerDetail.mainPhone',
                         fieldLabel: 'Telefone Principal',
                         value: PhoneUtils.formatPhone(mainPhone?.number ?? ''),
                         readOnly: !isEditing,
@@ -293,6 +300,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                 Flexible(
                   flex: 1,
                   child: CustomTextField(
+                    semanticsIdentifier: 'customerDetail.email',
                     fieldLabel: 'Email',
                     readOnly: !isEditing,
                     value: customer.email,

@@ -151,18 +151,23 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
               ),
               border: const OutlineInputBorder(),
               suffixIcon: widget.enabled
-                  ? IconButton(
-                      onPressed: dateController.text.isEmpty
+                  ? Semantics(
+                      identifier: widget.semanticsIdentifier == null
                           ? null
-                          : () {
-                              setState(dateController.clear);
-                              widget.onClear?.call();
-                            },
-                      icon: Icon(
-                        dateController.text.isEmpty
-                            ? Icons.calendar_today
-                            : Icons.close,
-                        color: Colors.grey.shade500,
+                          : '${widget.semanticsIdentifier}.clear',
+                      child: IconButton(
+                        onPressed: dateController.text.isEmpty
+                            ? null
+                            : () {
+                                setState(dateController.clear);
+                                widget.onClear?.call();
+                              },
+                        icon: Icon(
+                          dateController.text.isEmpty
+                              ? Icons.calendar_today
+                              : Icons.close,
+                          color: Colors.grey.shade500,
+                        ),
                       ),
                     )
                   : Icon(Icons.calendar_today, color: Colors.grey.shade500),
