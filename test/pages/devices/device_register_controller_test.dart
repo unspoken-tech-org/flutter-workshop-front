@@ -3,28 +3,24 @@ import 'package:flutter_workshop_front/models/colors/color_model.dart';
 import 'package:flutter_workshop_front/models/customer/customer_model.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
+import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
-import 'package:flutter_workshop_front/repositories/types_brands_models/types_brands_models_repository.dart';
-import 'package:flutter_workshop_front/services/color/color_service.dart';
-import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
-import 'package:flutter_workshop_front/services/technician/technician_service.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 import '../../helpers/result_guard.dart';
 
-class _FakeTypesBrandsModelsRepository extends Fake
-    implements TypesBrandsModelsRepository {}
+class _FakeDeviceRepository extends Fake implements DeviceRepository {}
 
-class _FakeDeviceCustomerService extends Fake
-    implements DeviceCustomerService {}
-
-class _StubColorService extends Fake implements ColorService {
+class _StubCatalogRepository extends Fake implements CatalogRepository {
   @override
-  Future<Result<List<ColorModel>>> getColors() async => const Ok([]);
-}
+  Future<Result<List<ColorModel>>> getColors({
+    bool forceRefresh = false,
+  }) async => const Ok([]);
 
-class _StubTechnicianService extends Fake implements TechnicianService {
   @override
-  Future<Result<List<Technician>>> getTechnicians() async => const Ok([]);
+  Future<Result<List<Technician>>> getTechnicians({
+    bool forceRefresh = false,
+  }) async => const Ok([]);
 }
 
 class _StubCustomerRepository extends Fake implements CustomerRepository {
@@ -52,11 +48,9 @@ CustomerModel _customer(int id, String name) => CustomerModel(
 
 DeviceRegisterController _controller(CustomerRepository repository) =>
     DeviceRegisterController(
-      _FakeTypesBrandsModelsRepository(),
-      _StubColorService(),
-      _FakeDeviceCustomerService(),
-      _StubTechnicianService(),
-      repository,
+      catalogRepository: _StubCatalogRepository(),
+      deviceRepository: _FakeDeviceRepository(),
+      customerRepository: repository,
     );
 
 void main() {

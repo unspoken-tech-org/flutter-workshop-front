@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:mcp_toolkit/mcp_toolkit.dart';
 
 import 'package:flutter_workshop_front/core/logging/app_logger.dart';
+import 'package:flutter_workshop_front/core/logging/global_error_logging.dart';
 
 /// Liga o mcp_toolkit, que expõe a UI ao agente pela VM service
 /// (`flutter-mcp-toolkit`). Ativado com `--dart-define=MCP_TOOLKIT=true`;
@@ -18,6 +20,10 @@ Future<void> runWithAgentToolkit(Future<void> Function() body) async {
     return;
   }
   await MCPToolkitBinding.instance.bootstrapFlutter(
+    ensureInitialized: () {
+      WidgetsFlutterBinding.ensureInitialized();
+      configureVerboseDebugFlutterErrors();
+    },
     runApp: body,
     // Dentro da zona guardada, erros assíncronos não chegam ao
     // PlatformDispatcher.onError: registra no log e repassa ao toolkit.

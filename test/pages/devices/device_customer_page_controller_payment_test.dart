@@ -6,18 +6,15 @@ import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_device_payment.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
-import 'package:flutter_workshop_front/services/payment/payment_service.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 
-class _StubPaymentService implements PaymentService {
-  _StubPaymentService(this.result);
+class _StubDeviceRepository extends Fake implements DeviceRepository {
+  _StubDeviceRepository(this.result);
 
   final Result<void> result;
 
   @override
   Future<Result<void>> createPayment(InputPayment payment) async => result;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 DeviceCustomer _device() => DeviceCustomer.fromJson(const {
@@ -61,7 +58,7 @@ void main() {
   group('DeviceCustomerPageController.createCustomerDevicePayment', () {
     test('Ok adiciona o pagamento e devolve true', () async {
       final controller = testDeviceCustomerPageController(
-        paymentService: _StubPaymentService(const Ok(null)),
+        deviceRepository: _StubDeviceRepository(const Ok(null)),
       )..deviceCustomer = _device();
 
       final created = await controller.createCustomerDevicePayment(_payment());
@@ -73,7 +70,7 @@ void main() {
 
     test('Err devolve false e não altera os pagamentos', () async {
       final controller = testDeviceCustomerPageController(
-        paymentService: _StubPaymentService(
+        deviceRepository: _StubDeviceRepository(
           const Err(
             ValidationFailure(
               message: 'Pagamento recusado',
@@ -93,7 +90,7 @@ void main() {
 
     test('falha de rede também devolve false', () async {
       final controller = testDeviceCustomerPageController(
-        paymentService: _StubPaymentService(const Err(NetworkFailure())),
+        deviceRepository: _StubDeviceRepository(const Err(NetworkFailure())),
       )..deviceCustomer = _device();
 
       expect(await controller.createCustomerDevicePayment(_payment()), isFalse);

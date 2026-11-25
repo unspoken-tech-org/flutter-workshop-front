@@ -68,8 +68,15 @@ class PaymentTotalsWidget extends StatelessWidget {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              spacing: 8,
               children: [
-                Text('Total a ser pago', style: textTheme.bodyMedium),
+                Flexible(
+                  child: Text(
+                    'Total a ser pago',
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.bodyMedium,
+                  ),
+                ),
                 Text(
                   (deviceCustomer.serviceValue ?? Money.zero).toBrCurrency,
                   style: textTheme.bodyMedium?.copyWith(
@@ -81,11 +88,15 @@ class PaymentTotalsWidget extends StatelessWidget {
             if (totalPaid.isPositive)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                spacing: 8,
                 children: [
-                  Text(
-                    'Total pago',
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: Colors.red.shade800,
+                  Flexible(
+                    child: Text(
+                      'Total pago',
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: Colors.red.shade800,
+                      ),
                     ),
                   ),
                   Text(
@@ -111,10 +122,32 @@ class PaymentTotalsWidget extends StatelessWidget {
             builder: (context, constraints) {
               final showLabel = constraints.maxWidth > 250;
 
+              if (!showLabel && !isPaymentPending) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 8,
+                  children: [
+                    Icon(Icons.check_circle, color: iconColor),
+                    Flexible(
+                      child: Text(
+                        totalPaid.toBrCurrency,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.titleLarge?.copyWith(
+                          color: textColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
               return Row(
                 mainAxisAlignment: (showLabel && isPaymentPending)
                     ? MainAxisAlignment.spaceBetween
                     : MainAxisAlignment.center,
+                spacing: 8,
                 children: [
                   if (showLabel)
                     // Flexible + ellipsis: in a narrow column the label used
@@ -145,11 +178,16 @@ class PaymentTotalsWidget extends StatelessWidget {
                       ),
                     ),
                   if (isPaymentPending)
-                    Text(
-                      totalToBePaid.toBrCurrency,
-                      style: textTheme.titleLarge?.copyWith(
-                        color: textColor,
-                        fontWeight: FontWeight.bold,
+                    Flexible(
+                      flex: showLabel ? 0 : 1,
+                      child: Text(
+                        totalToBePaid.toBrCurrency,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.titleLarge?.copyWith(
+                          color: textColor,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                 ],

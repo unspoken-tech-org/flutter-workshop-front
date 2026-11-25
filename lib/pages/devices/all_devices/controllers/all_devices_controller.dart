@@ -9,14 +9,20 @@ import 'package:flutter_workshop_front/models/device_brand/device_brand_model.da
 import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
-import 'package:flutter_workshop_front/repositories/all_devices/all_devices_repository.dart';
+import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/utils/filter_utils.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 class AllDevicesController extends ChangeNotifier with SafeChangeNotifierMixin {
-  final AllDevicesRepository _allDevicesRepository;
+  final DeviceRepository _deviceRepository;
+  final CatalogRepository _catalogRepository;
 
-  AllDevicesController(this._allDevicesRepository, {DeviceFilter? filter}) {
+  AllDevicesController(
+    this._deviceRepository,
+    this._catalogRepository, {
+    DeviceFilter? filter,
+  }) {
     this.filter = filter ?? DeviceFilter();
     unawaited(fetchAllDevicesFiltering());
     unawaited(fetchFilterOptions());
@@ -56,7 +62,7 @@ class AllDevicesController extends ChangeNotifier with SafeChangeNotifierMixin {
       notifyListeners();
       await Future<void>.delayed(const Duration(milliseconds: 200));
       if (generation != _requestGeneration) return;
-      final result = await _allDevicesRepository.getAllDevicesFiltering(filter);
+      final result = await _deviceRepository.getAllDevicesFiltering(filter);
       if (generation != _requestGeneration) return;
       switch (result) {
         case Ok(:final value):
@@ -86,8 +92,8 @@ class AllDevicesController extends ChangeNotifier with SafeChangeNotifierMixin {
       isFiltersLoading = true;
       notifyListeners();
       final (resultTypes, resultBrands) = await (
-        _allDevicesRepository.getAllDeviceTypes(),
-        _allDevicesRepository.getAllDeviceBrands(),
+        _catalogRepository.getAllDeviceTypes(),
+        _catalogRepository.getAllDeviceBrands(),
       ).wait;
       final failure = switch ((resultTypes, resultBrands)) {
         (Err(:final failure), _) => failure,
@@ -197,7 +203,7 @@ class AllDevicesController extends ChangeNotifier with SafeChangeNotifierMixin {
       _currentPage++;
       filter.page = _currentPage;
 
-      final result = await _allDevicesRepository.getAllDevicesFiltering(filter);
+      final result = await _deviceRepository.getAllDevicesFiltering(filter);
       if (generation != _requestGeneration) return;
       switch (result) {
         case Ok(:final value):

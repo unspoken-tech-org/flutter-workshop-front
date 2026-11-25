@@ -11,28 +11,24 @@ import 'package:flutter_workshop_front/models/device/device_input.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/models/types_brands_models/type_brand_model_input.dart';
 import 'package:flutter_workshop_front/models/types_brands_models/types_brands_models.dart';
+import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
-import 'package:flutter_workshop_front/repositories/types_brands_models/types_brands_models_repository.dart';
-import 'package:flutter_workshop_front/services/color/color_service.dart';
-import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
-import 'package:flutter_workshop_front/services/technician/technician_service.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 class DeviceRegisterController extends ChangeNotifier
     with SafeChangeNotifierMixin {
-  final TypesBrandsModelsRepository _typesBrandsModelsRepository;
-  final ColorService _colorService;
-  final DeviceCustomerService _deviceCustomerService;
-  final TechnicianService _technicianService;
+  final CatalogRepository _catalogRepository;
+  final DeviceRepository _deviceRepository;
   final CustomerRepository _customerRepository;
 
-  DeviceRegisterController(
-    this._typesBrandsModelsRepository,
-    this._colorService,
-    this._deviceCustomerService,
-    this._technicianService,
-    this._customerRepository,
-  );
+  DeviceRegisterController({
+    required CatalogRepository catalogRepository,
+    required DeviceRepository deviceRepository,
+    required CustomerRepository customerRepository,
+  }) : _catalogRepository = catalogRepository,
+       _deviceRepository = deviceRepository,
+       _customerRepository = customerRepository;
 
   List<ColorModel> allColors = [];
   List<Technician> technicians = [];
@@ -88,7 +84,7 @@ class DeviceRegisterController extends ChangeNotifier
   }
 
   Future<void> fetchColors() async {
-    switch (await _colorService.getColors()) {
+    switch (await _catalogRepository.getColors()) {
       case Ok(:final value):
         allColors = value;
       case Err(:final failure):
@@ -97,7 +93,7 @@ class DeviceRegisterController extends ChangeNotifier
   }
 
   Future<void> fetchTechnicians() async {
-    switch (await _technicianService.getTechnicians()) {
+    switch (await _catalogRepository.getTechnicians()) {
       case Ok(:final value):
         technicians = value;
       case Err(:final failure):
@@ -141,24 +137,20 @@ class DeviceRegisterController extends ChangeNotifier
   }
 
   Future<List<Type>> searchTypes(String query) async {
-    final page = _unwrapOrThrow(
-      await _typesBrandsModelsRepository.searchTypes(query),
-    );
+    final page = _unwrapOrThrow(await _catalogRepository.searchTypes(query));
     return page.content;
   }
 
   Future<List<Brand>> searchBrands(String query) async {
     if (selectedType == null) return [];
-    final page = _unwrapOrThrow(
-      await _typesBrandsModelsRepository.searchBrands(query),
-    );
+    final page = _unwrapOrThrow(await _catalogRepository.searchBrands(query));
     return page.content;
   }
 
   Future<List<Model>> searchModels(String query) async {
     if (selectedType == null || selectedBrand == null) return [];
     final page = _unwrapOrThrow(
-      await _typesBrandsModelsRepository.searchModels(
+      await _catalogRepository.searchModels(
         selectedType!.idType,
         selectedBrand!.idBrand,
         query,
@@ -168,15 +160,15 @@ class DeviceRegisterController extends ChangeNotifier
   }
 
   Future<Type> createType(String name) async {
-    return _unwrapOrThrow(await _typesBrandsModelsRepository.createType(name));
+    return _unwrapOrThrow(await _catalogRepository.createType(name));
   }
 
   Future<Brand> createBrand(String name) async {
-    return _unwrapOrThrow(await _typesBrandsModelsRepository.createBrand(name));
+    return _unwrapOrThrow(await _catalogRepository.createBrand(name));
   }
 
   Future<Model> createModel(String name) async {
-    return _unwrapOrThrow(await _typesBrandsModelsRepository.createModel(name));
+    return _unwrapOrThrow(await _catalogRepository.createModel(name));
   }
 
   void setSelectedType(Type? type) {
@@ -217,7 +209,7 @@ class DeviceRegisterController extends ChangeNotifier
         colors: colors,
       );
 
-      switch (await _deviceCustomerService.createDeviceCustomer(inputDevice)) {
+      switch (await _deviceRepository.createDeviceCustomer(inputDevice)) {
         case Ok(:final value):
           SnackBarUtil().showSuccess('Dispositivo criado com sucesso');
           return value.deviceId;

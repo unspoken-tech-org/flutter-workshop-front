@@ -1,7 +1,6 @@
 // ignore_for_file: unawaited_futures
 import '../../support/memory_security_storage.dart';
 import '../../support/offline_services.dart';
-import 'package:flutter_workshop_front/services/device_statistics/device_statistics_service.dart';
 import 'dart:async';
 
 import 'package:dio/dio.dart';
@@ -24,8 +23,9 @@ import 'package:flutter_workshop_front/pages/customers/customer_register/control
 import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
 import 'package:flutter_workshop_front/pages/home/controllers/home_controller.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_controller.dart';
-import 'package:flutter_workshop_front/repositories/all_devices/all_devices_repository.dart';
+import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 import '../../helpers/result_guard.dart';
@@ -83,11 +83,9 @@ class _BlockingCustomerRepository implements CustomerRepository {
 
 /// Repositório de dispositivos cuja chamada de filtragem nunca completa,
 /// mantendo `isLoading = true` indefinidamente após o construtor.
-class _BlockingAllDevicesRepository implements AllDevicesRepository {
+class _BlockingDeviceRepository extends Fake implements DeviceRepository {
   int filteringCalls = 0;
   int searchCalls = 0;
-  int typesCalls = 0;
-  int brandsCalls = 0;
 
   @override
   Future<Result<Page<DeviceDataTable>>> getAllDevicesFiltering([
@@ -104,20 +102,29 @@ class _BlockingAllDevicesRepository implements AllDevicesRepository {
     searchCalls++;
     return Completer<Page<DeviceDataTable>>().future;
   });
+}
+
+class _StubCatalogRepository extends Fake implements CatalogRepository {
+  int typesCalls = 0;
+  int brandsCalls = 0;
 
   @override
-  Future<Result<List<DeviceType>>> getAllDeviceTypes([String? name]) =>
-      guardResult(() async {
-        typesCalls++;
-        return [];
-      });
+  Future<Result<List<DeviceType>>> getAllDeviceTypes([
+    String? name,
+    bool forceRefresh = false,
+  ]) => guardResult(() async {
+    typesCalls++;
+    return [];
+  });
 
   @override
-  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([String? name]) =>
-      guardResult(() async {
-        brandsCalls++;
-        return [];
-      });
+  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([
+    String? name,
+    bool forceRefresh = false,
+  ]) => guardResult(() async {
+    brandsCalls++;
+    return [];
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -248,13 +255,14 @@ void main() {
     test(
       'fetchAllDevicesFiltering não descarta nova chamada quando isLoading=true e invalida chamada anterior',
       () async {
-        final repo = _BlockingAllDevicesRepository();
-        final controller = AllDevicesController(repo);
+        final deviceRepo = _BlockingDeviceRepository();
+        final catalogRepo = _StubCatalogRepository();
+        final controller = AllDevicesController(deviceRepo, catalogRepo);
 
         // Construtor definiu isLoading = true sincronamente
         expect(controller.isLoading, true);
         // getAllDevicesFiltering ainda não foi chamado (está atrás do Future.delayed)
-        expect(repo.filteringCalls, 0);
+        expect(deviceRepo.filteringCalls, 0);
 
         // Nova chamada enquanto a primeira está no Future.delayed(200ms)
         final secondCall = controller.fetchAllDevicesFiltering();
@@ -262,9 +270,9 @@ void main() {
 
         // Aguarda o debounce de 200ms: apenas a geração mais nova chega ao repo
         await Future<void>.delayed(const Duration(milliseconds: 250));
-        expect(repo.filteringCalls, 1);
+        expect(deviceRepo.filteringCalls, 1);
 
-        // Não aguardamos secondCall porque _BlockingAllDevicesRepository nunca completa
+        // Não aguardamos secondCall porque _BlockingDeviceRepository nunca completa
         unawaited(secondCall);
       },
     );
@@ -272,19 +280,20 @@ void main() {
     test(
       'fetchFilterOptions não executa nova chamada quando isFiltersLoading=true',
       () async {
-        final repo = _BlockingAllDevicesRepository();
-        final controller = AllDevicesController(repo);
+        final deviceRepo = _BlockingDeviceRepository();
+        final catalogRepo = _StubCatalogRepository();
+        final controller = AllDevicesController(deviceRepo, catalogRepo);
 
         // Construtor definiu isFiltersLoading = true sincronamente
         expect(controller.isFiltersLoading, true);
         // getAllDeviceTypes e getAllDeviceBrands foram chamados pelo construtor
-        final typesBefore = repo.typesCalls;
-        final brandsBefore = repo.brandsCalls;
+        final typesBefore = catalogRepo.typesCalls;
+        final brandsBefore = catalogRepo.brandsCalls;
 
         await controller.fetchFilterOptions(); // guard dispara
 
-        expect(repo.typesCalls, typesBefore); // sem nova chamada
-        expect(repo.brandsCalls, brandsBefore);
+        expect(catalogRepo.typesCalls, typesBefore); // sem nova chamada
+        expect(catalogRepo.brandsCalls, brandsBefore);
       },
     );
   });
@@ -294,9 +303,7 @@ void main() {
     test(
       'getDeviceStatistics retorna sem side effects quando isLoading=true',
       () async {
-        final controller = HomeController(
-          DeviceStatisticsService(offlineApiClient()),
-        );
+        final controller = HomeController(offlineDeviceRepository());
         controller.isLoading = true;
         int notifyCount = 0;
         controller.addListener(() => notifyCount++);

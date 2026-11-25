@@ -13,6 +13,9 @@ import 'package:flutter_workshop_front/core/logging/global_error_logging.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/secure_key_value_store.dart';
 import 'package:flutter_workshop_front/pages/config_error/config_error_app.dart';
+import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
+import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controller.dart';
@@ -81,6 +84,9 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider<AppDependencies>.value(value: deps),
+        Provider<DeviceRepository>.value(value: deps.deviceRepository),
+        Provider<CustomerRepository>.value(value: deps.customerRepository),
+        Provider<CatalogRepository>.value(value: deps.catalogRepository),
         ChangeNotifierProvider<AuthNotifier>.value(value: deps.authNotifier),
         Provider<AuthService>.value(value: deps.authService),
         ChangeNotifierProvider(create: (_) => WsDrawerController()),

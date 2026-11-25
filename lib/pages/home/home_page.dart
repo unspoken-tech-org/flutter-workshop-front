@@ -9,6 +9,7 @@ import 'package:flutter_workshop_front/pages/home/widgets/quick_actions_widget.d
 import 'package:flutter_workshop_front/pages/home/widgets/recent_devices_view.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
 import 'package:flutter_workshop_front/widgets/shared/update_dialog.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/services/update/update_service.dart';
 import 'package:provider/provider.dart';
 
@@ -67,9 +68,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) {
-        final controller = HomeController(
-          context.read<AppDependencies>().deviceStatisticsService,
-        );
+        final controller = HomeController(context.read<DeviceRepository>());
         unawaited(controller.getDeviceStatistics());
         return controller;
       },

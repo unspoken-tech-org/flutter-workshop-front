@@ -11,8 +11,7 @@ import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_contact_modal_dialog.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/edit_contact_modal_dialog.dart';
-import 'package:flutter_workshop_front/services/customer_contact/customer_contact_service.dart';
-import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 import '../../helpers/result_guard.dart';
@@ -46,20 +45,15 @@ DeviceCustomer _sampleDevice() => DeviceCustomer.fromJson(const {
   'payments': <dynamic>[],
 });
 
-class _StubDeviceCustomerService implements DeviceCustomerService {
-  @override
-  Future<Result<DeviceCustomer>> getCustomerDeviceById(int deviceId) async =>
-      Ok(_sampleDevice());
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _StubCustomerContactService implements CustomerContactService {
+class _StubDeviceRepository extends Fake implements DeviceRepository {
   Future<void> Function(InputCustomerContact)? onCreate;
   Future<void> Function(int, InputCustomerContact)? onUpdate;
 
-  _StubCustomerContactService({this.onCreate, this.onUpdate});
+  _StubDeviceRepository({this.onCreate, this.onUpdate});
+
+  @override
+  Future<Result<DeviceCustomer>> getCustomerDeviceById(int deviceId) async =>
+      Ok(_sampleDevice());
 
   @override
   Future<Result<void>> createCustomerContact(
@@ -71,9 +65,6 @@ class _StubCustomerContactService implements CustomerContactService {
     int id,
     InputCustomerContact customerContact,
   ) => guardResult(() => onUpdate!(id, customerContact));
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
@@ -85,7 +76,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
 
       late Completer<void> saveCompleter;
-      final contactService = _StubCustomerContactService(
+      final deviceRepo = _StubDeviceRepository(
         onCreate: (_) {
           saveCompleter = Completer<void>();
           return saveCompleter.future;
@@ -93,10 +84,7 @@ void main() {
       );
 
       final controller =
-          testDeviceCustomerPageController(
-              deviceCustomerService: _StubDeviceCustomerService(),
-              customerContactService: contactService,
-            )
+          testDeviceCustomerPageController(deviceRepository: deviceRepo)
             ..deviceCustomer = _sampleDevice()
             ..technicians = [
               Technician(id: 2, name: 'Carlos', number: '11988888888'),
@@ -199,7 +187,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
 
       late Completer<void> updateCompleter;
-      final contactService = _StubCustomerContactService(
+      final deviceRepo = _StubDeviceRepository(
         onUpdate: (_, __) {
           updateCompleter = Completer<void>();
           return updateCompleter.future;
@@ -207,10 +195,7 @@ void main() {
       );
 
       final controller =
-          testDeviceCustomerPageController(
-              deviceCustomerService: _StubDeviceCustomerService(),
-              customerContactService: contactService,
-            )
+          testDeviceCustomerPageController(deviceRepository: deviceRepo)
             ..deviceCustomer = _sampleDevice()
             ..technicians = [
               Technician(id: 2, name: 'Carlos', number: '11988888888'),

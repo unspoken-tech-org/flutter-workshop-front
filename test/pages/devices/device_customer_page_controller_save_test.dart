@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
-import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 import '../../helpers/result_guard.dart';
 
@@ -38,11 +38,11 @@ DeviceCustomer _device({
   'payments': const <dynamic>[],
 });
 
-class _FakeDeviceCustomerService implements DeviceCustomerService {
+class _FakeDeviceRepository extends Fake implements DeviceRepository {
   Future<DeviceCustomer> Function(DeviceCustomer) onUpdate;
   Future<DeviceCustomer> Function(bool) onUrgency;
 
-  _FakeDeviceCustomerService({required this.onUpdate, required this.onUrgency});
+  _FakeDeviceRepository({required this.onUpdate, required this.onUrgency});
 
   @override
   Future<Result<DeviceCustomer>> updateDeviceCustomer(
@@ -54,9 +54,6 @@ class _FakeDeviceCustomerService implements DeviceCustomerService {
     int deviceId,
     bool hasUrgency,
   ) => guardResult(() => onUrgency(hasUrgency));
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
@@ -68,7 +65,7 @@ void main() {
       () async {
         final saved = _device(problem: 'Tela quebrada');
         final controller = testDeviceCustomerPageController(
-          deviceCustomerService: _FakeDeviceCustomerService(
+          deviceRepository: _FakeDeviceRepository(
             onUpdate: (_) async => saved,
             onUrgency: (_) async => throw UnimplementedError(),
           ),
@@ -82,7 +79,7 @@ void main() {
 
     test('retorna false quando o servidor rejeita', () async {
       final controller = testDeviceCustomerPageController(
-        deviceCustomerService: _FakeDeviceCustomerService(
+        deviceRepository: _FakeDeviceRepository(
           onUpdate: (_) async => throw RequisitionException('Inválido', '400'),
           onUrgency: (_) async => throw UnimplementedError(),
         ),
@@ -96,7 +93,7 @@ void main() {
       final urgency = Completer<DeviceCustomer>();
       var saveCalls = 0;
       final controller = testDeviceCustomerPageController(
-        deviceCustomerService: _FakeDeviceCustomerService(
+        deviceRepository: _FakeDeviceRepository(
           onUpdate: (d) async {
             saveCalls++;
             return d;
@@ -117,7 +114,7 @@ void main() {
 
     test('cancelar após ação rápida mantém o que o servidor gravou', () async {
       final controller = testDeviceCustomerPageController(
-        deviceCustomerService: _FakeDeviceCustomerService(
+        deviceRepository: _FakeDeviceRepository(
           onUpdate: (d) async => d,
           onUrgency: (value) async => _device(hasUrgency: value),
         ),

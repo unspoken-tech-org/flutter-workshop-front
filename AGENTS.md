@@ -21,7 +21,7 @@ Only what the code does not tell you.
 ## Configuration & Dependencies
 
 - Build config is read only by `AppConfig.fromEnvironment()` (`lib/core/config/app_config.dart`), validated at boot; an invalid config shows `ConfigErrorApp` instead of crashing later. Never call `String.fromEnvironment` elsewhere.
-- `AppDependencies.create` (`lib/core/di/app_dependencies.dart`) is the only place that builds services, repositories, `Dio` and storage. Pages build controllers from `context.read<AppDependencies>()`; controllers and services receive dependencies through the constructor, with no defaults and no statics.
+- `AppDependencies.create` (`lib/core/di/app_dependencies.dart`) is the only place that builds services, repositories, `Dio` and storage. Repositories (`DeviceRepository`, `CustomerRepository`, `CatalogRepository`) are provided via `MultiProvider` and controllers depend on repositories (never `services/` directly, except `AuthService` and `UpdateService`); controllers and services receive dependencies through the constructor, with no defaults and no statics.
 - Tests reuse `test/support/` (`MemorySecurityStorage`, `InMemorySecureKeyValueStore`, `offlineApiClient`, `testDeviceCustomerPageController`) instead of copying fakes.
 
 ## State, UI & Domain

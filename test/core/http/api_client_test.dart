@@ -292,6 +292,136 @@ void main() {
     });
   });
 
+  group('ApiClient.send ProblemDetail (RFC 9457)', () {
+    ResponseBody problem(
+      int status,
+      String body, {
+      Map<String, List<String>>? h,
+    }) {
+      return ResponseBody.fromString(
+        body,
+        status,
+        headers: {
+          Headers.contentTypeHeader: ['application/problem+json'],
+          ...?h,
+        },
+      );
+    }
+
+    test('400 com ProblemDetail preserva detail e code da raiz', () async {
+      final client = _client(
+        (_) => problem(
+          400,
+          '{"type":"about:blank","title":"Bad Request","status":400,'
+          '"detail":"Valor inválido","code":"payment.invalid"}',
+        ),
+      );
+
+      final failure = _failure(await _get(client));
+
+      expect(failure, isA<ValidationFailure>());
+      failure as ValidationFailure;
+      expect(failure.message, 'Valor inválido');
+      expect(failure.code, 'payment.invalid');
+      expect(failure.statusCode, 400);
+      expect(failure.messageOr('fallback'), 'Valor inválido');
+    });
+
+    test('400 com ProblemDetail sem detail usa title como mensagem', () async {
+      final client = _client(
+        (_) => problem(
+          400,
+          '{"type":"about:blank","title":"Dados inválidos","status":400,'
+          '"code":"validation.failed"}',
+        ),
+      );
+
+      final failure = _failure(await _get(client));
+
+      expect(failure, isA<ValidationFailure>());
+      failure as ValidationFailure;
+      expect(failure.message, 'Dados inválidos');
+      expect(failure.code, 'validation.failed');
+    });
+
+    test('404 com ProblemDetail vira NotFoundFailure', () async {
+      final client = _client(
+        (_) => problem(
+          404,
+          '{"type":"about:blank","title":"Not Found","status":404,'
+          '"detail":"Aparelho não encontrado","code":"device.not.found"}',
+        ),
+      );
+
+      final failure = _failure(await _get(client));
+
+      expect(failure, isA<NotFoundFailure>());
+      failure as NotFoundFailure;
+      expect(failure.message, 'Aparelho não encontrado');
+      expect(failure.code, 'device.not.found');
+      expect(failure.statusCode, 404);
+    });
+
+    test('409 com ProblemDetail vira ConflictFailure', () async {
+      final client = _client(
+        (_) => problem(
+          409,
+          '{"type":"about:blank","title":"Conflict","status":409,'
+          '"detail":"CPF já cadastrado","code":"customer.cpf.conflict"}',
+        ),
+      );
+
+      final failure = _failure(await _get(client));
+
+      expect(failure, isA<ConflictFailure>());
+      failure as ConflictFailure;
+      expect(failure.message, 'CPF já cadastrado');
+      expect(failure.code, 'customer.cpf.conflict');
+      expect(failure.statusCode, 409);
+    });
+
+    test(
+      '429 com ProblemDetail vira RateLimitedFailure com Retry-After',
+      () async {
+        final client = _client(
+          (_) => problem(
+            429,
+            '{"type":"about:blank","title":"Too Many Requests","status":429,'
+            '"detail":"Muitas requisições","code":"rate.limited"}',
+            h: {
+              'retry-after': ['12'],
+            },
+          ),
+        );
+
+        final failure = _failure(await _get(client));
+
+        expect(failure, isA<RateLimitedFailure>());
+        failure as RateLimitedFailure;
+        expect(failure.message, 'Muitas requisições');
+        expect(failure.retryAfter, const Duration(seconds: 12));
+      },
+    );
+
+    test('500 com ProblemDetail vira ServerFailure e usa fallback', () async {
+      final client = _client(
+        (_) => problem(
+          500,
+          '{"type":"about:blank","title":"Internal Server Error","status":500,'
+          '"detail":"Erro interno","code":"internal.error"}',
+        ),
+      );
+
+      final failure = _failure(await _get(client));
+
+      expect(failure, isA<ServerFailure>());
+      failure as ServerFailure;
+      expect(failure.statusCode, 500);
+      expect(failure.message, 'Erro interno');
+      expect(failure.messageOr('fallback'), 'fallback');
+    });
+  });
+
   group('ApiClient.send logging', () {
     late _MemorySink sink;
     late bool originalMirror;
@@ -380,6 +510,34 @@ void main() {
         ),
       );
     });
+
+    test(
+      'ProblemDetail registra WARNING com code da raiz sem vazar detail',
+      () async {
+        final client = _client(
+          (_) => ResponseBody.fromString(
+            '{"type":"about:blank","title":"Bad Request","status":400,'
+            '"detail":"CPF de Maria Silva inválido","code":"customer.invalid"}',
+            400,
+            headers: {
+              Headers.contentTypeHeader: ['application/problem+json'],
+            },
+          ),
+        );
+
+        await _get(client);
+
+        final line = sink.lines.single;
+        expect(line, contains('WARNING'));
+        expect(
+          line,
+          contains(
+            'GET /x -> ValidationFailure status=400 code=customer.invalid',
+          ),
+        );
+        expect(line, isNot(contains('Maria')));
+      },
+    );
 
     test('timeout registra WARNING com o tipo', () async {
       final client = _client(
