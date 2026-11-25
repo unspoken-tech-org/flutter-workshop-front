@@ -24,12 +24,8 @@ Only what the code does not tell you.
 - Prefer widget classes over `_build*` helper methods.
 - Represent monetary values with `Money(int cents)` (`lib/core/money/money.dart`), never raw `double` arithmetic.
 - New paginated lists should use `InfiniteScrollListener` with `loadMoreFailed` guard and `LoadMoreErrorFooter`.
-- Controls that UI tests or agents touch carry `Semantics(identifier: '<page>.<element>')` (`customers.search`, `customer.card.<id>`, `drawer.home`); never rely on a label, since several pages share labels and offstage pages stay in the tree. List: skill `flutter-ui-mcp`.
-
-## UI tests
-
-- A UI scenario that will be re-run goes to `integration_test/` (against the local E2E API, `run_integration_tests.sh`), not to an MCP session; drive the running app with the `flutter-ui-mcp` skill's `ui.py` and use the `fmt_*` tools only to explore.
-- Agent and E2E runs use their own secure-storage namespace (`STORAGE_NAMESPACE`, debug only, read by `Config`), so they never read or overwrite the developer's setup.
+- Controls that UI tests or agents touch carry `Semantics(identifier: '<page>.<element>')`; never rely on a label, since pages share labels and offstage pages stay in the tree.
+- A UI scenario that will be re-run goes to `integration_test/`, not to an MCP session (skill `flutter-ui-mcp`).
 
 ## Checks & Dependencies
 

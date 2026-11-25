@@ -36,7 +36,6 @@ Para saber mais sobre o schema:
 ## 2. Rodar o app
 Cenários que se repetem (recarga da lista de clientes, validação, total com 502, pickers de data) já estão em `integration_test/`: rode `bash .agents/skills/flutter-ui-mcp/scripts/run_integration_tests.sh $STATE`, que imprime só PASS/FAIL. Para dirigir o Linux desktop à mão, use a skill `flutter-ui-mcp` (`run_desktop_headless.sh` + `ui.py`).
 
-Escolha da plataforma: Linux desktop é suportado, mas **web** é mais fácil de dirigir e capturar com o navegador embutido.
 ```bash
 WP=$(python3 -c "import socket;s=socket.socket();s.bind(('127.0.0.1',0));print(s.getsockname()[1])")
 flutter run -d web-server --web-hostname 127.0.0.1 --web-port $WP --dart-define-from-file=$STATE/test.env   # em background

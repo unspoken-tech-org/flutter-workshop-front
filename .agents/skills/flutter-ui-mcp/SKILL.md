@@ -12,11 +12,11 @@ description: Dirige a UI do flutter-workshop-front em execução (Linux desktop 
 - Não use `pkill -f`/`pgrep -f` com padrão que apareça no próprio comando (mata o seu shell); use os `*.pid`.
 
 ## Cenário repetível: integration_test
-Os cenários do E2E do PR #61 (lista de clientes recarrega ao voltar do detalhe e do cadastro, validação bloqueia o envio, total de aparelhos some com 502, pickers de data) estão em `integration_test/`. Com a API local de pé (skill `e2e-local-api`, `up.sh`):
+Cenários que se repetem ficam em `integration_test/`. Com a API local de pé (skill `e2e-local-api`, `up.sh`):
 ```bash
 bash $SKILL/scripts/run_integration_tests.sh $STATE_E2E          # ou: ... $STATE_E2E integration_test/devices_test.dart
 ```
-Imprime só `PASS`/`FAIL <teste> -- <motivo>` e o resumo; o log completo fica em `$STATE_E2E/itest.log`. Um cenário novo que vai se repetir entra ali, não no MCP. O MCP fica para explorar.
+Imprime só `PASS`/`FAIL <teste> -- <motivo>`; log completo em `$STATE_E2E/itest.log`. Cenário novo que vai se repetir entra ali; o MCP fica para explorar.
 
 ## Subir e conectar
 ```bash
@@ -25,7 +25,7 @@ DEFINES="--dart-define-from-file=$STATE_E2E/test-auth.env" \
 ```
 - Espere `$STATE/vm.txt` existir. Encerre com `kill $(cat $STATE/flutter.pid)`.
 - `WINDOW` (padrão `1280x1000`) é o tamanho da janela; use `WINDOW=1280x720` para reproduzir telas baixas.
-- O storage usa o namespace `agent` (`STORAGE_NAMESPACE`), separado do setup do dev, e a API key e os tokens dele são apagados no boot (`CLEAN_STORAGE=1`, padrão), então a chave de outro run nunca manda o app para o setup. Use `CLEAN_STORAGE=0` para manter a sessão entre runs da mesma API.
+- O storage usa o namespace `agent`, separado do setup do dev, e é limpo no boot. `CLEAN_STORAGE=0` mantém a sessão entre runs da mesma API.
 
 ## Caminho padrão: `ui.py`
 ```bash
@@ -40,19 +40,12 @@ U type-secret label="API Key" DEV_API_KEY "$STATE_E2E/test-auth.env"
 U errors                          # erros do app, com o widget de origem
 U back; U key Escape
 ```
-- Alvo: `id=<identifier>`, `label=<texto>` ou texto puro (identifier exato, depois rótulo exato, linha do rótulo e trecho único). Com vários, vence o que está na tela; senão vem `ambiguous` com os refs.
-- Cada comando tira o snapshot, resolve o ref, rola o alvo para dentro da tela (pela distância certa) e só então age. Não guarde refs entre comandos.
-- `tap` num container (card, botão com identifier) age no descendente que aceita tap; num texto dentro de um card, no card.
-- Use as tools `fmt_*` (ou `scripts/fmtk.sh`) só para explorar o que o `ui.py` não cobre (`F snap`, screenshot, hot reload). Sem elas na sessão, leia `instructions/agents/flutter-ui-mcp.md` para instalar.
+- Alvo: `id=<identifier>`, `label=<texto>` ou texto puro. Com vários, vence o que está na tela; senão vem `ambiguous` com os refs.
+- Cada comando tira o snapshot e rola o alvo para a tela antes de agir: não guarde refs entre comandos.
+- Use as tools `fmt_*` (ou `scripts/fmtk.sh`) só para explorar o que o `ui.py` não cobre (screenshot, hot reload). Elas só conectam com o app subido com `VM_PORT=8181`. Sem elas na sessão, leia `instructions/agents/flutter-ui-mcp.md` para instalar.
 
 ## Identifiers
-Convenção `<página>.<elemento>`; com eles, `identifierPrefix`, `subtreeOf` e `wait_for node` funcionam, e uma ação não cai num campo homônimo de outra página.
-- Menu: `drawer.home|customers|searchDevices|updates|logs|logout|toggle`.
-- Busca: `customers.search`, `allDevices.search`, `searchDevices.search` (os dois primeiros têm o mesmo rótulo).
-- Filtros: `allDevices.filterToggle`, `searchDevices.filterToggle`, `allDevices.filter.entryDate`, `searchDevices.filter.entryDate` (intervalo).
-- Cliente: `customers.add`, `customer.card.<id>`, `customerDetail.edit|save|cancel`, `customerRegister.submit`.
-- Aparelho: `device.card.<id>`, `deviceDetail.edit|save|cancel|entryDate|departureDate`, `deviceRegister.submit|cancel`.
-Controle novo que um teste toca ganha `Semantics(identifier: ...)`; num botão o identifier fica num nó pai do botão, num campo de texto vai no próprio campo.
+Convenção `<página>.<elemento>` (`drawer.customers`, `customer.card.<id>`, `deviceDetail.save`). Para listar: `U snap --id <página>.` ou `grep -rn "identifier:" lib`. Controle novo que um teste toca ganha `Semantics(identifier: ...)`; num botão fica num nó pai do botão, num campo de texto no próprio campo.
 
 ## Overflow e erros
 Em debug, todo `FlutterError` sai inteiro no `run.log` (não só o primeiro), com "The relevant error-causing widget was" e o arquivo:linha. `U errors` mostra a primeira linha e o widget. Para achar a origem: `grep -n "overflowed by" -A6 $STATE/run.log`.
