@@ -18,8 +18,9 @@ import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all
 import 'package:flutter_workshop_front/pages/devices/all_devices/widgets/all_devices_view.dart';
 import 'package:flutter_workshop_front/pages/devices/search_devices/controllers/search_devices_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/search_devices/widgets/search_devices_view.dart';
-import 'package:flutter_workshop_front/repositories/all_devices/all_devices_repository.dart';
+import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controller.dart';
 import 'package:flutter_workshop_front/widgets/shared/infinite_scroll_listener.dart';
 import 'package:go_router/go_router.dart';
@@ -80,7 +81,7 @@ class _FakeCustomerRepository implements CustomerRepository {
   ) => guardResult(() => throw UnimplementedError());
 }
 
-class _FakeDevicesRepository implements AllDevicesRepository {
+class _FakeDevicesRepository extends Fake implements DeviceRepository {
   final Future<Page<DeviceDataTable>> Function(int page) onFetch;
 
   _FakeDevicesRepository(this.onFetch);
@@ -94,14 +95,20 @@ class _FakeDevicesRepository implements AllDevicesRepository {
   Future<Result<Page<DeviceDataTable>>> searchDevices([
     DeviceSearchFilter? filter,
   ]) => guardResult(() => onFetch(filter?.page ?? 0));
+}
+
+class _StubCatalogRepository extends Fake implements CatalogRepository {
+  @override
+  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([
+    String? name,
+    bool forceRefresh = false,
+  ]) => guardResult(() async => []);
 
   @override
-  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([String? name]) =>
-      guardResult(() async => []);
-
-  @override
-  Future<Result<List<DeviceType>>> getAllDeviceTypes([String? name]) =>
-      guardResult(() async => []);
+  Future<Result<List<DeviceType>>> getAllDeviceTypes([
+    String? name,
+    bool forceRefresh = false,
+  ]) => guardResult(() async => []);
 }
 
 Widget _wrapWithRouter(Widget child) {
@@ -326,7 +333,7 @@ void main() {
           throw Exception('network error');
         });
 
-        final controller = AllDevicesController(repo);
+        final controller = AllDevicesController(repo, _StubCatalogRepository());
         await tester.pumpWidget(
           _wrapWithRouter(
             ChangeNotifierProvider.value(

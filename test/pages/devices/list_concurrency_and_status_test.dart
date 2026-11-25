@@ -19,8 +19,9 @@ import 'package:flutter_workshop_front/pages/customers/all_customers/controllers
 import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/widgets/type_brand_model_autocomplete_form_field.dart';
 import 'package:flutter_workshop_front/pages/devices/search_devices/controllers/search_devices_controller.dart';
-import 'package:flutter_workshop_front/repositories/all_devices/all_devices_repository.dart';
+import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/searchable_dropdown_form_field.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 import '../../helpers/result_guard.dart';
@@ -90,7 +91,7 @@ class _FakeCustomerRepository implements CustomerRepository {
   ) => guardResult(() => throw UnimplementedError());
 }
 
-class _FakeAllDevicesRepository implements AllDevicesRepository {
+class _FakeDeviceRepository extends Fake implements DeviceRepository {
   final List<(DeviceFilter?, Completer<Page<DeviceDataTable>>)>
   pendingAllDevices = [];
   final List<(DeviceSearchFilter?, Completer<Page<DeviceDataTable>>)>
@@ -113,14 +114,20 @@ class _FakeAllDevicesRepository implements AllDevicesRepository {
     pendingSearchDevices.add((filter, completer));
     return completer.future;
   });
+}
+
+class _StubCatalogRepository extends Fake implements CatalogRepository {
+  @override
+  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([
+    String? name,
+    bool forceRefresh = false,
+  ]) => guardResult(() async => []);
 
   @override
-  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([String? name]) =>
-      guardResult(() async => []);
-
-  @override
-  Future<Result<List<DeviceType>>> getAllDeviceTypes([String? name]) =>
-      guardResult(() async => []);
+  Future<Result<List<DeviceType>>> getAllDeviceTypes([
+    String? name,
+    bool forceRefresh = false,
+  ]) => guardResult(() async => []);
 }
 
 void main() {
@@ -261,8 +268,8 @@ void main() {
     test(
       'filtro alterado durante loading não é descartado e loadMore antigo não contamina nova busca',
       () async {
-        final repo = _FakeAllDevicesRepository();
-        final controller = AllDevicesController(repo);
+        final repo = _FakeDeviceRepository();
+        final controller = AllDevicesController(repo, _StubCatalogRepository());
 
         // Aguarda debounce inicial de 200ms
         await Future<void>.delayed(const Duration(milliseconds: 220));
@@ -315,8 +322,8 @@ void main() {
 
   group('AllDevicesController total em falha', () {
     test('zera o total quando a nova busca falha', () async {
-      final repo = _FakeAllDevicesRepository();
-      final controller = AllDevicesController(repo);
+      final repo = _FakeDeviceRepository();
+      final controller = AllDevicesController(repo, _StubCatalogRepository());
 
       await Future<void>.delayed(const Duration(milliseconds: 220));
       repo.pendingAllDevices[0].$2.complete(
@@ -342,7 +349,7 @@ void main() {
     test(
       'busca alterada durante loading não é descartada e loadMore antigo não contamina nova busca',
       () async {
-        final repo = _FakeAllDevicesRepository();
+        final repo = _FakeDeviceRepository();
         final controller = SearchDevicesController(repo);
 
         await Future<void>.delayed(const Duration(milliseconds: 220));

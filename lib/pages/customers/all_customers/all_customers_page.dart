@@ -1,5 +1,3 @@
-import 'package:provider/provider.dart';
-import 'package:flutter_workshop_front/core/di/app_dependencies.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -9,10 +7,12 @@ import 'package:flutter_workshop_front/pages/customers/all_customers/controllers
 import 'package:flutter_workshop_front/pages/customers/all_customers/controllers/inherited_all_customer_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers/widgets/customers_list.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers/widgets/customers_list_shimmer.dart';
+import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
 import 'package:flutter_workshop_front/widgets/shared/empty_list_widget.dart';
 import 'package:flutter_workshop_front/widgets/shared/refresh_on_return.dart';
 import 'package:flutter_workshop_front/widgets/ws_search_bar_widget.dart';
+import 'package:provider/provider.dart';
 
 class AllCustomersPage extends StatefulWidget {
   static const String route = 'customers';
@@ -30,7 +30,7 @@ class _AllCustomersPageState extends State<AllCustomersPage> {
   void initState() {
     super.initState();
     _controller = AllCustomerController(
-      customerRepository: context.read<AppDependencies>().customerRepository,
+      customerRepository: context.read<CustomerRepository>(),
     );
   }
 

@@ -3,13 +3,13 @@ import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/core/state/safe_change_notifier_mixin.dart';
 import 'package:flutter_workshop_front/models/device_statistics/device_statistics.dart';
-import 'package:flutter_workshop_front/services/device_statistics/device_statistics_service.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 class HomeController extends ChangeNotifier with SafeChangeNotifierMixin {
-  final DeviceStatisticsService _deviceStatisticsService;
+  final DeviceRepository _deviceRepository;
 
-  HomeController(this._deviceStatisticsService);
+  HomeController(this._deviceRepository);
 
   DeviceStatistics? deviceStatistics;
   String? errorMessage;
@@ -22,7 +22,7 @@ class HomeController extends ChangeNotifier with SafeChangeNotifierMixin {
     notifyListeners();
     try {
       await Future<void>.delayed(const Duration(milliseconds: 200));
-      switch (await _deviceStatisticsService.getDeviceStatistics()) {
+      switch (await _deviceRepository.getDeviceStatistics()) {
         case Ok(:final value):
           deviceStatistics = value;
         case Err(:final failure):

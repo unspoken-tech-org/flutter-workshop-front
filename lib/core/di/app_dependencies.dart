@@ -4,12 +4,9 @@ import 'package:flutter_workshop_front/core/http/custom_dio.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/secure_key_value_store.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
-import 'package:flutter_workshop_front/repositories/all_devices/all_devices_remote_data_source.dart';
-import 'package:flutter_workshop_front/repositories/all_devices/all_devices_repository.dart';
-import 'package:flutter_workshop_front/repositories/customer/customer_remote_data_source.dart';
+import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
-import 'package:flutter_workshop_front/repositories/types_brands_models/types_brands_models_remote_data_source.dart';
-import 'package:flutter_workshop_front/repositories/types_brands_models/types_brands_models_repository.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import 'package:flutter_workshop_front/services/color/color_service.dart';
 import 'package:flutter_workshop_front/services/customer/customer_service.dart';
@@ -25,24 +22,20 @@ import 'package:flutter_workshop_front/services/update/update_service.dart';
 
 /// Composition root: o grafo de objetos do app, montado uma vez no `main`.
 ///
-/// Entregue às páginas pelo `MultiProvider` (`context.read<AppDependencies>()`);
-/// as páginas montam seus controllers a partir daqui, nunca instanciando
-/// services. Nenhuma dependência é global ou estática.
+/// Entregue às páginas pelo `MultiProvider` (`context.read<DeviceRepository>()`,
+/// `context.read<CustomerRepository>()`, `context.read<CatalogRepository>()` e
+/// `context.read<AppDependencies>()`); as páginas montam seus controllers a
+/// partir daqui, nunca instanciando services. Nenhuma dependência é global ou
+/// estática.
 class AppDependencies {
   AppDependencies({
     required this.config,
     required this.storage,
     required this.authNotifier,
     required this.authService,
-    required this.colorService,
-    required this.customerContactService,
-    required this.deviceCustomerService,
-    required this.deviceStatisticsService,
-    required this.paymentService,
-    required this.technicianService,
+    required this.deviceRepository,
     required this.customerRepository,
-    required this.allDevicesRepository,
-    required this.typesBrandsModelsRepository,
+    required this.catalogRepository,
     required this.updateService,
   });
 
@@ -66,27 +59,24 @@ class AppDependencies {
       ),
     );
 
-    final deviceCustomerService = DeviceCustomerService(api);
-
     return AppDependencies(
       config: config,
       storage: storage,
       authNotifier: authNotifier,
       authService: authService,
-      colorService: ColorService(api),
-      customerContactService: CustomerContactService(api),
-      deviceCustomerService: deviceCustomerService,
-      deviceStatisticsService: DeviceStatisticsService(api),
-      paymentService: PaymentService(api),
-      technicianService: TechnicianService(api),
-      customerRepository: CustomerRemoteDataSource(CustomerService(api)),
-      allDevicesRepository: AllDevicesRemoteDataSource(
-        deviceCustomerService,
-        DeviceTypeService(api),
-        DeviceBrandService(api),
+      deviceRepository: DeviceRepository(
+        deviceCustomerService: DeviceCustomerService(api),
+        paymentService: PaymentService(api),
+        customerContactService: CustomerContactService(api),
+        deviceStatisticsService: DeviceStatisticsService(api),
       ),
-      typesBrandsModelsRepository: TypesBrandsModelsRemoteDataSource(
-        TypeBrandModelSearchService(api),
+      customerRepository: CustomerRepository(CustomerService(api)),
+      catalogRepository: CatalogRepository(
+        technicianService: TechnicianService(api),
+        colorService: ColorService(api),
+        deviceTypeService: DeviceTypeService(api),
+        deviceBrandService: DeviceBrandService(api),
+        searchService: TypeBrandModelSearchService(api),
       ),
       updateService: UpdateService(
         feedUrl: config.updateFeedUrl,
@@ -101,16 +91,9 @@ class AppDependencies {
   final AuthNotifier authNotifier;
   final AuthService authService;
 
-  final ColorService colorService;
-  final CustomerContactService customerContactService;
-  final DeviceCustomerService deviceCustomerService;
-  final DeviceStatisticsService deviceStatisticsService;
-  final PaymentService paymentService;
-  final TechnicianService technicianService;
-
+  final DeviceRepository deviceRepository;
   final CustomerRepository customerRepository;
-  final AllDevicesRepository allDevicesRepository;
-  final TypesBrandsModelsRepository typesBrandsModelsRepository;
+  final CatalogRepository catalogRepository;
 
   final UpdateService updateService;
 }

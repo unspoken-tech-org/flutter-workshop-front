@@ -21,6 +21,9 @@ void main() {
 
       expect(identical(a.authService, b.authService), isFalse);
       expect(identical(a.storage, b.storage), isFalse);
+      expect(identical(a.deviceRepository, b.deviceRepository), isFalse);
+      expect(identical(a.customerRepository, b.customerRepository), isFalse);
+      expect(identical(a.catalogRepository, b.catalogRepository), isFalse);
 
       a.authNotifier.setState(AuthRouteState.authenticated, notify: false);
       expect(b.authNotifier.state, isNot(AuthRouteState.authenticated));

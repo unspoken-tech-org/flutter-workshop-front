@@ -1,4 +1,3 @@
-import 'package:flutter_workshop_front/core/di/app_dependencies.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -8,6 +7,8 @@ import 'package:flutter_workshop_front/pages/devices/device_details/widgets/cust
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_page_shimmer.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_payments.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/tabs/device_tabs_widget.dart';
+import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
 import 'package:provider/provider.dart';
 
@@ -53,8 +54,9 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
       create: (context) {
         final controller =
             widget.controllerFactory?.call() ??
-            DeviceCustomerPageController.fromDependencies(
-              context.read<AppDependencies>(),
+            DeviceCustomerPageController(
+              deviceRepository: context.read<DeviceRepository>(),
+              catalogRepository: context.read<CatalogRepository>(),
             );
         unawaited(controller.init(widget.deviceId));
         return controller;
