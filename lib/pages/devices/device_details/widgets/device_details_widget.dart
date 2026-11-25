@@ -73,6 +73,7 @@ class DeviceDetailsWidget extends StatelessWidget {
                       enabled: isEditing,
                       errorMaxLines: 2,
                       headerLabel: 'Data de entrada',
+                      semanticsIdentifier: 'deviceDetail.entryDate',
                       value: deviceCustomer.entryDate.formatDate(),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -107,6 +108,7 @@ class DeviceDetailsWidget extends StatelessWidget {
                       child: CustomDateFormField(
                         enabled: isEditing,
                         headerLabel: 'Data de saída',
+                        semanticsIdentifier: 'deviceDetail.departureDate',
                         value: deviceCustomer.departureDate?.formatDate() ?? '',
                         errorMaxLines: 2,
                         validator: (value) {

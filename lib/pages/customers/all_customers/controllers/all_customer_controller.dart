@@ -37,6 +37,7 @@ class AllCustomerController extends ChangeNotifier {
   bool get loadMoreFailed => _loadMoreFailed;
 
   int _requestGeneration = 0;
+  String? _searchTerm;
 
   AllCustomerController({CustomerRepository? customerRepository})
     : _customerRepository = customerRepository ?? CustomerRemoteDataSource() {
@@ -45,6 +46,7 @@ class AllCustomerController extends ChangeNotifier {
 
   Future<void> searchCustomers(String? searchTerm) async {
     final generation = ++_requestGeneration;
+    _searchTerm = searchTerm;
     _currentPage = 0;
     _hasMore = true;
     _loadMoreFailed = false;
@@ -83,6 +85,9 @@ class AllCustomerController extends ChangeNotifier {
       }
     }
   }
+
+  /// Reloads the first page keeping the current search term.
+  Future<void> refresh() => searchCustomers(_searchTerm);
 
   Future<void> loadMore() async {
     if (_isLoading || _isLoadingMore || !_hasMore || _loadMoreFailed) return;

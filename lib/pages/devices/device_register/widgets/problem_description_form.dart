@@ -31,6 +31,7 @@ class ProblemDescriptionForm extends StatelessWidget {
             ],
           ),
           CustomTextField(
+            semanticsIdentifier: 'deviceRegister.problem',
             headerLabel: 'Problema',
             hintText: 'Descreva o problema relatado pelo cliente...',
             maxLines: 3,
@@ -47,6 +48,7 @@ class ProblemDescriptionForm extends StatelessWidget {
             },
           ),
           CustomTextField(
+            semanticsIdentifier: 'deviceRegister.observation',
             headerLabel: 'Observações (Opcional)',
             hintText: 'Observações adicionais...',
             maxLines: 3,

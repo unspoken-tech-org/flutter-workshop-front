@@ -36,7 +36,11 @@ class _HomePageState extends State<HomePage> {
 
     try {
       final updateService = UpdateService();
-      final updateInfo = await updateService.checkForUpdates();
+      final result = await updateService.checkForUpdates();
+      final updateInfo = switch (result) {
+        UpdateCheckCompleted(:final info) => info,
+        UpdateCheckDisabled() || UpdateCheckFailed() => null,
+      };
 
       if (!mounted || updateInfo == null || !updateInfo.hasUpdate) return;
 

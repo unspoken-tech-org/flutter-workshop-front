@@ -16,70 +16,78 @@ class CustomerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return HoverableCard(
-      padding: const EdgeInsets.all(16),
-      onTap: () => onTap(customer.customerId),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  customer.name.capitalizeAllWords,
-                  style: WsTextStyles.h3,
-                  overflow: TextOverflow.ellipsis,
+    return Semantics(
+      identifier: 'customer.card.${customer.customerId}',
+      container: true,
+      child: HoverableCard(
+        padding: const EdgeInsets.all(16),
+        onTap: () => onTap(customer.customerId),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    customer.name.capitalizeAllWords,
+                    style: WsTextStyles.h3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Icon(Icons.chevron_right, color: Colors.grey.shade600, size: 20),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Divider(color: Colors.grey.shade300, thickness: 0.5, height: 1),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _InfoRow(
-                  icon: Icons.tag,
-                  label: 'ID',
-                  value: customer.customerId.toString(),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey.shade600,
+                  size: 20,
                 ),
-              ),
-              Expanded(
-                child: _InfoRow(
-                  icon: Icons.email_outlined,
-                  label: 'Email',
-                  value: hasEmail ? customer.email! : '—',
-                  mutedValue: !hasEmail,
+              ],
+            ),
+            const SizedBox(height: 8),
+            Divider(color: Colors.grey.shade300, thickness: 0.5, height: 1),
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _InfoRow(
+                    icon: Icons.tag,
+                    label: 'ID',
+                    value: customer.customerId.toString(),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _InfoRow(
-                  icon: Icons.person_outline,
-                  label: 'CPF',
-                  value: CpfUtils.formatCpf(customer.cpf),
+                Expanded(
+                  child: _InfoRow(
+                    icon: Icons.email_outlined,
+                    label: 'Email',
+                    value: hasEmail ? customer.email! : '—',
+                    mutedValue: !hasEmail,
+                  ),
                 ),
-              ),
-              Expanded(
-                child: _InfoRow(
-                  icon: Icons.phone_outlined,
-                  label: 'Telefone',
-                  value: PhoneUtils.formatPhone(customer.mainPhone),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _InfoRow(
+                    icon: Icons.person_outline,
+                    label: 'CPF',
+                    value: CpfUtils.formatCpf(customer.cpf),
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+                Expanded(
+                  child: _InfoRow(
+                    icon: Icons.phone_outlined,
+                    label: 'Telefone',
+                    value: PhoneUtils.formatPhone(customer.mainPhone),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

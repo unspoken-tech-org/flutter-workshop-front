@@ -28,7 +28,7 @@ Future<void> _startApp() async {
 
   // Inicialização da Camada de Segurança
   final authNotifier = AuthNotifier();
-  final storage = SecurityStorage();
+  final storage = SecurityStorage(namespace: Config.storageNamespace);
   final authService = AuthService(storage: storage, authNotifier: authNotifier);
   CustomDio.setup(
     storage,
@@ -38,6 +38,10 @@ Future<void> _startApp() async {
   );
   authNotifier.setState(AuthRouteState.restoring, notify: false);
   try {
+    if (Config.resetStorageOnBoot) {
+      await storage.clearProvisioning();
+      AppLogger.info('Bootstrap', 'Storage namespace reset');
+    }
     await authService.initializeAuthState();
   } catch (e, st) {
     debugPrint('[AuthDebug] Unexpected bootstrap error: $e\n$st');

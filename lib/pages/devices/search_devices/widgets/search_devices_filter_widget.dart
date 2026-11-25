@@ -20,6 +20,7 @@ class SearchDevicesHeaderFilterWidget extends StatelessWidget {
             Expanded(
               child: WsSearchBarWidget(
                 labelText: 'Buscar por nome, tipo, marca ou modelo',
+                semanticsIdentifier: 'searchDevices.search',
                 onChanged: controller.filterTable,
                 onClear: () => controller.clearSearch(),
               ),

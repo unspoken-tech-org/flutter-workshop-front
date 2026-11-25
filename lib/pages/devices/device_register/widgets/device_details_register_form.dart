@@ -68,6 +68,7 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
             children: [
               Expanded(
                 child: TypeBrandModelAutocompleteFormField<Type>(
+                  semanticsIdentifier: 'deviceRegister.type',
                   controller: _deviceTypeController,
                   headerLabelText: 'Tipo Aparelho',
                   hintText: 'Ex: Lavadora, Microondas, Ventilador',
@@ -98,6 +99,7 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
                 builder: (context, selectedType, child) {
                   return Expanded(
                     child: TypeBrandModelAutocompleteFormField<Brand>(
+                      semanticsIdentifier: 'deviceRegister.brand',
                       controller: _deviceBrandController,
                       headerLabelText: 'Marca Aparelho',
                       hintText: 'Ex: LG, Samsung, Panasonic',
@@ -136,6 +138,7 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
                 builder: (context, selectedBrand, child) {
                   return Expanded(
                     child: TypeBrandModelAutocompleteFormField<Model>(
+                      semanticsIdentifier: 'deviceRegister.model',
                       controller: _deviceModelController,
                       headerLabelText: 'Modelo Aparelho',
                       hintText: 'Ex: 1234567890',
@@ -164,6 +167,7 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
               ),
               Expanded(
                 child: CustomTextField(
+                  semanticsIdentifier: 'deviceRegister.budgetFee',
                   controller: _deviceBudgetFeeController,
                   headerLabel: 'Valor Orçamento (Opcional)',
                   hintText: 'Ex: 100,00',
@@ -191,6 +195,7 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
             selector: (context, controller) => controller.selectedColors,
             builder: (context, selectedColors, child) {
               return MultiSelectColorField(
+                semanticsIdentifier: 'deviceRegister.colors',
                 headerLabelText: 'Cores',
                 hintText: 'Ex: Azul, Branco, Preto',
                 suggestions: controller.allColors,

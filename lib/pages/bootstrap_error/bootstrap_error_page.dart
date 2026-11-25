@@ -111,60 +111,66 @@ class _BootstrapErrorPageState extends State<BootstrapErrorPage> {
                 SizedBox(
                   width: double.infinity,
                   height: 52,
-                  child: ElevatedButton(
-                    onPressed: _isRetrying ? null : _retry,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey.shade200,
-                      disabledForegroundColor: Colors.grey.shade500,
-                      elevation: _isRetrying ? 0 : 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(100),
+                  child: Semantics(
+                    identifier: 'bootstrapError.retry',
+                    child: ElevatedButton(
+                      onPressed: _isRetrying ? null : _retry,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.grey.shade200,
+                        disabledForegroundColor: Colors.grey.shade500,
+                        elevation: _isRetrying ? 0 : 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(100),
+                        ),
                       ),
-                    ),
-                    child: _isRetrying
-                        ? const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Color(0xFF49454F),
+                      child: _isRetrying
+                          ? const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Color(0xFF49454F),
+                                  ),
                                 ),
+                                SizedBox(width: 12),
+                                Text('Tentando...'),
+                              ],
+                            )
+                          : const Text(
+                              'Tentar novamente',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
                               ),
-                              SizedBox(width: 12),
-                              Text('Tentando...'),
-                            ],
-                          )
-                        : const Text(
-                            'Tentar novamente',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
                             ),
-                          ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
                   height: 48,
-                  child: TextButton(
-                    onPressed: _isRetrying ? null : _goToSetup,
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF49454F),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(100),
+                  child: Semantics(
+                    identifier: 'bootstrapError.setup',
+                    child: TextButton(
+                      onPressed: _isRetrying ? null : _goToSetup,
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFF49454F),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(100),
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'Configurar outra chave',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                      child: const Text(
+                        'Configurar outra chave',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),

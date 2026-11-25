@@ -65,6 +65,9 @@ class AllDevicesController extends ChangeNotifier with SafeChangeNotifierMixin {
           _totalPages = value.totalPages;
           _hasMore = !value.last;
         case Err(:final failure):
+          _totalElements = 0;
+          _totalPages = 0;
+          _hasMore = false;
           SnackBarUtil().showError(
             failure.messageOr('Erro ao buscar aparelhos'),
           );

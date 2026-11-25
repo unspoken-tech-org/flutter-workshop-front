@@ -38,31 +38,34 @@ class ApiKeyInput extends StatelessWidget {
                   width: hasError || isSuccess ? 2 : 1,
                 ),
               ),
-              child: TextField(
-                controller: apiKeyController,
-                obscureText: true,
-                enabled: !controller.isLoading && !controller.isSuccess,
-                onSubmitted: (_) => onSubmitted(),
-                style: TextStyle(
-                  color: isSuccess ? Colors.green.shade700 : Colors.black,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Insira a sua Chave de API',
-                  hintStyle: const TextStyle(color: Color(0xFF49454F)),
-                  prefixIcon: Icon(
-                    Icons.vpn_key,
-                    color: apiKeyController.text.isNotEmpty || isSuccess
-                        ? const Color(0xFF2563EB)
-                        : const Color(0xFF49454F),
-                    size: 20,
+              child: Semantics(
+                identifier: 'setup.apiKey',
+                child: TextField(
+                  controller: apiKeyController,
+                  obscureText: true,
+                  enabled: !controller.isLoading && !controller.isSuccess,
+                  onSubmitted: (_) => onSubmitted(),
+                  style: TextStyle(
+                    color: isSuccess ? Colors.green.shade700 : Colors.black,
                   ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
+                  decoration: InputDecoration(
+                    hintText: 'Insira a sua Chave de API',
+                    hintStyle: const TextStyle(color: Color(0xFF49454F)),
+                    prefixIcon: Icon(
+                      Icons.vpn_key,
+                      color: apiKeyController.text.isNotEmpty || isSuccess
+                          ? const Color(0xFF2563EB)
+                          : const Color(0xFF49454F),
+                      size: 20,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                   ),
+                  onChanged: (_) => onChanged(),
                 ),
-                onChanged: (_) => onChanged(),
               ),
             ),
             Positioned(

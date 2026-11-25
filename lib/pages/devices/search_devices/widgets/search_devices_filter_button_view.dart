@@ -15,52 +15,56 @@ class SearchFilterButtonView extends StatelessWidget {
         final (isFiltering, filter) = values;
         final filtersApplied = filter.filtersApplied;
 
-        return Stack(
-          children: [
-            IconButton(
-              onPressed: () {
-                context.read<SearchDevicesController>().toggleFiltering();
-              },
-              style: IconButton.styleFrom(
-                padding: const EdgeInsets.all(12),
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  side: BorderSide(color: Colors.grey.shade300),
+        return Semantics(
+          identifier: 'searchDevices.filterToggle',
+          container: true,
+          child: Stack(
+            children: [
+              IconButton(
+                onPressed: () {
+                  context.read<SearchDevicesController>().toggleFiltering();
+                },
+                style: IconButton.styleFrom(
+                  padding: const EdgeInsets.all(12),
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                    side: BorderSide(color: Colors.grey.shade300),
+                  ),
+                ),
+                icon: Icon(
+                  isFiltering
+                      ? Icons.filter_alt_off_outlined
+                      : Icons.filter_alt_outlined,
+                  size: 24,
+                  color: Colors.black,
                 ),
               ),
-              icon: Icon(
-                isFiltering
-                    ? Icons.filter_alt_off_outlined
-                    : Icons.filter_alt_outlined,
-                size: 24,
-                color: Colors.black,
-              ),
-            ),
-            if (filtersApplied > 0)
-              Positioned(
-                right: 4,
-                top: 4,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: filtersApplied > 10 ? 6 : 8,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    filtersApplied.toString(),
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+              if (filtersApplied > 0)
+                Positioned(
+                  right: 4,
+                  top: 4,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: filtersApplied > 10 ? 6 : 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      filtersApplied.toString(),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         );
       },
     );

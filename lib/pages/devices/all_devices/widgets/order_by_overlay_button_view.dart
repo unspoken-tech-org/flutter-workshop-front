@@ -100,34 +100,37 @@ class _OrderByButtonViewState extends State<OrderByButtonView>
           },
           child: CompositedTransformTarget(
             link: layerLink,
-            child: OutlinedButton.icon(
-              onPressed: toggleOverlay,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+            child: Semantics(
+              identifier: 'allDevices.orderBy',
+              child: OutlinedButton.icon(
+                onPressed: toggleOverlay,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  side: BorderSide(color: Colors.grey.shade300),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
-                side: BorderSide(color: Colors.grey.shade300),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
+                label: Text(
+                  selectedOrderBy?.key.displayName ?? 'Ordenar por',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                  ),
                 ),
+                icon: selectedOrderBy == null
+                    ? null
+                    : Icon(
+                        selectedOrderBy.value == OrderDirection.asc
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward,
+                        color: Colors.black,
+                      ),
               ),
-              label: Text(
-                selectedOrderBy?.key.displayName ?? 'Ordenar por',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
-              ),
-              icon: selectedOrderBy == null
-                  ? null
-                  : Icon(
-                      selectedOrderBy.value == OrderDirection.asc
-                          ? Icons.arrow_upward
-                          : Icons.arrow_downward,
-                      color: Colors.black,
-                    ),
             ),
           ),
         );
