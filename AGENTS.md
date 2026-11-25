@@ -24,6 +24,8 @@ Only what the code does not tell you.
 - Prefer widget classes over `_build*` helper methods.
 - Represent monetary values with `Money(int cents)` (`lib/core/money/money.dart`), never raw `double` arithmetic.
 - New paginated lists should use `InfiniteScrollListener` with `loadMoreFailed` guard and `LoadMoreErrorFooter`.
+- Controls that UI tests or agents touch carry `Semantics(identifier: '<page>.<element>')`; never rely on a label, since pages share labels and offstage pages stay in the tree.
+- A UI scenario that will be re-run goes to `integration_test/`, not to an MCP session (skill `flutter-ui-mcp`).
 
 ## Checks & Dependencies
 

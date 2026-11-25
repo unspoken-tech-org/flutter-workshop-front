@@ -11,6 +11,20 @@ class Config {
   static String get devApiKey =>
       kDebugMode ? const String.fromEnvironment('DEV_API_KEY') : '';
 
+  /// Só em debug: prefixo das chaves do secure storage. Runs de agente/E2E
+  /// (`run_desktop_headless.sh`, `run_integration_tests.sh`) usam um
+  /// namespace próprio para não ler nem sobrescrever o setup do dev, que
+  /// divide o mesmo keyring.
+  static String get storageNamespace =>
+      kDebugMode ? const String.fromEnvironment('STORAGE_NAMESPACE') : '';
+
+  /// Só em debug e só com [storageNamespace]: apaga a API key e os tokens do
+  /// namespace no boot, para o app não reaproveitar a chave de outro run. O
+  /// `bound_device_id` não tem namespace e fica (a chave se prende a ele).
+  static bool get resetStorageOnBoot =>
+      storageNamespace.isNotEmpty &&
+      const bool.fromEnvironment('RESET_STORAGE');
+
   /// Hosts aceitos com `http://` fora do release (E2E local contra a API).
   static const _localHttpHosts = {'localhost', '127.0.0.1'};
 

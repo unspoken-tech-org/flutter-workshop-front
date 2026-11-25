@@ -15,6 +15,7 @@ class AllDevicesHeaderFilterWidget extends StatelessWidget {
       children: [
         WsSearchBarWidget(
           labelText: 'Buscar por nome, CPF, ID ou telefone',
+          semanticsIdentifier: 'allDevices.search',
           onChanged: controller.filterTable,
           onClear: () => controller.clearSearch(),
         ),

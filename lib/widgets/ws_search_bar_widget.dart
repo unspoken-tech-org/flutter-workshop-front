@@ -8,11 +8,16 @@ class WsSearchBarWidget extends StatefulWidget {
   final void Function()? onClear;
   final int debounceTime;
 
+  /// `Semantics.identifier` of the field (`<page>.search`): several pages
+  /// share the same label, and an offstage page stays in the tree.
+  final String semanticsIdentifier;
+
   const WsSearchBarWidget({
     super.key,
     required this.labelText,
     required this.onChanged,
     required this.onClear,
+    required this.semanticsIdentifier,
     this.debounceTime = 300,
   });
 
@@ -35,36 +40,39 @@ class _WsSearchBarWidgetState extends State<WsSearchBarWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: _searchController,
-      onChanged: (value) {
-        _debouncer.run(() {
-          widget.onChanged?.call(value);
-        });
-        setState(() {});
-      },
-      decoration: InputDecoration(
-        labelText: widget.labelText,
-        labelStyle: WsTextStyles.body1.copyWith(color: Colors.grey.shade400),
-        prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: BorderSide(color: Colors.grey.shade400),
+    return Semantics(
+      identifier: widget.semanticsIdentifier,
+      child: TextField(
+        controller: _searchController,
+        onChanged: (value) {
+          _debouncer.run(() {
+            widget.onChanged?.call(value);
+          });
+          setState(() {});
+        },
+        decoration: InputDecoration(
+          labelText: widget.labelText,
+          labelStyle: WsTextStyles.body1.copyWith(color: Colors.grey.shade400),
+          prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: BorderSide(color: Colors.grey.shade400),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: BorderSide(color: Colors.blue.shade700),
+          ),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _debouncer.cancel();
+                    _searchController.clear();
+                    widget.onClear?.call();
+                  },
+                )
+              : null,
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: BorderSide(color: Colors.blue.shade700),
-        ),
-        suffixIcon: _searchController.text.isNotEmpty
-            ? IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: () {
-                  _debouncer.cancel();
-                  _searchController.clear();
-                  widget.onClear?.call();
-                },
-              )
-            : null,
       ),
     );
   }

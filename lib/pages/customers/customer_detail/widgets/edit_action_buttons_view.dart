@@ -23,10 +23,57 @@ class EditActionButtons extends StatelessWidget {
       return Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          ElevatedButton(
-            onPressed: () {
-              onCancel();
-            },
+          Semantics(
+            identifier: 'customerDetail.cancel',
+            child: ElevatedButton(
+              onPressed: () {
+                onCancel();
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                foregroundColor: Colors.black87,
+                backgroundColor: Colors.white.withAlpha(230),
+              ),
+              child: const Text('Cancelar'),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Semantics(
+            identifier: 'customerDetail.save',
+            child: ElevatedButton(
+              onPressed: () async {
+                onSave();
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                backgroundColor: Colors.black87,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Salvar'),
+            ),
+          ),
+        ],
+      );
+    }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Semantics(
+          identifier: 'customerDetail.edit',
+          child: ElevatedButton(
+            onPressed: () => controller.setEditing(true),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               shape: RoundedRectangleBorder(
@@ -35,40 +82,8 @@ class EditActionButtons extends StatelessWidget {
               foregroundColor: Colors.black87,
               backgroundColor: Colors.white.withAlpha(230),
             ),
-            child: const Text('Cancelar'),
+            child: const Text('Editar'),
           ),
-          const SizedBox(width: 16),
-          ElevatedButton(
-            onPressed: () async {
-              onSave();
-            },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
-              ),
-              backgroundColor: Colors.black87,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Salvar'),
-          ),
-        ],
-      );
-    }
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        ElevatedButton(
-          onPressed: () => controller.setEditing(true),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
-            ),
-            foregroundColor: Colors.black87,
-            backgroundColor: Colors.white.withAlpha(230),
-          ),
-          child: const Text('Editar'),
         ),
       ],
     );

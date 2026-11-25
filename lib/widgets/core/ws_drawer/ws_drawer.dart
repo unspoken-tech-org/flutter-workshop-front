@@ -84,16 +84,19 @@ class WsDrawer extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      IconButton(
-                        tooltip: 'Alternar menu',
-                        onPressed: controller.toggle,
-                        icon: const Icon(Icons.chevron_left, size: 20),
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all(
-                            Colors.transparent,
-                          ),
-                          foregroundColor: WidgetStateProperty.all(
-                            Colors.grey.shade600,
+                      Semantics(
+                        identifier: 'drawer.toggle',
+                        child: IconButton(
+                          tooltip: 'Alternar menu',
+                          onPressed: controller.toggle,
+                          icon: const Icon(Icons.chevron_left, size: 20),
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStateProperty.all(
+                              Colors.transparent,
+                            ),
+                            foregroundColor: WidgetStateProperty.all(
+                              Colors.grey.shade600,
+                            ),
                           ),
                         ),
                       ),
@@ -107,16 +110,19 @@ class WsDrawer extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 4),
                 child: SizedBox(
                   height: 36,
-                  child: IconButton(
-                    tooltip: 'Alternar menu',
-                    onPressed: controller.toggle,
-                    icon: const Icon(Icons.menu, size: 20),
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(
-                        Colors.transparent,
-                      ),
-                      foregroundColor: WidgetStateProperty.all(
-                        Colors.grey.shade600,
+                  child: Semantics(
+                    identifier: 'drawer.toggle',
+                    child: IconButton(
+                      tooltip: 'Alternar menu',
+                      onPressed: controller.toggle,
+                      icon: const Icon(Icons.menu, size: 20),
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.all(
+                          Colors.transparent,
+                        ),
+                        foregroundColor: WidgetStateProperty.all(
+                          Colors.grey.shade600,
+                        ),
                       ),
                     ),
                   ),
@@ -128,6 +134,7 @@ class WsDrawer extends StatelessWidget {
               isExpanded: isExpanded,
               icon: Icons.home,
               title: 'Home',
+              semanticsIdentifier: 'drawer.home',
               route: const [HomePage.route],
               onTap: () {
                 WsNavigator.pushHome(context);
@@ -138,6 +145,7 @@ class WsDrawer extends StatelessWidget {
               isExpanded: isExpanded,
               icon: Icons.person,
               title: 'Clientes',
+              semanticsIdentifier: 'drawer.customers',
               route: const [
                 AllCustomersPage.route,
                 CustomerRegisterPage.route,
@@ -152,6 +160,7 @@ class WsDrawer extends StatelessWidget {
               isExpanded: isExpanded,
               icon: Icons.search,
               title: 'Buscar Aparelhos',
+              semanticsIdentifier: 'drawer.searchDevices',
               route: const [
                 SearchDevicesPage.route,
                 DeviceDetailsPage.route,
@@ -168,6 +177,7 @@ class WsDrawer extends StatelessWidget {
               isExpanded: isExpanded,
               icon: Icons.system_update,
               title: 'Atualizações',
+              semanticsIdentifier: 'drawer.updates',
               route: const [],
               onTap: () async {
                 AppLogger.info('Update', 'Manual update check from drawer');
@@ -231,6 +241,7 @@ class WsDrawer extends StatelessWidget {
                 isExpanded: isExpanded,
                 icon: Icons.folder_open,
                 title: 'Abrir pasta de logs',
+                semanticsIdentifier: 'drawer.logs',
                 route: const [],
                 onTap: () async {
                   final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -252,6 +263,7 @@ class WsDrawer extends StatelessWidget {
               isExpanded: isExpanded,
               icon: Icons.logout,
               title: 'Logout',
+              semanticsIdentifier: 'drawer.logout',
               route: const [],
               onTap: () async {
                 await context.read<AuthService>().logout();

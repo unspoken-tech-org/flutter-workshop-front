@@ -68,6 +68,10 @@ class CustomDateFormField extends StatefulWidget {
   final int errorMaxLines;
   final bool allowFutureDates;
 
+  /// `Semantics.identifier` of the text field (`<page>.<field>`); the
+  /// header label is a separate text, so the field itself has no label.
+  final String? semanticsIdentifier;
+
   const CustomDateFormField({
     super.key,
     this.dateController,
@@ -83,6 +87,7 @@ class CustomDateFormField extends StatefulWidget {
     this.enabled = true,
     this.errorMaxLines = 1,
     this.allowFutureDates = false,
+    this.semanticsIdentifier,
   });
 
   @override
@@ -133,102 +138,108 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
           ),
           const SizedBox(height: 8),
         ],
-        TextFormField(
-          controller: dateController,
-          decoration: InputDecoration(
-            labelText: widget.label,
-            hintText: widget.hintText,
-            hintStyle: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
-            border: const OutlineInputBorder(),
-            suffixIcon: widget.enabled
-                ? IconButton(
-                    onPressed: dateController.text.isEmpty
-                        ? null
-                        : () {
-                            dateController.text = '';
-                            widget.onClear?.call();
-                          },
-                    icon: Icon(
-                      dateController.text.isEmpty
-                          ? Icons.calendar_today
-                          : Icons.close,
-                      color: Colors.grey.shade500,
-                    ),
-                  )
-                : Icon(Icons.calendar_today, color: Colors.grey.shade500),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+        Semantics(
+          identifier: widget.semanticsIdentifier,
+          child: TextFormField(
+            controller: dateController,
+            decoration: InputDecoration(
+              labelText: widget.label,
+              hintText: widget.hintText,
+              hintStyle: const TextStyle(
+                color: Color(0xFF6B7280),
+                fontSize: 14,
+              ),
+              border: const OutlineInputBorder(),
+              suffixIcon: widget.enabled
+                  ? IconButton(
+                      onPressed: dateController.text.isEmpty
+                          ? null
+                          : () {
+                              dateController.text = '';
+                              widget.onClear?.call();
+                            },
+                      icon: Icon(
+                        dateController.text.isEmpty
+                            ? Icons.calendar_today
+                            : Icons.close,
+                        color: Colors.grey.shade500,
+                      ),
+                    )
+                  : Icon(Icons.calendar_today, color: Colors.grey.shade500),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(color: Colors.blue.shade300, width: 1.5),
+              ),
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              errorMaxLines: widget.errorMaxLines,
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.blue.shade300, width: 1.5),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            errorMaxLines: widget.errorMaxLines,
-          ),
-          validator: widget.validator,
-          onSaved: (value) {
-            widget.onSave?.call(value ?? '');
-          },
-          readOnly: true,
-          onTap: () async {
-            if (!widget.enabled) return;
-            if (widget.datePickerType == DatePickerType.single) {
-              final now = DateTime.now();
-              final firstDate = DateTime(2000);
-              final lastDate = widget.allowFutureDates ? DateTime(2100) : now;
-              final date = await showDatePicker(
-                context: context,
-                initialDate: DateFieldSelection.initialDate(
-                  text: dateController.text,
-                  now: now,
+            validator: widget.validator,
+            onSaved: (value) {
+              widget.onSave?.call(value ?? '');
+            },
+            readOnly: true,
+            onTap: () async {
+              if (!widget.enabled) return;
+              if (widget.datePickerType == DatePickerType.single) {
+                final now = DateTime.now();
+                final firstDate = DateTime(2000);
+                final lastDate = widget.allowFutureDates ? DateTime(2100) : now;
+                final date = await showDatePicker(
+                  context: context,
+                  initialDate: DateFieldSelection.initialDate(
+                    text: dateController.text,
+                    now: now,
+                    firstDate: firstDate,
+                    lastDate: lastDate,
+                  ),
                   firstDate: firstDate,
                   lastDate: lastDate,
-                ),
-                firstDate: firstDate,
-                lastDate: lastDate,
-              );
-              if (!mounted) return;
-              if (date != null) {
-                dateController.text = DateFormat('dd/MM/yyyy').format(date);
-                widget.onSelected?.call(date, null);
-                setState(() {});
-              }
-            } else {
-              final lastDate = widget.allowFutureDates
-                  ? DateTime(2100)
-                  : DateTime.now();
-              final date = await showCalendarDatePicker2Dialog(
-                context: context,
-                dialogSize: const Size(400, 400),
-                value: DateFieldSelection.parse(dateController.text),
-                config: CalendarDatePicker2WithActionButtonsConfig(
-                  calendarType: CalendarDatePicker2Type.range,
-                  lastDate: lastDate,
-                ),
-              );
-              if (!mounted) return;
-              if (date != null) {
-                final picked = List.of(date.nonNulls);
-                if (picked.isEmpty) return;
-                final (start, end) = DateFieldSelection.range(
-                  picked,
-                  DateTime.now(),
                 );
-                dateController.text = [
-                  start,
-                  end,
-                ].map((e) => DateFormat('dd/MM/yyyy').format(e)).join(' - ');
+                if (!mounted) return;
+                if (date != null) {
+                  dateController.text = DateFormat('dd/MM/yyyy').format(date);
+                  widget.onSelected?.call(date, null);
+                  setState(() {});
+                }
+              } else {
+                final lastDate = widget.allowFutureDates
+                    ? DateTime(2100)
+                    : DateTime.now();
+                final date = await showCalendarDatePicker2Dialog(
+                  context: context,
+                  dialogSize: const Size(400, 400),
+                  value: DateFieldSelection.parse(dateController.text),
+                  config: CalendarDatePicker2WithActionButtonsConfig(
+                    calendarType: CalendarDatePicker2Type.range,
+                    lastDate: lastDate,
+                  ),
+                );
+                if (!mounted) return;
+                if (date != null) {
+                  final picked = List.of(date.nonNulls);
+                  if (picked.isEmpty) return;
+                  final (start, end) = DateFieldSelection.range(
+                    picked,
+                    DateTime.now(),
+                  );
+                  dateController.text = [
+                    start,
+                    end,
+                  ].map((e) => DateFormat('dd/MM/yyyy').format(e)).join(' - ');
 
-                widget.onSelected?.call(start, end);
-                setState(() {});
+                  widget.onSelected?.call(start, end);
+                  setState(() {});
+                }
               }
-            }
-          },
+            },
+          ),
         ),
       ],
     );

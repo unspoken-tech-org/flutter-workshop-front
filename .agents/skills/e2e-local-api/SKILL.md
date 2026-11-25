@@ -34,7 +34,8 @@ Para saber mais sobre o schema:
 - Rotas: as de negócio são `/v1/...` e as de auth são `/api/auth/{token,refresh,revoke}`.
 
 ## 2. Rodar o app
-Escolha da plataforma: Linux desktop é suportado, mas **web** é mais fácil de dirigir e capturar com o navegador embutido.
+Cenários que se repetem (recarga da lista de clientes, validação, total com 502, pickers de data) já estão em `integration_test/`: rode `bash .agents/skills/flutter-ui-mcp/scripts/run_integration_tests.sh $STATE`, que imprime só PASS/FAIL. Para dirigir o Linux desktop à mão, use a skill `flutter-ui-mcp` (`run_desktop_headless.sh` + `ui.py`).
+
 ```bash
 WP=$(python3 -c "import socket;s=socket.socket();s.bind(('127.0.0.1',0));print(s.getsockname()[1])")
 flutter run -d web-server --web-hostname 127.0.0.1 --web-port $WP --dart-define-from-file=$STATE/test.env   # em background
@@ -65,6 +66,7 @@ flutter run -d web-server --web-hostname 127.0.0.1 --web-port $WP --dart-define-
 . $STATE/state.env
 curl -s http://127.0.0.1:$PROXY_PORT/__e2e/mode/403html     # /v1/* -> 403 HTML (WAF)
 curl -s http://127.0.0.1:$PROXY_PORT/__e2e/mode/refresh400  # /v1/* -> 401; /api/auth/refresh -> 400 "Gateway: Invalid Host Header"
+curl -s http://127.0.0.1:$PROXY_PORT/__e2e/mode/502         # /v1/* -> 502 HTML (gateway), auth passa
 curl -s http://127.0.0.1:$PROXY_PORT/__e2e/mode/pass
 bash $SKILL/scripts/api_restart.sh $STATE down   # API fora do ar: o proxy devolve 502
 bash $SKILL/scripts/api_restart.sh $STATE up     # religa a API e reaponta o proxy (a porta publicada da API muda)
