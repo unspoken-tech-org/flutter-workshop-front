@@ -10,6 +10,7 @@ import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_butto
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
 import 'package:flutter_workshop_front/widgets/shared/secondary_phones_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_workshop_front/utils/validators/text_validators.dart';
 
 class CustomerRegisterForm extends StatefulWidget {
   const CustomerRegisterForm({super.key});
@@ -67,9 +68,10 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
             const CustomerRegistrationHeader(),
             const SizedBox(height: 32),
             CustomTextField(
+              semanticsIdentifier: 'customerRegister.name',
               fieldLabel: 'Nome',
               validator: (value) {
-                if (value == null || value.isEmpty) {
+                if (!TextValidators.hasText(value)) {
                   return 'Por favor, insira o nome';
                 }
                 return null;
@@ -80,6 +82,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
             ),
             const SizedBox(height: 16),
             CustomTextField(
+              semanticsIdentifier: 'customerRegister.cpf',
               fieldLabel: 'CPF',
               inputFormatters: [CpfFormatter()],
               validator: (value) {
@@ -98,6 +101,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
             ),
             const SizedBox(height: 16),
             CustomDropdownButtonFormField(
+              semanticsIdentifier: 'customerRegister.gender',
               fieldLabel: 'Sexo',
               items: const ['Masculino', 'Feminino', 'Outro'],
               validator: (value) {
@@ -112,13 +116,14 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
             ),
             const SizedBox(height: 16),
             CustomTextField(
+              semanticsIdentifier: 'customerRegister.email',
               fieldLabel: 'Email (opcional)',
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return null;
                 }
-                if (!value.contains('@')) {
+                if (!TextValidators.isEmail(value)) {
                   return 'Por favor, insira um email válido';
                 }
                 return null;
@@ -129,6 +134,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
             ),
             const SizedBox(height: 16),
             CustomTextField(
+              semanticsIdentifier: 'customerRegister.mainPhone',
               fieldLabel: 'Telefone Principal',
               inputFormatters: [PhoneNumberFormatter()],
               keyboardType: TextInputType.phone,
@@ -177,53 +183,59 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 spacing: 16,
                 children: [
-                  ElevatedButton(
-                    onPressed: _clear,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 16,
+                  Semantics(
+                    identifier: 'customerRegister.clear',
+                    child: ElevatedButton(
+                      onPressed: _clear,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        foregroundColor: Colors.black87,
+                        backgroundColor: Colors.white.withAlpha(230),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      foregroundColor: Colors.black87,
-                      backgroundColor: Colors.white.withAlpha(230),
+                      child: const Text('Limpar'),
                     ),
-                    child: const Text('Limpar'),
                   ),
                   Selector<CustomerRegisterController, bool>(
                     selector: (context, controller) =>
                         controller.isCreatingCustomer,
                     builder: (context, isCreatingCustomer, child) {
-                      return SizedBox(
-                        width: 150,
-                        child: ElevatedButton(
-                          onPressed: isCreatingCustomer
-                              ? null
-                              : () async => await onSave(context),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 32,
-                              vertical: 16,
+                      return Semantics(
+                        identifier: 'customerRegister.submit',
+                        child: SizedBox(
+                          width: 150,
+                          child: ElevatedButton(
+                            onPressed: isCreatingCustomer
+                                ? null
+                                : () async => await onSave(context),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                                vertical: 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              backgroundColor: Colors.black87,
+                              foregroundColor: Colors.white,
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            backgroundColor: Colors.black87,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: isCreatingCustomer
-                              ? const Center(
-                                  child: SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.black87,
+                            child: isCreatingCustomer
+                                ? const Center(
+                                    child: SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.black87,
+                                      ),
                                     ),
-                                  ),
-                                )
-                              : const Text('Cadastrar'),
+                                  )
+                                : const Text('Cadastrar'),
+                          ),
                         ),
                       );
                     },

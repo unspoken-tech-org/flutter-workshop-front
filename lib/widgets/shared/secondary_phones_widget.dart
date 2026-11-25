@@ -73,16 +73,24 @@ class _SecondaryPhonesWidgetState extends State<SecondaryPhonesWidget> {
                 spacing: 8,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: phoneWidget),
+                  Expanded(
+                    child: Semantics(
+                      identifier: 'secondaryPhone.$index',
+                      child: phoneWidget,
+                    ),
+                  ),
                   if (widget.isEditing)
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      style: IconButton.styleFrom(iconSize: 32),
-                      onPressed: () {
-                        setState(() {
-                          _secondaryPhoneFields.removeAt(index);
-                        });
-                      },
+                    Semantics(
+                      identifier: 'secondaryPhone.$index.delete',
+                      child: IconButton(
+                        icon: const Icon(Icons.delete),
+                        style: IconButton.styleFrom(iconSize: 32),
+                        onPressed: () {
+                          setState(() {
+                            _secondaryPhoneFields.removeAt(index);
+                          });
+                        },
+                      ),
                     ),
                 ],
               ),
@@ -91,20 +99,23 @@ class _SecondaryPhonesWidgetState extends State<SecondaryPhonesWidget> {
         }),
         if (widget.isEditing && _secondaryPhoneFields.length < 3) ...[
           const SizedBox(height: 16),
-          TextButton.icon(
-            onPressed: () {
-              setState(() {
-                _secondaryPhoneFields.add(
-                  SecondaryPhoneFormField(
-                    key: const ValueKey('phone_field_name_number_'),
-                    readOnly: !widget.isEditing,
-                    onSaved: widget.onSaved,
-                  ),
-                );
-              });
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('Adicionar telefone secundário'),
+          Semantics(
+            identifier: 'secondaryPhone.add',
+            child: TextButton.icon(
+              onPressed: () {
+                setState(() {
+                  _secondaryPhoneFields.add(
+                    SecondaryPhoneFormField(
+                      key: const ValueKey('phone_field_name_number_'),
+                      readOnly: !widget.isEditing,
+                      onSaved: widget.onSaved,
+                    ),
+                  );
+                });
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Adicionar telefone secundário'),
+            ),
           ),
         ],
       ],

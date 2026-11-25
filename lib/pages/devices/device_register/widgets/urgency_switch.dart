@@ -29,7 +29,10 @@ class UrgencySwitch extends StatelessWidget {
                 ),
               ],
             ),
-            SwitchFormField(onSaved: onSaved),
+            SwitchFormField(
+              semanticsIdentifier: 'deviceRegister.urgency',
+              onSaved: onSaved,
+            ),
           ],
         ),
         Text(

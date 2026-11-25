@@ -45,7 +45,7 @@ void main() {
     await pumpSetupPage(tester);
 
     expect(find.text('Configuração Inicial'), findsOneWidget);
-    expect(find.text('Eletroluk Workshop'), findsOneWidget);
+    expect(find.text('Eletroluk WorkShop'), findsOneWidget);
   });
 
   testWidgets('Should show error when API Key is empty', (

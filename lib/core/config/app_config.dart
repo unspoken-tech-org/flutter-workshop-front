@@ -23,6 +23,8 @@ class AppConfig {
     required this.updateFeedUrl,
     required this.githubOwner,
     required this.githubRepo,
+    required this.storageNamespace,
+    required this.resetStorageOnBoot,
   });
 
   /// Origem da API, já validada (ver [validateBaseUrl]).
@@ -35,6 +37,17 @@ class AppConfig {
   final String updateFeedUrl;
   final String githubOwner;
   final String githubRepo;
+
+  /// Só em debug: prefixo das chaves do secure storage. Runs de agente/E2E
+  /// (`run_desktop_headless.sh`, `run_integration_tests.sh`) usam um
+  /// namespace próprio para não ler nem sobrescrever o setup do dev, que
+  /// divide o mesmo keyring.
+  final String storageNamespace;
+
+  /// Só em debug e só com [storageNamespace]: apaga a API key e os tokens do
+  /// namespace no boot, para o app não reaproveitar a chave de outro run. O
+  /// `bound_device_id` não tem namespace e fica (a chave se prende a ele).
+  final bool resetStorageOnBoot;
 
   /// Hosts aceitos com `http://` fora do release (E2E local contra a API).
   static const _localHttpHosts = {'localhost', '127.0.0.1'};
@@ -49,6 +62,8 @@ class AppConfig {
       updateFeedUrl: const String.fromEnvironment('UPDATE_FEED_URL'),
       githubOwner: const String.fromEnvironment('GITHUB_OWNER'),
       githubRepo: const String.fromEnvironment('GITHUB_REPO'),
+      storageNamespace: const String.fromEnvironment('STORAGE_NAMESPACE'),
+      resetStorageOnBoot: const bool.fromEnvironment('RESET_STORAGE'),
       isReleaseMode: kReleaseMode,
       isDebugMode: kDebugMode,
     );
@@ -61,6 +76,8 @@ class AppConfig {
     String updateFeedUrl = '',
     String githubOwner = '',
     String githubRepo = '',
+    String storageNamespace = '',
+    bool resetStorageOnBoot = false,
     required bool isReleaseMode,
     bool isDebugMode = false,
   }) {
@@ -71,6 +88,11 @@ class AppConfig {
       updateFeedUrl: updateFeedUrl.trim(),
       githubOwner: githubOwner.trim(),
       githubRepo: githubRepo.trim(),
+      storageNamespace: isDebugMode ? storageNamespace.trim() : '',
+      resetStorageOnBoot:
+          isDebugMode &&
+          storageNamespace.trim().isNotEmpty &&
+          resetStorageOnBoot,
     );
   }
 

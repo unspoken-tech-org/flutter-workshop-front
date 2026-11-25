@@ -225,45 +225,54 @@ class _UpdateDialogState extends State<UpdateDialog> {
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: _isInstalling
-              ? null
-              : () {
-                  AppLogger.info(_logTag, 'Button "Depois" clicked');
-                  Navigator.of(context).pop();
-                },
-          child: const Text('Depois'),
+        Semantics(
+          identifier: 'updateDialog.later',
+          child: TextButton(
+            onPressed: _isInstalling
+                ? null
+                : () {
+                    AppLogger.info(_logTag, 'Button "Depois" clicked');
+                    Navigator.of(context).pop();
+                  },
+            child: const Text('Depois'),
+          ),
         ),
         if (updateInfo.hasUpdate)
           if (_installError != null || widget.onSilentInstall == null)
-            ElevatedButton.icon(
-              onPressed: () {
-                AppLogger.info(
-                  _logTag,
-                  'Button "${_installError != null ? 'Abrir no Navegador' : 'Baixar Atualização'}" clicked',
-                );
-                Navigator.of(context).pop();
-                widget.onDownload();
-              },
-              icon: const Icon(Icons.open_in_browser),
-              label: Text(
-                _installError != null
-                    ? 'Abrir no Navegador'
-                    : 'Baixar Atualização',
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
+            Semantics(
+              identifier: 'updateDialog.openBrowser',
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  AppLogger.info(
+                    _logTag,
+                    'Button "${_installError != null ? 'Abrir no Navegador' : 'Baixar Atualização'}" clicked',
+                  );
+                  Navigator.of(context).pop();
+                  widget.onDownload();
+                },
+                icon: const Icon(Icons.open_in_browser),
+                label: Text(
+                  _installError != null
+                      ? 'Abrir no Navegador'
+                      : 'Baixar Atualização',
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
               ),
             )
           else
-            ElevatedButton.icon(
-              onPressed: _isInstalling ? null : _startSilentInstall,
-              icon: const Icon(Icons.download),
-              label: const Text('Atualizar Agora'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
+            Semantics(
+              identifier: 'updateDialog.download',
+              child: ElevatedButton.icon(
+                onPressed: _isInstalling ? null : _startSilentInstall,
+                icon: const Icon(Icons.download),
+                label: const Text('Atualizar Agora'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
               ),
             ),
       ],
@@ -432,14 +441,17 @@ class _UpdateReleaseNotesSectionState extends State<UpdateReleaseNotesSection> {
           const SizedBox(height: 4),
           Align(
             alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: () => setState(() => _expanded = !_expanded),
-              child: Text(
-                _expanded
-                    ? 'Mostrar menos'
-                    : remaining == 1
-                    ? 'Ver mais 1 versão anterior'
-                    : 'Ver mais $remaining versões anteriores',
+            child: Semantics(
+              identifier: 'updateDialog.toggleNotes',
+              child: TextButton(
+                onPressed: () => setState(() => _expanded = !_expanded),
+                child: Text(
+                  _expanded
+                      ? 'Mostrar menos'
+                      : remaining == 1
+                      ? 'Ver mais 1 versão anterior'
+                      : 'Ver mais $remaining versões anteriores',
+                ),
               ),
             ),
           ),

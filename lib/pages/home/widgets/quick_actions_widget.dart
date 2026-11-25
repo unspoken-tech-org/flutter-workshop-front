@@ -35,6 +35,7 @@ class QuickActionsWidget extends StatelessWidget {
               children: [
                 Expanded(
                   child: FastActionButtonWidget(
+                    semanticsIdentifier: 'home.registerDevice',
                     title: 'Cadastrar Aparelho',
                     description: 'Registrar novo aparelho para reparo',
                     icon: Icons.microwave_outlined,
@@ -46,6 +47,7 @@ class QuickActionsWidget extends StatelessWidget {
                 ),
                 Expanded(
                   child: FastActionButtonWidget(
+                    semanticsIdentifier: 'home.registerCustomer',
                     title: 'Novo Cliente',
                     description: 'Adicionar cliente ao sistema',
                     icon: Icons.people,

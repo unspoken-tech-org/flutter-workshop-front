@@ -44,25 +44,28 @@ class AllDevicesFilterListView extends StatelessWidget {
                   color: Colors.black,
                 ),
               ),
-              OutlinedButton.icon(
-                onPressed: () {
-                  unawaited(controller.clearFilters());
-                },
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.transparent),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              Semantics(
+                identifier: 'allDevices.filter.clear',
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    unawaited(controller.clearFilters());
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.transparent),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
-                ),
-                label: const Text(
-                  'Limpar filtros',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
+                  label: const Text(
+                    'Limpar filtros',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
                   ),
+                  icon: const Icon(Icons.close, color: Colors.black),
                 ),
-                icon: const Icon(Icons.close, color: Colors.black),
               ),
             ],
           ),
@@ -78,6 +81,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                   return Flexible(
                     child: CustomDateFormField(
                       headerLabel: 'Data de entrada',
+                      semanticsIdentifier: 'allDevices.filter.entryDate',
                       hintText: 'Busque pela data de entrada',
                       value: rangeDate,
                       datePickerType: DatePickerType.range,
@@ -106,6 +110,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                 builder: (context, deviceTypes, _) {
                   return Flexible(
                     child: SearchableDropdownFormField<DeviceType>(
+                      semanticsIdentifier: 'allDevices.filter.type',
                       headerLabelText: 'Tipo de aparelho',
                       hintText: 'Busque pelo tipo',
                       searchFn: (query) async {
@@ -132,6 +137,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                 builder: (context, deviceBrands, _) {
                   return Flexible(
                     child: SearchableDropdownFormField<DeviceBrand>(
+                      semanticsIdentifier: 'allDevices.filter.brand',
                       headerLabelText: 'Marca do aparelho',
                       hintText: 'Busque pela marca',
                       searchFn: (query) async {
@@ -162,6 +168,7 @@ class AllDevicesFilterListView extends StatelessWidget {
 
                   return Flexible(
                     child: CustomDropdownButtonFormField(
+                      semanticsIdentifier: 'allDevices.filter.status',
                       key: GlobalKey(),
                       headerLabel: 'Status do aparelho',
                       hintText: 'Busque pelo status',
@@ -200,6 +207,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                           spacing: 4,
                           children: [
                             SwitchFormField(
+                              semanticsIdentifier: 'allDevices.filter.urgency',
                               initialValue: controller.filter.hasUrgency,
                               onChanged: (value) {
                                 controller.toggleUrgency();
@@ -218,6 +226,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                           spacing: 4,
                           children: [
                             SwitchFormField(
+                              semanticsIdentifier: 'allDevices.filter.revision',
                               initialValue: controller.filter.hasRevision,
                               onChanged: (value) {
                                 controller.toggleRevision();

@@ -4,14 +4,27 @@ import 'package:uuid/uuid.dart';
 /// Credenciais do aparelho (api key, tokens, `bound_device_id`) sobre um
 /// [SecureKeyValueStore].
 class SecurityStorage {
-  SecurityStorage(this._storage);
+  /// [namespace] prefixes the API key and the tokens (`<namespace>.api_key`),
+  /// so a debug run for agents or E2E (`AppConfig.storageNamespace`) never
+  /// reads or overwrites the setup of the developer's own runs, which share
+  /// the same keyring. The `bound_device_id` is not namespaced: it identifies
+  /// the machine, and the API binds a key to the first device that uses it.
+  SecurityStorage(this._storage, {String namespace = ''})
+    : _kApiKey = _key(namespace, 'api_key'),
+      _kAccessToken = _key(namespace, 'access_token'),
+      _kRefreshToken = _key(namespace, 'refresh_token'),
+      _namespaced = namespace.isNotEmpty;
 
   final SecureKeyValueStore _storage;
+  final String _kApiKey;
+  final String _kAccessToken;
+  final String _kRefreshToken;
+  final bool _namespaced;
 
-  static const _kApiKey = 'api_key';
-  static const _kAccessToken = 'access_token';
-  static const _kRefreshToken = 'refresh_token';
   static const _kBoundDeviceId = 'bound_device_id';
+
+  static String _key(String namespace, String name) =>
+      namespace.isEmpty ? name : '$namespace.$name';
 
   Future<void> saveApiKey(String key) async {
     await _storage.write(_kApiKey, key);
@@ -60,7 +73,13 @@ class SecurityStorage {
     }
   }
 
+  /// Deletes the whole store, or, with a namespace, only that namespace's
+  /// API key and tokens.
   Future<void> clearAll() async {
-    await _storage.deleteAll();
+    if (!_namespaced) {
+      await _storage.deleteAll();
+      return;
+    }
+    await clearProvisioning();
   }
 }

@@ -17,75 +17,79 @@ class FilteredDeviceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return HoverableCard(
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Row(
-        children: [
-          Flexible(
-            child: Row(
-              children: [
-                Row(
-                  spacing: 16,
-                  children: [
-                    Text(
-                      '#${device.deviceId}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    RevisionUrgencyChip(
-                      isUrgent: device.hasUrgency,
-                      isRevision: device.hasRevision,
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 10,
-                  children: [
-                    Row(
-                      spacing: 4,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.person_outline_rounded, size: 16),
-                        Text(
-                          device.customerName.capitalizeAllWords,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
+    return Semantics(
+      identifier: 'device.card.${device.deviceId}',
+      container: true,
+      child: HoverableCard(
+        onTap: onTap,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Row(
+          children: [
+            Flexible(
+              child: Row(
+                children: [
+                  Row(
+                    spacing: 16,
+                    children: [
+                      Text(
+                        '#${device.deviceId}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
                         ),
-                      ],
-                    ),
-                    Text(
-                      '${device.type.capitalizeAllWords} - ${device.brand.capitalizeAllWords} ${device.model.capitalizeAllWords}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
                       ),
-                    ),
-                    Row(
-                      spacing: 18,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        DateText(label: 'Entrada', date: device.entryDate),
-                        DateText(label: 'Saída', date: device.departureDate),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+                      RevisionUrgencyChip(
+                        isUrgent: device.hasUrgency,
+                        isRevision: device.hasRevision,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 10,
+                    children: [
+                      Row(
+                        spacing: 4,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.person_outline_rounded, size: 16),
+                          Text(
+                            device.customerName.capitalizeAllWords,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        '${device.type.capitalizeAllWords} - ${device.brand.capitalizeAllWords} ${device.model.capitalizeAllWords}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Row(
+                        spacing: 18,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          DateText(label: 'Entrada', date: device.entryDate),
+                          DateText(label: 'Saída', date: device.departureDate),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          StatusCell(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
-            status: device.status,
-          ),
-        ],
+            StatusCell(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
+              status: device.status,
+            ),
+          ],
+        ),
       ),
     );
   }

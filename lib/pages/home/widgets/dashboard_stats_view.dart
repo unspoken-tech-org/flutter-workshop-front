@@ -74,12 +74,15 @@ class DashboardStatsView extends StatelessWidget {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 12),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            unawaited(controller.getDeviceStatistics());
-                          },
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Tentar novamente'),
+                        Semantics(
+                          identifier: 'home.stats.retry',
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              unawaited(controller.getDeviceStatistics());
+                            },
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Tentar novamente'),
+                          ),
                         ),
                       ],
                     ),
@@ -94,6 +97,7 @@ class DashboardStatsView extends StatelessWidget {
                 children: [
                   DataStatisticCardWidget(
                     title: 'Em revisão',
+                    semanticsIdentifier: 'home.stats.revision',
                     value: statistics.revisao.total,
                     iconData: Icons.history,
                     iconColor: Colors.deepPurple.shade700,
@@ -105,6 +109,7 @@ class DashboardStatsView extends StatelessWidget {
                   ),
                   DataStatisticCardWidget(
                     title: 'Urgentes',
+                    semanticsIdentifier: 'home.stats.urgent',
                     value: statistics.urgente.total,
                     iconData: Icons.hourglass_bottom_outlined,
                     iconColor: Colors.red.shade600,
@@ -116,6 +121,7 @@ class DashboardStatsView extends StatelessWidget {
                   ),
                   DataStatisticCardWidget(
                     title: 'Novo',
+                    semanticsIdentifier: 'home.stats.new',
                     value: statistics.novo.total,
                     iconData: Icons.new_releases_outlined,
                     iconColor: Colors.green,
@@ -130,6 +136,7 @@ class DashboardStatsView extends StatelessWidget {
                   ),
                   DataStatisticCardWidget(
                     title: 'Em Andamento',
+                    semanticsIdentifier: 'home.stats.inProgress',
                     value: statistics.emAndamento.total,
                     iconData: Icons.watch_later_outlined,
                     iconColor: Colors.blue.shade600,
@@ -144,6 +151,7 @@ class DashboardStatsView extends StatelessWidget {
                   ),
                   DataStatisticCardWidget(
                     title: 'Aguardando aprovação',
+                    semanticsIdentifier: 'home.stats.waiting',
                     value: statistics.aguardando.total,
                     iconData: Icons.watch_later_outlined,
                     iconColor: Colors.yellow.shade800,
@@ -158,6 +166,7 @@ class DashboardStatsView extends StatelessWidget {
                   ),
                   DataStatisticCardWidget(
                     title: 'Prontos para entrega',
+                    semanticsIdentifier: 'home.stats.ready',
                     value: statistics.pronto.total,
                     iconData: Icons.unarchive_outlined,
                     iconColor: Colors.green,
@@ -172,6 +181,7 @@ class DashboardStatsView extends StatelessWidget {
                   ),
                   DataStatisticCardWidget(
                     title: 'Entregues',
+                    semanticsIdentifier: 'home.stats.delivered',
                     value: statistics.entregue.total,
                     iconData: Icons.local_shipping_outlined,
                     iconColor: Colors.green,
@@ -186,6 +196,7 @@ class DashboardStatsView extends StatelessWidget {
                   ),
                   DataStatisticCardWidget(
                     title: 'Descartados',
+                    semanticsIdentifier: 'home.stats.disposed',
                     value: statistics.descartado.total,
                     iconData: Icons.delete_outline,
                     iconColor: Colors.red,

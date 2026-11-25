@@ -12,8 +12,12 @@ class CustomDropdownButtonFormField extends StatelessWidget {
   final bool enabled;
   final int errorMaxLines;
 
+  /// `Semantics.identifier` (`<page>.<element>`) for UI tests and agents.
+  final String? semanticsIdentifier;
+
   const CustomDropdownButtonFormField({
     super.key,
+    this.semanticsIdentifier,
     this.headerLabel,
     this.fieldLabel,
     this.hintText,
@@ -43,50 +47,56 @@ class CustomDropdownButtonFormField extends StatelessWidget {
           ),
           const SizedBox(height: 8),
         ],
-        DropdownButtonFormField<String>(
-          initialValue: initialValue,
-          decoration: InputDecoration(
-            labelText: fieldLabel,
-            hintText: hintText,
-            hintStyle: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
-            errorMaxLines: errorMaxLines,
-            border: const OutlineInputBorder(),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+        Semantics(
+          identifier: semanticsIdentifier,
+          child: DropdownButtonFormField<String>(
+            initialValue: initialValue,
+            decoration: InputDecoration(
+              labelText: fieldLabel,
+              hintText: hintText,
+              hintStyle: const TextStyle(
+                color: Color(0xFF6B7280),
+                fontSize: 14,
+              ),
+              errorMaxLines: errorMaxLines,
+              border: const OutlineInputBorder(),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(color: Colors.blue.shade300, width: 1.5),
+              ),
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.blue.shade300, width: 1.5),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-          ),
-          dropdownColor: Colors.white,
-          isExpanded: true,
-          borderRadius: BorderRadius.circular(8),
-          items: items
-              .map(
-                (item) => DropdownMenuItem(
-                  value: item,
-                  child: Text(
-                    item,
-                    style: const TextStyle(
-                      color: Color(0xFF1F2937),
-                      fontSize: 14,
+            dropdownColor: Colors.white,
+            isExpanded: true,
+            borderRadius: BorderRadius.circular(8),
+            items: items
+                .map(
+                  (item) => DropdownMenuItem(
+                    value: item,
+                    child: Text(
+                      item,
+                      style: const TextStyle(
+                        color: Color(0xFF1F2937),
+                        fontSize: 14,
+                      ),
                     ),
                   ),
-                ),
-              )
-              .toList(),
-          style: const TextStyle(color: Color(0xFF1F2937), fontSize: 14),
-          onChanged: !enabled ? null : (onChanged ?? (value) {}),
-          validator: validator,
-          onSaved: (value) {
-            onSave?.call(value ?? '');
-          },
+                )
+                .toList(),
+            style: const TextStyle(color: Color(0xFF1F2937), fontSize: 14),
+            onChanged: !enabled ? null : (onChanged ?? (value) {}),
+            validator: validator,
+            onSaved: (value) {
+              onSave?.call(value ?? '');
+            },
+          ),
         ),
       ],
     );

@@ -6,8 +6,12 @@ class SwitchFormField extends StatefulWidget {
   final void Function(bool value)? onChanged;
   final FormFieldValidator<bool>? validator;
 
+  /// `Semantics.identifier` (`<page>.<element>`) for UI tests and agents.
+  final String? semanticsIdentifier;
+
   const SwitchFormField({
     super.key,
+    this.semanticsIdentifier,
     this.initialValue,
     this.onSaved,
     this.onChanged,
@@ -39,23 +43,26 @@ class _SwitchFormFieldState extends State<SwitchFormField> {
       builder: (FormFieldState<bool> field) {
         final bool value = field.value ?? false;
 
-        return Switch(
-          thumbColor: WidgetStateProperty.all(Colors.white),
-          activeTrackColor: Colors.black87,
-          trackOutlineColor: WidgetStateProperty.all(
-            value ? Colors.black87 : Colors.blueGrey.shade100,
+        return Semantics(
+          identifier: widget.semanticsIdentifier,
+          child: Switch(
+            thumbColor: WidgetStateProperty.all(Colors.white),
+            activeTrackColor: Colors.black87,
+            trackOutlineColor: WidgetStateProperty.all(
+              value ? Colors.black87 : Colors.blueGrey.shade100,
+            ),
+            trackColor: WidgetStateProperty.all(
+              value ? Colors.black87 : Colors.blueGrey.shade100,
+            ),
+            hoverColor: Colors.transparent,
+            activeThumbColor: Colors.white,
+            inactiveTrackColor: Colors.blueGrey.shade100,
+            value: field.value ?? false,
+            onChanged: (value) {
+              field.didChange(value);
+              widget.onChanged?.call(value);
+            },
           ),
-          trackColor: WidgetStateProperty.all(
-            value ? Colors.black87 : Colors.blueGrey.shade100,
-          ),
-          hoverColor: Colors.transparent,
-          activeThumbColor: Colors.white,
-          inactiveTrackColor: Colors.blueGrey.shade100,
-          value: field.value ?? false,
-          onChanged: (value) {
-            field.didChange(value);
-            widget.onChanged?.call(value);
-          },
         );
       },
     );
