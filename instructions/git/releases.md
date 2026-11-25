@@ -13,6 +13,11 @@ a new release undoes it. Workflow: `.github/workflows/release-flutter-windows.ym
 - `vX.Y.Z-rc.N` (with a dot) becomes a pre-release, ignored by
   `/releases/latest`. `vX.Y.Z` on the same commit as the approved rc becomes
   `latest`. A hotfix patch skips the rc. The API uses the same suffixes.
+- `vX.Y.Z-rc.N-qa` builds the rc against the QA API (`.env-qa`); every other
+  tag builds with `.env-prd`. The workflow drops `GITHUB_OWNER`/`GITHUB_REPO`
+  from the QA build, so it never checks for updates (it would install the next
+  prod final). Its installer replaces a prod install on the same machine: QA
+  builds go on test machines only.
 - `git tag -a vX.Y.Z -m "<notes in pt-BR>" <sha> && git push origin vX.Y.Z`.
   The final tag's message is the release note users see in the update dialog;
   an rc pre-release gets GitHub's generated notes (PRs since the last final).

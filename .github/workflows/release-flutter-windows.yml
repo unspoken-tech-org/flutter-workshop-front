@@ -50,6 +50,28 @@ jobs:
           fi
           echo "VERSION=$version" >> "$GITHUB_OUTPUT"
 
+      # Tag terminada em -qa (vX.Y.Z-rc.N-qa) gera um build contra a API de QA
+      # (.env-qa); qualquer outra tag, e a execução manual, usa .env-prd. Uma
+      # tag -qa sempre tem sufixo, então vira pré-release e nunca é "latest".
+      # O build de QA sai sem GITHUB_OWNER/GITHUB_REPO: sem eles o
+      # UpdateService não checa atualização, e o app não se instalaria por
+      # cima com a próxima final de PRD.
+      - name: Select environment
+        id: env
+        shell: bash
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [[ "$REF_TYPE" == "tag" && "$REF_NAME" == *-qa ]]; then
+            env_file=".env-qa-build"
+            grep -vE '^GITHUB_(OWNER|REPO)=' .env-qa > "$env_file"
+          else
+            env_file=".env-prd"
+          fi
+          echo "Building with $env_file"
+          echo "ENV_FILE=$env_file" >> "$GITHUB_OUTPUT"
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -64,9 +86,9 @@ jobs:
 
       # Os valores entram por --dart-define; nenhum .env vai para o bundle.
       # --build-name grava a versão no executável: o UpdateService compara
-      # PackageInfo.version com a tag de /releases/latest.
+      # PackageInfo.version com a maior release final publicada.
       - name: Build Windows Release
-        run: flutter build windows --release --dart-define-from-file=.env-prd --build-name=${{ steps.get_version.outputs.VERSION }}
+        run: flutter build windows --release --dart-define-from-file=${{ steps.env.outputs.ENV_FILE }} --build-name=${{ steps.get_version.outputs.VERSION }}
 
       - name: Bundle Visual C++ Runtime DLLs
         shell: pwsh
@@ -148,7 +170,7 @@ jobs:
 
       # Só tag estável (vX.Y.Z, sem sufixo) vira release "latest". Tag com sufixo
       # (vX.Y.Z-test, vX.Y.Z-rc.1) ou execução manual fora de tag vira pré-release,
-      # que o UpdateService ignora (/releases/latest não retorna pré-releases).
+      # que o UpdateService ignora (ele descarta pré-releases da lista).
       - name: Detect release type
         id: release_type
         shell: bash
@@ -170,7 +192,7 @@ jobs:
           fi
 
       # A release final mostra ao usuário a mensagem da tag em pt-BR: o
-      # UpdateService exibe o body de /releases/latest no diálogo de atualização.
+      # UpdateService exibe o body da release final no diálogo de atualização.
       # Pré-release de tag (vX.Y.Z-rc.N) não chega ao app; ela leva as notas
       # geradas pelo GitHub desde a última tag final.
       - name: Build release body
