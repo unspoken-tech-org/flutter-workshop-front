@@ -5,9 +5,17 @@ import 'app_logger.dart';
 
 /// Records uncaught framework and platform errors in the log file, chaining
 /// to whatever handlers were installed before (presentation, crash reports).
+///
+/// In debug every [FlutterError] reaches the console in full (with the
+/// "relevant error-causing widget" location), not only the first one: the
+/// default presenter prints "Another exception was thrown" from the second
+/// error on, which hides the source of a `RenderFlex overflow`.
 void installGlobalErrorLogging() {
   final previousFlutterHandler = FlutterError.onError;
   FlutterError.onError = (details) {
+    if (kDebugMode) {
+      FlutterError.resetErrorCount();
+    }
     AppLogger.error(
       'FlutterError',
       'Uncaught framework error'
