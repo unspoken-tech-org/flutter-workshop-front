@@ -63,7 +63,7 @@ Todo controle que um teste toca tem `Semantics(identifier: '<página>.<elemento>
 - Plano de teste: tire os passos e identifiers de um `U snap` de cada tela no app rodando, não do grep nem da memória.
 
 ## Overflow e erros
-`U errors [N]` mostra cada erro com o widget de origem, inclusive os seguintes ao primeiro. No `run.log`, hoje só o primeiro `FlutterError` sai inteiro ("The relevant error-causing widget was" + arquivo:linha); os seguintes viram "Another exception was thrown" (item aberto no backlog). Para o primeiro: `grep -n "overflowed by" -A6 $STATE/run.log`.
+`U errors [N]` mostra cada erro com o widget de origem, inclusive os seguintes ao primeiro. No `run.log`, todo `FlutterError` em debug também sai inteiro ("The relevant error-causing widget was" + arquivo:linha) — procure com `grep -n "overflowed by" -A6 $STATE/run.log`.
 
 ## Limites
 - Não funcionam: `wait_for` `changed`; `navigate` `push` (go_router; navegue pela UI, `pop` funciona); `focus_window`.

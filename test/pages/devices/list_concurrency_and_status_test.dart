@@ -23,6 +23,7 @@ import 'package:flutter_workshop_front/repositories/all_devices/all_devices_repo
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/searchable_dropdown_form_field.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
+
 import '../../helpers/result_guard.dart';
 
 DeviceDataTable _device(int id, String name) => DeviceDataTable(
@@ -385,6 +386,36 @@ void main() {
         expect(controller.devices.map((d) => d.customerName), ['TV']);
       },
     );
+  });
+
+  group('SearchDevicesController total em falha', () {
+    test('limpa a lista e zera o total quando a nova busca falha', () async {
+      final repo = _FakeAllDevicesRepository();
+      final controller = SearchDevicesController(repo);
+
+      await Future<void>.delayed(const Duration(milliseconds: 220));
+      repo.pendingSearchDevices[0].$2.complete(
+        _page([_device(1, 'Ana'), _device(2, 'Bia')], number: 0, last: false),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(controller.devices.length, 2);
+      expect(controller.totalElements, 2);
+      expect(controller.totalPages, 2);
+      expect(controller.hasMore, isTrue);
+
+      controller.filterTable('Notebook');
+      await Future<void>.delayed(const Duration(milliseconds: 220));
+      repo.pendingSearchDevices[1].$2.completeError(
+        Exception('502 Bad Gateway'),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.devices, isEmpty);
+      expect(controller.totalElements, 0);
+      expect(controller.totalPages, 0);
+      expect(controller.hasMore, isFalse);
+      expect(controller.isLoading, isFalse);
+    });
   });
 
   group('3.2 — Autocomplete descarta sugestões de busca antiga', () {

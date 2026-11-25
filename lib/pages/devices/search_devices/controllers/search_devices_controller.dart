@@ -63,6 +63,10 @@ class SearchDevicesController extends ChangeNotifier {
           _totalPages = value.totalPages;
           _hasMore = !value.last;
         case Err(:final failure):
+          devices = [];
+          _totalElements = 0;
+          _totalPages = 0;
+          _hasMore = false;
           SnackBarUtil().showError(
             failure.messageOr('Erro ao buscar aparelhos'),
           );
