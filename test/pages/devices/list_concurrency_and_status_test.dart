@@ -397,7 +397,7 @@ void main() {
 
   group('SearchDevicesController total em falha', () {
     test('limpa a lista e zera o total quando a nova busca falha', () async {
-      final repo = _FakeAllDevicesRepository();
+      final repo = _FakeDeviceRepository();
       final controller = SearchDevicesController(repo);
 
       await Future<void>.delayed(const Duration(milliseconds: 220));
