@@ -98,5 +98,43 @@ void main() {
         isA<RequisitionException>(),
       );
     });
+
+    test('ProblemDetail usa detail e code da raiz', () async {
+      final body = jsonEncode({
+        'type': 'https://api.workshop.example/errors/payment-invalid',
+        'title': 'Bad Request',
+        'status': 400,
+        'detail': 'Valor do pagamento inválido',
+        'code': 'payment.invalid',
+      });
+      final response = await _dioReturning(
+        400,
+        body,
+        contentType: 'application/problem+json',
+      ).post<dynamic>('/v1/payment');
+
+      final exception = requisitionExceptionFromResponse(response);
+
+      expect(exception.message, 'Valor do pagamento inválido');
+      expect(exception.code, 'payment.invalid');
+    });
+
+    test('ProblemDetail sem detail cai para title', () async {
+      final body = jsonEncode({
+        'type': 'about:blank',
+        'title': 'Recurso não encontrado',
+        'status': 404,
+      });
+      final response = await _dioReturning(
+        404,
+        body,
+        contentType: 'application/problem+json',
+      ).get<dynamic>('/v1/device/99');
+
+      final exception = requisitionExceptionFromResponse(response);
+
+      expect(exception.message, 'Recurso não encontrado');
+      expect(exception.code, '404');
+    });
   });
 }
