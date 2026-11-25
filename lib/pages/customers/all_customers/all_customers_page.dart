@@ -57,20 +57,23 @@ class _AllCustomersPageState extends State<AllCustomersPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Clientes', style: WsTextStyles.h1),
-                      TextButton.icon(
-                        icon: const Icon(Icons.add),
-                        label: const Text('Adicionar Cliente'),
-                        onPressed: () =>
-                            WsNavigator.pushCustomerRegister(context),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 18,
-                          ),
-                          backgroundColor: Colors.blue.shade700,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
+                      Semantics(
+                        identifier: 'customers.add',
+                        child: TextButton.icon(
+                          icon: const Icon(Icons.add),
+                          label: const Text('Adicionar Cliente'),
+                          onPressed: () =>
+                              WsNavigator.pushCustomerRegister(context),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 18,
+                            ),
+                            backgroundColor: Colors.blue.shade700,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
                           ),
                         ),
                       ),
@@ -79,6 +82,7 @@ class _AllCustomersPageState extends State<AllCustomersPage> {
                   const SizedBox(height: 16),
                   WsSearchBarWidget(
                     labelText: 'Buscar por nome, CPF, ID ou telefone',
+                    semanticsIdentifier: 'customers.search',
                     onChanged: _controller.searchCustomers,
                     onClear: clearSearch,
                   ),

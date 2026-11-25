@@ -9,6 +9,7 @@ class WsDrawerItem extends StatelessWidget {
     required this.title,
     required this.route,
     required this.onTap,
+    required this.semanticsIdentifier,
   });
 
   final String currentRoute;
@@ -18,34 +19,42 @@ class WsDrawerItem extends StatelessWidget {
   final List<String> route;
   final VoidCallback onTap;
 
+  /// `Semantics.identifier` (`drawer.<item>`): collapsed, the item is only an
+  /// icon with no label.
+  final String semanticsIdentifier;
+
   @override
   Widget build(BuildContext context) {
     final isSelected = route.contains(currentRoute);
     final iconColor = isSelected ? Colors.blue : Colors.black87;
 
-    return InkWell(
-      onTap: onTap,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const NeverScrollableScrollPhysics(),
-        child: SizedBox(
-          height: 50,
-          child: Row(
-            children: [
-              SizedBox(width: 50, child: Icon(icon, color: iconColor)),
-              const SizedBox(width: 16),
-              if (isExpanded)
-                Text(
-                  title,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: iconColor,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
+    return Semantics(
+      identifier: semanticsIdentifier,
+      container: true,
+      child: InkWell(
+        onTap: onTap,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const NeverScrollableScrollPhysics(),
+          child: SizedBox(
+            height: 50,
+            child: Row(
+              children: [
+                SizedBox(width: 50, child: Icon(icon, color: iconColor)),
+                const SizedBox(width: 16),
+                if (isExpanded)
+                  Text(
+                    title,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: iconColor,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

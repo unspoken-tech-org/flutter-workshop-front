@@ -197,34 +197,37 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
                     selector: (context, controller) =>
                         controller.isCreatingCustomer,
                     builder: (context, isCreatingCustomer, child) {
-                      return SizedBox(
-                        width: 150,
-                        child: ElevatedButton(
-                          onPressed: isCreatingCustomer
-                              ? null
-                              : () async => await onSave(context),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 32,
-                              vertical: 16,
+                      return Semantics(
+                        identifier: 'customerRegister.submit',
+                        child: SizedBox(
+                          width: 150,
+                          child: ElevatedButton(
+                            onPressed: isCreatingCustomer
+                                ? null
+                                : () async => await onSave(context),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                                vertical: 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              backgroundColor: Colors.black87,
+                              foregroundColor: Colors.white,
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            backgroundColor: Colors.black87,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: isCreatingCustomer
-                              ? const Center(
-                                  child: SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.black87,
+                            child: isCreatingCustomer
+                                ? const Center(
+                                    child: SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.black87,
+                                      ),
                                     ),
-                                  ),
-                                )
-                              : const Text('Cadastrar'),
+                                  )
+                                : const Text('Cadastrar'),
+                          ),
                         ),
                       );
                     },

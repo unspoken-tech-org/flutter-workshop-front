@@ -78,6 +78,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                   return Flexible(
                     child: CustomDateFormField(
                       headerLabel: 'Data de entrada',
+                      semanticsIdentifier: 'allDevices.filter.entryDate',
                       hintText: 'Busque pela data de entrada',
                       value: rangeDate,
                       datePickerType: DatePickerType.range,
