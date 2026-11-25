@@ -7,11 +7,12 @@ import 'package:flutter_workshop_front/models/home_table/device_data_table.dart'
 import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/search_devices/controllers/search_devices_controller.dart';
-import 'package:flutter_workshop_front/repositories/all_devices/all_devices_repository.dart';
+import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 import '../../helpers/result_guard.dart';
 
-class _RecordingAllDevicesRepository implements AllDevicesRepository {
+class _RecordingDeviceRepository extends Fake implements DeviceRepository {
   DeviceFilter? lastAllDevicesFilter;
   DeviceSearchFilter? lastSearchDevicesFilter;
 
@@ -42,14 +43,20 @@ class _RecordingAllDevicesRepository implements AllDevicesRepository {
     lastSearchDevicesFilter = filter;
     return _emptyPage();
   });
+}
+
+class _StubCatalogRepository extends Fake implements CatalogRepository {
+  @override
+  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([
+    String? name,
+    bool forceRefresh = false,
+  ]) => guardResult(() async => []);
 
   @override
-  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([String? name]) =>
-      guardResult(() async => []);
-
-  @override
-  Future<Result<List<DeviceType>>> getAllDeviceTypes([String? name]) =>
-      guardResult(() async => []);
+  Future<Result<List<DeviceType>>> getAllDeviceTypes([
+    String? name,
+    bool forceRefresh = false,
+  ]) => guardResult(() async => []);
 }
 
 void main() {
@@ -57,8 +64,8 @@ void main() {
     test(
       'preserves spaces and accents in customerName and strips masks for cpf/phone/id',
       () async {
-        final repo = _RecordingAllDevicesRepository();
-        final controller = AllDevicesController(repo);
+        final repo = _RecordingDeviceRepository();
+        final controller = AllDevicesController(repo, _StubCatalogRepository());
         await Future<void>.delayed(const Duration(milliseconds: 250));
 
         controller.filterTable('  Maria da Conceição  ');
@@ -86,7 +93,7 @@ void main() {
     test(
       'preserves spaces and accents in searchQuery and strips masks for cpf/phone/id',
       () async {
-        final repo = _RecordingAllDevicesRepository();
+        final repo = _RecordingDeviceRepository();
         final controller = SearchDevicesController(repo);
         await Future<void>.delayed(const Duration(milliseconds: 250));
 

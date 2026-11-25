@@ -9,36 +9,26 @@ import 'package:flutter_workshop_front/models/customer_device/input_customer_con
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
-import 'package:flutter_workshop_front/services/customer_contact/customer_contact_service.dart';
-import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
-import 'package:flutter_workshop_front/services/payment/payment_service.dart';
-import 'package:flutter_workshop_front/services/technician/technician_service.dart';
+import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 class DeviceCustomerPageController extends ChangeNotifier
     with SafeChangeNotifierMixin {
-  final DeviceCustomerService _deviceCustomerService;
-  final TechnicianService _technicianService;
-  final CustomerContactService _customerContactService;
-  final PaymentService _paymentService;
+  final DeviceRepository _deviceRepository;
+  final CatalogRepository _catalogRepository;
 
   DeviceCustomerPageController({
-    required DeviceCustomerService deviceCustomerService,
-    required TechnicianService technicianService,
-    required CustomerContactService customerContactService,
-    required PaymentService paymentService,
-  }) : _deviceCustomerService = deviceCustomerService,
-       _technicianService = technicianService,
-       _customerContactService = customerContactService,
-       _paymentService = paymentService;
+    required DeviceRepository deviceRepository,
+    required CatalogRepository catalogRepository,
+  }) : _deviceRepository = deviceRepository,
+       _catalogRepository = catalogRepository;
 
-  /// Monta o controller com os services do [AppDependencies].
+  /// Monta o controller com os repositórios do [AppDependencies].
   factory DeviceCustomerPageController.fromDependencies(AppDependencies deps) {
     return DeviceCustomerPageController(
-      deviceCustomerService: deps.deviceCustomerService,
-      technicianService: deps.technicianService,
-      customerContactService: deps.customerContactService,
-      paymentService: deps.paymentService,
+      deviceRepository: deps.deviceRepository,
+      catalogRepository: deps.catalogRepository,
     );
   }
 
@@ -75,7 +65,7 @@ class DeviceCustomerPageController extends ChangeNotifier
 
   Future<void> _getTechnicians() async {
     try {
-      switch (await _technicianService.getTechnicians()) {
+      switch (await _catalogRepository.getTechnicians()) {
         case Ok(:final value):
           technicians = value;
         case Err(:final failure):
@@ -90,7 +80,7 @@ class DeviceCustomerPageController extends ChangeNotifier
 
   Future<void> _getCustomerDevice(int deviceId, {bool isNew = false}) async {
     try {
-      switch (await _deviceCustomerService.getCustomerDeviceById(deviceId)) {
+      switch (await _deviceRepository.getCustomerDeviceById(deviceId)) {
         case Ok(:final value):
           deviceCustomer = value;
           loadError = null;
@@ -147,7 +137,7 @@ class DeviceCustomerPageController extends ChangeNotifier
     isUpdating = true;
     notifyListeners();
     try {
-      switch (await _deviceCustomerService.updateDeviceHasUrgency(
+      switch (await _deviceRepository.updateDeviceHasUrgency(
         current.deviceId,
         hasUrgency,
       )) {
@@ -177,7 +167,7 @@ class DeviceCustomerPageController extends ChangeNotifier
     isSaving = true;
     notifyListeners();
     try {
-      switch (await _deviceCustomerService.updateDeviceCustomer(current)) {
+      switch (await _deviceRepository.updateDeviceCustomer(current)) {
         case Ok(:final value):
           deviceCustomer = value;
           _editingSnapshot = null;
@@ -205,9 +195,7 @@ class DeviceCustomerPageController extends ChangeNotifier
     isCreatingContact = true;
     notifyListeners();
     try {
-      switch (await _customerContactService.createCustomerContact(
-        customerContact,
-      )) {
+      switch (await _deviceRepository.createCustomerContact(customerContact)) {
         case Ok():
           await _getCustomerDevice(current.deviceId);
           SnackBarUtil().showSuccess('Contato criado com sucesso');
@@ -233,7 +221,7 @@ class DeviceCustomerPageController extends ChangeNotifier
     isEditingContact = true;
     notifyListeners();
     try {
-      switch (await _customerContactService.updateCustomerContact(
+      switch (await _deviceRepository.updateCustomerContact(
         contactId,
         customerContact,
       )) {
@@ -259,7 +247,7 @@ class DeviceCustomerPageController extends ChangeNotifier
     isUpdating = true;
     notifyListeners();
     try {
-      switch (await _deviceCustomerService.updateDeviceRevision(
+      switch (await _deviceRepository.updateDeviceRevision(
         current.deviceId,
         revision,
       )) {
@@ -287,7 +275,7 @@ class DeviceCustomerPageController extends ChangeNotifier
     isUpdating = true;
     notifyListeners();
     try {
-      switch (await _deviceCustomerService.updateDeviceStatus(
+      switch (await _deviceRepository.updateDeviceStatus(
         current.deviceId,
         status,
       )) {
@@ -317,7 +305,7 @@ class DeviceCustomerPageController extends ChangeNotifier
     try {
       isCreatingPayment = true;
       notifyListeners();
-      switch (await _paymentService.createPayment(payment)) {
+      switch (await _deviceRepository.createPayment(payment)) {
         case Ok():
           final newPayment = CustomerDevicePayment(
             paymentId: 0,

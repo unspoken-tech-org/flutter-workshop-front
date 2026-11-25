@@ -8,7 +8,7 @@ import 'package:flutter_workshop_front/models/customer_device/input_payment.dart
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_new_payment_dialog.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/payment_totals_widget.dart';
-import 'package:flutter_workshop_front/services/payment/payment_service.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/device_values_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
@@ -44,7 +44,7 @@ DeviceCustomer _deviceWithPayments({
   'payments': payments,
 });
 
-class _RecordingPaymentService implements PaymentService {
+class _RecordingDeviceRepository extends Fake implements DeviceRepository {
   InputPayment? lastCreated;
 
   @override
@@ -52,9 +52,6 @@ class _RecordingPaymentService implements PaymentService {
     lastCreated = payment;
     return const Ok(null);
   }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
@@ -201,9 +198,9 @@ void main() {
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.resetPhysicalSize);
 
-        final paymentService = _RecordingPaymentService();
+        final deviceRepo = _RecordingDeviceRepository();
         final controller =
-            testDeviceCustomerPageController(paymentService: paymentService)
+            testDeviceCustomerPageController(deviceRepository: deviceRepo)
               ..technicians = [
                 Technician(id: 1, name: 'Carlos', number: '11999999999'),
               ]
@@ -257,9 +254,9 @@ void main() {
         await tester.tap(find.text('Adicionar Pagamento'));
         await tester.pumpAndSettle();
 
-        expect(paymentService.lastCreated, isNotNull);
-        expect(paymentService.lastCreated!.value, const Money.fromCents(6667));
-        expect(paymentService.lastCreated!.category, PaymentCategory.budgetFee);
+        expect(deviceRepo.lastCreated, isNotNull);
+        expect(deviceRepo.lastCreated!.value, const Money.fromCents(6667));
+        expect(deviceRepo.lastCreated!.category, PaymentCategory.budgetFee);
       },
     );
 
@@ -270,9 +267,9 @@ void main() {
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.resetPhysicalSize);
 
-        final paymentService = _RecordingPaymentService();
+        final deviceRepo = _RecordingDeviceRepository();
         final controller = testDeviceCustomerPageController(
-          paymentService: paymentService,
+          deviceRepository: deviceRepo,
         )..deviceCustomer = _deviceWithPayments(budgetFee: 100.0);
 
         await tester.pumpWidget(
@@ -294,7 +291,7 @@ void main() {
         await tester.pump();
 
         expect(find.text('Valor inválido'), findsOneWidget);
-        expect(paymentService.lastCreated, isNull);
+        expect(deviceRepo.lastCreated, isNull);
       },
     );
   });

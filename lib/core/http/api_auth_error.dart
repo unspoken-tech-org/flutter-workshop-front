@@ -15,13 +15,13 @@ class ApiAuthError {
 
   /// Código de erro da API, ou `null` se o corpo não seguir o contrato
   /// (HTML do WAF, texto do gateway, corpo vazio).
+  /// Aceita tanto o formato legado (`error.code`) quanto `ProblemDetail` (`code`).
   static String? errorCode(Response<dynamic>? response) {
     final data = response?.data;
     if (data is! Map) return null;
     final error = data['error'];
-    if (error is! Map) return null;
-    final code = error['code'];
-    return code is String ? code : null;
+    final code = (error is Map ? error['code'] : null) ?? data['code'];
+    return code is String && code.isNotEmpty ? code : null;
   }
 
   /// `true` só quando a API afirma que a API key ou o token foi recusado.

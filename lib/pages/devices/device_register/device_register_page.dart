@@ -1,10 +1,12 @@
-import 'package:flutter_workshop_front/core/di/app_dependencies.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/widgets/device_register_form.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/widgets/device_register_shimmer.dart';
+import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
+import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
 import 'package:provider/provider.dart';
 
@@ -21,13 +23,10 @@ class DeviceRegisterPage extends StatelessWidget {
     return ChangeNotifierProvider(
       lazy: false,
       create: (context) {
-        final deps = context.read<AppDependencies>();
         final controller = DeviceRegisterController(
-          deps.typesBrandsModelsRepository,
-          deps.colorService,
-          deps.deviceCustomerService,
-          deps.technicianService,
-          deps.customerRepository,
+          catalogRepository: context.read<CatalogRepository>(),
+          deviceRepository: context.read<DeviceRepository>(),
+          customerRepository: context.read<CustomerRepository>(),
         );
         unawaited(controller.init(customerId, customerName));
         return controller;

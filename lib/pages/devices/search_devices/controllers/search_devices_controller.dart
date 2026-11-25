@@ -8,15 +8,15 @@ import 'package:flutter_workshop_front/models/device/device_filter.dart'
 import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
-import 'package:flutter_workshop_front/repositories/all_devices/all_devices_repository.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/utils/filter_utils.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 class SearchDevicesController extends ChangeNotifier {
-  final AllDevicesRepository _allDevicesRepository;
+  final DeviceRepository _deviceRepository;
 
   SearchDevicesController(
-    this._allDevicesRepository, {
+    this._deviceRepository, {
     DeviceSearchFilter? filter,
   }) {
     this.filter = filter ?? DeviceSearchFilter();
@@ -54,7 +54,7 @@ class SearchDevicesController extends ChangeNotifier {
       notifyListeners();
       await Future<void>.delayed(const Duration(milliseconds: 200));
       if (generation != _requestGeneration) return;
-      final result = await _allDevicesRepository.searchDevices(filter);
+      final result = await _deviceRepository.searchDevices(filter);
       if (generation != _requestGeneration) return;
       switch (result) {
         case Ok(:final value):
@@ -170,7 +170,7 @@ class SearchDevicesController extends ChangeNotifier {
       _currentPage++;
       filter.page = _currentPage;
 
-      final result = await _allDevicesRepository.searchDevices(filter);
+      final result = await _deviceRepository.searchDevices(filter);
       if (generation != _requestGeneration) return;
       switch (result) {
         case Ok(:final value):

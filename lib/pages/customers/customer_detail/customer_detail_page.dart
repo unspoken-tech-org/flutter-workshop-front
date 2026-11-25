@@ -1,4 +1,3 @@
-import 'package:flutter_workshop_front/core/di/app_dependencies.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -6,6 +5,7 @@ import 'package:flutter_workshop_front/pages/customers/customer_detail/controlle
 import 'package:flutter_workshop_front/pages/customers/customer_detail/widgets/customer_detail_shimmer.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/widgets/customer_devices_section.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/widgets/customer_form_section.dart';
+import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_scaffold.dart';
 import 'package:flutter_workshop_front/widgets/shared/empty_list_widget.dart';
 import 'package:provider/provider.dart';
@@ -29,7 +29,7 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
       lazy: false,
       create: (context) {
         final controller = CustomerDetailController(
-          context.read<AppDependencies>().customerRepository,
+          context.read<CustomerRepository>(),
         );
         unawaited(controller.fetchCustomer(widget.customerId));
         return controller;

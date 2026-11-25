@@ -117,13 +117,10 @@ class ApiClient {
     return buffer.toString();
   }
 
-  /// `error.code` do `ResponseError` da API, se o corpo o trouxer.
-  String? _apiErrorCode(Response<dynamic>? response) {
-    final data = response?.data;
-    final error = data is Map ? data['error'] : null;
-    final code = error is Map ? error['code'] : null;
-    return code?.toString();
-  }
+  /// Código de erro da API (`error.code` legado ou `code` na raiz em
+  /// `ProblemDetail`), se o corpo o trouxer.
+  String? _apiErrorCode(Response<dynamic>? response) =>
+      apiErrorCodeFromResponse(response);
 
   /// `FormatException.toString()` inclui o trecho de entrada (`source`), que
   /// pode ser dado de cliente; mantém só a mensagem.

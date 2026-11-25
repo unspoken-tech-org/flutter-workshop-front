@@ -17,9 +17,9 @@ import 'package:flutter_workshop_front/pages/devices/device_details/device_detai
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/contact_card.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_info_header_widget.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_technical_info_widget.dart';
+import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
-import 'package:flutter_workshop_front/services/device_data/device_customer_service.dart';
-import 'package:flutter_workshop_front/services/technician/technician_service.dart';
+import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controller.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -57,30 +57,25 @@ DeviceCustomer _sampleDevice({
   'payments': const <dynamic>[],
 });
 
-class _StubDeviceCustomerService implements DeviceCustomerService {
+class _StubDeviceRepository extends Fake implements DeviceRepository {
   final Future<DeviceCustomer> Function(int deviceId) onGet;
 
-  _StubDeviceCustomerService(this.onGet);
+  _StubDeviceRepository(this.onGet);
 
   @override
   Future<Result<DeviceCustomer>> getCustomerDeviceById(int deviceId) =>
       guardResult(() => onGet(deviceId));
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _StubTechnicianService implements TechnicianService {
+class _StubCatalogRepository extends Fake implements CatalogRepository {
   final Future<List<Technician>> Function() onGet;
 
-  _StubTechnicianService(this.onGet);
+  _StubCatalogRepository(this.onGet);
 
   @override
-  Future<Result<List<Technician>>> getTechnicians() =>
-      guardResult(() => onGet());
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  Future<Result<List<Technician>>> getTechnicians({
+    bool forceRefresh = false,
+  }) => guardResult(() => onGet());
 }
 
 class _StubCustomerRepository implements CustomerRepository {
@@ -131,14 +126,14 @@ void main() {
         addTearDown(tester.view.resetPhysicalSize);
 
         var attempts = 0;
-        final deviceService = _StubDeviceCustomerService((id) async {
+        final deviceRepo = _StubDeviceRepository((id) async {
           attempts++;
           if (attempts == 1) {
             throw RequisitionException('Falha ao carregar aparelho', '500');
           }
           return _sampleDevice();
         });
-        final technicianService = _StubTechnicianService(
+        final catalogRepo = _StubCatalogRepository(
           () async => [
             Technician(id: 10, name: 'Carlos Silva', number: '11999999999'),
           ],
@@ -149,8 +144,8 @@ void main() {
             DeviceDetailsPage(
               deviceId: 42,
               controllerFactory: () => testDeviceCustomerPageController(
-                deviceCustomerService: deviceService,
-                technicianService: technicianService,
+                deviceRepository: deviceRepo,
+                catalogRepository: catalogRepo,
               ),
             ),
           ),
@@ -175,10 +170,8 @@ void main() {
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.resetPhysicalSize);
 
-        final deviceService = _StubDeviceCustomerService(
-          (_) async => _sampleDevice(),
-        );
-        final technicianService = _StubTechnicianService(
+        final deviceRepo = _StubDeviceRepository((_) async => _sampleDevice());
+        final catalogRepo = _StubCatalogRepository(
           () async => throw Exception('network down'),
         );
 
@@ -187,8 +180,8 @@ void main() {
             DeviceDetailsPage(
               deviceId: 42,
               controllerFactory: () => testDeviceCustomerPageController(
-                deviceCustomerService: deviceService,
-                technicianService: technicianService,
+                deviceRepository: deviceRepo,
+                catalogRepository: catalogRepo,
               ),
             ),
           ),
