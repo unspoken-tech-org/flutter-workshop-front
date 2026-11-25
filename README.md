@@ -96,14 +96,14 @@ bash scripts/set_env.sh local
 flutter run -d linux --dart-define-from-file=.env
 ```
 
-### Run against QA without overwriting your local storage key
+### Isolated debug storage (multiple environments)
 
-In debug mode, use `STORAGE_NAMESPACE` together with `RESET_STORAGE=true` and pass `.env-qa` directly (without overwriting `.env`):
+When testing against a secondary environment (for example, a staging or QA backend) in debug mode, use `STORAGE_NAMESPACE` together with `RESET_STORAGE=true` and pass that environment's `--dart-define-from-file` directly without overwriting `.env`:
 
 ```bash
 flutter run -d linux \
-  --dart-define-from-file=.env-qa \
-  --dart-define=STORAGE_NAMESPACE=qa \
+  --dart-define-from-file=.env.staging \
+  --dart-define=STORAGE_NAMESPACE=staging \
   --dart-define=RESET_STORAGE=true
 ```
 
@@ -111,15 +111,15 @@ To skip the setup screen and authenticate automatically (debug mode only):
 
 ```bash
 flutter run -d linux \
-  --dart-define-from-file=.env-qa \
-  --dart-define=STORAGE_NAMESPACE=qa \
+  --dart-define-from-file=.env.staging \
+  --dart-define=STORAGE_NAMESPACE=staging \
   --dart-define=RESET_STORAGE=true \
-  --dart-define=DEV_API_KEY=<your-qa-api-key>
+  --dart-define=DEV_API_KEY=<your-api-key>
 ```
 
 How storage isolation works:
-- **Default setup preserved:** the API key and tokens are stored under prefixed keys in the keyring (`qa.api_key`, `qa.access_token`, `qa.refresh_token`), without reading or overwriting your default credentials.
-- **Reset on boot:** `RESET_STORAGE=true` clears the namespaced API key and tokens on startup. To remove the `qa` namespace entries when you finish testing, sign out in the app before closing it.
+- **Default setup preserved:** the API key and tokens are stored under prefixed keys in the keyring (`<namespace>.api_key`, `<namespace>.access_token`, `<namespace>.refresh_token`), without reading or overwriting your default credentials.
+- **Reset on boot:** `RESET_STORAGE=true` clears the namespaced API key and tokens on startup. To remove the namespaced entries when you finish testing, sign out in the app before closing it.
 - **Shared `bound_device_id`:** the machine identifier is not namespaced, keeping the device binding expected by the API.
 
 ---
