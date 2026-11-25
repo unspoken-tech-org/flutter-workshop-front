@@ -40,8 +40,8 @@ U wait id=customerDetail.edit     # ou: U wait "Salvar" / U wait "Carregando" --
 U snap --id customerDetail.       # árvore curta: ref, tipo, #identifier, "rótulo", =valor
 U assert-text "Cliente Editado"; U assert-no-text "Por favor, insira um nome"
 U tap "Cadastrar Aparelho / Registrar novo aparelho para reparo"   # rótulo como o snap imprime
-U type value="R\$ 0,00" 15000; U wait value="R\$ 150,00"   # campo sem rótulo, pelo valor
-U tap ref=s_41                    # botão sem rótulo: ref do snap anterior, com a tela parada
+U type paymentDialog.value 15000; U wait value="R\$ 150,00"   # value= confere o que o campo mostra
+U tap ref=s_41                    # último recurso: ref do snap anterior, com a tela parada
 U snap --under id=deviceDetail.entryDate   # só o nó e os filhos (aceita qualquer alvo)
 U size                            # viewport real x WINDOW pedido
 U type-secret label="API Key" DEV_API_KEY "$STATE_E2E/test-auth.env"
@@ -49,15 +49,18 @@ U errors                          # erros do app, com o widget de origem
 U back; U key Escape
 ```
 - Alvo: `id=<identifier>`, `label=<texto>`, `hint=`, `value=`, `ref=` ou texto puro (identifier, rótulo, depois hint). Com vários, vence o que está na tela; senão vem `ambiguous` com os refs. Texto puro nunca casa com o valor digitado de um campo: use `value=`. Neste app o hint do Material entra no rótulo (`"Buscar Cliente / Busque por um cliente"`), então `hint=` raramente acha algo. Espaços não separáveis (moeda, `R$\u00a00,00`) casam com espaço comum.
-- Texto puro pode casar por substring com outro controle: `U tap Adicionar` abre "Adicionar Contato" porque o "Adicionar" de pagamento não tem rótulo na semântica. Confira no `snap` antes de tocar por texto curto.
+- Texto puro pode casar por substring com outro controle (`U tap Adicionar` casava com "Adicionar Contato"). Prefira `id=`; sem identifier, adicione um (seção Identifiers).
 - Cada comando tira o snapshot e rola o alvo para a tela antes de agir. `ref=` só vale logo depois do `snap` que o mostrou, com a tela parada; prefira `id=`. Não misture com refs das tools `fmt_*`, que vêm de outro snapshot.
 - `type` foca o campo antes de digitar: um Autocomplete (Buscar Cliente) só mostra opções com o campo focado.
 - Confirme o estado antes do próximo passo: depois de abrir ou fechar diálogo, picker ou menu, `U wait` pelo que deve aparecer (ou `--gone`). `U wait id=` espera dentro do app; os outros alvos repetem o `snap` com o mesmo matching do `tap`, então um `--gone` só prova algo se o alvo existia antes. Não encadeie toques às cegas nem use `sleep` fixo: um `Cancelar` mandado sem picker aberto cai no botão da página.
 - Use as tools `fmt_*` (ou `scripts/fmtk.sh`) só para explorar o que o `ui.py` não cobre (screenshot, hot reload). Elas só conectam com o app subido com `VM_PORT=8181`. Sem elas na sessão, leia `instructions/agents/flutter-ui-mcp.md` para instalar.
 
 ## Identifiers
-Convenção `<página>.<elemento>` (`drawer.customers`, `customer.card.<id>`, `deviceDetail.save`). Para listar: `U snap --id <página>.` na tela aberta. O grep (`grep -rn "identifier:" lib`) não mostra os montados por parâmetro (`semanticsIdentifier:`) nem quando o controle aparece (`deviceRegister.*` só depois de escolher o cliente).
-- Plano de teste: tire os passos e identifiers de um `U snap` de cada tela no app rodando, não do grep nem da memória. Controle novo que um teste toca ganha `Semantics(identifier: ...)`; num botão fica num nó pai do botão, num campo de texto no próprio campo.
+Todo controle que um teste toca tem `Semantics(identifier: '<página>.<elemento>')`. Se falta um, **adicione no código** na mesma branch do teste, em vez de contornar com texto, `ref=` ou coordenada. Rode `dart format`, `flutter analyze` e `flutter test` depois.
+- **Convenção.** Página: `drawer.`, `home.`, `setup.`, `bootstrapError.`, `customers.`, `customerRegister.`, `customerDetail.`, `allDevices.`, `searchDevices.`, `deviceRegister.`, `deviceDetail.`. Diálogos: `paymentDialog.`, `contactDialog.`, `updateDialog.`. Sufixos: `.clear` no X de um campo (`deviceDetail.entryDate.clear`), `.<enum.name>` em opções (`deviceDetail.status.ready`, `allDevices.orderBy.entryDate`) e `.<id>` ou `.<índice>` em itens de lista (`device.card.1`, `secondaryPhone.0.delete`).
+- **Como colocar.** Os campos (`CustomTextField`, `CustomDateFormField`, `CustomDropdownButtonFormField`, `SearchableDropdownFormField`, `TypeBrandModelAutocompleteFormField`, `MultiSelectColorField`, `SwitchFormField`, `WsSearchBarWidget`, `FastActionButtonWidget`) recebem `semanticsIdentifier:`, e o X derivado ganha `.clear` sozinho. Um botão comum vai dentro de `Semantics(identifier: ..., child: ...)`, nunca em volta de `Expanded`/`Flexible`. Se o controle já tem um `Semantics` com `label`, acrescente o `identifier` nele.
+- **Para listar:** `U snap --id <prefixo>.` na tela aberta. O grep (`grep -rn "identifier" lib`) não mostra os montados por parâmetro nem quando o controle aparece (`deviceRegister.type` só depois de escolher o cliente).
+- Plano de teste: tire os passos e identifiers de um `U snap` de cada tela no app rodando, não do grep nem da memória.
 
 ## Overflow e erros
 `U errors [N]` mostra cada erro com o widget de origem, inclusive os seguintes ao primeiro. No `run.log`, hoje só o primeiro `FlutterError` sai inteiro ("The relevant error-causing widget was" + arquivo:linha); os seguintes viram "Another exception was thrown" (item aberto no backlog). Para o primeiro: `grep -n "overflowed by" -A6 $STATE/run.log`.
