@@ -23,6 +23,9 @@ class WsDrawer extends StatelessWidget {
   final String currentRoute;
   const WsDrawer({super.key, required this.currentRoute});
 
+  static const double expandedWidth = 250;
+  static const double collapsedWidth = 50;
+
   @override
   Widget build(BuildContext context) {
     final isExpanded = context.watch<WsDrawerController>().isExpanded;
@@ -64,7 +67,11 @@ class WsDrawer extends StatelessWidget {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               physics: const NeverScrollableScrollPhysics(),
+              // Expanded, the header takes the full drawer width so the title
+              // wraps instead of pushing the collapse button out of view; the
+              // scroll view only absorbs the width animation.
               child: Container(
+                width: isExpanded ? WsDrawer.expandedWidth : null,
                 height: 70,
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 child: Row(
@@ -76,12 +83,16 @@ class WsDrawer extends StatelessWidget {
                     const Icon(Icons.business, size: 30),
                     if (isExpanded) ...[
                       const SizedBox(width: 16),
-                      const Text(
-                        'Eletroluk WorkShop',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                      const Expanded(
+                        child: Text(
+                          'Eletroluk WorkShop',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 18,
+                            height: 1.15,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       Semantics(

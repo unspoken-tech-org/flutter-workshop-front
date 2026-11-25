@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
+import 'package:flutter_workshop_front/utils/validators/text_validators.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
 import 'package:provider/provider.dart';
 
@@ -36,7 +37,7 @@ class ProblemDescriptionForm extends StatelessWidget {
             hintText: 'Descreva o problema relatado pelo cliente...',
             maxLines: 3,
             validator: (String? value) {
-              if (value == null || value.isEmpty) {
+              if (!TextValidators.hasText(value)) {
                 return 'O campo problema é obrigatório';
               }
               return null;

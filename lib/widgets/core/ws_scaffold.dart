@@ -23,7 +23,8 @@ class WsScaffold extends StatelessWidget {
     return Scaffold(
       backgroundColor: backgroundColor ?? Colors.white,
       body: Selector<WsDrawerController, double>(
-        selector: (_, c) => c.isExpanded ? 250 : 50,
+        selector: (_, c) =>
+            c.isExpanded ? WsDrawer.expandedWidth : WsDrawer.collapsedWidth,
         builder: (context, drawerWidth, _) => Row(
           children: [
             AnimatedContainer(
