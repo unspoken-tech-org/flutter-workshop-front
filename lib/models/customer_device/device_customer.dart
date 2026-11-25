@@ -89,7 +89,7 @@ class DeviceCustomer extends Equatable {
       technicianId: json['technicianId'] as int?,
       technicianName: json['technicianName'] as String?,
       problem: json['problem'] as String,
-      observation: json['observation'] as String,
+      observation: json['observation'] as String? ?? '',
       budget: json['budget'] as String?,
       serviceValue: json['serviceValue'] != null
           ? Money.fromJson(json['serviceValue'])

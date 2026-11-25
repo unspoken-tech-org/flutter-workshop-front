@@ -85,7 +85,7 @@ class _SetupPageState extends State<SetupPage> {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Eletroluk Workshop',
+                      'Eletroluk WorkShop',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
@@ -151,26 +151,29 @@ class _SetupPageState extends State<SetupPage> {
                           ),
                           const SizedBox(height: 24),
                           Center(
-                            child: TextButton.icon(
-                              onPressed: () {
-                                // Ação de ajuda
-                              },
-                              icon: const Icon(
-                                Icons.help_outline,
-                                size: 16,
-                                color: Color(0xFF49454F),
-                              ),
-                              label: const Text(
-                                'Onde encontro a minha chave?',
-                                style: TextStyle(
+                            child: Semantics(
+                              identifier: 'setup.help',
+                              child: TextButton.icon(
+                                onPressed: () {
+                                  // Ação de ajuda
+                                },
+                                icon: const Icon(
+                                  Icons.help_outline,
+                                  size: 16,
                                   color: Color(0xFF49454F),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
                                 ),
-                              ),
-                              style: TextButton.styleFrom(
-                                overlayColor: Colors.blue.withValues(
-                                  alpha: 0.1,
+                                label: const Text(
+                                  'Onde encontro a minha chave?',
+                                  style: TextStyle(
+                                    color: Color(0xFF49454F),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                style: TextButton.styleFrom(
+                                  overlayColor: Colors.blue.withValues(
+                                    alpha: 0.1,
+                                  ),
                                 ),
                               ),
                             ),
@@ -181,7 +184,7 @@ class _SetupPageState extends State<SetupPage> {
 
                     const SizedBox(height: 32),
                     const Text(
-                      '© 2024 Eletroluk Workshop. Todos os direitos reservados.',
+                      '© Eletroluk WorkShop. Todos os direitos reservados.',
                       style: TextStyle(color: Color(0xFF938F99), fontSize: 12),
                     ),
                   ],

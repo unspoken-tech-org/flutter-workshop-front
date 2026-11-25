@@ -14,7 +14,8 @@ class AppConfigException implements Exception {
 ///
 /// Os valores vêm de `--dart-define(-from-file)`; nenhum arquivo `.env` entra
 /// no bundle. A instância é criada no `main` e injetada pelo
-/// `AppDependencies`: nenhuma outra classe lê `String.fromEnvironment`.
+/// `AppDependencies`: nenhuma outra classe lê `String.fromEnvironment`
+/// (exceção: `MCP_TOOLKIT`, constante para o tree shaking do toolkit).
 @immutable
 class AppConfig {
   const AppConfig._({
@@ -23,6 +24,8 @@ class AppConfig {
     required this.updateFeedUrl,
     required this.githubOwner,
     required this.githubRepo,
+    required this.storageNamespace,
+    required this.resetStorageOnBoot,
   });
 
   /// Origem da API, já validada (ver [validateBaseUrl]).
@@ -35,6 +38,17 @@ class AppConfig {
   final String updateFeedUrl;
   final String githubOwner;
   final String githubRepo;
+
+  /// Só em debug: prefixo das chaves do secure storage. Runs de agente/E2E
+  /// (`run_desktop_headless.sh`, `run_integration_tests.sh`) usam um
+  /// namespace próprio para não ler nem sobrescrever o setup do dev, que
+  /// divide o mesmo keyring.
+  final String storageNamespace;
+
+  /// Só em debug e só com [storageNamespace]: apaga a API key e os tokens do
+  /// namespace no boot, para o app não reaproveitar a chave de outro run. O
+  /// `bound_device_id` não tem namespace e fica (a chave se prende a ele).
+  final bool resetStorageOnBoot;
 
   /// Hosts aceitos com `http://` fora do release (E2E local contra a API).
   static const _localHttpHosts = {'localhost', '127.0.0.1'};
@@ -49,6 +63,8 @@ class AppConfig {
       updateFeedUrl: const String.fromEnvironment('UPDATE_FEED_URL'),
       githubOwner: const String.fromEnvironment('GITHUB_OWNER'),
       githubRepo: const String.fromEnvironment('GITHUB_REPO'),
+      storageNamespace: const String.fromEnvironment('STORAGE_NAMESPACE'),
+      resetStorage: const bool.fromEnvironment('RESET_STORAGE'),
       isReleaseMode: kReleaseMode,
       isDebugMode: kDebugMode,
     );
@@ -61,9 +77,12 @@ class AppConfig {
     String updateFeedUrl = '',
     String githubOwner = '',
     String githubRepo = '',
+    String storageNamespace = '',
+    bool resetStorage = false,
     required bool isReleaseMode,
     bool isDebugMode = false,
   }) {
+    final namespace = isDebugMode ? storageNamespace.trim() : '';
     return AppConfig._(
       baseUri: validateBaseUrl(baseUrl, isReleaseMode: isReleaseMode),
       // Só existe em debug: num build release a chave nunca é usada.
@@ -71,6 +90,8 @@ class AppConfig {
       updateFeedUrl: updateFeedUrl.trim(),
       githubOwner: githubOwner.trim(),
       githubRepo: githubRepo.trim(),
+      storageNamespace: namespace,
+      resetStorageOnBoot: namespace.isNotEmpty && resetStorage,
     );
   }
 

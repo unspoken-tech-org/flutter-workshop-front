@@ -65,6 +65,7 @@ class CustomerDeviceTechnicalInfoWidget extends StatelessWidget {
                   : null;
 
               return CustomDropdownButtonFormField(
+                semanticsIdentifier: 'deviceDetail.technician',
                 headerLabel: 'Técnico',
                 hintText: safeInitialValue == null
                     ? currentTechnicianName

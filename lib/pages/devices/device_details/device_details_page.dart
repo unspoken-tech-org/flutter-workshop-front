@@ -104,12 +104,15 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: () => context
-                                .read<DeviceCustomerPageController>()
-                                .init(widget.deviceId),
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Tentar novamente'),
+                          Semantics(
+                            identifier: 'deviceDetail.retry',
+                            child: ElevatedButton.icon(
+                              onPressed: () => context
+                                  .read<DeviceCustomerPageController>()
+                                  .init(widget.deviceId),
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Tentar novamente'),
+                            ),
                           ),
                         ],
                       ),

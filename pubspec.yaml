@@ -2,7 +2,7 @@ name: flutter_workshop_front
 description: "Flutter Workshop Frontend"
 publish_to: 'none'
 
-version: 1.7.1
+version: 1.7.2
 
 environment:
   sdk: ^3.8.2
@@ -31,10 +31,13 @@ dependencies:
   crypto: ^3.0.7
   path_provider: ^2.1.5
   ffi: ^2.1.5
+  mcp_toolkit: ^8.0.0
 
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
   flutter_lints: ^4.0.0
 

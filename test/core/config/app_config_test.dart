@@ -105,6 +105,38 @@ void main() {
       expect(config.devApiKey, isEmpty);
     });
 
+    test('STORAGE_NAMESPACE e RESET_STORAGE só valem em debug', () {
+      final debug = AppConfig.fromValues(
+        baseUrl: 'https://api.eletroluk.com',
+        storageNamespace: ' agent ',
+        resetStorage: true,
+        isReleaseMode: false,
+        isDebugMode: true,
+      );
+      final release = AppConfig.fromValues(
+        baseUrl: 'https://api.eletroluk.com',
+        storageNamespace: 'agent',
+        resetStorage: true,
+        isReleaseMode: true,
+      );
+
+      expect(debug.storageNamespace, 'agent');
+      expect(debug.resetStorageOnBoot, isTrue);
+      expect(release.storageNamespace, isEmpty);
+      expect(release.resetStorageOnBoot, isFalse);
+    });
+
+    test('RESET_STORAGE sem namespace não apaga o setup do dev', () {
+      final config = AppConfig.fromValues(
+        baseUrl: 'https://api.eletroluk.com',
+        resetStorage: true,
+        isReleaseMode: false,
+        isDebugMode: true,
+      );
+
+      expect(config.resetStorageOnBoot, isFalse);
+    });
+
     test('BASE_URL inválida falha na criação, com mensagem acionável', () {
       expect(
         () => AppConfig.fromValues(baseUrl: '', isReleaseMode: false),

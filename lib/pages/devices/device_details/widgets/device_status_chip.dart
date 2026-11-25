@@ -101,45 +101,48 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
                         children: StatusEnum.selectableValues.map((status) {
                           final (backgroundColor, borderColor, textColor) =
                               status.colors;
-                          return TextButton(
-                            onPressed: () {
-                              _onExitOverlayTimer?.cancel();
-                              widget.onSelect?.call(status);
-                              setState(() {
-                                currentStatus = status;
-                              });
-                              _removeOverlay();
-                            },
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8,
-                                horizontal: 4,
-                              ),
-                              minimumSize: Size.zero,
-                              visualDensity: VisualDensity.compact,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              overlayColor: Colors.transparent,
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    color: textColor,
-                                    shape: BoxShape.circle,
-                                  ),
+                          return Semantics(
+                            identifier: 'deviceDetail.status.${status.name}',
+                            child: TextButton(
+                              onPressed: () {
+                                _onExitOverlayTimer?.cancel();
+                                widget.onSelect?.call(status);
+                                setState(() {
+                                  currentStatus = status;
+                                });
+                                _removeOverlay();
+                              },
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                  horizontal: 4,
                                 ),
-                                const SizedBox(width: 8),
-                                Flexible(
-                                  child: Text(
-                                    status.displayName,
-                                    style: WsTextStyles.body2.copyWith(
+                                minimumSize: Size.zero,
+                                visualDensity: VisualDensity.compact,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                overlayColor: Colors.transparent,
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: BoxDecoration(
                                       color: textColor,
+                                      shape: BoxShape.circle,
                                     ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(
+                                      status.displayName,
+                                      style: WsTextStyles.body2.copyWith(
+                                        color: textColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         }).toList(),
@@ -171,6 +174,7 @@ class _DeviceStatusChipState extends State<DeviceStatusChip> {
       child: CompositedTransformTarget(
         link: _layerLink,
         child: Semantics(
+          identifier: 'deviceDetail.status',
           button: true,
           label: 'Alterar status do aparelho (${currentStatus.displayName})',
           child: InkWell(

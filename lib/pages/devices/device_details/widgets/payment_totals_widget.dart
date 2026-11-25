@@ -117,24 +117,32 @@ class PaymentTotalsWidget extends StatelessWidget {
                     : MainAxisAlignment.center,
                 children: [
                   if (showLabel)
-                    Row(
-                      spacing: 8,
-                      children: [
-                        Icon(
-                          isPaymentPending
-                              ? Icons.attach_money
-                              : Icons.check_circle,
-                          color: iconColor,
-                        ),
-                        Text(
-                          isPaymentPending
-                              ? 'Valor a ser pago'
-                              : 'Valor total pago',
-                          style: textTheme.titleMedium?.copyWith(
-                            color: textColor,
+                    // Flexible + ellipsis: in a narrow column the label used
+                    // to push the amount out (RenderFlex overflow on the right).
+                    Flexible(
+                      child: Row(
+                        spacing: 8,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isPaymentPending
+                                ? Icons.attach_money
+                                : Icons.check_circle,
+                            color: iconColor,
                           ),
-                        ),
-                      ],
+                          Flexible(
+                            child: Text(
+                              isPaymentPending
+                                  ? 'Valor a ser pago'
+                                  : 'Valor total pago',
+                              overflow: TextOverflow.ellipsis,
+                              style: textTheme.titleMedium?.copyWith(
+                                color: textColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   if (isPaymentPending)
                     Text(

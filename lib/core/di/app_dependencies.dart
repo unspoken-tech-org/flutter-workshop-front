@@ -47,7 +47,7 @@ class AppDependencies {
   });
 
   factory AppDependencies.create(AppConfig config, SecureKeyValueStore store) {
-    final storage = SecurityStorage(store);
+    final storage = SecurityStorage(store, namespace: config.storageNamespace);
     final authNotifier = AuthNotifier();
     final dioFactory = CustomDio(baseUri: config.baseUri);
 

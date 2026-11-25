@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/logging/app_logger.dart';
 import 'package:flutter_workshop_front/core/logging/global_error_logging.dart';
@@ -51,6 +52,42 @@ void main() {
       await logAppStart(packageInfoLoader: () async => _info('42'));
 
       expect(sink.lines.single, contains('version=1.7.1+42 '));
+    });
+  });
+
+  group('installGlobalErrorLogging', () {
+    test('presents every FlutterError in full, not only the first', () {
+      final originalOnError = FlutterError.onError;
+      final originalPlatformOnError = PlatformDispatcher.instance.onError;
+      final originalDebugPrint = debugPrint;
+      final printed = <String>[];
+      debugPrint = (message, {wrapWidth}) => printed.add(message ?? '');
+      FlutterError.onError = FlutterError.dumpErrorToConsole;
+      try {
+        installGlobalErrorLogging();
+
+        for (final id in ['first', 'second']) {
+          FlutterError.onError!(
+            FlutterErrorDetails(
+              exception: FlutterError('overflow $id'),
+              library: 'rendering library',
+            ),
+          );
+        }
+      } finally {
+        FlutterError.onError = originalOnError;
+        PlatformDispatcher.instance.onError = originalPlatformOnError;
+        debugPrint = originalDebugPrint;
+        FlutterError.resetErrorCount();
+      }
+
+      final output = printed.join('\n');
+      expect(output, contains('overflow second'));
+      expect(output, isNot(contains('Another exception was thrown')));
+      expect(
+        'EXCEPTION CAUGHT BY RENDERING LIBRARY'.allMatches(output),
+        hasLength(2),
+      );
     });
   });
 }

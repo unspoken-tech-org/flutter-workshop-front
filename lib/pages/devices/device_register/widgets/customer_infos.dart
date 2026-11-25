@@ -39,13 +39,16 @@ class CustomerInfos extends StatelessWidget {
                 builder: (context, isCustomerSelected, child) {
                   if (!isCustomerSelected) return const SizedBox.shrink();
 
-                  return IconButton(
-                    onPressed: () {
-                      context
-                          .read<DeviceRegisterController>()
-                          .clearCustomerInfos();
-                    },
-                    icon: const Icon(Icons.close),
+                  return Semantics(
+                    identifier: 'deviceRegister.customer.clear',
+                    child: IconButton(
+                      onPressed: () {
+                        context
+                            .read<DeviceRegisterController>()
+                            .clearCustomerInfos();
+                      },
+                      icon: const Icon(Icons.close),
+                    ),
                   );
                 },
               ),
@@ -112,6 +115,7 @@ class CustomerSearchField extends StatelessWidget {
     final controller = context.read<DeviceRegisterController>();
 
     return SearchableDropdownFormField<MinifiedCustomerModel>(
+      semanticsIdentifier: 'deviceRegister.customer',
       headerLabelText: 'Buscar Cliente',
       hintText: 'Busque por um cliente',
       searchFn: (query) => controller.fetchCustomers(query),

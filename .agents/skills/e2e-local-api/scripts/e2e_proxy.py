@@ -1,7 +1,7 @@
 """Proxy local de teste (e2e-local): repassa para a API e injeta falhas.
 
 Uso: python3 -I e2e_proxy.py <upstream_base> <port_file> <log_file> [porta_fixa]
-Modos (GET /__e2e/mode/<m>): pass | 403html | refresh400
+Modos (GET /__e2e/mode/<m>): pass | 403html | refresh400 | 502
 Loga só método, caminho (sem query), status e modo; nunca headers/corpos.
 """
 import http.server
@@ -72,6 +72,9 @@ class H(http.server.BaseHTTPRequestHandler):
         if mode == "403html" and not is_auth and path.startswith("/v1/"):
             log(f"{self.command} {path} -> 403 (stub WAF html) [{mode}]")
             return self._reply(403, WAF_HTML, "text/html; charset=UTF-8")
+        if mode == "502" and not is_auth and path.startswith("/v1/"):
+            log(f"{self.command} {path} -> 502 (stub gateway) [{mode}]")
+            return self._reply(502, b"<html><body>502 Bad Gateway</body></html>", "text/html")
         if mode == "refresh400":
             if path == "/api/auth/refresh":
                 log(f"{self.command} {path} -> 400 (stub gateway) [{mode}]")

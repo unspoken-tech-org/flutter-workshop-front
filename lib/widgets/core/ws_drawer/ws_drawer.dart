@@ -17,11 +17,15 @@ import 'package:flutter_workshop_front/widgets/core/ws_drawer/widgets/ws_drawer_
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controller.dart';
 import 'package:flutter_workshop_front/widgets/shared/update_dialog.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_workshop_front/services/update/update_service.dart';
 import 'package:provider/provider.dart';
 
 class WsDrawer extends StatelessWidget {
   final String currentRoute;
   const WsDrawer({super.key, required this.currentRoute});
+
+  static const double expandedWidth = 250;
+  static const double collapsedWidth = 50;
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +68,11 @@ class WsDrawer extends StatelessWidget {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               physics: const NeverScrollableScrollPhysics(),
+              // Expanded, the header takes the full drawer width so the title
+              // wraps instead of pushing the collapse button out of view; the
+              // scroll view only absorbs the width animation.
               child: Container(
+                width: isExpanded ? WsDrawer.expandedWidth : null,
                 height: 70,
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 child: Row(
@@ -76,24 +84,31 @@ class WsDrawer extends StatelessWidget {
                     const Icon(Icons.business, size: 30),
                     if (isExpanded) ...[
                       const SizedBox(width: 16),
-                      const Text(
-                        'Workshop App',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                      const Expanded(
+                        child: Text(
+                          'Eletroluk WorkShop',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 18,
+                            height: 1.15,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      IconButton(
-                        tooltip: 'Alternar menu',
-                        onPressed: controller.toggle,
-                        icon: const Icon(Icons.chevron_left, size: 20),
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all(
-                            Colors.transparent,
-                          ),
-                          foregroundColor: WidgetStateProperty.all(
-                            Colors.grey.shade600,
+                      Semantics(
+                        identifier: 'drawer.toggle',
+                        child: IconButton(
+                          tooltip: 'Alternar menu',
+                          onPressed: controller.toggle,
+                          icon: const Icon(Icons.chevron_left, size: 20),
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStateProperty.all(
+                              Colors.transparent,
+                            ),
+                            foregroundColor: WidgetStateProperty.all(
+                              Colors.grey.shade600,
+                            ),
                           ),
                         ),
                       ),
@@ -107,16 +122,19 @@ class WsDrawer extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 4),
                 child: SizedBox(
                   height: 36,
-                  child: IconButton(
-                    tooltip: 'Alternar menu',
-                    onPressed: controller.toggle,
-                    icon: const Icon(Icons.menu, size: 20),
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(
-                        Colors.transparent,
-                      ),
-                      foregroundColor: WidgetStateProperty.all(
-                        Colors.grey.shade600,
+                  child: Semantics(
+                    identifier: 'drawer.toggle',
+                    child: IconButton(
+                      tooltip: 'Alternar menu',
+                      onPressed: controller.toggle,
+                      icon: const Icon(Icons.menu, size: 20),
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.all(
+                          Colors.transparent,
+                        ),
+                        foregroundColor: WidgetStateProperty.all(
+                          Colors.grey.shade600,
+                        ),
                       ),
                     ),
                   ),
@@ -128,6 +146,7 @@ class WsDrawer extends StatelessWidget {
               isExpanded: isExpanded,
               icon: Icons.home,
               title: 'Home',
+              semanticsIdentifier: 'drawer.home',
               route: const [HomePage.route],
               onTap: () {
                 WsNavigator.pushHome(context);
@@ -138,6 +157,7 @@ class WsDrawer extends StatelessWidget {
               isExpanded: isExpanded,
               icon: Icons.person,
               title: 'Clientes',
+              semanticsIdentifier: 'drawer.customers',
               route: const [
                 AllCustomersPage.route,
                 CustomerRegisterPage.route,
@@ -152,6 +172,7 @@ class WsDrawer extends StatelessWidget {
               isExpanded: isExpanded,
               icon: Icons.search,
               title: 'Buscar Aparelhos',
+              semanticsIdentifier: 'drawer.searchDevices',
               route: const [
                 SearchDevicesPage.route,
                 DeviceDetailsPage.route,
@@ -168,6 +189,7 @@ class WsDrawer extends StatelessWidget {
               isExpanded: isExpanded,
               icon: Icons.system_update,
               title: 'Atualizações',
+              semanticsIdentifier: 'drawer.updates',
               route: const [],
               onTap: () async {
                 AppLogger.info('Update', 'Manual update check from drawer');
@@ -182,32 +204,49 @@ class WsDrawer extends StatelessWidget {
                 final updateService = context
                     .read<AppDependencies>()
                     .updateService;
-                final updateInfo = await updateService.checkForUpdates();
+                final result = await updateService.checkForUpdates();
 
                 if (!context.mounted) return;
 
                 scaffoldMessenger.hideCurrentSnackBar();
 
-                if (updateInfo == null) {
-                  scaffoldMessenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('Erro ao verificar atualizações.'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
+                final String errorMessage;
+                switch (result) {
+                  case UpdateCheckCompleted(info: final updateInfo?):
+                    if (updateInfo.hasUpdate) {
+                      await UpdateDialog.show(
+                        context,
+                        updateInfo,
+                        updateService,
+                      );
+                    } else {
+                      scaffoldMessenger.showSnackBar(
+                        const SnackBar(
+                          content: Text('O aplicativo já está atualizado!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                    return;
+                  case UpdateCheckCompleted():
+                    errorMessage = 'Nenhuma versão publicada encontrada.';
+                  case UpdateCheckDisabled():
+                    errorMessage =
+                        'Verificação de atualizações não configurada.';
+                  case UpdateCheckFailed(
+                    reason: UpdateCheckFailureReason.rateLimited,
+                  ):
+                    errorMessage =
+                        'Limite de verificações atingido. Tente mais tarde.';
+                  case UpdateCheckFailed():
+                    errorMessage = 'Erro ao verificar atualizações.';
                 }
-
-                if (updateInfo.hasUpdate) {
-                  await UpdateDialog.show(context, updateInfo, updateService);
-                } else {
-                  scaffoldMessenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('O aplicativo já está atualizado!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    content: Text(errorMessage),
+                    backgroundColor: Colors.red,
+                  ),
+                );
               },
             ),
             if (AppLogger.canOpenLogDirectory)
@@ -216,6 +255,7 @@ class WsDrawer extends StatelessWidget {
                 isExpanded: isExpanded,
                 icon: Icons.folder_open,
                 title: 'Abrir pasta de logs',
+                semanticsIdentifier: 'drawer.logs',
                 route: const [],
                 onTap: () async {
                   final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -237,6 +277,7 @@ class WsDrawer extends StatelessWidget {
               isExpanded: isExpanded,
               icon: Icons.logout,
               title: 'Logout',
+              semanticsIdentifier: 'drawer.logout',
               route: const [],
               onTap: () async {
                 await context.read<AuthService>().logout();
