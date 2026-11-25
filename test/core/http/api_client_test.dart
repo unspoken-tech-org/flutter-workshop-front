@@ -5,6 +5,8 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/http/api_client.dart';
+import 'package:flutter_workshop_front/core/logging/app_logger.dart';
+import 'package:flutter_workshop_front/core/logging/log_sink.dart';
 import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 
@@ -59,12 +61,33 @@ Future<Result<String>> _get(
   );
 }
 
+class _MemorySink implements LogSink {
+  final List<String> lines = [];
+
+  @override
+  String? get directoryPath => null;
+
+  @override
+  void write(String line) => lines.add(line);
+
+  @override
+  Future<void> flush() async {}
+}
+
 AppFailure _failure(Result<Object?> result) {
   expect(result, isA<Err<Object?>>());
   return (result as Err<Object?>).failure;
 }
 
 void main() {
+  // Falhas esperadas nos testes não devem poluir a saída com logs.
+  late bool mirrorBefore;
+  setUp(() {
+    mirrorBefore = AppLogger.mirrorToConsole;
+    AppLogger.mirrorToConsole = false;
+  });
+  tearDown(() => AppLogger.mirrorToConsole = mirrorBefore);
+
   group('ApiClient.send', () {
     test('devolve Ok com o corpo decodificado no status esperado', () async {
       final client = _client((_) => _json(200, '{"name":"ana"}'));
@@ -266,6 +289,135 @@ void main() {
       );
 
       expect(_failure(result), isA<UnexpectedFailure>());
+    });
+  });
+
+  group('ApiClient.send logging', () {
+    late _MemorySink sink;
+    late bool originalMirror;
+    late LogLevel originalLevel;
+
+    setUp(() {
+      originalMirror = AppLogger.mirrorToConsole;
+      originalLevel = AppLogger.minLevel;
+      AppLogger.mirrorToConsole = false;
+      AppLogger.minLevel = LogLevel.debug;
+      sink = _MemorySink();
+      AppLogger.setSinkForTesting(sink);
+    });
+
+    tearDown(() {
+      AppLogger.mirrorToConsole = originalMirror;
+      AppLogger.minLevel = originalLevel;
+      AppLogger.setSinkForTesting(const NoopLogSink());
+    });
+
+    test('falha de decode registra ERROR com método, path e stack', () async {
+      final client = _client((_) => _json(200, '{"other":"Maria Silva"}'));
+
+      final failure = _failure(await _get(client));
+
+      expect(failure, isA<UnexpectedFailure>());
+      final line = sink.lines.single;
+      expect(line, contains('ERROR'));
+      expect(line, contains('[ApiClient]'));
+      expect(line, contains('Decode failed: GET /x status=200'));
+      expect(line, contains('TypeError'));
+      expect(line, contains('\n'), reason: 'stack trace em linhas seguintes');
+      expect(line, isNot(contains('Maria Silva')));
+    });
+
+    test(
+      'FormatException no decode não registra o trecho de entrada',
+      () async {
+        final client = _client((_) => _json(200, '{"phone":"Maria Silva"}'));
+
+        await client.send(
+          (dio) => dio.get<dynamic>('/x'),
+          decode: (data) => int.parse(asJsonMap(data)['phone'] as String),
+        );
+
+        expect(sink.lines.single, contains('FormatException'));
+        expect(sink.lines.single, isNot(contains('Maria Silva')));
+      },
+    );
+
+    test('400 registra WARNING em uma linha, sem conteúdo do corpo', () async {
+      final client = _client(
+        (_) => _json(
+          400,
+          '{"error":{"code":"customer.invalid",'
+          '"message":"CPF de Maria Silva inválido"},"name":"Maria Silva"}',
+        ),
+      );
+
+      await _get(client);
+
+      final line = sink.lines.single;
+      expect(line, contains('WARNING'));
+      expect(
+        line,
+        contains(
+          'GET /x -> ValidationFailure status=400 code=customer.invalid',
+        ),
+      );
+      expect(line, isNot(contains('\n')));
+      expect(line, isNot(contains('Maria')));
+      expect(line, isNot(contains('inválido')));
+    });
+
+    test('5xx (DioException) registra WARNING com status e código', () async {
+      final client = _client(
+        (_) => _json(503, '{"error":{"code":"db.down","message":"x"}}'),
+      );
+
+      await _get(client);
+
+      expect(
+        sink.lines.single,
+        contains(
+          'GET /x -> ServerFailure status=503 code=db.down type=badResponse',
+        ),
+      );
+    });
+
+    test('timeout registra WARNING com o tipo', () async {
+      final client = _client(
+        (options) => throw DioException.connectionTimeout(
+          timeout: const Duration(seconds: 1),
+          requestOptions: options,
+        ),
+      );
+
+      await _get(client);
+
+      expect(sink.lines.single, contains('WARNING'));
+      expect(
+        sink.lines.single,
+        contains('GET /x -> NetworkFailure type=connectionTimeout'),
+      );
+    });
+
+    test('exceção fora do Dio registra ERROR com stack', () async {
+      final client = ApiClient(dio: Dio());
+
+      final result = await client.send<String>(
+        (_) => throw StateError('boom'),
+        decode: (data) => '',
+      );
+
+      expect(_failure(result), isA<UnexpectedFailure>());
+      expect(sink.lines.single, contains('ERROR'));
+      expect(sink.lines.single, contains('StateError'));
+      expect(sink.lines.single, contains('\n'));
+    });
+
+    test('sucesso não registra nada', () async {
+      final client = _client((_) => _json(200, '{"name":"ana"}'));
+
+      await _get(client);
+
+      expect(sink.lines, isEmpty);
     });
   });
 
