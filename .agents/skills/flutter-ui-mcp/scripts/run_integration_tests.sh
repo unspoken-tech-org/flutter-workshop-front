@@ -7,7 +7,9 @@
 #   <e2e-state-dir>/proxy.log. Full output: <e2e-state-dir>/itest.log.
 #   Exit status: 0 all passed, 1 a test failed, 2 nothing ran (build error).
 # Env: FLUTTER (default fvm 3.47.9, else flutter on PATH), APP_DIR (default
-#      current dir), WINDOW (app window <width>x<height>, default 1280x1000).
+#      current dir), WINDOW (app window <width>x<height>, default 1280x1000),
+#      HEADED (1 = run on the user's own Wayland session instead of a
+#      headless KWin).
 #   Storage uses its own namespace ("itest") and is reset at every boot.
 set -u
 E2E=${1:?usage: run_integration_tests.sh <e2e-state-dir> [test-file...]}
@@ -25,7 +27,7 @@ E2E=$(cd "$E2E" && pwd)
 
 # shellcheck source=headless_kwin.sh
 . "$HERE/headless_kwin.sh"
-start_headless_kwin "$WINDOW" "$E2E" || exit 2
+if [ "${HEADED:-0}" = 1 ]; then SOCKET=${WAYLAND_DISPLAY:?HEADED needs WAYLAND_DISPLAY}; else start_headless_kwin "$WINDOW" "$E2E" || exit 2; fi
 
 cd "$APP_DIR" || exit 2
 : > "$E2E/itest.log"
