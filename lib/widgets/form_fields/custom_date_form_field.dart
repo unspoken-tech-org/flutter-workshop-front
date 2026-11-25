@@ -155,7 +155,7 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
                       onPressed: dateController.text.isEmpty
                           ? null
                           : () {
-                              dateController.text = '';
+                              setState(dateController.clear);
                               widget.onClear?.call();
                             },
                       icon: Icon(

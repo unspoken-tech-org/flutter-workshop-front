@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_date_form_field.dart';
 
@@ -72,5 +73,33 @@ void main() {
       expect(start, DateTime(2026, 12, 5));
       expect(end, DateTime(2026, 12, 5));
     });
+  });
+
+  testWidgets('X clears the field and turns into an inert calendar icon', (
+    tester,
+  ) async {
+    var cleared = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CustomDateFormField(
+            value: '05/03/2025',
+            onClear: () => cleared++,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.close), findsOneWidget);
+    await tester.tap(find.byType(IconButton));
+    await tester.pump();
+
+    expect(find.text('05/03/2025'), findsNothing);
+    expect(cleared, 1);
+    expect(find.byIcon(Icons.calendar_today), findsOneWidget);
+    expect(
+      tester.widget<IconButton>(find.byType(IconButton)).onPressed,
+      isNull,
+    );
   });
 }
