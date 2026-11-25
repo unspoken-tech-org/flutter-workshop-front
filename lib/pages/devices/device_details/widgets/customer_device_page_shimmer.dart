@@ -107,8 +107,10 @@ class _CustomerDeviceInfoHeaderShimmer extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ShimmerContainer(width: 250, height: 24),
+            Flexible(child: ShimmerContainer(width: 250, height: 24)),
+            SizedBox(width: 12),
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 ShimmerContainer(width: 80, height: 28, borderRadius: 16),
                 SizedBox(width: 8),
@@ -122,9 +124,9 @@ class _CustomerDeviceInfoHeaderShimmer extends StatelessWidget {
         SizedBox(height: 16),
         Row(
           children: [
-            ShimmerContainer(width: 200, height: 16),
+            Flexible(child: ShimmerContainer(width: 200, height: 16)),
             SizedBox(width: 32),
-            ShimmerContainer(width: 250, height: 16),
+            Flexible(child: ShimmerContainer(width: 250, height: 16)),
           ],
         ),
       ],
@@ -150,7 +152,7 @@ class _DeviceDetailsShimmer extends StatelessWidget {
             children: [
               ShimmerContainer(width: 24, height: 24),
               SizedBox(width: 12),
-              ShimmerContainer(width: 200, height: 18),
+              Flexible(child: ShimmerContainer(width: 200, height: 18)),
             ],
           ),
           SizedBox(height: 24),
@@ -183,7 +185,7 @@ class _DiagnosticDeviceInfoShimmer extends StatelessWidget {
             children: [
               ShimmerContainer(width: 24, height: 24),
               SizedBox(width: 12),
-              ShimmerContainer(width: 150, height: 18),
+              Flexible(child: ShimmerContainer(width: 150, height: 18)),
             ],
           ),
           SizedBox(height: 24),
@@ -214,7 +216,7 @@ class _DeviceValuesShimmer extends StatelessWidget {
           children: [
             ShimmerContainer(width: 24, height: 24),
             SizedBox(width: 8),
-            ShimmerContainer(width: 150, height: 16),
+            Flexible(child: ShimmerContainer(width: 150, height: 16)),
           ],
         ),
       ],
@@ -240,7 +242,7 @@ class _CustomerDeviceObservationShimmer extends StatelessWidget {
             children: [
               ShimmerContainer(width: 24, height: 24),
               SizedBox(width: 12),
-              ShimmerContainer(width: 150, height: 18),
+              Flexible(child: ShimmerContainer(width: 150, height: 18)),
             ],
           ),
           SizedBox(height: 24),
@@ -295,14 +297,20 @@ class _PaymentsHeaderShimmer extends StatelessWidget {
     return const Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            ShimmerContainer(width: 24, height: 24),
-            SizedBox(width: 8),
-            ShimmerContainer(width: 120, height: 20),
-          ],
+        Flexible(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ShimmerContainer(width: 24, height: 24),
+              SizedBox(width: 8),
+              Flexible(child: ShimmerContainer(width: 120, height: 20)),
+            ],
+          ),
         ),
-        ShimmerContainer(width: 110, height: 36, borderRadius: 6),
+        SizedBox(width: 8),
+        Flexible(
+          child: ShimmerContainer(width: 110, height: 36, borderRadius: 6),
+        ),
       ],
     );
   }
@@ -318,20 +326,26 @@ class _PaymentItemShimmer extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              ShimmerContainer(width: 36, height: 36, borderRadius: 8),
-              SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ShimmerContainer(width: 80, height: 12),
-                  SizedBox(height: 6),
-                  ShimmerContainer(width: 60, height: 16, borderRadius: 16),
-                ],
-              ),
-            ],
+          Flexible(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ShimmerContainer(width: 36, height: 36, borderRadius: 8),
+                SizedBox(width: 12),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ShimmerContainer(width: 80, height: 12),
+                      SizedBox(height: 6),
+                      ShimmerContainer(width: 60, height: 16, borderRadius: 16),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
+          SizedBox(width: 8),
           ShimmerContainer(width: 90, height: 20),
         ],
       ),
@@ -463,13 +477,15 @@ class _ContactCardShimmer extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ShimmerContainer(width: 150, height: 16),
-                        SizedBox(height: 8),
-                        ShimmerContainer(width: 250, height: 16),
-                      ],
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ShimmerContainer(width: 150, height: 16),
+                          SizedBox(height: 8),
+                          ShimmerContainer(width: 250, height: 16),
+                        ],
+                      ),
                     ),
                   ],
                 ),
