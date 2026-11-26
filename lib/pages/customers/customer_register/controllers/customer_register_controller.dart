@@ -1,35 +1,43 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
+import 'package:flutter_workshop_front/core/ui/command.dart';
+import 'package:flutter_workshop_front/core/ui/ui_message.dart';
+import 'package:flutter_workshop_front/models/customer/customer_model.dart';
 import 'package:flutter_workshop_front/models/customer/input_customer.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
-import 'package:flutter_workshop_front/utils/snackbar_util.dart';
-import 'package:flutter/material.dart';
 
-class CustomerRegisterController extends ChangeNotifier {
+class CustomerRegisterController extends ChangeNotifier with UiMessageSource {
   final CustomerRepository _customerRepository;
 
-  CustomerRegisterController(this._customerRepository);
+  CustomerRegisterController(this._customerRepository) {
+    create = Command<InputCustomer, CustomerModel>(
+      _customerRepository.createCustomer,
+    )..addListener(notifyListeners);
+  }
 
-  bool isCreatingCustomer = false;
+  late final Command<InputCustomer, CustomerModel> create;
 
+  bool get isCreatingCustomer => create.running;
+
+  /// Devolve o id do cliente criado, ou `null` em falha (ou se já estava
+  /// criando).
   Future<int?> createCustomer(InputCustomer newCustomer) async {
-    if (isCreatingCustomer) return null;
-    try {
-      isCreatingCustomer = true;
-      notifyListeners();
-      switch (await _customerRepository.createCustomer(newCustomer)) {
-        case Ok(:final value):
-          SnackBarUtil().showSuccess('Cliente cadastrado com sucesso');
-          return value.customerId;
-        case Err(:final failure):
-          SnackBarUtil().showError(
-            failure.messageOr('Erro ao cadastrar cliente'),
-          );
-          return null;
-      }
-    } finally {
-      isCreatingCustomer = false;
-      notifyListeners();
+    switch (await create.execute(newCustomer)) {
+      case null:
+        return null;
+      case Ok(:final value):
+        emitSuccess('Cliente cadastrado com sucesso');
+        return value.customerId;
+      case Err(:final failure):
+        emitError(failure.messageOr('Erro ao cadastrar cliente'));
+        return null;
     }
+  }
+
+  @override
+  void dispose() {
+    create.dispose();
+    super.dispose();
   }
 }

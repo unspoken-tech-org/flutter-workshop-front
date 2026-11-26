@@ -2,11 +2,10 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/http/custom_dio.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/global_error_interceptor.dart';
-import 'package:flutter_workshop_front/utils/snackbar_util.dart';
+import 'package:flutter_workshop_front/core/ui/ui_message.dart';
 
 class _FixedAdapter implements HttpClientAdapter {
   final int status;
@@ -68,20 +67,12 @@ DioException _error429({Object? data, bool silent = false}) {
   );
 }
 
-Future<void> _pumpHost(WidgetTester tester) {
-  return tester.pumpWidget(
-    MaterialApp(
-      navigatorKey: SnackBarUtil().navigatorKey,
-      home: const Scaffold(body: SizedBox.shrink()),
-    ),
-  );
-}
-
 void main() {
   group('CustomDio validateStatus', () {
     test('HTTP 429 vira DioException com o corpo ResponseError', () async {
       final dio = CustomDio(
         baseUri: Uri.parse('https://test.example.com'),
+        onMessage: (_) {},
         adapter: _FixedAdapter(
           429,
           _rateLimitBody,
@@ -111,6 +102,7 @@ void main() {
     test('4xx de negócio continua chegando como resposta', () async {
       final dio = CustomDio(
         baseUri: Uri.parse('https://test.example.com'),
+        onMessage: (_) {},
         adapter: _FixedAdapter(422, '{}'),
       ).createAuthDio();
 
@@ -152,60 +144,46 @@ void main() {
       );
     });
 
-    testWidgets('exibe mensagem amigável e repassa o erro', (tester) async {
-      await _pumpHost(tester);
+    test('publica mensagem amigável e repassa o erro', () {
+      final messages = <UiMessage>[];
       final handler = _RecordingHandler();
       final error = _error429(data: jsonDecode(_rateLimitBody));
 
-      GlobalErrorInterceptor().onError(error, handler);
-      await tester.pump();
+      GlobalErrorInterceptor(onMessage: messages.add).onError(error, handler);
 
+      expect(messages, hasLength(1));
+      expect(messages.single, isA<UiError>());
       expect(
-        find.text(
-          'Limite de requisições excedido. Tente novamente em instantes.',
-        ),
-        findsOneWidget,
+        messages.single.text,
+        'Limite de requisições excedido. Tente novamente em instantes.',
       );
       expect(handler.passed, same(error));
-
-      await tester.pump(const Duration(seconds: 4));
     });
 
-    testWidgets('usa fallback quando o corpo não é JSON da API', (
-      tester,
-    ) async {
-      await _pumpHost(tester);
+    test('usa fallback quando o corpo não é JSON da API', () {
+      final messages = <UiMessage>[];
 
-      GlobalErrorInterceptor().onError(
+      GlobalErrorInterceptor(onMessage: messages.add).onError(
         _error429(data: '<html>Too Many Requests</html>'),
         _RecordingHandler(),
       );
-      await tester.pump();
 
       expect(
-        find.text(GlobalErrorInterceptor.tooManyRequestsFallbackMessage),
-        findsOneWidget,
+        messages.single.text,
+        GlobalErrorInterceptor.tooManyRequestsFallbackMessage,
       );
-
-      await tester.pump(const Duration(seconds: 4));
     });
 
-    testWidgets('respeita silent: true', (tester) async {
-      await _pumpHost(tester);
+    test('respeita silent: true', () {
+      final messages = <UiMessage>[];
       final handler = _RecordingHandler();
 
-      GlobalErrorInterceptor().onError(
+      GlobalErrorInterceptor(onMessage: messages.add).onError(
         _error429(data: jsonDecode(_rateLimitBody), silent: true),
         handler,
       );
-      await tester.pump();
 
-      expect(
-        find.text(
-          'Limite de requisições excedido. Tente novamente em instantes.',
-        ),
-        findsNothing,
-      );
+      expect(messages, isEmpty);
       expect(handler.passed?.response?.statusCode, 429);
     });
   });

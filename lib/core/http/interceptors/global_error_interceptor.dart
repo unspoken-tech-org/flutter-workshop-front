@@ -1,9 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_workshop_front/utils/snackbar_util.dart';
+import 'package:flutter_workshop_front/core/ui/ui_message.dart';
 
-/// Global interceptor for network error handling and UI feedback.
+/// Global interceptor for network error handling. It publishes a [UiMessage]
+/// through [onMessage]; whoever displays it is up to the UI layer.
 class GlobalErrorInterceptor extends Interceptor {
+  GlobalErrorInterceptor({required this.onMessage});
+
+  final void Function(UiMessage message) onMessage;
+
   static const tooManyRequestsFallbackMessage =
       'Muitas requisições. Aguarde alguns instantes e tente novamente.';
 
@@ -75,7 +80,7 @@ class GlobalErrorInterceptor extends Interceptor {
 
     // Show global error if infrastructure-related and not silenced
     if (shouldShowGlobalError && err.requestOptions.extra['silent'] != true) {
-      SnackBarUtil().showError(errorMessage);
+      onMessage(UiError(errorMessage));
     }
 
     handler.next(err);

@@ -4,9 +4,12 @@ import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dar
 import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/core/state/safe_change_notifier_mixin.dart';
+import 'package:flutter_workshop_front/core/ui/command.dart';
+import 'package:flutter_workshop_front/core/ui/ui_message.dart';
 import 'package:flutter_workshop_front/models/colors/color_model.dart';
 import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
+import 'package:flutter_workshop_front/models/customer_device/create_device_customer.dart';
 import 'package:flutter_workshop_front/models/device/device_input.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/models/types_brands_models/type_brand_model_input.dart';
@@ -14,10 +17,9 @@ import 'package:flutter_workshop_front/models/types_brands_models/types_brands_m
 import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
 import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
-import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 class DeviceRegisterController extends ChangeNotifier
-    with SafeChangeNotifierMixin {
+    with SafeChangeNotifierMixin, UiMessageSource {
   final CatalogRepository _catalogRepository;
   final DeviceRepository _deviceRepository;
   final CustomerRepository _customerRepository;
@@ -28,7 +30,14 @@ class DeviceRegisterController extends ChangeNotifier
     required CustomerRepository customerRepository,
   }) : _catalogRepository = catalogRepository,
        _deviceRepository = deviceRepository,
-       _customerRepository = customerRepository;
+       _customerRepository = customerRepository {
+    create = Command<DeviceInput, CreateDeviceCustomerResponse>(
+      _deviceRepository.createDeviceCustomer,
+    )..addListener(notifyListeners);
+  }
+
+  /// Criação do aparelho, com flag própria.
+  late final Command<DeviceInput, CreateDeviceCustomerResponse> create;
 
   List<ColorModel> allColors = [];
   List<Technician> technicians = [];
@@ -44,7 +53,7 @@ class DeviceRegisterController extends ChangeNotifier
 
   bool isLoading = false;
   bool isCustomerSelected = true;
-  bool isCreatingDevice = false;
+  bool get isCreatingDevice => create.running;
 
   DeviceInput inputDevice = DeviceInput.empty();
 
@@ -79,7 +88,7 @@ class DeviceRegisterController extends ChangeNotifier
           this.customerId = null;
           customerName = null;
         }
-        SnackBarUtil().showError(failure.messageOr('Erro ao buscar o cliente'));
+        emitError(failure.messageOr('Erro ao buscar o cliente'));
     }
   }
 
@@ -88,7 +97,7 @@ class DeviceRegisterController extends ChangeNotifier
       case Ok(:final value):
         allColors = value;
       case Err(:final failure):
-        SnackBarUtil().showError(failure.messageOr('Erro ao buscar as cores'));
+        emitError(failure.messageOr('Erro ao buscar as cores'));
     }
   }
 
@@ -97,9 +106,7 @@ class DeviceRegisterController extends ChangeNotifier
       case Ok(:final value):
         technicians = value;
       case Err(:final failure):
-        SnackBarUtil().showError(
-          failure.messageOr('Erro ao buscar os técnicos'),
-        );
+        emitError(failure.messageOr('Erro ao buscar os técnicos'));
     }
   }
 
@@ -114,7 +121,7 @@ class DeviceRegisterController extends ChangeNotifier
         return value.content;
       case Err():
         // Mensagem fixa de hoje, também para erros da API.
-        SnackBarUtil().showError('Erro ao buscar o cliente');
+        emitError('Erro ao buscar o cliente');
         return [];
     }
   }
@@ -191,37 +198,29 @@ class DeviceRegisterController extends ChangeNotifier
 
   Future<int?> createDevice() async {
     if (isCreatingDevice) return null;
-    try {
-      isCreatingDevice = true;
-      notifyListeners();
+    final typeBrandModel = TypeBrandModelInput(
+      type: selectedType!.type,
+      brand: selectedBrand!.brand,
+      model: selectedModel!.model,
+    );
 
-      final typeBrandModel = TypeBrandModelInput(
-        type: selectedType!.type,
-        brand: selectedBrand!.brand,
-        model: selectedModel!.model,
-      );
+    final List<String> colors = selectedColors.map((c) => c.color).toList();
 
-      final List<String> colors = selectedColors.map((c) => c.color).toList();
+    inputDevice = inputDevice.copyWith(
+      customerId: customerId,
+      typeBrandModel: typeBrandModel,
+      colors: colors,
+    );
 
-      inputDevice = inputDevice.copyWith(
-        customerId: customerId,
-        typeBrandModel: typeBrandModel,
-        colors: colors,
-      );
-
-      switch (await _deviceRepository.createDeviceCustomer(inputDevice)) {
-        case Ok(:final value):
-          SnackBarUtil().showSuccess('Dispositivo criado com sucesso');
-          return value.deviceId;
-        case Err(:final failure):
-          SnackBarUtil().showError(
-            failure.messageOr('Erro ao criar dispositivo'),
-          );
-          return null;
-      }
-    } finally {
-      isCreatingDevice = false;
-      notifyListeners();
+    switch (await create.execute(inputDevice)) {
+      case null:
+        return null;
+      case Ok(:final value):
+        emitSuccess('Dispositivo criado com sucesso');
+        return value.deviceId;
+      case Err(:final failure):
+        emitError(failure.messageOr('Erro ao criar dispositivo'));
+        return null;
     }
   }
 
@@ -260,6 +259,12 @@ class DeviceRegisterController extends ChangeNotifier
     this.customerName = customerName;
     isCustomerSelected = true;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    create.dispose();
+    super.dispose();
   }
 
   void clearCustomerInfos() {

@@ -1,3 +1,5 @@
+import 'package:flutter_workshop_front/widgets/core/ui_message_listener.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -34,68 +36,71 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
         unawaited(controller.fetchCustomer(widget.customerId));
         return controller;
       },
-      child: WsScaffold(
-        backgroundColor: const Color(0xFFF5F5F5),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Center(
-            child: Container(
-              width: width * 0.5,
-              margin: const EdgeInsets.symmetric(vertical: 24.0),
+      child: ProviderUiMessageListener<CustomerDetailController>(
+        child: WsScaffold(
+          backgroundColor: const Color(0xFFF5F5F5),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Selector<CustomerDetailController, bool>(
-                  selector: (_, controller) => controller.isLoading,
-                  builder: (context, isLoading, _) {
-                    if (isLoading) {
-                      return const CustomerDetailShimmer();
-                    }
-                    final controller = context.read<CustomerDetailController>();
-                    if (controller.customer == null) {
-                      if (controller.errorMessage != null) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 32),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              EmptyListWidget(
-                                message: controller.errorMessage!,
-                              ),
-                              const SizedBox(height: 12),
-                              Semantics(
-                                identifier: 'customerDetail.retry',
-                                child: OutlinedButton.icon(
-                                  onPressed: () {
-                                    unawaited(
-                                      controller.fetchCustomer(
-                                        widget.customerId,
-                                      ),
-                                    );
-                                  },
-                                  icon: const Icon(Icons.refresh),
-                                  label: const Text('Tentar novamente'),
+                width: width * 0.5,
+                margin: const EdgeInsets.symmetric(vertical: 24.0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Selector<CustomerDetailController, bool>(
+                    selector: (_, controller) => controller.isLoading,
+                    builder: (context, isLoading, _) {
+                      if (isLoading) {
+                        return const CustomerDetailShimmer();
+                      }
+                      final controller = context
+                          .read<CustomerDetailController>();
+                      if (controller.customer == null) {
+                        if (controller.errorMessage != null) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 32),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                EmptyListWidget(
+                                  message: controller.errorMessage!,
                                 ),
-                              ),
-                            ],
-                          ),
+                                const SizedBox(height: 12),
+                                Semantics(
+                                  identifier: 'customerDetail.retry',
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {
+                                      unawaited(
+                                        controller.fetchCustomer(
+                                          widget.customerId,
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.refresh),
+                                    label: const Text('Tentar novamente'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                        return const EmptyListWidget(
+                          message: 'Nenhum cliente encontrado.',
                         );
                       }
-                      return const EmptyListWidget(
-                        message: 'Nenhum cliente encontrado.',
+                      return Column(
+                        children: [
+                          CustomerFormSection(customerId: widget.customerId),
+                          const SizedBox(height: 16),
+                          CustomerDevicesSection(customerId: widget.customerId),
+                        ],
                       );
-                    }
-                    return Column(
-                      children: [
-                        CustomerFormSection(customerId: widget.customerId),
-                        const SizedBox(height: 16),
-                        CustomerDevicesSection(customerId: widget.customerId),
-                      ],
-                    );
-                  },
+                    },
+                  ),
                 ),
               ),
             ),

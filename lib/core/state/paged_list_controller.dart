@@ -4,37 +4,40 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/core/state/safe_change_notifier_mixin.dart';
+import 'package:flutter_workshop_front/core/ui/ui_message.dart';
 import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 
 /// Loads one page of [T] for the query [Q] (0-based [page]).
 typedef PageFetcher<T, Q> = Future<Result<Page<T>>> Function(Q query, int page);
 
-/// Called when a page fails; [loadingMore] is true for pages after the first.
-typedef PageFailureHandler =
-    void Function(AppFailure failure, {required bool loadingMore});
+/// Text shown to the user when a page fails; [loadingMore] is true for pages
+/// after the first.
+typedef PageFailureMessage =
+    String Function(AppFailure failure, {required bool loadingMore});
 
 /// Paginated list state shared by listing screens.
 ///
 /// Every reload and every query change starts a new "generation"; a response
 /// that arrives after a newer request was issued is discarded, so a slow old
 /// request can never overwrite the state of the new one. The first page is
-/// requested by the constructor.
+/// requested by the constructor. A failed page is published as a [UiError]
+/// ([UiMessageSource]); the screen shows it with `UiMessageListener`.
 class PagedListController<T, Q> extends ChangeNotifier
-    with SafeChangeNotifierMixin {
+    with SafeChangeNotifierMixin, UiMessageSource {
   PagedListController({
     required Q initialQuery,
     required PageFetcher<T, Q> fetch,
-    required PageFailureHandler onFailure,
+    required PageFailureMessage failureMessage,
     Duration debounce = Duration.zero,
   }) : _query = initialQuery,
        _fetch = fetch,
-       _onFailure = onFailure,
+       _failureMessage = failureMessage,
        _debounce = debounce {
     unawaited(reload());
   }
 
   final PageFetcher<T, Q> _fetch;
-  final PageFailureHandler _onFailure;
+  final PageFailureMessage _failureMessage;
   final Duration _debounce;
 
   Q _query;
@@ -95,7 +98,7 @@ class PagedListController<T, Q> extends ChangeNotifier
           _totalElements = 0;
           _totalPages = 0;
           _hasMore = false;
-          _onFailure(failure, loadingMore: false);
+          emitError(_failureMessage(failure, loadingMore: false));
       }
     } finally {
       if (generation == _generation) {
@@ -125,7 +128,7 @@ class PagedListController<T, Q> extends ChangeNotifier
           _hasMore = !value.last;
         case Err(:final failure):
           _loadMoreFailed = true;
-          _onFailure(failure, loadingMore: true);
+          emitError(_failureMessage(failure, loadingMore: true));
       }
     } finally {
       if (generation == _generation) {

@@ -158,6 +158,47 @@ void main() {
     );
   });
 
+  group('UI feedback guardrails', () {
+    test(
+      'controllers, interceptors, services and core do not import SnackBarUtil',
+      () {
+        const snackBarImport =
+            'package:flutter_workshop_front/utils/snackbar_util.dart';
+
+        bool isNonUiLayer(String relPath) {
+          if (relPath.startsWith('lib/core/') ||
+              relPath.startsWith('lib/services/') ||
+              relPath.startsWith('lib/repositories/')) {
+            return true;
+          }
+          return relPath.startsWith('lib/pages/') &&
+              (relPath.contains('/controller/') ||
+                  relPath.contains('/controllers/'));
+        }
+
+        final violations = <String>[];
+        for (final file in _dartFilesIn('${root.path}/lib')) {
+          final relPath = _relativePath(root, file);
+          if (!isNonUiLayer(relPath)) continue;
+          if (_extractImports(
+            file.readAsStringSync(),
+          ).contains(snackBarImport)) {
+            violations.add(relPath);
+          }
+        }
+
+        expect(
+          violations,
+          isEmpty,
+          reason:
+              'Controllers and the HTTP layer publish a UiMessage '
+              '(UiMessageSource / UiMessageBus); only pages and widgets show '
+              'it, through UiMessageListener.',
+        );
+      },
+    );
+  });
+
   group('Test hygiene guardrails', () {
     test('no test file imports another *_test.dart file', () {
       final violations = <String>[];

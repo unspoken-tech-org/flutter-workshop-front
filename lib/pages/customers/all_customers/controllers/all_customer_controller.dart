@@ -5,7 +5,6 @@ import 'package:flutter_workshop_front/core/state/paged_list_controller.dart';
 import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
-import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 /// Customer listing; the query is the typed search term (`null` = no search).
 class AllCustomerController
@@ -23,15 +22,11 @@ class AllCustomerController
               ) ??
               CustomerSearchFilter(page: page, size: _pageSize),
         ),
-        onFailure: (failure, {required loadingMore}) {
-          // Mantém a mensagem fixa de hoje na primeira página, também para
-          // erros da API.
-          SnackBarUtil().showError(
-            loadingMore
-                ? failure.messageOr('Erro ao buscar mais clientes')
-                : 'Erro ao buscar clientes. Tente novamente.',
-          );
-        },
+        // Mantém a mensagem fixa de hoje na primeira página, também para
+        // erros da API.
+        failureMessage: (failure, {required loadingMore}) => loadingMore
+            ? failure.messageOr('Erro ao buscar mais clientes')
+            : 'Erro ao buscar clientes. Tente novamente.',
       );
 
   List<MinifiedCustomerModel> get customers => items;

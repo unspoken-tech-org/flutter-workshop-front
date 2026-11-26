@@ -12,6 +12,7 @@ import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all
 import '../../support/fakes/fake_catalog_repository.dart';
 import '../../support/fakes/fake_device_repository.dart';
 import '../../support/fixtures/page_fixture.dart';
+import '../../support/ui_message_recorder.dart';
 
 DeviceDataTable _device(int id, String name) => DeviceDataTable(
   deviceId: id,
@@ -125,6 +126,37 @@ void main() {
       expect(controller.totalElements, 0);
       expect(controller.hasMore, isFalse);
       expect(controller.isLoading, isFalse);
+    });
+
+    test('failed search publishes the error message', () async {
+      final controller = AllDevicesController(
+        FakeDeviceRepository(
+          onQueryDevices: (_, _) async => const Err(NetworkFailure()),
+        ),
+        FakeCatalogRepository(),
+        debounce: Duration.zero,
+      );
+      final messages = recordMessages(controller);
+
+      await Future<void>.delayed(Duration.zero);
+
+      expect(messages, [isUiError('Erro ao buscar aparelhos')]);
+    });
+
+    test('failed filter options publishes the error message', () async {
+      final controller = AllDevicesController(
+        FakeDeviceRepository(
+          queryDevicesResult: Ok(makePage<DeviceDataTable>(const [])),
+        ),
+        FakeCatalogRepository(deviceTypesResult: const Err(NetworkFailure())),
+        debounce: Duration.zero,
+      );
+      final messages = recordMessages(controller);
+
+      await Future<void>.delayed(Duration.zero);
+
+      expect(messages, contains(isUiError('Erro ao carregar filtros')));
+      expect(controller.isFiltersLoading, isFalse);
     });
   });
 }

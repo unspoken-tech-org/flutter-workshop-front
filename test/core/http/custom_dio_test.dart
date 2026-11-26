@@ -63,7 +63,10 @@ void main() {
   group('CustomDio', () {
     test('appDio: SecurityInterceptor antes do GlobalErrorInterceptor; '
         'authDio já nasce com o GlobalErrorInterceptor', () {
-      final factory = CustomDio(baseUri: Uri.parse('https://api.test'));
+      final factory = CustomDio(
+        baseUri: Uri.parse('https://api.test'),
+        onMessage: (_) {},
+      );
 
       final appDio = factory.createAppDio(
         storage: MemorySecurityStorage(),
@@ -113,6 +116,7 @@ void main() {
       final dio =
           CustomDio(
             baseUri: Uri.parse('https://api.test'),
+            onMessage: (_) {},
             adapter: adapter,
           ).createAppDio(
             storage: storage,
