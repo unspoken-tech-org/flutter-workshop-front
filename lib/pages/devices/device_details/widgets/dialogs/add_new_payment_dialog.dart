@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
@@ -10,7 +11,6 @@ import 'package:flutter_workshop_front/pages/devices/device_details/controllers/
 import 'package:flutter_workshop_front/widgets/form_fields/custom_date_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class AddNewPaymentDialog extends StatefulWidget {
@@ -48,7 +48,7 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
   String? _formatDate(DateTime? date) {
     if (date == null) return null;
 
-    return DateFormat('dd/MM/yyyy').format(date);
+    return BrFormat.date(date);
   }
 
   Future<void> _createNewPayment(BuildContext context) async {
@@ -216,15 +216,13 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
                 label: 'Data do Pagamento',
                 errorMaxLines: 2,
                 onSave: (value) => _inputPayment = _inputPayment.copyWith(
-                  paymentDate: DateFormat('dd/MM/yyyy').parse(value),
+                  paymentDate: BrFormat.parseDate(value),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Selecione a data do pagamento';
                   }
-                  final parsedDate = DateFormat(
-                    'dd/MM/yyyy',
-                  ).tryParseStrict(value);
+                  final parsedDate = BrFormat.tryParseDate(value);
                   if (parsedDate == null) {
                     return 'Data inválida';
                   }

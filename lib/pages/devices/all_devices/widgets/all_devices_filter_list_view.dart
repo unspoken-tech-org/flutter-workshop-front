@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'dart:async';
 
 import 'package:collection/collection.dart';
@@ -12,7 +13,6 @@ import 'package:flutter_workshop_front/widgets/form_fields/custom_date_form_fiel
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/searchable_dropdown_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/switch_form_field.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class AllDevicesFilterListView extends StatelessWidget {
@@ -74,10 +74,10 @@ class AllDevicesFilterListView extends StatelessWidget {
               Selector<AllDevicesController, DeviceQuery>(
                 selector: (context, controller) => controller.query,
                 builder: (context, filter, _) {
-                  final String rangeDate =
-                      [filter.initialEntryDate, filter.finalEntryDate].nonNulls
-                          .map((e) => DateFormat('dd/MM/yyyy').format(e))
-                          .join(' - ');
+                  final String rangeDate = [
+                    filter.initialEntryDate,
+                    filter.finalEntryDate,
+                  ].nonNulls.map((e) => BrFormat.date(e)).join(' - ');
                   return Flexible(
                     child: CustomDateFormField(
                       headerLabel: 'Data de entrada',

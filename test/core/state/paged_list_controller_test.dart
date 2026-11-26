@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/core/state/paged_list_controller.dart';
+import 'package:flutter_workshop_front/core/ui/ui_message.dart';
 import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 
 import '../../support/fixtures/page_fixture.dart';
@@ -24,14 +25,18 @@ class _Harness {
         pending.add((query: query, page: page, c: completer));
         return completer.future;
       },
-      onFailure: (failure, {required loadingMore}) =>
-          failures.add((failure, loadingMore)),
+      failureMessage: (failure, {required loadingMore}) {
+        failures.add((failure, loadingMore));
+        return loadingMore ? 'more failed' : 'first failed';
+      },
     );
+    controller.messages.listen(messages.add);
   }
 
   late final PagedListController<String, String> controller;
   final pending = <_Pending>[];
   final failures = <(AppFailure, bool)>[];
+  final messages = <UiMessage>[];
 }
 
 Result<Page<String>> _ok(

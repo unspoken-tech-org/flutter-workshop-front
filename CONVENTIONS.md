@@ -13,6 +13,9 @@ Este documento registra as convenções obrigatórias para código novo e revis�
    - **Por quê:** validação única no boot com fallback para `ConfigErrorApp`.
 3. **`SafeChangeNotifierMixin` obrigatório:** todo novo `ChangeNotifier` em `lib/` deve usar `with SafeChangeNotifierMixin` (referência: `HomeController`, `DeviceRegisterController`, `DeviceCustomerPageController`, `AllDevicesController`, `PagedListController`).
    - **Baseline congelada (legado):** `AuthNotifier`, `CustomerDetailController`, `CustomerRegisterController`, `SetupController` e `WsDrawerController` estão congelados na baseline de `architecture_test.dart` até sua migração.
+4. **Feedback ao usuário só na UI:** controllers, interceptors, `core/`, `services/` e `repositories/` nunca importam `SnackBarUtil`. O controller publica `UiSuccess`/`UiError` (`with UiMessageSource`, `emitSuccess`/`emitError`), o interceptor HTTP chama o `onMessage` recebido (`UiMessageBus` do `AppDependencies`) e a página exibe com `UiMessageListener`/`ProviderUiMessageListener`.
+5. **Ação assíncrona de tela = `Command`:** cada ação (carregar, salvar, criar) é um `Command<A, T>` (`lib/core/ui/command.dart`) com `running` e `result`/`error` próprios; o controller encaminha `addListener(notifyListeners)`, em vez de guardas e flags manuais.
+6. **Validação e formatação BR centralizadas:** validadores de `FormField` em `lib/core/validators/form_validators.dart` (textos de erro únicos) e data, telefone, CPF e `digitsOnly` em `lib/core/format/br_format.dart`; proibido novo `DateFormat('dd/MM/yyyy')` ou `RegExp(r'\D')` fora deles.
 
 ---
 

@@ -10,7 +10,6 @@ import 'package:flutter_workshop_front/models/home_table/device_data_table.dart'
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
 import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
-import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
 /// Single device listing (search, filters, ordering and pagination).
 class AllDevicesController
@@ -23,15 +22,11 @@ class AllDevicesController
   }) : super(
          initialQuery: query ?? const DeviceQuery(),
          fetch: deviceRepository.queryDevices,
-         onFailure: (failure, {required loadingMore}) {
-           SnackBarUtil().showError(
-             failure.messageOr(
-               loadingMore
-                   ? 'Erro ao buscar mais aparelhos'
-                   : 'Erro ao buscar aparelhos',
-             ),
-           );
-         },
+         failureMessage: (failure, {required loadingMore}) => failure.messageOr(
+           loadingMore
+               ? 'Erro ao buscar mais aparelhos'
+               : 'Erro ao buscar aparelhos',
+         ),
        ) {
     unawaited(fetchFilterOptions());
   }
@@ -61,7 +56,7 @@ class AllDevicesController
         _ => null,
       };
       if (failure != null) {
-        SnackBarUtil().showError(failure.messageOr('Erro ao carregar filtros'));
+        emitError(failure.messageOr('Erro ao carregar filtros'));
       } else {
         deviceTypes = resultTypes.valueOrNull ?? deviceTypes;
         deviceBrands = resultBrands.valueOrNull ?? deviceBrands;

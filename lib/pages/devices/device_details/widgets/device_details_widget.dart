@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/date_time_extension.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
@@ -6,7 +7,6 @@ import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_date_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class DeviceDetailsWidget extends StatelessWidget {
@@ -91,7 +91,7 @@ class DeviceDetailsWidget extends StatelessWidget {
                         final current = controller.deviceCustomer;
                         if (current == null) return;
                         final updated = current.copyWith(
-                          entryDate: DateFormat('dd/MM/yyyy').parse(value),
+                          entryDate: BrFormat.parseDate(value),
                         );
                         controller.updateNewDeviceCustomer(updated);
                       },
@@ -119,14 +119,12 @@ class DeviceDetailsWidget extends StatelessWidget {
                             StatusEnum.disposed,
                           ].contains(current.deviceStatus)) {
                             if (value == null || value.isEmpty) {
-                              return 'Saída obrigatoria para entregue/descartado';
+                              return 'Saída obrigatória para entregue/descartado';
                             }
                           }
                           if (value != null && value.isNotEmpty) {
                             final entry = current.entryDate;
-                            final departure = DateFormat(
-                              'dd/MM/yyyy',
-                            ).parse(value);
+                            final departure = BrFormat.parseDate(value);
                             if (!departure.isAfter(entry)) {
                               return 'Data de saída deve ser posterior à entrada';
                             }
@@ -145,7 +143,7 @@ class DeviceDetailsWidget extends StatelessWidget {
                           final updated = current.copyWith(
                             departureDate: value.isEmpty
                                 ? null
-                                : DateFormat('dd/MM/yyyy').parse(value),
+                                : BrFormat.parseDate(value),
                           );
                           controller.updateNewDeviceCustomer(updated);
                         },

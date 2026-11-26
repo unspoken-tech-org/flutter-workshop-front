@@ -9,7 +9,7 @@ import 'package:flutter_workshop_front/models/customer_device/device_customer.da
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/device_status_chip.dart';
-import 'package:flutter_workshop_front/utils/phone_utils.dart';
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/revision_chip.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/urgency_chip.dart';
 import 'package:provider/provider.dart';
@@ -33,7 +33,7 @@ class _CustomerDeviceInfoHeaderWidgetState
     if (mainPhone == null || mainPhone.number.isEmpty) {
       return 'Não informado';
     }
-    return PhoneUtils.formatPhone(mainPhone.number);
+    return BrFormat.phone(mainPhone.number);
   }
 
   Future<void> _executeUpdateOrShowDialog(

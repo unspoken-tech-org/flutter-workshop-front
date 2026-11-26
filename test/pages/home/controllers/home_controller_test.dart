@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
@@ -6,6 +8,7 @@ import 'package:flutter_workshop_front/pages/home/controllers/home_controller.da
 
 import '../../../support/fakes/fake_device_repository.dart';
 import '../../../support/fixtures/device_statistics_fixture.dart';
+import '../../../support/ui_message_recorder.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -67,28 +70,39 @@ void main() {
         );
         final controller = HomeController(repo);
 
+        final messages = recordMessages(controller);
+
         await controller.getDeviceStatistics();
 
         expect(
           controller.errorMessage,
           'Erro ao carregar estatísticas. Tente novamente.',
         );
+        expect(messages, [
+          isUiError('Erro ao carregar estatísticas. Tente novamente.'),
+        ]);
         expect(controller.isLoading, isFalse);
       },
     );
 
     test(
-      'getDeviceStatistics ignores concurrent calls while isLoading=true',
+      'getDeviceStatistics ignores concurrent calls while loading',
       () async {
+        final blocker = Completer<Result<DeviceStatistics>>();
         final repo = FakeDeviceRepository(
-          deviceStatisticsResult: Ok(makeDeviceStatistics()),
+          onGetDeviceStatistics: () => blocker.future,
         );
-        final controller = HomeController(repo)..isLoading = true;
+        final controller = HomeController(repo);
 
-        await controller.getDeviceStatistics();
-
-        expect(repo.getDeviceStatisticsCalls, 0);
+        final first = controller.getDeviceStatistics();
         expect(controller.isLoading, isTrue);
+        await controller.getDeviceStatistics();
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+
+        expect(repo.getDeviceStatisticsCalls, 1);
+        blocker.complete(Ok(makeDeviceStatistics()));
+        await first;
+        expect(controller.isLoading, isFalse);
       },
     );
   });

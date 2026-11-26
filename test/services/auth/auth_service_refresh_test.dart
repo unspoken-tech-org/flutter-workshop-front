@@ -699,6 +699,7 @@ void main() {
       );
       final dio = CustomDio(
         baseUri: Uri.parse('https://test.example.com'),
+        onMessage: (_) {},
         adapter: adapter,
       ).createAuthDio();
       final service = AuthService(

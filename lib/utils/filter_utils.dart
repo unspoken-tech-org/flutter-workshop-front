@@ -1,4 +1,5 @@
-import 'package:flutter_workshop_front/utils/validators/cpf_validator.dart';
+import 'package:flutter_workshop_front/core/format/br_format.dart';
+import 'package:flutter_workshop_front/core/validators/cpf_validator.dart';
 
 class FilterUtils {
   final String _rawTerm;
@@ -6,7 +7,7 @@ class FilterUtils {
 
   FilterUtils(String term)
     : _rawTerm = term.trim().replaceAll(RegExp(r'\s+'), ' '),
-      _digitsOnly = term.replaceAll(RegExp(r'\D'), '');
+      _digitsOnly = BrFormat.digitsOnly(term);
 
   String get text => _rawTerm;
 

@@ -9,10 +9,9 @@ import 'package:flutter_workshop_front/models/customer_device/input_customer_con
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
-import 'package:flutter_workshop_front/utils/phone_utils.dart';
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_date_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class EditContactModalDialog extends StatefulWidget {
@@ -193,14 +192,14 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                     key: ValueKey(isContactTypePersonally),
                                     headerLabel: 'Número de telefone',
                                     enabled: !isContactTypePersonally,
-                                    initialValue: PhoneUtils.formatPhone(
+                                    initialValue: BrFormat.phone(
                                       inputCustomerContact.phoneNumber,
                                     ),
                                     items: () {
                                       final formattedContactPhone =
                                           inputCustomerContact.phoneNumber !=
                                               null
-                                          ? PhoneUtils.formatPhone(
+                                          ? BrFormat.phone(
                                               inputCustomerContact.phoneNumber,
                                             )
                                           : null;
@@ -210,10 +209,9 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                       }
                                       for (final phone
                                           in deviceCustomer.customerPhones) {
-                                        final formatted =
-                                            PhoneUtils.formatPhone(
-                                              phone.number,
-                                            );
+                                        final formatted = BrFormat.phone(
+                                          phone.number,
+                                        );
                                         if (!items.contains(formatted)) {
                                           items.add(formatted);
                                         }
@@ -301,11 +299,8 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                     label: 'Data do contato',
                                     dateController: _dateController,
                                     onSave: (value) {
-                                      final DateFormat format = DateFormat(
-                                        "dd/MM/yyyy",
-                                      );
-                                      inputCustomerContact.contactDate = format
-                                          .parse(value);
+                                      inputCustomerContact.contactDate =
+                                          BrFormat.parseDate(value);
                                     },
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {

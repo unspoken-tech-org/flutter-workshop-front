@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:flutter/services.dart';
 
 class CpfFormatter extends TextInputFormatter {
@@ -6,7 +7,7 @@ class CpfFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    final digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final digitsOnly = BrFormat.digitsOnly(newValue.text);
 
     if (digitsOnly.length > 11) {
       return oldValue;

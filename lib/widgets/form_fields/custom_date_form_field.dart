@@ -1,6 +1,6 @@
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 enum DatePickerType { single, range }
 
@@ -9,8 +9,6 @@ enum DatePickerType { single, range }
 class DateFieldSelection {
   DateFieldSelection._();
 
-  static final DateFormat _format = DateFormat('dd/MM/yyyy');
-
   /// Dates shown in the field: `dd/MM/yyyy` or `dd/MM/yyyy - dd/MM/yyyy`.
   /// Unparseable parts are dropped.
   static List<DateTime> parse(String text) {
@@ -18,11 +16,9 @@ class DateFieldSelection {
     for (final part in text.split(' - ')) {
       final trimmed = part.trim();
       if (trimmed.isEmpty) continue;
-      try {
-        dates.add(_format.parseStrict(trimmed));
-      } on FormatException {
-        // Not a date the field wrote; ignore it.
-      }
+      // Not a date the field wrote: tryParseDate gives null and it is ignored.
+      final date = BrFormat.tryParseDate(trimmed);
+      if (date != null) dates.add(date);
     }
     return dates;
   }
@@ -209,7 +205,7 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
                 );
                 if (!mounted) return;
                 if (date != null) {
-                  dateController.text = DateFormat('dd/MM/yyyy').format(date);
+                  dateController.text = BrFormat.date(date);
                   widget.onSelected?.call(date, null);
                   setState(() {});
                 }
@@ -237,7 +233,7 @@ class _CustomDateFormFieldState extends State<CustomDateFormField> {
                   dateController.text = [
                     start,
                     end,
-                  ].map((e) => DateFormat('dd/MM/yyyy').format(e)).join(' - ');
+                  ].map((e) => BrFormat.date(e)).join(' - ');
 
                   widget.onSelected?.call(start, end);
                   setState(() {});

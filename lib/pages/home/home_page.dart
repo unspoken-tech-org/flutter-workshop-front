@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/widgets/core/ui_message_listener.dart';
 import 'package:flutter_workshop_front/core/di/app_dependencies.dart';
 
 import 'dart:async';
@@ -73,39 +74,41 @@ class _HomePageState extends State<HomePage> {
         unawaited(controller.getDeviceStatistics());
         return controller;
       },
-      child: WsScaffold(
-        backgroundColor: const Color(0xFFF9FAFB),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 24.0, top: 24.0),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Dashboard Aparelhos',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[800],
+      child: ProviderUiMessageListener<HomeController>(
+        child: WsScaffold(
+          backgroundColor: const Color(0xFFF9FAFB),
+          child: Center(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 24.0, top: 24.0),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Dashboard Aparelhos',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.all(24.0),
-                  child: Column(
-                    spacing: 32,
-                    children: [
-                      QuickActionsWidget(),
-                      DashboardStatsView(),
-                      RecentDevicesView(),
-                    ],
+                  const Padding(
+                    padding: EdgeInsets.all(24.0),
+                    child: Column(
+                      spacing: 32,
+                      children: [
+                        QuickActionsWidget(),
+                        DashboardStatsView(),
+                        RecentDevicesView(),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

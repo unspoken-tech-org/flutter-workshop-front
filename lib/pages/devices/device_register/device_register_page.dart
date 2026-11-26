@@ -1,3 +1,5 @@
+import 'package:flutter_workshop_front/widgets/core/ui_message_listener.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -31,20 +33,22 @@ class DeviceRegisterPage extends StatelessWidget {
         unawaited(controller.init(customerId, customerName));
         return controller;
       },
-      child: WsScaffold(
-        child: SingleChildScrollView(
-          child: Center(
-            child: SizedBox(
-              width: 800,
-              child: Selector<DeviceRegisterController, bool>(
-                selector: (context, controller) => controller.isLoading,
-                builder: (context, isLoading, child) {
-                  if (isLoading) {
-                    return const DeviceRegisterShimmer();
-                  }
+      child: ProviderUiMessageListener<DeviceRegisterController>(
+        child: WsScaffold(
+          child: SingleChildScrollView(
+            child: Center(
+              child: SizedBox(
+                width: 800,
+                child: Selector<DeviceRegisterController, bool>(
+                  selector: (context, controller) => controller.isLoading,
+                  builder: (context, isLoading, child) {
+                    if (isLoading) {
+                      return const DeviceRegisterShimmer();
+                    }
 
-                  return const DeviceRegisterForm();
-                },
+                    return const DeviceRegisterForm();
+                  },
+                ),
               ),
             ),
           ),

@@ -4,6 +4,7 @@ import 'package:flutter_workshop_front/core/http/custom_dio.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/secure_key_value_store.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
+import 'package:flutter_workshop_front/core/ui/ui_message.dart';
 import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
 import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
@@ -37,12 +38,17 @@ class AppDependencies {
     required this.customerRepository,
     required this.catalogRepository,
     required this.updateService,
+    required this.uiMessages,
   });
 
   factory AppDependencies.create(AppConfig config, SecureKeyValueStore store) {
     final storage = SecurityStorage(store, namespace: config.storageNamespace);
     final authNotifier = AuthNotifier();
-    final dioFactory = CustomDio(baseUri: config.baseUri);
+    final uiMessages = UiMessageBus();
+    final dioFactory = CustomDio(
+      baseUri: config.baseUri,
+      onMessage: uiMessages.publish,
+    );
 
     final authService = AuthService(
       dio: dioFactory.createAuthDio(),
@@ -83,6 +89,7 @@ class AppDependencies {
         githubOwner: config.githubOwner,
         githubRepo: config.githubRepo,
       ),
+      uiMessages: uiMessages,
     );
   }
 
@@ -96,4 +103,7 @@ class AppDependencies {
   final CatalogRepository catalogRepository;
 
   final UpdateService updateService;
+
+  /// Mensagens globais (erros de infraestrutura do HTTP); a UI as exibe.
+  final UiMessageBus uiMessages;
 }
