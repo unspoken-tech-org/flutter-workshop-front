@@ -31,6 +31,11 @@ class CustomerDetailController extends ChangeNotifier with UiMessageSource {
   /// Guarda comum: não busca nem salva enquanto a outra ação roda.
   bool get isLoading => fetch.running || update.running;
 
+  /// Só a busca troca a tela pelo shimmer; o salvamento mantém o formulário
+  /// (e o que foi digitado) e mostra o progresso no botão.
+  bool get isFetching => fetch.running;
+  bool get isSaving => update.running;
+
   bool _isEditing = false;
   bool get isEditing => _isEditing;
 

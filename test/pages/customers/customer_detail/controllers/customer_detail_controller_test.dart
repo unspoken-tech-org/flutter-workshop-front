@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
+import 'package:flutter_workshop_front/models/customer/customer_model.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/controllers/customer_detail_controller.dart';
 
 import '../../../../support/fakes/fake_customer_repository.dart';
@@ -89,5 +92,24 @@ void main() {
       expect(controller.isEditing, isTrue);
       expect(messages, isEmpty);
     });
+
+    test(
+      'salvar não liga isFetching: a tela não troca para o shimmer',
+      () async {
+        final pending = Completer<Result<CustomerModel>>();
+        final controller = CustomerDetailController(
+          FakeCustomerRepository(onUpdateCustomer: (_, _) => pending.future),
+        )..setEditing(true);
+
+        final saving = controller.updateCustomer(1);
+
+        expect(controller.isSaving, isTrue);
+        expect(controller.isFetching, isFalse);
+
+        pending.complete(const Err(NetworkFailure(shownGlobally: true)));
+        await saving;
+        expect(controller.isSaving, isFalse);
+      },
+    );
   });
 }

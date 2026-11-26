@@ -18,6 +18,7 @@ class EditActionButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = context.watch<CustomerDetailController>();
     final isEditing = controller.isEditing;
+    final isSaving = controller.isSaving;
 
     if (isEditing) {
       return Row(
@@ -26,9 +27,7 @@ class EditActionButtons extends StatelessWidget {
           Semantics(
             identifier: 'customerDetail.cancel',
             child: ElevatedButton(
-              onPressed: () {
-                onCancel();
-              },
+              onPressed: isSaving ? null : onCancel,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
@@ -47,9 +46,7 @@ class EditActionButtons extends StatelessWidget {
           Semantics(
             identifier: 'customerDetail.save',
             child: ElevatedButton(
-              onPressed: () async {
-                onSave();
-              },
+              onPressed: isSaving ? null : onSave,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
@@ -60,8 +57,17 @@ class EditActionButtons extends StatelessWidget {
                 ),
                 backgroundColor: Colors.black87,
                 foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.black54,
               ),
-              child: const Text('Salvar'),
+              child: isSaving
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Salvar'),
             ),
           ),
         ],

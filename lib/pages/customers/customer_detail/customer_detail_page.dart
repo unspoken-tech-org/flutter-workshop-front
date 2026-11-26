@@ -52,9 +52,9 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Selector<CustomerDetailController, bool>(
-                    selector: (_, controller) => controller.isLoading,
-                    builder: (context, isLoading, _) {
-                      if (isLoading) {
+                    selector: (_, controller) => controller.isFetching,
+                    builder: (context, isFetching, _) {
+                      if (isFetching) {
                         return const CustomerDetailShimmer();
                       }
                       final controller = context
