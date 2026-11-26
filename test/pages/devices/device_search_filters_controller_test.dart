@@ -10,7 +10,8 @@ import 'package:flutter_workshop_front/pages/devices/search_devices/controllers/
 import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
 import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
-import '../../helpers/result_guard.dart';
+
+import '../../support/result_guard.dart';
 
 class _RecordingDeviceRepository extends Fake implements DeviceRepository {
   DeviceFilter? lastAllDevicesFilter;

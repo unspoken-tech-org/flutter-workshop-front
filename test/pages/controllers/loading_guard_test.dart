@@ -1,6 +1,7 @@
 // ignore_for_file: unawaited_futures
 import '../../support/memory_security_storage.dart';
 import '../../support/offline_services.dart';
+
 import 'dart:async';
 
 import 'package:dio/dio.dart';
@@ -28,7 +29,8 @@ import 'package:flutter_workshop_front/repositories/customer/customer_repository
 import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
-import '../../helpers/result_guard.dart';
+
+import '../../support/result_guard.dart';
 
 // ---------------------------------------------------------------------------
 // Stubs

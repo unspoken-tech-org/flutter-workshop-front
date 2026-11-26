@@ -1,4 +1,5 @@
 import '../../support/offline_services.dart';
+
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
@@ -21,7 +22,8 @@ import 'package:flutter_workshop_front/repositories/customer/customer_repository
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
-import '../../helpers/result_guard.dart';
+
+import '../../support/result_guard.dart';
 
 class _FakeAuthService extends Fake implements AuthService {
   String? lastApiKey;

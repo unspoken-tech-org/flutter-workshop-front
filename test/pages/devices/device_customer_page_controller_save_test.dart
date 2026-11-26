@@ -1,4 +1,5 @@
 import '../../support/offline_services.dart';
+
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -6,7 +7,8 @@ import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dar
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
-import '../../helpers/result_guard.dart';
+
+import '../../support/result_guard.dart';
 
 DeviceCustomer _device({
   String problem = 'Não liga',

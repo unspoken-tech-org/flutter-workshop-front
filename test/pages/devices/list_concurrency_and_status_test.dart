@@ -25,7 +25,7 @@ import 'package:flutter_workshop_front/repositories/device/device_repository.dar
 import 'package:flutter_workshop_front/widgets/form_fields/searchable_dropdown_form_field.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 
-import '../../helpers/result_guard.dart';
+import '../../support/result_guard.dart';
 
 DeviceDataTable _device(int id, String name) => DeviceDataTable(
   deviceId: id,
