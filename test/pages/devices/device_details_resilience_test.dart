@@ -1,4 +1,5 @@
 import '../../support/offline_services.dart';
+
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
@@ -24,7 +25,8 @@ import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controll
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
-import '../../helpers/result_guard.dart';
+
+import '../../support/result_guard.dart';
 
 DeviceCustomer _sampleDevice({
   int technicianId = 10,

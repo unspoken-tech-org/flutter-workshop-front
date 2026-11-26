@@ -7,7 +7,8 @@ import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.d
 import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
 import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
-import '../../helpers/result_guard.dart';
+
+import '../../support/result_guard.dart';
 
 class _FakeDeviceRepository extends Fake implements DeviceRepository {}
 

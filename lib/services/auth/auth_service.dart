@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:synchronized/synchronized.dart';
+
 import '../../core/exceptions/requisition_exception.dart';
 
 import '../../core/http/api_auth_error.dart';

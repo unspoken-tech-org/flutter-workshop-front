@@ -26,7 +26,8 @@ import 'package:flutter_workshop_front/widgets/shared/infinite_scroll_listener.d
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
-import '../../helpers/result_guard.dart';
+
+import '../../support/result_guard.dart';
 
 MinifiedCustomerModel _customer(int id) => MinifiedCustomerModel(
   customerId: id,

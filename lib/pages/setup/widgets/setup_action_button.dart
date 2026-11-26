@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../setup_controller.dart';
 
 class SetupActionButton extends StatelessWidget {
@@ -55,7 +56,12 @@ class SetupActionButton extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 12),
-                    Text('Conectando...'),
+                    Flexible(
+                      child: Text(
+                        'Conectando...',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 )
               : isSuccess
@@ -66,12 +72,15 @@ class SetupActionButton extends StatelessWidget {
               : const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'Conectar ao Servidor',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                    Flexible(
+                      child: Text(
+                        'Conectar ao Servidor',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     SizedBox(width: 8),

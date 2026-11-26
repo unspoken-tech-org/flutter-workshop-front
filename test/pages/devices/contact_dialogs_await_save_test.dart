@@ -1,4 +1,5 @@
 import '../../support/offline_services.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -14,7 +15,8 @@ import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dial
 import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
-import '../../helpers/result_guard.dart';
+
+import '../../support/result_guard.dart';
 
 DeviceCustomer _sampleDevice() => DeviceCustomer.fromJson(const {
   'deviceId': 1,
