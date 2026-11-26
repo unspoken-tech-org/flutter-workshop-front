@@ -11,6 +11,11 @@ class DeviceInput {
   final TypeBrandModelInput? typeBrandModel;
   final List<String>? colors;
 
+  /// OS de origem de uma revisão (`originOrderId` + `revision`, plano §4.3).
+  /// Só vão no JSON quando preenchidos; APIs que não os conhecem os ignoram.
+  final int? originOrderId;
+  final bool revision;
+
   DeviceInput({
     this.customerId,
     this.problem,
@@ -20,6 +25,8 @@ class DeviceInput {
     this.budgetFee,
     this.technicianId,
     this.hasUrgency = false,
+    this.originOrderId,
+    this.revision = false,
   });
 
   factory DeviceInput.empty() =>
@@ -34,6 +41,8 @@ class DeviceInput {
     List<String>? colors,
     Money? budgetFee,
     bool? hasUrgency,
+    int? originOrderId,
+    bool? revision,
   }) => DeviceInput(
     customerId: customerId ?? this.customerId,
     technicianId: technicianId ?? this.technicianId,
@@ -43,6 +52,8 @@ class DeviceInput {
     colors: colors ?? this.colors,
     budgetFee: budgetFee ?? this.budgetFee,
     hasUrgency: hasUrgency ?? this.hasUrgency,
+    originOrderId: originOrderId ?? this.originOrderId,
+    revision: revision ?? this.revision,
   );
 
   Map<String, dynamic> toJson() {
@@ -55,6 +66,8 @@ class DeviceInput {
       'technicianId': technicianId,
       'typeBrandModel': typeBrandModel?.toJson(),
       'colors': colors,
+      if (originOrderId != null) 'originOrderId': originOrderId,
+      if (revision) 'revision': true,
     };
   }
 }
