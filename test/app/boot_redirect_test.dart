@@ -113,5 +113,22 @@ void main() {
         }
       },
     );
+    testWidgets(
+      'nao gera overflow em SplashPage mesmo com viewport minimo 1x1 (primeiro frame desktop)',
+      (tester) async {
+        tester.view.physicalSize = const Size(1, 1);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        await tester.pumpWidget(const MaterialApp(home: SplashPage()));
+        await tester.pump();
+
+        expect(tester.takeException(), isNull);
+        expect(find.byType(SplashPage), findsOneWidget);
+      },
+    );
   });
 }
