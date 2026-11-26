@@ -33,9 +33,7 @@ FakeCustomerRepository _blockingCustomerRepository() => FakeCustomerRepository(
 );
 
 FakeDeviceRepository _blockingDeviceRepository() => FakeDeviceRepository(
-  onGetAllDevicesFiltering: (_) =>
-      Completer<Result<Page<DeviceDataTable>>>().future,
-  onSearchDevices: (_) => Completer<Result<Page<DeviceDataTable>>>().future,
+  onQueryDevices: (_, _) => Completer<Result<Page<DeviceDataTable>>>().future,
 );
 
 // ---------------------------------------------------------------------------
@@ -159,12 +157,12 @@ void main() {
 
   // -------------------------------------------------------------------------
   group('AllDevicesController — geração de listagem e guard de filtros', () {
-    // O construtor chama fetchAllDevicesFiltering() fire-and-forget.
-    // Uma nova chamada a fetchAllDevicesFiltering() durante isLoading=true
+    // O construtor chama reload() fire-and-forget.
+    // Uma nova chamada a reload() durante isLoading=true
     // NÃO deve ser descartada (ela incrementa a geração e invalida a anterior).
 
     test(
-      'fetchAllDevicesFiltering não descarta nova chamada quando isLoading=true e invalida chamada anterior',
+      'reload não descarta nova chamada quando isLoading=true e invalida chamada anterior',
       () async {
         final deviceRepo = _blockingDeviceRepository();
         final catalogRepo = FakeCatalogRepository();
@@ -172,16 +170,16 @@ void main() {
 
         // Construtor definiu isLoading = true sincronamente
         expect(controller.isLoading, true);
-        // getAllDevicesFiltering ainda não foi chamado (está atrás do Future.delayed)
-        expect(deviceRepo.recordedAllDevicesFilters, isEmpty);
+        // queryDevices ainda não foi chamado (está atrás do Future.delayed)
+        expect(deviceRepo.recordedDeviceQueries, isEmpty);
 
         // Nova chamada enquanto a primeira está no Future.delayed(200ms)
-        final secondCall = controller.fetchAllDevicesFiltering();
+        final secondCall = controller.reload();
         expect(controller.isLoading, true);
 
         // Aguarda o debounce de 200ms: apenas a geração mais nova chega ao repo
         await Future<void>.delayed(const Duration(milliseconds: 250));
-        expect(deviceRepo.recordedAllDevicesFilters, hasLength(1));
+        expect(deviceRepo.recordedDeviceQueries, hasLength(1));
 
         // Não aguardamos secondCall porque _blockingDeviceRepository nunca completa
         unawaited(secondCall);

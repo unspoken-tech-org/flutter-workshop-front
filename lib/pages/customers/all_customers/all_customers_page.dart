@@ -49,7 +49,7 @@ class _AllCustomersPageState extends State<AllCustomersPage> {
     return InheritedAllCustomerController(
       controller: _controller,
       child: RefreshOnReturn(
-        onReturn: () => unawaited(_controller.refresh()),
+        onReturn: () => unawaited(_controller.reload()),
         child: WsScaffold(
           child: Center(
             child: SizedBox(

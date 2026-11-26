@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
-import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
+import 'package:flutter_workshop_front/models/device/device_query.dart';
 import 'package:flutter_workshop_front/pages/bootstrap_error/bootstrap_error_page.dart';
 import 'package:flutter_workshop_front/pages/customers/all_customers/all_customers_page.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/customer_detail_page.dart';
@@ -11,7 +10,6 @@ import 'package:flutter_workshop_front/pages/devices/all_devices/all_devices_pag
 import 'package:flutter_workshop_front/pages/devices/device_details/device_details_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/device_register_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/device_register_route_args.dart';
-import 'package:flutter_workshop_front/pages/devices/search_devices/search_devices_page.dart';
 import 'package:flutter_workshop_front/pages/home/home_page.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
 import 'package:flutter_workshop_front/pages/splash/splash_page.dart';
@@ -121,16 +119,8 @@ List<RouteBase> _routes = [
     path: '/device/all',
     name: AllDevicesPage.route,
     builder: (context, state) {
-      final filter = state.extra as DeviceFilter?;
-      return AllDevicesPage(filter: filter);
-    },
-  ),
-  GoRoute(
-    path: '/device/search',
-    name: SearchDevicesPage.route,
-    builder: (context, state) {
-      final filter = state.extra as DeviceSearchFilter?;
-      return SearchDevicesPage(filter: filter);
+      final query = state.extra as DeviceQuery?;
+      return AllDevicesPage(query: query);
     },
   ),
   GoRoute(

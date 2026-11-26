@@ -1,90 +1,50 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
-import 'package:flutter_workshop_front/core/state/safe_change_notifier_mixin.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
+import 'package:flutter_workshop_front/core/state/paged_list_controller.dart';
+import 'package:flutter_workshop_front/models/device/device_query.dart';
 import 'package:flutter_workshop_front/models/device_brand/device_brand_model.dart';
 import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
 import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
-import 'package:flutter_workshop_front/utils/filter_utils.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 
-class AllDevicesController extends ChangeNotifier with SafeChangeNotifierMixin {
-  final DeviceRepository _deviceRepository;
-  final CatalogRepository _catalogRepository;
-
+/// Single device listing (search, filters, ordering and pagination).
+class AllDevicesController
+    extends PagedListController<DeviceDataTable, DeviceQuery> {
   AllDevicesController(
-    this._deviceRepository,
+    DeviceRepository deviceRepository,
     this._catalogRepository, {
-    DeviceFilter? filter,
-  }) {
-    this.filter = filter ?? DeviceFilter();
-    unawaited(fetchAllDevicesFiltering());
+    DeviceQuery? query,
+    super.debounce = const Duration(milliseconds: 200),
+  }) : super(
+         initialQuery: query ?? const DeviceQuery(),
+         fetch: deviceRepository.queryDevices,
+         onFailure: (failure, {required loadingMore}) {
+           SnackBarUtil().showError(
+             failure.messageOr(
+               loadingMore
+                   ? 'Erro ao buscar mais aparelhos'
+                   : 'Erro ao buscar aparelhos',
+             ),
+           );
+         },
+       ) {
     unawaited(fetchFilterOptions());
   }
 
-  List<DeviceDataTable> devices = [];
+  final CatalogRepository _catalogRepository;
+
   List<DeviceType> deviceTypes = [];
   List<DeviceBrand> deviceBrands = [];
-  late DeviceFilter filter;
 
-  bool isLoading = false;
   bool isFiltering = false;
   bool isFiltersLoading = false;
-  bool _isLoadingMore = false;
-  bool get isLoadingMore => _isLoadingMore;
-  bool _hasMore = true;
-  bool get hasMore => _hasMore;
-  bool _loadMoreFailed = false;
-  bool get loadMoreFailed => _loadMoreFailed;
 
-  int _currentPage = 0;
-  int _totalElements = 0;
-  int get totalElements => _totalElements;
-  int _totalPages = 0;
-  int get totalPages => _totalPages;
-  int _requestGeneration = 0;
-
-  Future<void> fetchAllDevicesFiltering() async {
-    final generation = ++_requestGeneration;
-    try {
-      isLoading = true;
-      _isLoadingMore = false;
-      _loadMoreFailed = false;
-      _currentPage = 0;
-      filter.page = _currentPage;
-      devices = [];
-      notifyListeners();
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-      if (generation != _requestGeneration) return;
-      final result = await _deviceRepository.getAllDevicesFiltering(filter);
-      if (generation != _requestGeneration) return;
-      switch (result) {
-        case Ok(:final value):
-          devices = value.content;
-          _totalElements = value.totalElements;
-          _totalPages = value.totalPages;
-          _hasMore = !value.last;
-        case Err(:final failure):
-          _totalElements = 0;
-          _totalPages = 0;
-          _hasMore = false;
-          SnackBarUtil().showError(
-            failure.messageOr('Erro ao buscar aparelhos'),
-          );
-      }
-    } finally {
-      if (generation == _requestGeneration) {
-        isLoading = false;
-        notifyListeners();
-      }
-    }
-  }
+  List<DeviceDataTable> get devices => items;
 
   Future<void> fetchFilterOptions() async {
     if (isFiltersLoading) return;
@@ -118,116 +78,42 @@ class AllDevicesController extends ChangeNotifier with SafeChangeNotifierMixin {
   }
 
   void filterTable(String searchTerm) {
-    filter = filter.clearTypedFilters();
-
-    final search = FilterUtils(searchTerm);
-    if (search.isName) {
-      filter.customerName = search.text;
-    } else if (search.isCpf) {
-      filter.customerCpf = search.digits;
-    } else if (search.isPhoneOrCellPhone) {
-      filter.customerPhone = search.digits;
-    } else if (search.isId) {
-      filter.deviceId = int.parse(search.digits);
-    }
-    unawaited(fetchAllDevicesFiltering());
+    unawaited(updateQuery(query.withSearchText(searchTerm)));
   }
 
   void addRemoveDeviceType(DeviceType deviceType) {
-    filter = filter.withToggledType(deviceType);
-    notifyListeners();
-    unawaited(fetchAllDevicesFiltering());
+    unawaited(updateQuery(query.withToggledType(deviceType)));
   }
 
   void addRemoveDeviceBrand(DeviceBrand deviceBrand) {
-    filter = filter.withToggledBrand(deviceBrand);
-    notifyListeners();
-    unawaited(fetchAllDevicesFiltering());
+    unawaited(updateQuery(query.withToggledBrand(deviceBrand)));
   }
 
   void addRemoveStatus(StatusEnum status) {
-    filter = filter.withToggledStatus(status);
-    notifyListeners();
-    unawaited(fetchAllDevicesFiltering());
+    unawaited(updateQuery(query.withToggledStatus(status)));
   }
 
   void toggleUrgency() {
-    filter = filter.withToggledUrgency();
-    notifyListeners();
-    unawaited(fetchAllDevicesFiltering());
+    unawaited(updateQuery(query.withToggledUrgency()));
   }
 
   void toggleRevision() {
-    filter = filter.withToggledRevision();
-    notifyListeners();
-    unawaited(fetchAllDevicesFiltering());
+    unawaited(updateQuery(query.withToggledRevision()));
   }
 
   void addRemoveEnterRangeDate(DateTime? initialDate, DateTime? endDate) {
-    filter = filter.withRangeDate(initialDate, endDate);
-    notifyListeners();
-    unawaited(fetchAllDevicesFiltering());
+    unawaited(updateQuery(query.withRangeDate(initialDate, endDate)));
   }
 
   void toggleOrderBy(OrderBy orderBy) {
-    filter = filter.withToggledOrderBy(orderBy);
-    notifyListeners();
-    unawaited(fetchAllDevicesFiltering());
+    unawaited(updateQuery(query.withToggledOrderBy(orderBy)));
   }
 
   void clearOrderBy() {
-    filter = filter.clearOrderBy();
-    notifyListeners();
-    unawaited(fetchAllDevicesFiltering());
+    unawaited(updateQuery(query.clearOrderBy()));
   }
 
-  Future<void> clearSearch() async {
-    filter = filter.clearTypedFilters();
-    await fetchAllDevicesFiltering();
-  }
+  Future<void> clearSearch() => updateQuery(query.clearSearch());
 
-  Future<void> clearFilters() async {
-    filter = filter.clearSelectableFilters();
-    await fetchAllDevicesFiltering();
-  }
-
-  Future<void> loadMore() async {
-    if (isLoading || _isLoadingMore || !_hasMore || _loadMoreFailed) return;
-
-    final generation = _requestGeneration;
-    try {
-      _isLoadingMore = true;
-      _loadMoreFailed = false;
-      notifyListeners();
-
-      _currentPage++;
-      filter.page = _currentPage;
-
-      final result = await _deviceRepository.getAllDevicesFiltering(filter);
-      if (generation != _requestGeneration) return;
-      switch (result) {
-        case Ok(:final value):
-          devices.addAll(value.content);
-          _totalPages = value.totalPages;
-          _hasMore = !value.last;
-        case Err(:final failure):
-          _currentPage--;
-          _loadMoreFailed = true;
-          SnackBarUtil().showError(
-            failure.messageOr('Erro ao buscar mais aparelhos'),
-          );
-      }
-    } finally {
-      if (generation == _requestGeneration) {
-        _isLoadingMore = false;
-        notifyListeners();
-      }
-    }
-  }
-
-  Future<void> retryLoadMore() {
-    _loadMoreFailed = false;
-    notifyListeners();
-    return loadMore();
-  }
+  Future<void> clearFilters() => updateQuery(query.clearSelectableFilters());
 }

@@ -161,7 +161,7 @@ class _AllDevicesViewState extends State<AllDevicesView> {
                                           unawaited(
                                             context
                                                 .read<AllDevicesController>()
-                                                .fetchAllDevicesFiltering(),
+                                                .reload(),
                                           );
                                         }
                                       }),

@@ -4,9 +4,8 @@ import 'package:flutter_workshop_front/models/customer_device/create_device_cust
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
 import 'package:flutter_workshop_front/models/device/device_input.dart';
-import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
+import 'package:flutter_workshop_front/models/device/device_query.dart';
 import 'package:flutter_workshop_front/models/device_statistics/device_statistics.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
@@ -16,10 +15,8 @@ import 'package:flutter_workshop_front/repositories/device/device_repository.dar
 /// Fake tipado de [DeviceRepository] para testes unitários e de widget.
 class FakeDeviceRepository extends Fake implements DeviceRepository {
   FakeDeviceRepository({
-    this.onGetAllDevicesFiltering,
-    this.allDevicesFilteringResult,
-    this.onSearchDevices,
-    this.searchDevicesResult,
+    this.onQueryDevices,
+    this.queryDevicesResult,
     this.onGetCustomerDeviceById,
     this.customerDeviceResult,
     this.onCreateDeviceCustomer,
@@ -42,15 +39,10 @@ class FakeDeviceRepository extends Fake implements DeviceRepository {
     this.deviceStatisticsResult,
   });
 
-  Future<Result<Page<DeviceDataTable>>> Function(DeviceFilter? filter)?
-  onGetAllDevicesFiltering;
-  Result<Page<DeviceDataTable>>? allDevicesFilteringResult;
-  final List<DeviceFilter?> recordedAllDevicesFilters = [];
-
-  Future<Result<Page<DeviceDataTable>>> Function(DeviceSearchFilter? filter)?
-  onSearchDevices;
-  Result<Page<DeviceDataTable>>? searchDevicesResult;
-  final List<DeviceSearchFilter?> recordedSearchDevicesFilters = [];
+  Future<Result<Page<DeviceDataTable>>> Function(DeviceQuery query, int page)?
+  onQueryDevices;
+  Result<Page<DeviceDataTable>>? queryDevicesResult;
+  final List<(DeviceQuery, int)> recordedDeviceQueries = [];
 
   Future<Result<DeviceCustomer>> Function(int id)? onGetCustomerDeviceById;
   Result<DeviceCustomer>? customerDeviceResult;
@@ -92,34 +84,19 @@ class FakeDeviceRepository extends Fake implements DeviceRepository {
   int getDeviceStatisticsCalls = 0;
 
   @override
-  Future<Result<Page<DeviceDataTable>>> getAllDevicesFiltering([
-    DeviceFilter? filter,
-  ]) async {
-    recordedAllDevicesFilters.add(filter);
-    if (onGetAllDevicesFiltering != null) {
-      return onGetAllDevicesFiltering!(filter);
+  Future<Result<Page<DeviceDataTable>>> queryDevices(
+    DeviceQuery query,
+    int page,
+  ) async {
+    recordedDeviceQueries.add((query, page));
+    if (onQueryDevices != null) {
+      return onQueryDevices!(query, page);
     }
-    if (allDevicesFilteringResult != null) {
-      return allDevicesFilteringResult!;
-    }
-    throw UnimplementedError(
-      'FakeDeviceRepository.getAllDevicesFiltering not configured',
-    );
-  }
-
-  @override
-  Future<Result<Page<DeviceDataTable>>> searchDevices([
-    DeviceSearchFilter? filter,
-  ]) async {
-    recordedSearchDevicesFilters.add(filter);
-    if (onSearchDevices != null) {
-      return onSearchDevices!(filter);
-    }
-    if (searchDevicesResult != null) {
-      return searchDevicesResult!;
+    if (queryDevicesResult != null) {
+      return queryDevicesResult!;
     }
     throw UnimplementedError(
-      'FakeDeviceRepository.searchDevices not configured',
+      'FakeDeviceRepository.queryDevices not configured',
     );
   }
 

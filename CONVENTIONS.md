@@ -11,8 +11,8 @@ Este documento registra as convenções obrigatórias para código novo e revis�
    - **Por quê:** manter desacoplamento de transporte HTTP e tratamento uniforme de `Result<T>` / `AppFailure`.
 2. **Configuração de build centralizada:** `String.fromEnvironment` só pode ser chamado em `AppConfig.fromEnvironment()` (`lib/core/config/app_config.dart`). `bool.fromEnvironment('MCP_TOOLKIT')` em `lib/core/agent/agent_toolkit.dart` é a única exceção de flag de tooling.
    - **Por quê:** validação única no boot com fallback para `ConfigErrorApp`.
-3. **`SafeChangeNotifierMixin` obrigatório:** todo novo `ChangeNotifier` em `lib/` deve usar `with SafeChangeNotifierMixin` (referência: `HomeController`, `DeviceRegisterController`, `DeviceCustomerPageController`, `AllDevicesController`).
-   - **Baseline congelada (legado):** `AuthNotifier`, `AllCustomerController`, `CustomerDetailController`, `CustomerRegisterController`, `SearchDevicesController`, `SetupController` e `WsDrawerController` estão congelados na baseline de `architecture_test.dart` até sua migração.
+3. **`SafeChangeNotifierMixin` obrigatório:** todo novo `ChangeNotifier` em `lib/` deve usar `with SafeChangeNotifierMixin` (referência: `HomeController`, `DeviceRegisterController`, `DeviceCustomerPageController`, `AllDevicesController`, `PagedListController`).
+   - **Baseline congelada (legado):** `AuthNotifier`, `CustomerDetailController`, `CustomerRegisterController`, `SetupController` e `WsDrawerController` estão congelados na baseline de `architecture_test.dart` até sua migração.
 
 ---
 
