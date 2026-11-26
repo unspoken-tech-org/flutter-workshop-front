@@ -12,32 +12,7 @@ import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
 import 'package:flutter_workshop_front/pages/splash/splash_page.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 
-class _StubAuthService implements AuthService {
-  int initializeCalls = 0;
-  Completer<AuthRouteState>? pendingInitialize;
-  AuthRouteState nextState = AuthRouteState.authenticated;
-  final AuthNotifier _authNotifier;
-
-  _StubAuthService(this._authNotifier);
-
-  @override
-  Future<String?> get apiKey async => null;
-
-  @override
-  Future<AuthRouteState> initializeAuthState() async {
-    initializeCalls += 1;
-    if (pendingInitialize != null) {
-      final result = await pendingInitialize!.future;
-      _authNotifier.setState(result);
-      return result;
-    }
-    _authNotifier.setState(nextState);
-    return nextState;
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+import '../../support/fakes/fake_auth_service.dart';
 
 void main() {
   group('BootstrapErrorPage', () {
@@ -45,9 +20,9 @@ void main() {
       'exibe mensagem de offline e aciona retry e reconfiguracao de chave',
       (tester) async {
         final authNotifier = AuthNotifier(initialState: AuthRouteState.offline);
-        final authService = _StubAuthService(authNotifier);
+        final authService = FakeAuthService(authNotifier: authNotifier);
         final completer = Completer<AuthRouteState>();
-        authService.pendingInitialize = completer;
+        authService.onInitializeAuthState = () => completer.future;
 
         await tester.pumpWidget(
           MultiProvider(
@@ -85,7 +60,7 @@ void main() {
       final authNotifier = AuthNotifier(
         initialState: AuthRouteState.storageError,
       );
-      final authService = _StubAuthService(authNotifier);
+      final authService = FakeAuthService(authNotifier: authNotifier);
 
       await tester.pumpWidget(
         MultiProvider(
@@ -186,7 +161,7 @@ void main() {
       tester,
     ) async {
       final authNotifier = AuthNotifier(initialState: AuthRouteState.restoring);
-      final authService = _StubAuthService(authNotifier);
+      final authService = FakeAuthService(authNotifier: authNotifier);
       final router = buildRouter(
         authNotifier,
         routesOverride: [

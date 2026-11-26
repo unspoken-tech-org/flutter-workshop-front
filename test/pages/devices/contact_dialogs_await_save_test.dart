@@ -4,19 +4,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
-import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_contact_modal_dialog.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/edit_contact_modal_dialog.dart';
-import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
+import 'package:provider/provider.dart';
 
-import '../../support/result_guard.dart';
+import '../../support/fakes/fake_device_repository.dart';
 
 DeviceCustomer _sampleDevice() => DeviceCustomer.fromJson(const {
   'deviceId': 1,
@@ -47,28 +45,6 @@ DeviceCustomer _sampleDevice() => DeviceCustomer.fromJson(const {
   'payments': <dynamic>[],
 });
 
-class _StubDeviceRepository extends Fake implements DeviceRepository {
-  Future<void> Function(InputCustomerContact)? onCreate;
-  Future<void> Function(int, InputCustomerContact)? onUpdate;
-
-  _StubDeviceRepository({this.onCreate, this.onUpdate});
-
-  @override
-  Future<Result<DeviceCustomer>> getCustomerDeviceById(int deviceId) async =>
-      Ok(_sampleDevice());
-
-  @override
-  Future<Result<void>> createCustomerContact(
-    InputCustomerContact customerContact,
-  ) => guardResult(() => onCreate!(customerContact));
-
-  @override
-  Future<Result<void>> updateCustomerContact(
-    int id,
-    InputCustomerContact customerContact,
-  ) => guardResult(() => onUpdate!(id, customerContact));
-}
-
 void main() {
   testWidgets(
     'AddContactModalDialog awaits save, stays open on error preserving text, and pops on success',
@@ -77,10 +53,11 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      late Completer<void> saveCompleter;
-      final deviceRepo = _StubDeviceRepository(
-        onCreate: (_) {
-          saveCompleter = Completer<void>();
+      late Completer<Result<void>> saveCompleter;
+      final deviceRepo = FakeDeviceRepository(
+        customerDeviceResult: Ok(_sampleDevice()),
+        onCreateCustomerContact: (_) {
+          saveCompleter = Completer<Result<void>>();
           return saveCompleter.future;
         },
       );
@@ -163,8 +140,14 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
       // Fail API call -> dialog stays open with text preserved
-      saveCompleter.completeError(
-        RequisitionException('Erro ao salvar', '500'),
+      saveCompleter.complete(
+        const Err(
+          ValidationFailure(
+            message: 'Erro ao salvar',
+            code: '500',
+            statusCode: 400,
+          ),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -174,7 +157,7 @@ void main() {
       // Retry and succeed -> dialog closes
       await tester.tap(find.text('Salvar'));
       await tester.pump();
-      saveCompleter.complete();
+      saveCompleter.complete(const Ok(null));
       await tester.pumpAndSettle();
 
       expect(find.byType(AddContactModalDialog), findsNothing);
@@ -188,10 +171,11 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      late Completer<void> updateCompleter;
-      final deviceRepo = _StubDeviceRepository(
-        onUpdate: (_, __) {
-          updateCompleter = Completer<void>();
+      late Completer<Result<void>> updateCompleter;
+      final deviceRepo = FakeDeviceRepository(
+        customerDeviceResult: Ok(_sampleDevice()),
+        onUpdateCustomerContact: (_, __) {
+          updateCompleter = Completer<Result<void>>();
           return updateCompleter.future;
         },
       );
@@ -261,7 +245,7 @@ void main() {
       expect(find.byType(EditContactModalDialog), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-      updateCompleter.completeError(Exception('timeout'));
+      updateCompleter.complete(const Err(NetworkFailure()));
       await tester.pumpAndSettle();
 
       expect(find.byType(EditContactModalDialog), findsOneWidget);
@@ -269,7 +253,7 @@ void main() {
 
       await tester.tap(find.text('Salvar'));
       await tester.pump();
-      updateCompleter.complete();
+      updateCompleter.complete(const Ok(null));
       await tester.pumpAndSettle();
 
       expect(find.byType(EditContactModalDialog), findsNothing);

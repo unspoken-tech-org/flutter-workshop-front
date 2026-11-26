@@ -5,12 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 import 'package:flutter_workshop_front/core/money/money.dart';
 import 'package:flutter_workshop_front/models/customer/customer_model.dart';
-import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
-import 'package:flutter_workshop_front/models/customer/input_customer.dart';
-import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
-import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/controllers/customer_detail_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/widgets/customer_detail_form.dart';
@@ -18,45 +14,10 @@ import 'package:flutter_workshop_front/pages/devices/device_details/widgets/cust
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/device_status_chip.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/add_new_payment_dialog.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_controller.dart';
-import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
-import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_workshop_front/core/result/result.dart';
 
-import '../../support/result_guard.dart';
-
-class _FakeAuthService extends Fake implements AuthService {
-  String? lastApiKey;
-
-  @override
-  Future<String?> get apiKey async => null;
-
-  @override
-  Future<void> authenticate(String apiKey) async {
-    lastApiKey = apiKey;
-  }
-}
-
-class _StubCustomerRepository implements CustomerRepository {
-  @override
-  Future<Result<CustomerModel>> createCustomer(InputCustomer customer) =>
-      guardResult(() => throw UnimplementedError());
-
-  @override
-  Future<Result<CustomerModel>> getCustomer(int customerId) =>
-      guardResult(() => throw UnimplementedError());
-
-  @override
-  Future<Result<Page<MinifiedCustomerModel>>> searchCustomers(
-    CustomerSearchFilter? filter,
-  ) => guardResult(() => throw UnimplementedError());
-
-  @override
-  Future<Result<CustomerModel>> updateCustomer(
-    int customerId,
-    InputCustomer customer,
-  ) => guardResult(() => throw UnimplementedError());
-}
+import '../../support/fakes/fake_auth_service.dart';
+import '../../support/fakes/fake_customer_repository.dart';
 
 DeviceCustomer _sampleDevice({
   DateTime? departureDate,
@@ -107,7 +68,7 @@ void main() {
   test(
     'SetupController.authenticate trims leading/trailing whitespace',
     () async {
-      final authService = _FakeAuthService();
+      final authService = FakeAuthService();
       final controller = SetupController(authService: authService);
       final ok = await controller.authenticate('  my-secret-key\n');
       expect(ok, isTrue);
@@ -145,7 +106,7 @@ void main() {
   testWidgets('CustomerDetailForm handles legacy MALE/FEMALE gender values', (
     tester,
   ) async {
-    final controller = CustomerDetailController(_StubCustomerRepository());
+    final controller = CustomerDetailController(FakeCustomerRepository());
     final customer = CustomerModel(
       customerId: 1,
       name: 'João',
