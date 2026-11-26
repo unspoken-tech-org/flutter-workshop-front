@@ -175,12 +175,9 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                           .updatedCustomerData
                           .copyWith(gender: value);
                     },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, selecione o sexo';
-                      }
-                      return null;
-                    },
+                    validator: FormValidators.required(
+                      'Por favor, selecione o sexo',
+                    ),
                   ),
                 ),
               ],

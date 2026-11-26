@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/validators/form_validators.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/date_time_extension.dart';
@@ -139,12 +140,9 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                           ContactType.pessoalmente.displayName;
                                       setState(() {});
                                     },
-                                    validator: (value) {
-                                      if (value == null) {
-                                        return 'Selecione um tipo de contato';
-                                      }
-                                      return null;
-                                    },
+                                    validator: FormValidators.selected(
+                                      'Selecione um tipo de contato',
+                                    ),
                                   ),
                                   if (inputCustomerContact.contactType ==
                                           null &&
@@ -179,12 +177,9 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                               ?.id ??
                                           inputCustomerContact.technicianId;
                                     },
-                                    validator: (value) {
-                                      if (value == null) {
-                                        return 'Selecione um contactante';
-                                      }
-                                      return null;
-                                    },
+                                    validator: FormValidators.selected(
+                                      'Selecione um contactante',
+                                    ),
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
@@ -263,12 +258,9 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                             statusValue.dbName;
                                       }
                                     },
-                                    validator: (value) {
-                                      if (value == null) {
-                                        return 'Selecione um status do aparelho';
-                                      }
-                                      return null;
-                                    },
+                                    validator: FormValidators.selected(
+                                      'Selecione um status do aparelho',
+                                    ),
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
@@ -286,12 +278,9 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                             value,
                                           ).name;
                                     },
-                                    validator: (value) {
-                                      if (value == null) {
-                                        return 'Selecione um status do contato';
-                                      }
-                                      return null;
-                                    },
+                                    validator: FormValidators.selected(
+                                      'Selecione um status do contato',
+                                    ),
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDateFormField(
@@ -302,12 +291,9 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                       inputCustomerContact.contactDate =
                                           BrFormat.parseDate(value);
                                     },
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Selecione uma data';
-                                      }
-                                      return null;
-                                    },
+                                    validator: FormValidators.required(
+                                      'Selecione uma data',
+                                    ),
                                   ),
                                 ],
                               ),
@@ -336,12 +322,9 @@ class _EditContactModalDialogState extends State<EditContactModalDialog> {
                                         inputCustomerContact.message =
                                             value ?? '';
                                       },
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Digite aqui os detalhes da conversa';
-                                        }
-                                        return null;
-                                      },
+                                      validator: FormValidators.required(
+                                        'Digite aqui os detalhes da conversa',
+                                      ),
                                     ),
                                   ),
                                 ],

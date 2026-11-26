@@ -197,6 +197,27 @@ void main() {
         );
       },
     );
+
+    test('only SnackBarUtil shows snackbars (no ScaffoldMessenger.of)', () {
+      final violations = <String>[];
+      for (final file in _dartFilesIn('${root.path}/lib')) {
+        final relPath = _relativePath(root, file);
+        if (relPath == 'lib/utils/snackbar_util.dart') continue;
+        final source = file.readAsStringSync();
+        if (source.contains('ScaffoldMessenger.of(') ||
+            source.contains('.showSnackBar(')) {
+          violations.add(relPath);
+        }
+      }
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'Show feedback with SnackBarUtil (widgets) or UiMessage '
+            '(controllers) so every message has the same look.',
+      );
+    });
   });
 
   group('Test hygiene guardrails', () {

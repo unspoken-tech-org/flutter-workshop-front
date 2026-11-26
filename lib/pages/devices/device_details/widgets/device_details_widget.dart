@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/validators/form_validators.dart';
 import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/date_time_extension.dart';
@@ -75,12 +76,9 @@ class DeviceDetailsWidget extends StatelessWidget {
                       headerLabel: 'Data de entrada',
                       semanticsIdentifier: 'deviceDetail.entryDate',
                       value: deviceCustomer.entryDate.formatDate(),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Data de entrada é obrigatória';
-                        }
-                        return null;
-                      },
+                      validator: FormValidators.required(
+                        'Data de entrada é obrigatória',
+                      ),
                       onSelected: (date, _) {
                         final current = controller.deviceCustomer;
                         if (current == null) return;

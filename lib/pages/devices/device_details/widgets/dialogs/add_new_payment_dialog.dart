@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/validators/form_validators.dart';
 import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -151,12 +152,9 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
                     );
                   }
                 },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Selecione um tipo de pagamento';
-                  }
-                  return null;
-                },
+                validator: FormValidators.required(
+                  'Selecione um tipo de pagamento',
+                ),
               ),
               const SizedBox(height: 16),
               CustomTextField(
@@ -263,12 +261,9 @@ class _AddNewPaymentDialogState extends State<AddNewPaymentDialog> {
                     _inputPayment = _inputPayment.copyWith(receivedBy: value);
                   }
                 },
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Selecione quem recebeu o pagamento';
-                  }
-                  return null;
-                },
+                validator: FormValidators.required(
+                  'Selecione quem recebeu o pagamento',
+                ),
               ),
             ],
           ),

@@ -314,9 +314,7 @@ class _TypeBrandModelAutocompleteFormFieldState<T extends ITypeBrandModelColor>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erro ao criar: $e')));
+        SnackBarUtil().showError('Erro ao criar: $e');
       }
     }
   }

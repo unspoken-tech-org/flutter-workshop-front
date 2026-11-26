@@ -91,12 +91,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
               semanticsIdentifier: 'customerRegister.gender',
               fieldLabel: 'Sexo',
               items: const ['Masculino', 'Feminino', 'Outro'],
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Por favor, selecione o sexo';
-                }
-                return null;
-              },
+              validator: FormValidators.required('Por favor, selecione o sexo'),
               onSave: (value) {
                 _inputCustomer = _inputCustomer.copyWith(gender: value);
               },

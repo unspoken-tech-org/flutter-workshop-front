@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'dart:io';
 
@@ -35,12 +36,7 @@ class UpdateDialog extends StatefulWidget {
         await updateService.openDownloadUrl(updateInfo.downloadUrl);
         AppLogger.info(_logTag, 'Download URL opened in browser');
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Download iniciado no navegador'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          SnackBarUtil().showSuccess('Download iniciado no navegador');
         }
       } catch (e, st) {
         AppLogger.error(
@@ -50,12 +46,7 @@ class UpdateDialog extends StatefulWidget {
           stackTrace: st,
         );
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erro ao abrir download: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          SnackBarUtil().showError('Erro ao abrir download: $e');
         }
       }
     }

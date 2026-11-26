@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 import 'package:flutter_workshop_front/core/di/app_dependencies.dart';
 
 import 'dart:async';
@@ -194,13 +195,8 @@ class WsDrawer extends StatelessWidget {
               route: const [],
               onTap: () async {
                 AppLogger.info('Update', 'Manual update check from drawer');
-                final scaffoldMessenger = ScaffoldMessenger.of(context);
-                scaffoldMessenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Verificando atualizações...'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
+                final snackBar = SnackBarUtil()
+                  ..showInfo('Verificando atualizações...');
 
                 final updateService = context
                     .read<AppDependencies>()
@@ -209,7 +205,7 @@ class WsDrawer extends StatelessWidget {
 
                 if (!context.mounted) return;
 
-                scaffoldMessenger.hideCurrentSnackBar();
+                snackBar.hideCurrent();
 
                 final String errorMessage;
                 switch (result) {
@@ -221,12 +217,7 @@ class WsDrawer extends StatelessWidget {
                         updateService,
                       );
                     } else {
-                      scaffoldMessenger.showSnackBar(
-                        const SnackBar(
-                          content: Text('O aplicativo já está atualizado!'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
+                      snackBar.showSuccess('O aplicativo já está atualizado!');
                     }
                     return;
                   case UpdateCheckCompleted():
@@ -242,12 +233,7 @@ class WsDrawer extends StatelessWidget {
                   case UpdateCheckFailed():
                     errorMessage = 'Erro ao verificar atualizações.';
                 }
-                scaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    content: Text(errorMessage),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                snackBar.showError(errorMessage);
               },
             ),
             if (AppLogger.canOpenLogDirectory)
@@ -259,17 +245,11 @@ class WsDrawer extends StatelessWidget {
                 semanticsIdentifier: 'drawer.logs',
                 route: const [],
                 onTap: () async {
-                  final scaffoldMessenger = ScaffoldMessenger.of(context);
                   final opened = await AppLogger.openLogDirectory();
                   if (opened) return;
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Não foi possível abrir a pasta de logs: '
-                        '${AppLogger.logDirectoryPath}',
-                      ),
-                      backgroundColor: Colors.red,
-                    ),
+                  SnackBarUtil().showError(
+                    'Não foi possível abrir a pasta de logs: '
+                    '${AppLogger.logDirectoryPath}',
                   );
                 },
               ),

@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/validators/form_validators.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
@@ -73,12 +74,7 @@ class CustomerDeviceTechnicalInfoWidget extends StatelessWidget {
                 initialValue: safeInitialValue,
                 items: items,
                 enabled: isEditing,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Selecione um técnico';
-                  }
-                  return null;
-                },
+                validator: FormValidators.required('Selecione um técnico'),
                 onSave: (value) {
                   final technician = technicians.firstWhereOrNull(
                     (e) => e.name.capitalizeAllWords == value,

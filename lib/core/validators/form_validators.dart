@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:flutter_workshop_front/core/money/money.dart';
 import 'package:flutter_workshop_front/core/validators/cpf_validator.dart';
@@ -21,6 +22,10 @@ abstract final class FormValidators {
   /// Texto não vazio (ignora espaços); [message] é o erro.
   static FormFieldValidatorString required(String message) =>
       (value) => TextValidators.hasText(value) ? null : message;
+
+  /// Seleção obrigatória (dropdown, data, enum): só `null` é recusado.
+  static FormFieldValidator<T> selected<T>(String message) =>
+      (value) => value == null ? message : null;
 
   static String? name(String? value) => required(requiredName)(value);
 

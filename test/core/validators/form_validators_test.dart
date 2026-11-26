@@ -19,6 +19,14 @@ void main() {
     });
   });
 
+  group('FormValidators.selected', () {
+    test('recusa só nulo, com o texto dado', () {
+      final validator = FormValidators.selected<int>('Selecione um técnico');
+      expect(validator(null), 'Selecione um técnico');
+      expect(validator(0), isNull);
+    });
+  });
+
   group('FormValidators.cpf', () {
     test('obrigatório, depois valida os dígitos verificadores', () {
       expect(FormValidators.cpf(null), FormValidators.requiredCpf);
