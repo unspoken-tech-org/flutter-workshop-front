@@ -10,6 +10,7 @@ import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_contacts_list_widget.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_info_header_widget.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/open_revision_dialog.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/revision_chip.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/urgency_chip.dart';
 import 'package:provider/provider.dart';
@@ -119,7 +120,7 @@ void main() {
     });
 
     test(
-      'abrir revisão cria a OS nova com a origem e marca a revisão',
+      'abrir revisão cria a OS nova com a origem (técnico incluso) e marca a revisão',
       () async {
         final inputs = <DeviceInput>[];
         final revisionCalls = <(int, bool)>[];
@@ -144,6 +145,8 @@ void main() {
                 deviceStatus: StatusEnum.delivered,
                 problem: 'Não liga',
                 deviceColors: const ['Preto', 'Prata'],
+                technicianId: 4,
+                technicianName: 'Joana',
               );
         final messages = recordMessages(controller);
 
@@ -156,7 +159,7 @@ void main() {
           'observation': null,
           'budgetFee': null,
           'hasUrgency': false,
-          'technicianId': null,
+          'technicianId': 4,
           'typeBrandModel': {
             'type': 'Notebook',
             'brand': 'Dell',
@@ -300,7 +303,7 @@ void main() {
 
       await tester.tap(find.text('Abrir revisão'));
       await tester.pumpAndSettle();
-      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.byType(OpenRevisionDialog), findsOneWidget);
       expect(find.textContaining('Maria Silva'), findsWidgets);
 
       await tester.tap(find.text('Cancelar'));

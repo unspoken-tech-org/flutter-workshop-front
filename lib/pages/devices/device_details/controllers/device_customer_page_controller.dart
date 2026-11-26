@@ -272,7 +272,7 @@ class DeviceCustomerPageController extends ChangeNotifier
   }
 
   /// Abre uma OS de revisão a partir da OS encerrada [origin] (plano §4.3):
-  /// cria a OS nova com cliente, tipo/marca/modelo, cores e defeito da origem
+  /// cria a OS nova com cliente, tipo/marca/modelo, cores, técnico e defeito da origem
   /// (`originOrderId` + `revision`) e, como a API anterior à Fase 2 ignora
   /// esses campos, marca a revisão na OS nova (aberta, então permitido).
   /// A OS de origem não é alterada. Devolve o id da OS nova.
@@ -287,6 +287,8 @@ class DeviceCustomerPageController extends ChangeNotifier
           model: origin.modelName,
         ),
         colors: origin.deviceColors,
+        // Revisão volta para o mesmo técnico; dá para trocar no detalhe.
+        technicianId: origin.technicianId,
         originOrderId: origin.deviceId,
         revision: true,
       ),

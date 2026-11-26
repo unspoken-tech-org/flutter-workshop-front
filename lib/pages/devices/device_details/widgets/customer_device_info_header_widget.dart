@@ -8,6 +8,7 @@ import 'package:flutter_workshop_front/models/customer_device/customer_phones.da
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/device_status_chip.dart';
+import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/open_revision_dialog.dart';
 import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/revision_chip.dart';
 import 'package:flutter_workshop_front/widgets/customer_device/urgency_chip.dart';
@@ -40,40 +41,11 @@ class _CustomerDeviceInfoHeaderWidgetState
     DeviceCustomer origin,
   ) async {
     final controller = context.read<DeviceCustomerPageController>();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Abrir revisão'),
-        content: SizedBox(
-          width: 360,
-          child: Text(
-            'Será aberta uma nova OS de revisão para '
-            '${origin.customerName.capitalizeAllWords}, com o mesmo aparelho '
-            '(${origin.typeName} ${origin.brandName} ${origin.modelName}), '
-            'cores e defeito desta OS. A OS atual continua encerrada, com '
-            'pagamentos e data de saída. Deseja prosseguir?',
-          ),
-        ),
-        actions: [
-          Semantics(
-            identifier: 'deviceDetail.openRevision.cancel',
-            child: TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar'),
-            ),
-          ),
-          Semantics(
-            identifier: 'deviceDetail.openRevision.confirm',
-            child: TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Abrir revisão'),
-            ),
-          ),
-        ],
-      ),
+    final newId = await OpenRevisionDialog.show(
+      context,
+      origin: origin,
+      onConfirm: controller.openRevisionOrder,
     );
-    if (confirmed != true) return;
-    final newId = await controller.openRevisionOrder();
     if (newId == null || !context.mounted) return;
     await WsNavigator.pushDeviceDetails(context, newId, replaced: true);
   }
