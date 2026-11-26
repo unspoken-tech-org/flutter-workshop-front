@@ -1,21 +1,12 @@
 // ignore_for_file: unawaited_futures
-import '../../support/memory_security_storage.dart';
 import '../../support/offline_services.dart';
 
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/models/customer/customer_model.dart';
-import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
 import 'package:flutter_workshop_front/models/customer/input_customer.dart';
-import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
-import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
-import 'package:flutter_workshop_front/models/device_brand/device_brand_model.dart';
-import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/pageable/page_model.dart';
@@ -24,110 +15,28 @@ import 'package:flutter_workshop_front/pages/customers/customer_register/control
 import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
 import 'package:flutter_workshop_front/pages/home/controllers/home_controller.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_controller.dart';
-import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
-import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
-import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
-import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 
-import '../../support/result_guard.dart';
+import '../../support/fakes/fake_auth_service.dart';
+import '../../support/fakes/fake_catalog_repository.dart';
+import '../../support/fakes/fake_customer_repository.dart';
+import '../../support/fakes/fake_device_repository.dart';
 
 // ---------------------------------------------------------------------------
 // Stubs
 // ---------------------------------------------------------------------------
 
-AuthService _stubAuthService() => AuthService(
-  dio: Dio(),
-  storage: MemorySecurityStorage(),
-  authNotifier: AuthNotifier(),
+FakeCustomerRepository _blockingCustomerRepository() => FakeCustomerRepository(
+  onCreateCustomer: (_) => Completer<Result<CustomerModel>>().future,
+  onGetCustomer: (_) => Completer<Result<CustomerModel>>().future,
+  onUpdateCustomer: (_, __) => Completer<Result<CustomerModel>>().future,
 );
 
-/// Repositório de cliente que bloqueia cada operação em um Completer individual,
-/// permitindo que o teste controle quando (e se) a Future completa.
-class _BlockingCustomerRepository implements CustomerRepository {
-  int createCalls = 0;
-  int getCalls = 0;
-  int updateCalls = 0;
-
-  final _createCompleter = Completer<CustomerModel>();
-  final _getCompleter = Completer<CustomerModel>();
-  final _updateCompleter = Completer<CustomerModel>();
-
-  @override
-  Future<Result<CustomerModel>> createCustomer(InputCustomer customer) =>
-      guardResult(() {
-        createCalls++;
-        return _createCompleter.future;
-      });
-
-  @override
-  Future<Result<CustomerModel>> getCustomer(int customerId) => guardResult(() {
-    getCalls++;
-    return _getCompleter.future;
-  });
-
-  @override
-  Future<Result<CustomerModel>> updateCustomer(
-    int customerId,
-    InputCustomer customer,
-  ) => guardResult(() {
-    updateCalls++;
-    return _updateCompleter.future;
-  });
-
-  @override
-  Future<Result<Page<MinifiedCustomerModel>>> searchCustomers(
-    CustomerSearchFilter? filter,
-  ) => guardResult(() {
-    throw UnimplementedError();
-  });
-}
-
-/// Repositório de dispositivos cuja chamada de filtragem nunca completa,
-/// mantendo `isLoading = true` indefinidamente após o construtor.
-class _BlockingDeviceRepository extends Fake implements DeviceRepository {
-  int filteringCalls = 0;
-  int searchCalls = 0;
-
-  @override
-  Future<Result<Page<DeviceDataTable>>> getAllDevicesFiltering([
-    DeviceFilter? filter,
-  ]) => guardResult(() {
-    filteringCalls++;
-    return Completer<Page<DeviceDataTable>>().future; // nunca completa
-  });
-
-  @override
-  Future<Result<Page<DeviceDataTable>>> searchDevices([
-    DeviceSearchFilter? filter,
-  ]) => guardResult(() {
-    searchCalls++;
-    return Completer<Page<DeviceDataTable>>().future;
-  });
-}
-
-class _StubCatalogRepository extends Fake implements CatalogRepository {
-  int typesCalls = 0;
-  int brandsCalls = 0;
-
-  @override
-  Future<Result<List<DeviceType>>> getAllDeviceTypes([
-    String? name,
-    bool forceRefresh = false,
-  ]) => guardResult(() async {
-    typesCalls++;
-    return [];
-  });
-
-  @override
-  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([
-    String? name,
-    bool forceRefresh = false,
-  ]) => guardResult(() async {
-    brandsCalls++;
-    return [];
-  });
-}
+FakeDeviceRepository _blockingDeviceRepository() => FakeDeviceRepository(
+  onGetAllDevicesFiltering: (_) =>
+      Completer<Result<Page<DeviceDataTable>>>().future,
+  onSearchDevices: (_) => Completer<Result<Page<DeviceDataTable>>>().future,
+);
 
 // ---------------------------------------------------------------------------
 // Testes
@@ -139,7 +48,7 @@ void main() {
     test(
       'authenticate retorna false imediatamente quando isLoading=true',
       () async {
-        final controller = SetupController(authService: _stubAuthService());
+        final controller = SetupController(authService: FakeAuthService());
         controller.isLoading = true;
 
         final result = await controller.authenticate('api-key');
@@ -156,7 +65,7 @@ void main() {
     test(
       'createCustomer retorna null imediatamente quando isCreatingCustomer=true',
       () async {
-        final repo = _BlockingCustomerRepository();
+        final repo = _blockingCustomerRepository();
         final controller = CustomerRegisterController(repo);
         controller.isCreatingCustomer = true;
 
@@ -169,7 +78,7 @@ void main() {
     );
 
     test('segunda chamada concorrente é ignorada pelo guard', () async {
-      final repo = _BlockingCustomerRepository();
+      final repo = _blockingCustomerRepository();
       final controller = CustomerRegisterController(repo);
 
       // Primeira chamada: bloqueia no repositório
@@ -190,7 +99,7 @@ void main() {
     test(
       'fetchCustomer retorna sem chamar o repo quando isLoading=true',
       () async {
-        final repo = _BlockingCustomerRepository();
+        final repo = _blockingCustomerRepository();
         final controller = CustomerDetailController(repo);
         controller.isLoading = true;
 
@@ -202,7 +111,7 @@ void main() {
     );
 
     test('segunda chamada concorrente a fetchCustomer é ignorada', () async {
-      final repo = _BlockingCustomerRepository();
+      final repo = _blockingCustomerRepository();
       final controller = CustomerDetailController(repo);
 
       // Primeira chamada: bloqueia no repositório
@@ -219,7 +128,7 @@ void main() {
     test(
       'updateCustomer retorna false sem chamar o repo quando isLoading=true',
       () async {
-        final repo = _BlockingCustomerRepository();
+        final repo = _blockingCustomerRepository();
         final controller = CustomerDetailController(repo);
         controller.isLoading = true;
 
@@ -232,7 +141,7 @@ void main() {
     );
 
     test('segunda chamada concorrente a updateCustomer é ignorada', () async {
-      final repo = _BlockingCustomerRepository();
+      final repo = _blockingCustomerRepository();
       final controller = CustomerDetailController(repo);
 
       // Primeira chamada: bloqueia no repositório
@@ -257,14 +166,14 @@ void main() {
     test(
       'fetchAllDevicesFiltering não descarta nova chamada quando isLoading=true e invalida chamada anterior',
       () async {
-        final deviceRepo = _BlockingDeviceRepository();
-        final catalogRepo = _StubCatalogRepository();
+        final deviceRepo = _blockingDeviceRepository();
+        final catalogRepo = FakeCatalogRepository();
         final controller = AllDevicesController(deviceRepo, catalogRepo);
 
         // Construtor definiu isLoading = true sincronamente
         expect(controller.isLoading, true);
         // getAllDevicesFiltering ainda não foi chamado (está atrás do Future.delayed)
-        expect(deviceRepo.filteringCalls, 0);
+        expect(deviceRepo.recordedAllDevicesFilters, isEmpty);
 
         // Nova chamada enquanto a primeira está no Future.delayed(200ms)
         final secondCall = controller.fetchAllDevicesFiltering();
@@ -272,9 +181,9 @@ void main() {
 
         // Aguarda o debounce de 200ms: apenas a geração mais nova chega ao repo
         await Future<void>.delayed(const Duration(milliseconds: 250));
-        expect(deviceRepo.filteringCalls, 1);
+        expect(deviceRepo.recordedAllDevicesFilters, hasLength(1));
 
-        // Não aguardamos secondCall porque _BlockingDeviceRepository nunca completa
+        // Não aguardamos secondCall porque _blockingDeviceRepository nunca completa
         unawaited(secondCall);
       },
     );
@@ -282,20 +191,23 @@ void main() {
     test(
       'fetchFilterOptions não executa nova chamada quando isFiltersLoading=true',
       () async {
-        final deviceRepo = _BlockingDeviceRepository();
-        final catalogRepo = _StubCatalogRepository();
+        final deviceRepo = _blockingDeviceRepository();
+        final catalogRepo = FakeCatalogRepository();
         final controller = AllDevicesController(deviceRepo, catalogRepo);
 
         // Construtor definiu isFiltersLoading = true sincronamente
         expect(controller.isFiltersLoading, true);
         // getAllDeviceTypes e getAllDeviceBrands foram chamados pelo construtor
-        final typesBefore = catalogRepo.typesCalls;
-        final brandsBefore = catalogRepo.brandsCalls;
+        final typesBefore = catalogRepo.getAllDeviceTypesCalls;
+        final brandsBefore = catalogRepo.getAllDeviceBrandsCalls;
 
         await controller.fetchFilterOptions(); // guard dispara
 
-        expect(catalogRepo.typesCalls, typesBefore); // sem nova chamada
-        expect(catalogRepo.brandsCalls, brandsBefore);
+        expect(
+          catalogRepo.getAllDeviceTypesCalls,
+          typesBefore,
+        ); // sem nova chamada
+        expect(catalogRepo.getAllDeviceBrandsCalls, brandsBefore);
       },
     );
   });

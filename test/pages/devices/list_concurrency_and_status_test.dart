@@ -2,14 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_workshop_front/models/customer/customer_model.dart';
 import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
-import 'package:flutter_workshop_front/models/customer/input_customer.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
 import 'package:flutter_workshop_front/models/device/device_filter.dart';
 import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
-import 'package:flutter_workshop_front/models/device_brand/device_brand_model.dart';
-import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/pageable/page_model.dart';
@@ -19,13 +15,13 @@ import 'package:flutter_workshop_front/pages/customers/all_customers/controllers
 import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/widgets/type_brand_model_autocomplete_form_field.dart';
 import 'package:flutter_workshop_front/pages/devices/search_devices/controllers/search_devices_controller.dart';
-import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
-import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
-import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/searchable_dropdown_form_field.dart';
+import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 
-import '../../support/result_guard.dart';
+import '../../support/fakes/fake_catalog_repository.dart';
+import '../../support/fakes/fake_customer_repository.dart';
+import '../../support/fakes/fake_device_repository.dart';
 
 DeviceDataTable _device(int id, String name) => DeviceDataTable(
   deviceId: id,
@@ -64,71 +60,48 @@ Page<T> _page<T>(List<T> content, {required int number, required bool last}) =>
       empty: content.isEmpty,
     );
 
-class _FakeCustomerRepository implements CustomerRepository {
-  final List<(CustomerSearchFilter?, Completer<Page<MinifiedCustomerModel>>)>
-  pending = [];
-
-  @override
-  Future<Result<Page<MinifiedCustomerModel>>> searchCustomers([
-    CustomerSearchFilter? filter,
-  ]) => guardResult(() {
-    final completer = Completer<Page<MinifiedCustomerModel>>();
-    pending.add((filter, completer));
-    return completer.future;
-  });
-
-  @override
-  Future<Result<CustomerModel>> createCustomer(InputCustomer customer) =>
-      guardResult(() => throw UnimplementedError());
-
-  @override
-  Future<Result<CustomerModel>> getCustomer(int customerId) =>
-      guardResult(() => throw UnimplementedError());
-
-  @override
-  Future<Result<CustomerModel>> updateCustomer(
-    int id,
-    InputCustomer customer,
-  ) => guardResult(() => throw UnimplementedError());
+(
+  FakeCustomerRepository,
+  List<(CustomerSearchFilter?, Completer<Result<Page<MinifiedCustomerModel>>>)>,
+)
+_pendingCustomerRepo() {
+  final pending =
+      <
+        (CustomerSearchFilter?, Completer<Result<Page<MinifiedCustomerModel>>>)
+      >[];
+  final repo = FakeCustomerRepository(
+    onSearchCustomers: (filter) {
+      final completer = Completer<Result<Page<MinifiedCustomerModel>>>();
+      pending.add((filter, completer));
+      return completer.future;
+    },
+  );
+  return (repo, pending);
 }
 
-class _FakeDeviceRepository extends Fake implements DeviceRepository {
-  final List<(DeviceFilter?, Completer<Page<DeviceDataTable>>)>
-  pendingAllDevices = [];
-  final List<(DeviceSearchFilter?, Completer<Page<DeviceDataTable>>)>
-  pendingSearchDevices = [];
-
-  @override
-  Future<Result<Page<DeviceDataTable>>> getAllDevicesFiltering([
-    DeviceFilter? filter,
-  ]) => guardResult(() {
-    final completer = Completer<Page<DeviceDataTable>>();
-    pendingAllDevices.add((filter, completer));
-    return completer.future;
-  });
-
-  @override
-  Future<Result<Page<DeviceDataTable>>> searchDevices([
-    DeviceSearchFilter? filter,
-  ]) => guardResult(() {
-    final completer = Completer<Page<DeviceDataTable>>();
-    pendingSearchDevices.add((filter, completer));
-    return completer.future;
-  });
-}
-
-class _StubCatalogRepository extends Fake implements CatalogRepository {
-  @override
-  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([
-    String? name,
-    bool forceRefresh = false,
-  ]) => guardResult(() async => []);
-
-  @override
-  Future<Result<List<DeviceType>>> getAllDeviceTypes([
-    String? name,
-    bool forceRefresh = false,
-  ]) => guardResult(() async => []);
+(
+  FakeDeviceRepository,
+  List<(DeviceFilter?, Completer<Result<Page<DeviceDataTable>>>)>,
+  List<(DeviceSearchFilter?, Completer<Result<Page<DeviceDataTable>>>)>,
+)
+_pendingDeviceRepo() {
+  final pendingAll =
+      <(DeviceFilter?, Completer<Result<Page<DeviceDataTable>>>)>[];
+  final pendingSearch =
+      <(DeviceSearchFilter?, Completer<Result<Page<DeviceDataTable>>>)>[];
+  final repo = FakeDeviceRepository(
+    onGetAllDevicesFiltering: (filter) {
+      final completer = Completer<Result<Page<DeviceDataTable>>>();
+      pendingAll.add((filter, completer));
+      return completer.future;
+    },
+    onSearchDevices: (filter) {
+      final completer = Completer<Result<Page<DeviceDataTable>>>();
+      pendingSearch.add((filter, completer));
+      return completer.future;
+    },
+  );
+  return (repo, pendingAll, pendingSearch);
 }
 
 void main() {
@@ -168,25 +141,27 @@ void main() {
 
   group('AllCustomerController.refresh', () {
     test('recarrega a primeira página mantendo o termo de busca', () async {
-      final repo = _FakeCustomerRepository();
+      final (repo, pending) = _pendingCustomerRepo();
       final controller = AllCustomerController(customerRepository: repo);
-      repo.pending[0].$2.complete(_page([], number: 0, last: true));
+      pending[0].$2.complete(Ok(_page([], number: 0, last: true)));
 
       final search = controller.searchCustomers('Maria');
-      repo.pending[1].$2.complete(
-        _page([_customer(1, 'Maria')], number: 0, last: true),
+      pending[1].$2.complete(
+        Ok(_page([_customer(1, 'Maria')], number: 0, last: true)),
       );
       await search;
 
       final refresh = controller.refresh();
-      expect(repo.pending.length, 3);
-      expect(repo.pending[2].$1?.searchName, 'Maria');
-      expect(repo.pending[2].$1?.page, 0);
-      repo.pending[2].$2.complete(
-        _page(
-          [_customer(1, 'Maria'), _customer(2, 'Maria Nova')],
-          number: 0,
-          last: true,
+      expect(pending.length, 3);
+      expect(pending[2].$1?.searchName, 'Maria');
+      expect(pending[2].$1?.page, 0);
+      pending[2].$2.complete(
+        Ok(
+          _page(
+            [_customer(1, 'Maria'), _customer(2, 'Maria Nova')],
+            number: 0,
+            last: true,
+          ),
         ),
       );
       await refresh;
@@ -199,19 +174,19 @@ void main() {
     test(
       'busca iniciada durante loading não é descartada e resposta antiga é ignorada',
       () async {
-        final repo = _FakeCustomerRepository();
+        final (repo, pending) = _pendingCustomerRepo();
         final controller = AllCustomerController(customerRepository: repo);
 
         expect(controller.isLoading, true);
-        expect(repo.pending.length, 1);
+        expect(pending.length, 1);
 
         // Segunda busca dispara enquanto a primeira ainda está em voo
         final secondFuture = controller.searchCustomers('Maria');
-        expect(repo.pending.length, 2);
+        expect(pending.length, 2);
 
         // Segunda busca responde primeiro
-        repo.pending[1].$2.complete(
-          _page([_customer(2, 'Maria')], number: 0, last: true),
+        pending[1].$2.complete(
+          Ok(_page([_customer(2, 'Maria')], number: 0, last: true)),
         );
         await secondFuture;
 
@@ -219,8 +194,8 @@ void main() {
         expect(controller.customers.map((c) => c.name), ['Maria']);
 
         // Primeira busca responde atrasada: deve ser ignorada
-        repo.pending[0].$2.complete(
-          _page([_customer(1, 'Antigo')], number: 0, last: true),
+        pending[0].$2.complete(
+          Ok(_page([_customer(1, 'Antigo')], number: 0, last: true)),
         );
         await Future<void>.delayed(Duration.zero);
 
@@ -231,32 +206,32 @@ void main() {
     test(
       'loadMore em voo de busca antiga não entra nos resultados da nova busca',
       () async {
-        final repo = _FakeCustomerRepository();
+        final (repo, pending) = _pendingCustomerRepo();
         final controller = AllCustomerController(customerRepository: repo);
 
-        repo.pending[0].$2.complete(
-          _page([_customer(1, 'Inicial')], number: 0, last: false),
+        pending[0].$2.complete(
+          Ok(_page([_customer(1, 'Inicial')], number: 0, last: false)),
         );
         await Future<void>.delayed(Duration.zero);
 
         // Inicia loadMore da busca antiga
         final loadMoreFuture = controller.loadMore();
         expect(controller.isLoadingMore, true);
-        expect(repo.pending.length, 2);
+        expect(pending.length, 2);
 
         // Antes do loadMore responder, usuário faz nova busca
         final newSearchFuture = controller.searchCustomers('Novo');
         expect(controller.isLoadingMore, false);
-        expect(repo.pending.length, 3);
+        expect(pending.length, 3);
 
-        repo.pending[2].$2.complete(
-          _page([_customer(99, 'Novo')], number: 0, last: true),
+        pending[2].$2.complete(
+          Ok(_page([_customer(99, 'Novo')], number: 0, last: true)),
         );
         await newSearchFuture;
 
         // Agora o loadMore antigo responde: deve ser ignorado
-        repo.pending[1].$2.complete(
-          _page([_customer(2, 'PaginaAntiga')], number: 1, last: true),
+        pending[1].$2.complete(
+          Ok(_page([_customer(2, 'PaginaAntiga')], number: 1, last: true)),
         );
         await loadMoreFuture;
 
@@ -269,48 +244,48 @@ void main() {
     test(
       'filtro alterado durante loading não é descartado e loadMore antigo não contamina nova busca',
       () async {
-        final repo = _FakeDeviceRepository();
-        final controller = AllDevicesController(repo, _StubCatalogRepository());
+        final (repo, pendingAllDevices, _) = _pendingDeviceRepo();
+        final controller = AllDevicesController(repo, FakeCatalogRepository());
 
         // Aguarda debounce inicial de 200ms
         await Future<void>.delayed(const Duration(milliseconds: 220));
-        expect(repo.pendingAllDevices.length, 1);
+        expect(pendingAllDevices.length, 1);
 
         // Usuário altera filtro enquanto a primeira requisição está em voo
         controller.addRemoveStatus(StatusEnum.ready);
         await Future<void>.delayed(const Duration(milliseconds: 220));
-        expect(repo.pendingAllDevices.length, 2);
+        expect(pendingAllDevices.length, 2);
 
         // Requisição mais nova (PRONTO) completa
-        repo.pendingAllDevices[1].$2.complete(
-          _page([_device(2, 'Pronto')], number: 0, last: false),
+        pendingAllDevices[1].$2.complete(
+          Ok(_page([_device(2, 'Pronto')], number: 0, last: false)),
         );
         await Future<void>.delayed(Duration.zero);
         expect(controller.devices.map((d) => d.customerName), ['Pronto']);
         expect(controller.isLoading, false);
 
         // Requisição inicial atrasada completa: deve ser ignorada
-        repo.pendingAllDevices[0].$2.complete(
-          _page([_device(1, 'Antigo')], number: 0, last: true),
+        pendingAllDevices[0].$2.complete(
+          Ok(_page([_device(1, 'Antigo')], number: 0, last: true)),
         );
         await Future<void>.delayed(Duration.zero);
         expect(controller.devices.map((d) => d.customerName), ['Pronto']);
 
         // Inicia loadMore e antes dele responder dispara nova busca
         final loadMoreFuture = controller.loadMore();
-        expect(repo.pendingAllDevices.length, 3);
+        expect(pendingAllDevices.length, 3);
 
         controller.filterTable('Cliente Final');
         await Future<void>.delayed(const Duration(milliseconds: 220));
-        expect(repo.pendingAllDevices.length, 4);
+        expect(pendingAllDevices.length, 4);
 
-        repo.pendingAllDevices[3].$2.complete(
-          _page([_device(4, 'Cliente Final')], number: 0, last: true),
+        pendingAllDevices[3].$2.complete(
+          Ok(_page([_device(4, 'Cliente Final')], number: 0, last: true)),
         );
         await Future<void>.delayed(Duration.zero);
 
-        repo.pendingAllDevices[2].$2.complete(
-          _page([_device(3, 'PaginaVelha')], number: 1, last: true),
+        pendingAllDevices[2].$2.complete(
+          Ok(_page([_device(3, 'PaginaVelha')], number: 1, last: true)),
         );
         await loadMoreFuture;
 
@@ -323,19 +298,21 @@ void main() {
 
   group('AllDevicesController total em falha', () {
     test('zera o total quando a nova busca falha', () async {
-      final repo = _FakeDeviceRepository();
-      final controller = AllDevicesController(repo, _StubCatalogRepository());
+      final (repo, pendingAllDevices, _) = _pendingDeviceRepo();
+      final controller = AllDevicesController(repo, FakeCatalogRepository());
 
       await Future<void>.delayed(const Duration(milliseconds: 220));
-      repo.pendingAllDevices[0].$2.complete(
-        _page([_device(1, 'Ana'), _device(2, 'Bia')], number: 0, last: false),
+      pendingAllDevices[0].$2.complete(
+        Ok(
+          _page([_device(1, 'Ana'), _device(2, 'Bia')], number: 0, last: false),
+        ),
       );
       await Future<void>.delayed(Duration.zero);
       expect(controller.totalElements, 2);
 
       controller.addRemoveStatus(StatusEnum.ready);
       await Future<void>.delayed(const Duration(milliseconds: 220));
-      repo.pendingAllDevices[1].$2.completeError(Exception('offline'));
+      pendingAllDevices[1].$2.complete(const Err(NetworkFailure()));
       await Future<void>.delayed(Duration.zero);
 
       expect(controller.devices, isEmpty);
@@ -350,43 +327,43 @@ void main() {
     test(
       'busca alterada durante loading não é descartada e loadMore antigo não contamina nova busca',
       () async {
-        final repo = _FakeDeviceRepository();
+        final (repo, _, pendingSearchDevices) = _pendingDeviceRepo();
         final controller = SearchDevicesController(repo);
 
         await Future<void>.delayed(const Duration(milliseconds: 220));
-        expect(repo.pendingSearchDevices.length, 1);
+        expect(pendingSearchDevices.length, 1);
 
         controller.filterTable('Notebook');
         await Future<void>.delayed(const Duration(milliseconds: 220));
-        expect(repo.pendingSearchDevices.length, 2);
+        expect(pendingSearchDevices.length, 2);
 
-        repo.pendingSearchDevices[1].$2.complete(
-          _page([_device(2, 'Notebook')], number: 0, last: false),
+        pendingSearchDevices[1].$2.complete(
+          Ok(_page([_device(2, 'Notebook')], number: 0, last: false)),
         );
         await Future<void>.delayed(Duration.zero);
         expect(controller.devices.map((d) => d.customerName), ['Notebook']);
         expect(controller.isLoading, false);
 
-        repo.pendingSearchDevices[0].$2.complete(
-          _page([_device(1, 'Antigo')], number: 0, last: true),
+        pendingSearchDevices[0].$2.complete(
+          Ok(_page([_device(1, 'Antigo')], number: 0, last: true)),
         );
         await Future<void>.delayed(Duration.zero);
         expect(controller.devices.map((d) => d.customerName), ['Notebook']);
 
         final loadMoreFuture = controller.loadMore();
-        expect(repo.pendingSearchDevices.length, 3);
+        expect(pendingSearchDevices.length, 3);
 
         controller.filterTable('TV');
         await Future<void>.delayed(const Duration(milliseconds: 220));
-        expect(repo.pendingSearchDevices.length, 4);
+        expect(pendingSearchDevices.length, 4);
 
-        repo.pendingSearchDevices[3].$2.complete(
-          _page([_device(4, 'TV')], number: 0, last: true),
+        pendingSearchDevices[3].$2.complete(
+          Ok(_page([_device(4, 'TV')], number: 0, last: true)),
         );
         await Future<void>.delayed(Duration.zero);
 
-        repo.pendingSearchDevices[2].$2.complete(
-          _page([_device(3, 'PaginaVelha')], number: 1, last: true),
+        pendingSearchDevices[2].$2.complete(
+          Ok(_page([_device(3, 'PaginaVelha')], number: 1, last: true)),
         );
         await loadMoreFuture;
 
@@ -397,12 +374,14 @@ void main() {
 
   group('SearchDevicesController total em falha', () {
     test('limpa a lista e zera o total quando a nova busca falha', () async {
-      final repo = _FakeDeviceRepository();
+      final (repo, _, pendingSearchDevices) = _pendingDeviceRepo();
       final controller = SearchDevicesController(repo);
 
       await Future<void>.delayed(const Duration(milliseconds: 220));
-      repo.pendingSearchDevices[0].$2.complete(
-        _page([_device(1, 'Ana'), _device(2, 'Bia')], number: 0, last: false),
+      pendingSearchDevices[0].$2.complete(
+        Ok(
+          _page([_device(1, 'Ana'), _device(2, 'Bia')], number: 0, last: false),
+        ),
       );
       await Future<void>.delayed(Duration.zero);
       expect(controller.devices.length, 2);
@@ -412,8 +391,8 @@ void main() {
 
       controller.filterTable('Notebook');
       await Future<void>.delayed(const Duration(milliseconds: 220));
-      repo.pendingSearchDevices[1].$2.completeError(
-        Exception('502 Bad Gateway'),
+      pendingSearchDevices[1].$2.complete(
+        Err(UnexpectedFailure(cause: Exception('502 Bad Gateway'))),
       );
       await Future<void>.delayed(Duration.zero);
 
