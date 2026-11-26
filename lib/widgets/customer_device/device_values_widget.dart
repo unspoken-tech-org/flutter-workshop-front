@@ -113,6 +113,8 @@ class DeviceValuesWidget extends StatelessWidget {
               const Divider(color: Color(0xFFE5E7EB), height: 1),
               const SizedBox(height: 16),
               _BudgetFeeStatusWidget(
+                hasBudgetFee:
+                    (deviceCustomer.budgetFee ?? Money.zero).isPositive,
                 computedBudgetFeeCollected:
                     deviceCustomer.computedBudgetFeeCollected,
               ),
@@ -125,12 +127,42 @@ class DeviceValuesWidget extends StatelessWidget {
 }
 
 class _BudgetFeeStatusWidget extends StatelessWidget {
+  /// Taxa zero (ex.: revisão em garantia): não há o que coletar.
+  final bool hasBudgetFee;
   final bool computedBudgetFeeCollected;
 
-  const _BudgetFeeStatusWidget({required this.computedBudgetFeeCollected});
+  const _BudgetFeeStatusWidget({
+    required this.hasBudgetFee,
+    required this.computedBudgetFeeCollected,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final (
+      IconData icon,
+      String label,
+      Color iconColor,
+      Color textColor,
+    ) = switch ((hasBudgetFee, computedBudgetFeeCollected)) {
+      (false, _) => (
+        Icons.remove_circle_outline,
+        'Sem taxa',
+        Colors.grey.shade500,
+        Colors.grey.shade700,
+      ),
+      (true, true) => (
+        Icons.check_circle_outline,
+        'Coletada',
+        Colors.green.shade600,
+        Colors.green.shade700,
+      ),
+      (true, false) => (
+        Icons.info_outline,
+        'Pendente',
+        Colors.orange.shade600,
+        Colors.orange.shade700,
+      ),
+    };
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -139,15 +171,7 @@ class _BudgetFeeStatusWidget extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            computedBudgetFeeCollected
-                ? Icons.check_circle_outline
-                : Icons.info_outline,
-            size: 20,
-            color: computedBudgetFeeCollected
-                ? Colors.green.shade600
-                : Colors.orange.shade600,
-          ),
+          Icon(icon, size: 20, color: iconColor),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -159,12 +183,10 @@ class _BudgetFeeStatusWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  computedBudgetFeeCollected ? 'Coletada' : 'Pendente',
+                  label,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: computedBudgetFeeCollected
-                        ? Colors.green.shade700
-                        : Colors.orange.shade700,
+                    color: textColor,
                   ),
                 ),
               ],
