@@ -48,6 +48,17 @@ Future<void> _startApp() async {
   );
   final authNotifier = deps.authNotifier;
   authNotifier.setState(AuthRouteState.restoring, notify: false);
+  final router = buildRouter(authNotifier);
+
+  runApp(MyApp(router: router, deps: deps));
+  unawaited(_restoreAuthOnBoot(config, deps, authNotifier));
+}
+
+Future<void> _restoreAuthOnBoot(
+  AppConfig config,
+  AppDependencies deps,
+  AuthNotifier authNotifier,
+) async {
   try {
     if (config.resetStorageOnBoot) {
       await deps.storage.clearProvisioning();
@@ -62,15 +73,12 @@ Future<void> _startApp() async {
       error: e,
       stackTrace: st,
     );
-    authNotifier.setState(AuthRouteState.storageError, notify: false);
+    authNotifier.setState(AuthRouteState.storageError);
   }
-  final router = buildRouter(authNotifier);
   AppLogger.info(
     'Bootstrap',
     'Auth state restored: ${authNotifier.state.name}',
   );
-
-  runApp(MyApp(router: router, deps: deps));
 }
 
 class MyApp extends StatelessWidget {
