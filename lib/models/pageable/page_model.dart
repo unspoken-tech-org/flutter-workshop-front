@@ -25,16 +25,18 @@ class Page<T> {
     Map<String, dynamic> json,
     T Function(dynamic) fromJson,
   ) {
+    final content = (json['content'] as List).map(fromJson).toList();
+    final number = json['number'] as int;
     return Page<T>(
-      content: (json['content'] as List).map(fromJson).toList(),
+      content: content,
       last: json['last'] as bool,
       totalPages: json['totalPages'] as int,
       totalElements: json['totalElements'] as int,
       size: json['size'] as int,
-      number: json['number'] as int,
-      numberOfElements: json['numberOfElements'] as int,
-      first: json['first'] as bool,
-      empty: json['empty'] as bool,
+      number: number,
+      numberOfElements: json['numberOfElements'] as int? ?? content.length,
+      first: json['first'] as bool? ?? number == 0,
+      empty: json['empty'] as bool? ?? content.isEmpty,
     );
   }
 }
