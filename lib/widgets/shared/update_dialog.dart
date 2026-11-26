@@ -1,7 +1,8 @@
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_workshop_front/core/extensions/date_time_extension.dart';
 
 import '../../core/logging/app_logger.dart';
 import '../../services/update/update_service.dart';
@@ -494,7 +495,7 @@ class _ReleaseNoteEntryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final dateText = DateFormat('dd/MM/yyyy').format(entry.publishedAt);
+    final dateText = BrFormat.date(entry.publishedAt);
 
     return Container(
       width: double.infinity,
@@ -575,13 +576,12 @@ class UpdatePublishDateRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final df = DateFormat('dd/MM/yyyy HH:mm');
     return Row(
       children: [
         Icon(Icons.calendar_today, size: 16, color: Colors.grey.shade600),
         const SizedBox(width: 8),
         Text(
-          'Publicado em ${df.format(updateInfo.publishedAt)}',
+          'Publicado em ${updateInfo.publishedAt.formatDateTime()}',
           style: Theme.of(
             context,
           ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),

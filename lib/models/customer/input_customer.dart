@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:equatable/equatable.dart';
 
 class InputCustomer extends Equatable {
@@ -54,7 +55,7 @@ class InputCustomerPhone {
     required String number,
     this.name,
     this.isPrimary = false,
-  }) : number = number.replaceAll(RegExp(r'\D'), '');
+  }) : number = BrFormat.digitsOnly(number);
 
   Map<String, dynamic> toJson() => {
     if (id != null) 'id': id,

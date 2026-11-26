@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/validators/form_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/money/money.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/currency_input_formatter.dart';
@@ -172,13 +173,7 @@ class _DeviceDetailsRegisterFormState extends State<DeviceDetailsRegisterForm> {
                   headerLabel: 'Valor Orçamento (Opcional)',
                   hintText: 'Ex: 100,00',
                   inputFormatters: [CurrencyInputFormatter()],
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return null;
-                    if (Money.tryParseBr(value) == null) {
-                      return 'Valor inválido';
-                    }
-                    return null;
-                  },
+                  validator: FormValidators.optionalMoney,
                   onSave: (value) {
                     if (value == null || value.isEmpty) return;
                     final budgetFee = Money.tryParseBr(value);

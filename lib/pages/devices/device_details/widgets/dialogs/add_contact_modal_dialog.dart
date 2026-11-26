@@ -7,10 +7,9 @@ import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/contact_modal_shared.dart';
-import 'package:flutter_workshop_front/utils/phone_utils.dart';
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_date_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class AddContactModalDialog extends StatefulWidget {
@@ -35,7 +34,7 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
     inputCustomerContact = InputCustomerContact.empty(
       controller.deviceCustomer?.deviceId ?? 0,
     );
-    _dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    _dateController.text = BrFormat.date(DateTime.now());
   }
 
   @override
@@ -145,10 +144,7 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                     headerLabel: 'Número de telefone',
                                     enabled: !isContactTypePersonally,
                                     items: deviceCustomer.customerPhones
-                                        .map(
-                                          (e) =>
-                                              PhoneUtils.formatPhone(e.number),
-                                        )
+                                        .map((e) => BrFormat.phone(e.number))
                                         .toList(),
                                     onSave: (value) {
                                       inputCustomerContact.phoneNumber = value;
@@ -221,11 +217,8 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                     label: 'Data do contato',
                                     dateController: _dateController,
                                     onSave: (value) {
-                                      final DateFormat format = DateFormat(
-                                        "dd/MM/yyyy",
-                                      );
-                                      inputCustomerContact.contactDate = format
-                                          .parse(value);
+                                      inputCustomerContact.contactDate =
+                                          BrFormat.parseDate(value);
                                     },
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {

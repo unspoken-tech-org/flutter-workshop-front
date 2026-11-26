@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_workshop_front/utils/validators/text_validators.dart';
+import 'package:flutter_workshop_front/core/validators/text_validators.dart';
 
 void main() {
   group('TextValidators.hasText', () {
