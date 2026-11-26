@@ -36,7 +36,7 @@ class HomeController extends ChangeNotifier
           'Erro ao carregar estatísticas. Tente novamente.',
         );
         errorMessage = message;
-        emitError(message);
+        emitFailure(failure, message);
         debugPrint(
           '[HomeController] Error getting device statistics: $failure',
         );

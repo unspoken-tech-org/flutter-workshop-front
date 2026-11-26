@@ -98,7 +98,9 @@ class PagedListController<T, Q> extends ChangeNotifier
           _totalElements = 0;
           _totalPages = 0;
           _hasMore = false;
-          emitError(_failureMessage(failure, loadingMore: false));
+          if (!failure.shownGlobally) {
+            emitError(_failureMessage(failure, loadingMore: false));
+          }
       }
     } finally {
       if (generation == _generation) {
@@ -128,7 +130,9 @@ class PagedListController<T, Q> extends ChangeNotifier
           _hasMore = !value.last;
         case Err(:final failure):
           _loadMoreFailed = true;
-          emitError(_failureMessage(failure, loadingMore: true));
+          if (!failure.shownGlobally) {
+            emitError(_failureMessage(failure, loadingMore: true));
+          }
       }
     } finally {
       if (generation == _generation) {

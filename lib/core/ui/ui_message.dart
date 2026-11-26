@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_workshop_front/core/result/app_failure.dart';
 
 /// Mensagem para o usuário publicada por controllers e pelo interceptor HTTP.
 ///
@@ -64,6 +65,14 @@ mixin UiMessageSource on ChangeNotifier implements UiMessageStream {
 
   @protected
   void emitError(String text) => emit(UiError(text));
+
+  /// Publica a falha de uma chamada à API, exceto quando o interceptor já a
+  /// mostrou ([AppFailure.shownGlobally]): evita duas mensagens seguidas.
+  @protected
+  void emitFailure(AppFailure failure, String fallback) {
+    if (failure.shownGlobally) return;
+    emitError(failure.messageOr(fallback));
+  }
 
   @override
   void dispose() {

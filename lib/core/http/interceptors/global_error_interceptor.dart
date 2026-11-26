@@ -9,6 +9,10 @@ class GlobalErrorInterceptor extends Interceptor {
 
   final void Function(UiMessage message) onMessage;
 
+  /// `RequestOptions.extra`: a falha já virou mensagem global; o `ApiClient`
+  /// repassa isso em `AppFailure.shownGlobally`.
+  static const shownGloballyKey = 'uiErrorShown';
+
   static const tooManyRequestsFallbackMessage =
       'Muitas requisições. Aguarde alguns instantes e tente novamente.';
 
@@ -80,6 +84,7 @@ class GlobalErrorInterceptor extends Interceptor {
 
     // Show global error if infrastructure-related and not silenced
     if (shouldShowGlobalError && err.requestOptions.extra['silent'] != true) {
+      err.requestOptions.extra[shownGloballyKey] = true;
       onMessage(UiError(errorMessage));
     }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/state/safe_change_notifier_mixin.dart';
 import 'package:flutter_workshop_front/core/ui/ui_message.dart';
 
@@ -9,6 +10,7 @@ class _Source extends ChangeNotifier
     with SafeChangeNotifierMixin, UiMessageSource {
   void ok() => emitSuccess('feito');
   void fail() => emitError('falhou');
+  void failure(AppFailure f) => emitFailure(f, 'fallback');
 }
 
 void main() {
@@ -22,6 +24,21 @@ void main() {
         ..fail();
 
       expect(messages, [isUiSuccess('feito'), isUiError('falhou')]);
+    });
+
+    test('emitFailure não repete falha que o interceptor já mostrou', () {
+      final source = _Source();
+      final messages = recordMessages(source);
+
+      source
+        ..failure(const NetworkFailure(shownGlobally: true))
+        ..failure(const ServerFailure(statusCode: 500, shownGlobally: true))
+        ..failure(const NetworkFailure())
+        ..failure(
+          const ValidationFailure(message: 'Nome', code: 'x', statusCode: 400),
+        );
+
+      expect(messages, [isUiError('fallback'), isUiError('Nome')]);
     });
 
     test('emitir depois do dispose não lança', () {

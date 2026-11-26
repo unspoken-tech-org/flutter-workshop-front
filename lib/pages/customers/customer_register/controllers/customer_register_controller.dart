@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/core/ui/command.dart';
 import 'package:flutter_workshop_front/core/ui/ui_message.dart';
@@ -30,7 +29,7 @@ class CustomerRegisterController extends ChangeNotifier with UiMessageSource {
         emitSuccess('Cliente cadastrado com sucesso');
         return value.customerId;
       case Err(:final failure):
-        emitError(failure.messageOr('Erro ao cadastrar cliente'));
+        emitFailure(failure, 'Erro ao cadastrar cliente');
         return null;
     }
   }

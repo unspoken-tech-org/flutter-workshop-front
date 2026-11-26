@@ -122,7 +122,7 @@ class _CustomerDeviceInfoHeaderWidgetState
                               ),
                       ),
                     ),
-                    if (deviceCustomer.isClosed)
+                    if (deviceCustomer.canOpenRevision)
                       Semantics(
                         identifier: 'deviceDetail.openRevision',
                         child: OutlinedButton.icon(
@@ -135,7 +135,7 @@ class _CustomerDeviceInfoHeaderWidgetState
                           label: const Text('Abrir revisão'),
                         ),
                       )
-                    else
+                    else if (!deviceCustomer.isClosed)
                       Semantics(
                         identifier: 'deviceDetail.revision',
                         child: RevisionChip(

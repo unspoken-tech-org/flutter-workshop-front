@@ -34,6 +34,16 @@ void main() {
       }
     });
 
+    test('StatusEnum.allowsRevision vale só para ENTREGUE', () {
+      for (final status in StatusEnum.values) {
+        expect(
+          status.allowsRevision,
+          status == StatusEnum.delivered,
+          reason: status.name,
+        );
+      }
+    });
+
     test('urgência não chama a API e publica o motivo', () async {
       var calls = 0;
       final controller =
@@ -53,6 +63,22 @@ void main() {
       await controller.updateDeviceHasUrgency(true);
 
       expect(calls, 0);
+      expect(messages, [
+        isUiError(
+          DeviceCustomerPageController.closedOrderMessage +
+              DeviceCustomerPageController.closedOrderRevisionHint,
+        ),
+      ]);
+    });
+
+    test('OS descartada bloqueia sem sugerir revisão', () async {
+      final controller = testDeviceCustomerPageController(
+        deviceRepository: FakeDeviceRepository(),
+      )..deviceCustomer = makeDeviceCustomer(deviceStatus: StatusEnum.disposed);
+      final messages = recordMessages(controller);
+
+      await controller.updateDeviceHasUrgency(true);
+
       expect(messages, [
         isUiError(DeviceCustomerPageController.closedOrderMessage),
       ]);
@@ -176,6 +202,21 @@ void main() {
       expect(messages, [isUiError('Recusado')]);
     });
 
+    test('OS descartada não abre revisão (status final)', () async {
+      var creates = 0;
+      final controller = testDeviceCustomerPageController(
+        deviceRepository: FakeDeviceRepository(
+          onCreateDeviceCustomer: (_) async {
+            creates++;
+            return Ok(CreateDeviceCustomerResponse(deviceId: 1));
+          },
+        ),
+      )..deviceCustomer = makeDeviceCustomer(deviceStatus: StatusEnum.disposed);
+
+      expect(await controller.openRevisionOrder(), isNull);
+      expect(creates, 0);
+    });
+
     test('OS aberta não abre revisão por este caminho', () async {
       final controller = testDeviceCustomerPageController(
         deviceRepository: FakeDeviceRepository(),
@@ -205,14 +246,18 @@ void main() {
     }
 
     for (final status in _closedStatuses) {
+      final revisable = status == StatusEnum.delivered;
       testWidgets('cabeçalho ${status.name}: urgência desabilitada e '
-          '"Abrir revisão" no lugar da revisão', (tester) async {
+          '${revisable ? '"Abrir revisão"' : 'sem revisão'}', (tester) async {
         await pumpHeader(tester, makeDeviceCustomer(deviceStatus: status));
 
         final urgency = tester.widget<UrgencyChip>(find.byType(UrgencyChip));
         expect(urgency.onTap, isNull);
         expect(urgency.disabledTooltip, isNotNull);
-        expect(find.text('Abrir revisão'), findsOneWidget);
+        expect(
+          find.text('Abrir revisão'),
+          revisable ? findsOneWidget : findsNothing,
+        );
         expect(find.byType(RevisionChip), findsNothing);
       });
     }

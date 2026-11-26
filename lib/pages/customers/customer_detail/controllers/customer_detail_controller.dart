@@ -55,7 +55,7 @@ class CustomerDetailController extends ChangeNotifier with UiMessageSource {
           'Erro ao buscar cliente. Tente novamente.',
         );
         errorMessage = message;
-        emitError(message);
+        emitFailure(failure, message);
     }
     notifyListeners();
   }
@@ -72,9 +72,7 @@ class CustomerDetailController extends ChangeNotifier with UiMessageSource {
         notifyListeners();
         return true;
       case Err(:final failure):
-        emitError(
-          failure.messageOr('Erro ao atualizar cliente. Tente novamente.'),
-        );
+        emitFailure(failure, 'Erro ao atualizar cliente. Tente novamente.');
         return false;
     }
   }

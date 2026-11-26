@@ -123,9 +123,7 @@ class DeviceCustomerPageController extends ChangeNotifier
         case Ok(:final value):
           technicians = value;
         case Err(:final failure):
-          emitError(
-            failure.messageOr('Erro ao buscar técnicos. Tente novamente.'),
-          );
+          emitFailure(failure, 'Erro ao buscar técnicos. Tente novamente.');
       }
     } finally {
       notifyListeners();
@@ -145,7 +143,7 @@ class DeviceCustomerPageController extends ChangeNotifier
           if (isNew) {
             loadError = message;
           }
-          emitError(message);
+          emitFailure(failure, message);
       }
     } finally {
       notifyListeners();
@@ -206,17 +204,23 @@ class DeviceCustomerPageController extends ChangeNotifier
       case Ok():
         emitSuccess(success);
       case Err(failure: final error):
-        emitError(error.messageOr(failure));
+        emitFailure(error, failure);
     }
   }
 
   static const closedOrderMessage =
-      'OS encerrada: não é possível alterar urgência ou contatos. '
-      'Use "Abrir revisão" para abrir uma nova OS.';
+      'OS encerrada: não é possível alterar urgência ou contatos.';
+  static const closedOrderRevisionHint =
+      ' Use "Abrir revisão" para abrir uma nova OS.';
+
+  /// Motivo do bloqueio; a dica de revisão só vale para OS `ENTREGUE`.
+  String get _closedOrderMessage => (deviceCustomer?.canOpenRevision ?? false)
+      ? '$closedOrderMessage$closedOrderRevisionHint'
+      : closedOrderMessage;
 
   Future<void> updateDeviceHasUrgency(bool hasUrgency) async {
     if (deviceCustomer?.isClosed ?? false) {
-      emitError(closedOrderMessage);
+      emitError(_closedOrderMessage);
       return;
     }
     await _runQuickAction(
@@ -262,9 +266,7 @@ class DeviceCustomerPageController extends ChangeNotifier
         emitSuccess('Dispositivo atualizado com sucesso');
         return true;
       case Err(:final failure):
-        emitError(
-          failure.messageOr('Erro ao atualizar dispositivo. Tente novamente.'),
-        );
+        emitFailure(failure, 'Erro ao atualizar dispositivo. Tente novamente.');
         return false;
     }
   }
@@ -305,11 +307,11 @@ class DeviceCustomerPageController extends ChangeNotifier
     }
   }
 
-  /// Retorna o id da OS de revisão criada, ou `null` (OS não encerrada, ação
+  /// Retorna o id da OS de revisão criada, ou `null` (OS não `ENTREGUE`, ação
   /// em andamento ou erro, já publicado como mensagem).
   Future<int?> openRevisionOrder() async {
     final origin = deviceCustomer;
-    if (origin == null || !origin.isClosed || isUpdating || isSaving) {
+    if (origin == null || !origin.canOpenRevision || isUpdating || isSaving) {
       return null;
     }
     switch (await openRevision.execute(origin)) {
@@ -319,9 +321,7 @@ class DeviceCustomerPageController extends ChangeNotifier
         emitSuccess('Revisão aberta em uma nova OS');
         return value;
       case Err(:final failure):
-        emitError(
-          failure.messageOr('Erro ao abrir a revisão. Tente novamente.'),
-        );
+        emitFailure(failure, 'Erro ao abrir a revisão. Tente novamente.');
         return null;
     }
   }
@@ -337,7 +337,7 @@ class DeviceCustomerPageController extends ChangeNotifier
   ) async {
     if (deviceCustomer == null) return false;
     if (deviceCustomer!.isClosed) {
-      emitError(closedOrderMessage);
+      emitError(_closedOrderMessage);
       return false;
     }
     switch (await createContact.execute(customerContact)) {
@@ -347,7 +347,7 @@ class DeviceCustomerPageController extends ChangeNotifier
         emitSuccess('Contato criado com sucesso');
         return true;
       case Err(:final failure):
-        emitError(failure.messageOr('Erro ao criar contato. Tente novamente.'));
+        emitFailure(failure, 'Erro ao criar contato. Tente novamente.');
         return false;
     }
   }
@@ -367,7 +367,7 @@ class DeviceCustomerPageController extends ChangeNotifier
   ) async {
     if (deviceCustomer == null) return false;
     if (deviceCustomer!.isClosed) {
-      emitError(closedOrderMessage);
+      emitError(_closedOrderMessage);
       return false;
     }
     switch (await updateContact.execute((contactId, customerContact))) {
@@ -377,9 +377,7 @@ class DeviceCustomerPageController extends ChangeNotifier
         emitSuccess('Contato editado com sucesso');
         return true;
       case Err(:final failure):
-        emitError(
-          failure.messageOr('Erro ao editar contato. Tente novamente.'),
-        );
+        emitFailure(failure, 'Erro ao editar contato. Tente novamente.');
         return false;
     }
   }
@@ -419,9 +417,7 @@ class DeviceCustomerPageController extends ChangeNotifier
         emitSuccess('Pagamento criado com sucesso');
         return true;
       case Err(:final failure):
-        emitError(
-          failure.messageOr('Erro ao criar pagamento. Tente novamente.'),
-        );
+        emitFailure(failure, 'Erro ao criar pagamento. Tente novamente.');
         return false;
     }
   }

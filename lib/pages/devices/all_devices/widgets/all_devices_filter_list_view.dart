@@ -111,6 +111,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                   return Flexible(
                     child: SearchableDropdownFormField<DeviceType>(
                       semanticsIdentifier: 'allDevices.filter.type',
+                      clearOnAccept: true,
                       headerLabelText: 'Tipo de aparelho',
                       hintText: 'Busque pelo tipo',
                       searchFn: (query) async {
@@ -138,6 +139,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                   return Flexible(
                     child: SearchableDropdownFormField<DeviceBrand>(
                       semanticsIdentifier: 'allDevices.filter.brand',
+                      clearOnAccept: true,
                       headerLabelText: 'Marca do aparelho',
                       hintText: 'Busque pela marca',
                       searchFn: (query) async {

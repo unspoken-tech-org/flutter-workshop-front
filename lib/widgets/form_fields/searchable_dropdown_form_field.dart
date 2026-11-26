@@ -25,6 +25,10 @@ class SearchableDropdownFormField<T> extends StatefulWidget {
   /// `Semantics.identifier` (`<page>.<element>`) for UI tests and agents.
   final String? semanticsIdentifier;
 
+  /// Limpa o texto depois de escolher um item: para filtros cuja escolha
+  /// já aparece em outro lugar (chips), o campo volta a ser só de busca.
+  final bool clearOnAccept;
+
   const SearchableDropdownFormField({
     super.key,
     this.semanticsIdentifier,
@@ -39,6 +43,7 @@ class SearchableDropdownFormField<T> extends StatefulWidget {
     this.onClear,
     this.fieldValidator,
     this.onSave,
+    this.clearOnAccept = false,
   }) : _externalController = controller;
 
   @override
@@ -186,10 +191,18 @@ class _SearchableDropdownFormFieldState<T>
     final name = widget.getName(item).capitalizeAllWords;
     _ignoreNextFocusLoss = true;
     setState(() {
-      _isSelected = true;
+      _isSelected = !widget.clearOnAccept;
       _highlightedIndex = -1;
+      if (widget.clearOnAccept) {
+        _currentQuery = '';
+        _suggestions = [];
+      }
     });
-    _controller.text = name;
+    if (widget.clearOnAccept) {
+      _controller.clear();
+    } else {
+      _controller.text = name;
+    }
     widget.onAccept(item);
     _removeOverlay();
     _focusNode.unfocus();

@@ -56,7 +56,7 @@ class AllDevicesController
         _ => null,
       };
       if (failure != null) {
-        emitError(failure.messageOr('Erro ao carregar filtros'));
+        emitFailure(failure, 'Erro ao carregar filtros');
       } else {
         deviceTypes = resultTypes.valueOrNull ?? deviceTypes;
         deviceBrands = resultBrands.valueOrNull ?? deviceBrands;

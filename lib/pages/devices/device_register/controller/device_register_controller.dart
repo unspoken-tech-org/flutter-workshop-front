@@ -88,7 +88,7 @@ class DeviceRegisterController extends ChangeNotifier
           this.customerId = null;
           customerName = null;
         }
-        emitError(failure.messageOr('Erro ao buscar o cliente'));
+        emitFailure(failure, 'Erro ao buscar o cliente');
     }
   }
 
@@ -97,7 +97,7 @@ class DeviceRegisterController extends ChangeNotifier
       case Ok(:final value):
         allColors = value;
       case Err(:final failure):
-        emitError(failure.messageOr('Erro ao buscar as cores'));
+        emitFailure(failure, 'Erro ao buscar as cores');
     }
   }
 
@@ -106,7 +106,7 @@ class DeviceRegisterController extends ChangeNotifier
       case Ok(:final value):
         technicians = value;
       case Err(:final failure):
-        emitError(failure.messageOr('Erro ao buscar os técnicos'));
+        emitFailure(failure, 'Erro ao buscar os técnicos');
     }
   }
 
@@ -119,9 +119,9 @@ class DeviceRegisterController extends ChangeNotifier
     switch (await _customerRepository.searchCustomers(filter)) {
       case Ok(:final value):
         return value.content;
-      case Err():
+      case Err(:final failure):
         // Mensagem fixa de hoje, também para erros da API.
-        emitError('Erro ao buscar o cliente');
+        if (!failure.shownGlobally) emitError('Erro ao buscar o cliente');
         return [];
     }
   }
@@ -219,7 +219,7 @@ class DeviceRegisterController extends ChangeNotifier
         emitSuccess('Dispositivo criado com sucesso');
         return value.deviceId;
       case Err(:final failure):
-        emitError(failure.messageOr('Erro ao criar dispositivo'));
+        emitFailure(failure, 'Erro ao criar dispositivo');
         return null;
     }
   }

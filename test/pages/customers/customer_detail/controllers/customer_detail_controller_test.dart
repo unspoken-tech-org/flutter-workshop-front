@@ -74,5 +74,20 @@ void main() {
         isUiError('Erro ao atualizar cliente. Tente novamente.'),
       ]);
     });
+
+    test('updateCustomer sem rede já avisada pelo interceptor não repete a '
+        'mensagem', () async {
+      final controller = CustomerDetailController(
+        FakeCustomerRepository(
+          updateCustomerResult: const Err(NetworkFailure(shownGlobally: true)),
+        ),
+      )..setEditing(true);
+      final messages = recordMessages(controller);
+
+      expect(await controller.updateCustomer(1), isFalse);
+
+      expect(controller.isEditing, isTrue);
+      expect(messages, isEmpty);
+    });
   });
 }
