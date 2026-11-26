@@ -22,7 +22,7 @@ Only what the code does not tell you.
 
 - Build config is read only by `AppConfig.fromEnvironment()` (`lib/core/config/app_config.dart`), validated at boot; an invalid config shows `ConfigErrorApp` instead of crashing later. Never call `String.fromEnvironment` elsewhere.
 - `AppDependencies.create` (`lib/core/di/app_dependencies.dart`) is the only place that builds services, repositories, `Dio` and storage. Repositories (`DeviceRepository`, `CustomerRepository`, `CatalogRepository`) are provided via `MultiProvider` and controllers depend on repositories (never `services/` directly, except `AuthService` and `UpdateService`); controllers and services receive dependencies through the constructor, with no defaults and no statics.
-- Tests reuse `test/support/` (`MemorySecurityStorage`, `InMemorySecureKeyValueStore`, `offlineApiClient`, `testDeviceCustomerPageController`) instead of copying fakes.
+- Tests reuse `test/support/` (`MemorySecurityStorage`, `InMemorySecureKeyValueStore`, `StubHttpClientAdapter`, `widget_test_harness.dart`, `device_customer_fixture.dart`, `offlineApiClient`) instead of copying fakes; follow `CONVENTIONS.md`.
 
 ## State, UI & Domain
 
@@ -35,7 +35,7 @@ Only what the code does not tell you.
 
 ## Checks & Dependencies
 
-- Run `dart format .`, `flutter analyze`, and `flutter test` before handing off changes; CI fails on any of them.
+- Run `dart format .`, `flutter analyze`, and `flutter test` before handing off changes; CI fails on any of them. `flutter test` also runs `test/architecture/architecture_test.dart`, which enforces layer/DI/test-hygiene rules and frozen baselines from `CONVENTIONS.md`.
 - Don't introduce new dependencies without a strong reason, and don't swallow exceptions silently unless documented (see `AuthService.logout`).
 
 ## Git
@@ -46,6 +46,7 @@ Read the matching file before the task (load it only then):
 
 | Before you... | Read |
 | --- | --- |
+| write/edit tests or new layers | `CONVENTIONS.md` |
 | create a branch or fix a bug | `instructions/git/branches.md` |
 | commit | `instructions/git/commits.md` |
 | open or update a PR | `instructions/git/pull-requests.md` |
