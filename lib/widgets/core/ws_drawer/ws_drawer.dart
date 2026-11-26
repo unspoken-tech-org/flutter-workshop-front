@@ -10,7 +10,7 @@ import 'package:flutter_workshop_front/pages/customers/customer_detail/customer_
 import 'package:flutter_workshop_front/pages/customers/customer_register/customer_register_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/device_details_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/device_register_page.dart';
-import 'package:flutter_workshop_front/pages/devices/search_devices/search_devices_page.dart';
+import 'package:flutter_workshop_front/pages/devices/all_devices/all_devices_page.dart';
 import 'package:flutter_workshop_front/pages/home/home_page.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
@@ -175,12 +175,12 @@ class WsDrawer extends StatelessWidget {
               title: 'Buscar Aparelhos',
               semanticsIdentifier: 'drawer.searchDevices',
               route: const [
-                SearchDevicesPage.route,
+                AllDevicesPage.route,
                 DeviceDetailsPage.route,
                 DeviceRegisterPage.route,
               ],
               onTap: () {
-                unawaited(WsNavigator.pushSearchDevices(context));
+                unawaited(WsNavigator.pushAllDevices(context));
               },
             ),
             const Spacer(),

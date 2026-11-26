@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
+import 'package:flutter_workshop_front/models/device/device_query.dart';
 import 'package:flutter_workshop_front/models/device_brand/device_brand_model.dart';
 import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
@@ -71,8 +71,8 @@ class AllDevicesFilterListView extends StatelessWidget {
           ),
           Row(
             children: [
-              Selector<AllDevicesController, DeviceFilter>(
-                selector: (context, controller) => controller.filter,
+              Selector<AllDevicesController, DeviceQuery>(
+                selector: (context, controller) => controller.query,
                 builder: (context, filter, _) {
                   final String rangeDate =
                       [filter.initialEntryDate, filter.finalEntryDate].nonNulls
@@ -159,8 +159,8 @@ class AllDevicesFilterListView extends StatelessWidget {
                   );
                 },
               ),
-              Selector<AllDevicesController, DeviceFilter>(
-                selector: (context, controller) => controller.filter,
+              Selector<AllDevicesController, DeviceQuery>(
+                selector: (context, controller) => controller.query,
                 builder: (context, filter, _) {
                   final statusNames = StatusEnum.selectableValues
                       .map((e) => e.displayName)
@@ -192,8 +192,8 @@ class AllDevicesFilterListView extends StatelessWidget {
             ],
           ),
           SelectedFiltersView(controller: controller),
-          Selector<AllDevicesController, DeviceFilter>(
-            selector: (context, controller) => controller.filter,
+          Selector<AllDevicesController, DeviceQuery>(
+            selector: (context, controller) => controller.query,
             builder: (context, filter, _) {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -208,7 +208,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                           children: [
                             SwitchFormField(
                               semanticsIdentifier: 'allDevices.filter.urgency',
-                              initialValue: controller.filter.hasUrgency,
+                              initialValue: controller.query.hasUrgency,
                               onChanged: (value) {
                                 controller.toggleUrgency();
                               },
@@ -227,7 +227,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                           children: [
                             SwitchFormField(
                               semanticsIdentifier: 'allDevices.filter.revision',
-                              initialValue: controller.filter.hasRevision,
+                              initialValue: controller.query.hasRevision,
                               onChanged: (value) {
                                 controller.toggleRevision();
                               },

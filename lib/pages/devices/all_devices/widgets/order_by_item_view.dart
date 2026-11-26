@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
+import 'package:flutter_workshop_front/models/device/device_query.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
 import 'package:provider/provider.dart';
 

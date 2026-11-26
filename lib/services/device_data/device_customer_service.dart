@@ -2,9 +2,8 @@ import 'package:flutter_workshop_front/core/http/api_client.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 import 'package:flutter_workshop_front/models/customer_device/create_device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
 import 'package:flutter_workshop_front/models/device/device_input.dart';
-import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
+import 'package:flutter_workshop_front/models/device/device_query.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/pageable/page_model.dart';
@@ -22,20 +21,18 @@ class DeviceCustomerService {
   static DeviceCustomer _decodeDevice(Object? data) =>
       DeviceCustomer.fromJson(asJsonMap(data));
 
-  Future<Result<Page<DeviceDataTable>>> getAllDevicesFiltering([
-    DeviceFilter? filter,
-  ]) {
+  /// Lists devices for [query]: the structured filter endpoint when type or
+  /// brand filters are set, the full-text search endpoint otherwise.
+  Future<Result<Page<DeviceDataTable>>> queryDevices(
+    DeviceQuery query,
+    int page,
+  ) {
+    final structured = query.usesStructuredFilter;
     return _api.send(
-      (dio) => dio.post<dynamic>('/v1/device/filter', data: filter?.toJson()),
-      decode: _decodePage,
-    );
-  }
-
-  Future<Result<Page<DeviceDataTable>>> searchDevices([
-    DeviceSearchFilter? filter,
-  ]) {
-    return _api.send(
-      (dio) => dio.post<dynamic>('/v1/device/search', data: filter?.toJson()),
+      (dio) => dio.post<dynamic>(
+        structured ? '/v1/device/filter' : '/v1/device/search',
+        data: structured ? query.toFilterJson(page) : query.toSearchJson(page),
+      ),
       decode: _decodePage,
     );
   }

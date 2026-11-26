@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
+import 'package:flutter_workshop_front/models/device/device_query.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/widgets/order_by_item_view.dart';
 import 'package:provider/provider.dart';
@@ -58,7 +58,7 @@ class OrderByView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Selector<AllDevicesController, Map<OrderBy, OrderDirection?>>(
-            selector: (context, controller) => controller.filter.orderBy,
+            selector: (context, controller) => controller.query.orderBy,
             builder: (context, values, _) {
               final orderBy = values;
 

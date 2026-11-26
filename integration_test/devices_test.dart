@@ -45,12 +45,12 @@ void main() {
     await bootApp(tester, (tester) async {
       final today = _today();
       final first = DateTime(today.year, today.month);
-      final entry = field(identifier: 'searchDevices.filter.entryDate');
+      final entry = field(identifier: 'allDevices.filter.entryDate');
       final picker = find.byType(CalendarDatePicker2WithActionButtons);
 
       await tapId(tester, 'drawer.searchDevices');
-      await tapId(tester, 'searchDevices.filterToggle');
-      await tapId(tester, 'searchDevices.filter.entryDate');
+      await tapId(tester, 'allDevices.filterToggle');
+      await tapId(tester, 'allDevices.filter.entryDate');
       await pumpUntilFound(tester, picker);
       await tester.tap(
         find.descendant(of: picker, matching: find.text('1')).first,
@@ -62,7 +62,7 @@ void main() {
       final expected = '${_format.format(first)} - ${_format.format(today)}';
       expect(fieldText(tester, entry), expected);
 
-      await tapId(tester, 'searchDevices.filter.entryDate');
+      await tapId(tester, 'allDevices.filter.entryDate');
       await pumpUntilFound(tester, picker);
       final reopened = tester.widget<CalendarDatePicker2WithActionButtons>(
         picker,

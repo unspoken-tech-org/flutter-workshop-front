@@ -116,10 +116,8 @@ void main() {
       () {
         const legacyChangeNotifiersWithoutMixin = <String>{
           'lib/core/security/auth_notifier.dart:AuthNotifier',
-          'lib/pages/customers/all_customers/controllers/all_customer_controller.dart:AllCustomerController',
           'lib/pages/customers/customer_detail/controllers/customer_detail_controller.dart:CustomerDetailController',
           'lib/pages/customers/customer_register/controllers/customer_register_controller.dart:CustomerRegisterController',
-          'lib/pages/devices/search_devices/controllers/search_devices_controller.dart:SearchDevicesController',
           'lib/pages/setup/setup_controller.dart:SetupController',
           'lib/widgets/core/ws_drawer/ws_drawer_controller.dart:WsDrawerController',
         };
