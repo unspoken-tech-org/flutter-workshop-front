@@ -50,6 +50,25 @@ jobs:
           fi
           echo "VERSION=$version" >> "$GITHUB_OUTPUT"
 
+      # Tag final (vX.Y.Z) vira "latest" e todo app instala sozinho: o commit
+      # precisa estar na main ou numa release/*. Tag rc pode sair de qualquer
+      # branch, inclusive feature/*, porque vira pré-release.
+      - name: Check final tag branch
+        if: github.ref_type == 'tag'
+        shell: bash
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          [[ "$REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "pre-release tag: any branch"; exit 0; }
+          git fetch --quiet origin '+refs/heads/main:refs/remotes/origin/main' '+refs/heads/release/*:refs/remotes/origin/release/*'
+          sha="$(git rev-parse HEAD)"
+          for ref in $(git for-each-ref --format='%(refname)' refs/remotes/origin/main 'refs/remotes/origin/release/*'); do
+            if git merge-base --is-ancestor "$sha" "$ref"; then echo "$sha is in ${ref#refs/remotes/}"; exit 0; fi
+          done
+          echo "::error::$REF_NAME points to $sha, which is not in main or any release/*: tag a merged commit"
+          exit 1
+
       # Tag terminada em -qa (vX.Y.Z-rc.N-qa) gera um build contra a API de QA
       # (.env-qa); qualquer outra tag, e a execução manual, usa .env-prd. Uma
       # tag -qa sempre tem sufixo, então vira pré-release e nunca é "latest".
