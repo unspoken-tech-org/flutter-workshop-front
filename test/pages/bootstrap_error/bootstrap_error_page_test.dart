@@ -9,6 +9,7 @@ import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/pages/bootstrap_error/bootstrap_error_page.dart';
 import 'package:flutter_workshop_front/pages/home/home_page.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
+import 'package:flutter_workshop_front/pages/splash/splash_page.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 
 class _StubAuthService implements AuthService {
@@ -104,17 +105,21 @@ void main() {
 
   group('GoRouter redirects for AuthRouteState', () {
     test('resolveAuthRedirect cobre todos os estados de AuthRouteState', () {
-      // restoring: nunca redireciona
+      // restoring: redireciona tudo para /splash
       expect(
         resolveAuthRedirect(AuthRouteState.restoring, HomePage.route),
-        isNull,
+        SplashPage.route,
       );
       expect(
         resolveAuthRedirect(AuthRouteState.restoring, SetupPage.route),
-        isNull,
+        SplashPage.route,
       );
       expect(
         resolveAuthRedirect(AuthRouteState.restoring, BootstrapErrorPage.route),
+        SplashPage.route,
+      );
+      expect(
+        resolveAuthRedirect(AuthRouteState.restoring, SplashPage.route),
         isNull,
       );
 
@@ -151,7 +156,11 @@ void main() {
         expect(resolveAuthRedirect(state, BootstrapErrorPage.route), isNull);
       }
 
-      // authenticated: tira de /setup e /bootstrap-error, libera rotas do app
+      // authenticated: tira de /splash, /setup e /bootstrap-error, libera rotas do app
+      expect(
+        resolveAuthRedirect(AuthRouteState.authenticated, SplashPage.route),
+        HomePage.route,
+      );
       expect(
         resolveAuthRedirect(AuthRouteState.authenticated, SetupPage.route),
         HomePage.route,
@@ -182,6 +191,10 @@ void main() {
         authNotifier,
         routesOverride: [
           GoRoute(
+            path: SplashPage.route,
+            builder: (_, __) => const SplashPage(),
+          ),
+          GoRoute(
             path: HomePage.route,
             builder: (_, __) => const Scaffold(body: Text('HOME_PLACEHOLDER')),
           ),
@@ -205,10 +218,10 @@ void main() {
           child: MaterialApp.router(routerConfig: router),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
 
-      // 1. restoring: permanece em /home
-      expect(find.text('HOME_PLACEHOLDER'), findsOneWidget);
+      // 1. restoring: exibe SplashPage em /splash
+      expect(find.byType(SplashPage), findsOneWidget);
 
       // 2. offline -> /bootstrap-error com BootstrapErrorPage
       authNotifier.setState(AuthRouteState.offline);

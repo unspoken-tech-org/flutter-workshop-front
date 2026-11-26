@@ -14,23 +14,25 @@ import 'package:flutter_workshop_front/pages/devices/device_register/device_regi
 import 'package:flutter_workshop_front/pages/devices/search_devices/search_devices_page.dart';
 import 'package:flutter_workshop_front/pages/home/home_page.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
+import 'package:flutter_workshop_front/pages/splash/splash_page.dart';
 import 'package:flutter_workshop_front/pages/not_found_page.dart';
 import 'package:go_router/go_router.dart';
 
 String? resolveAuthRedirect(AuthRouteState authState, String matchedLocation) {
+  final isSplashRoute = matchedLocation == SplashPage.route;
   final isSetupRoute = matchedLocation == SetupPage.route;
   final isBootstrapErrorRoute = matchedLocation == BootstrapErrorPage.route;
 
   switch (authState) {
     case AuthRouteState.restoring:
-      return null;
+      return isSplashRoute ? null : SplashPage.route;
     case AuthRouteState.needsSetup:
       return isSetupRoute ? null : SetupPage.route;
     case AuthRouteState.offline:
     case AuthRouteState.storageError:
       return isBootstrapErrorRoute ? null : BootstrapErrorPage.route;
     case AuthRouteState.authenticated:
-      if (isSetupRoute || isBootstrapErrorRoute) {
+      if (isSplashRoute || isSetupRoute || isBootstrapErrorRoute) {
         return HomePage.route;
       }
       return null;
@@ -53,6 +55,13 @@ GoRouter buildRouter(
 }
 
 List<RouteBase> _routes = [
+  GoRoute(
+    path: SplashPage.route,
+    name: SplashPage.route,
+    builder: (context, state) {
+      return const SplashPage();
+    },
+  ),
   GoRoute(
     path: HomePage.route,
     name: HomePage.route,
