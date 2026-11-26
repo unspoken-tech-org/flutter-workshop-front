@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_workshop_front/core/security/refresh_result.dart';
 import 'package:flutter_workshop_front/core/ui/ui_message.dart';
 
 /// Global interceptor for network error handling. It publishes a [UiMessage]
@@ -73,6 +74,9 @@ class GlobalErrorInterceptor extends Interceptor {
       shouldShowGlobalError = true;
     } else if (err.type == DioExceptionType.connectionError) {
       errorMessage = 'Não foi possível conectar ao servidor.';
+      shouldShowGlobalError = true;
+    } else if (err.error is SessionRefreshUnavailable) {
+      errorMessage = SessionRefreshUnavailable.message;
       shouldShowGlobalError = true;
     } else if (err.response?.statusCode == 429) {
       errorMessage = tooManyRequestsMessage(err.response);

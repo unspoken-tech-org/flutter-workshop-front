@@ -11,6 +11,7 @@ import 'package:flutter_workshop_front/core/logging/app_logger.dart';
 import 'package:flutter_workshop_front/core/logging/log_sink.dart';
 import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
+import 'package:flutter_workshop_front/core/security/refresh_result.dart';
 
 typedef _Handler = FutureOr<ResponseBody> Function(RequestOptions options);
 
@@ -275,6 +276,20 @@ void main() {
 
       expect(_failure(await _get(client)), isA<NetworkFailure>());
     });
+
+    test(
+      'refresh indisponível (SessionRefreshUnavailable) vira NetworkFailure',
+      () async {
+        final client = _client(
+          (options) => throw DioException(
+            requestOptions: options,
+            error: const SessionRefreshUnavailable(statusCode: 400),
+          ),
+        );
+
+        expect(_failure(await _get(client)), isA<NetworkFailure>());
+      },
+    );
 
     test('cancelamento vira UnexpectedFailure', () async {
       final client = _client(

@@ -812,6 +812,56 @@ void main() {
       },
     );
 
+    for (final status in [400, 401, 404]) {
+      test(
+        'refresh reativo com $status transitório não repassa a resposta do refresh',
+        () async {
+          storage.seedTokens(
+            accessToken: validToken,
+            refreshToken: 'rt-1',
+            apiKey: 'api-key-1',
+          );
+
+          dio.httpClientAdapter = _TestHttpClientAdapter(
+            responder: (_) => const _AdapterResult(
+              statusCode: 401,
+              data: {'error': 'expired'},
+            ),
+          );
+
+          dio.interceptors.add(
+            buildInterceptor(
+              onRefresh: () async => RefreshTransientFailure(
+                errorType: DioExceptionType.badResponse,
+                response: Response(
+                  requestOptions: RequestOptions(path: '/api/auth/refresh'),
+                  statusCode: status,
+                ),
+              ),
+            ),
+          );
+
+          await expectLater(
+            dio.get<dynamic>('/protected'),
+            throwsA(
+              isA<DioException>()
+                  .having((e) => e.response, 'response', isNull)
+                  .having(
+                    (e) => e.error,
+                    'error',
+                    isA<SessionRefreshUnavailable>().having(
+                      (u) => u.statusCode,
+                      'statusCode',
+                      status,
+                    ),
+                  ),
+            ),
+          );
+          expect(await storage.getApiKey(), 'api-key-1');
+        },
+      );
+    }
+
     testWidgets(
       'refresh proativo com falha transitória aciona GlobalErrorInterceptor uma única vez sem duplicar no authDio',
       (tester) async {

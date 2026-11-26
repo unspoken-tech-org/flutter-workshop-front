@@ -6,6 +6,7 @@ import 'package:flutter_workshop_front/core/http/response_validation.dart';
 import 'package:flutter_workshop_front/core/logging/app_logger.dart';
 import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
+import 'package:flutter_workshop_front/core/security/refresh_result.dart';
 
 /// Ponto único de saída das chamadas HTTP dos services.
 ///
@@ -171,7 +172,9 @@ class ApiClient {
         return UnexpectedFailure(cause: e);
       case DioExceptionType.unknown:
         final error = e.error;
-        if (error is SocketException || error is HttpException) {
+        if (error is SocketException ||
+            error is HttpException ||
+            error is SessionRefreshUnavailable) {
           return NetworkFailure(cause: e);
         }
         final response = e.response;

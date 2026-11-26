@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/core/http/custom_dio.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/global_error_interceptor.dart';
+import 'package:flutter_workshop_front/core/security/refresh_result.dart';
 import 'package:flutter_workshop_front/core/ui/ui_message.dart';
 
 class _FixedAdapter implements HttpClientAdapter {
@@ -185,6 +186,27 @@ void main() {
 
       expect(messages, isEmpty);
       expect(handler.passed?.response?.statusCode, 429);
+    });
+  });
+
+  group('GlobalErrorInterceptor refresh indisponível', () {
+    test('mostra mensagem de sessão, nunca o status do refresh', () {
+      final messages = <UiMessage>[];
+      final handler = _RecordingHandler();
+      final error = DioException(
+        requestOptions: RequestOptions(path: '/v1/device-statistics'),
+        error: const SessionRefreshUnavailable(statusCode: 400),
+      );
+
+      GlobalErrorInterceptor(onMessage: messages.add).onError(error, handler);
+
+      expect(messages.single, isA<UiError>());
+      expect(messages.single.text, SessionRefreshUnavailable.message);
+      expect(
+        error.requestOptions.extra[GlobalErrorInterceptor.shownGloballyKey],
+        isTrue,
+      );
+      expect(handler.passed, same(error));
     });
   });
 }
