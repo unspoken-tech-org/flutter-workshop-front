@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:synchronized/synchronized.dart';
+
 import '../../security/auth_debug_log.dart';
 import '../../security/auth_notifier.dart';
 import '../../security/refresh_result.dart';

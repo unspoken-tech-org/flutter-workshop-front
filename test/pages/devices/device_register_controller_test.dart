@@ -1,40 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_workshop_front/models/colors/color_model.dart';
-import 'package:flutter_workshop_front/models/customer/customer_model.dart';
-import 'package:flutter_workshop_front/models/technician/technician.dart';
-import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
-import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
-import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
-import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
+import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
-import '../../helpers/result_guard.dart';
+import 'package:flutter_workshop_front/models/customer/customer_model.dart';
+import 'package:flutter_workshop_front/pages/devices/device_register/controller/device_register_controller.dart';
+import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
 
-class _FakeDeviceRepository extends Fake implements DeviceRepository {}
-
-class _StubCatalogRepository extends Fake implements CatalogRepository {
-  @override
-  Future<Result<List<ColorModel>>> getColors({
-    bool forceRefresh = false,
-  }) async => const Ok([]);
-
-  @override
-  Future<Result<List<Technician>>> getTechnicians({
-    bool forceRefresh = false,
-  }) async => const Ok([]);
-}
-
-class _StubCustomerRepository extends Fake implements CustomerRepository {
-  final Future<CustomerModel> Function(int customerId) onGet;
-  final List<int> requestedIds = [];
-
-  _StubCustomerRepository(this.onGet);
-
-  @override
-  Future<Result<CustomerModel>> getCustomer(int customerId) {
-    requestedIds.add(customerId);
-    return guardResult(() => onGet(customerId));
-  }
-}
+import '../../support/fakes/fake_catalog_repository.dart';
+import '../../support/fakes/fake_customer_repository.dart';
+import '../../support/fakes/fake_device_repository.dart';
 
 CustomerModel _customer(int id, String name) => CustomerModel(
   customerId: id,
@@ -48,8 +21,8 @@ CustomerModel _customer(int id, String name) => CustomerModel(
 
 DeviceRegisterController _controller(CustomerRepository repository) =>
     DeviceRegisterController(
-      catalogRepository: _StubCatalogRepository(),
-      deviceRepository: _FakeDeviceRepository(),
+      catalogRepository: FakeCatalogRepository(),
+      deviceRepository: FakeDeviceRepository(),
       customerRepository: repository,
     );
 
@@ -60,14 +33,14 @@ void main() {
     test(
       'carrega customerName pelo repositório quando só customerId chega',
       () async {
-        final repository = _StubCustomerRepository(
-          (id) async => _customer(id, 'Maria'),
+        final repository = FakeCustomerRepository(
+          onGetCustomer: (id) async => Ok(_customer(id, 'Maria')),
         );
         final controller = _controller(repository);
 
         await controller.init(10, null);
 
-        expect(repository.requestedIds, [10]);
+        expect(repository.requestedCustomerIds, [10]);
         expect(controller.customerId, 10);
         expect(controller.customerName, 'Maria');
         expect(controller.isCustomerSelected, isTrue);
@@ -76,26 +49,26 @@ void main() {
     );
 
     test('não consulta o repositório quando o nome veio via extra', () async {
-      final repository = _StubCustomerRepository(
-        (id) async => _customer(id, 'Outro'),
+      final repository = FakeCustomerRepository(
+        onGetCustomer: (id) async => Ok(_customer(id, 'Outro')),
       );
       final controller = _controller(repository);
 
       await controller.init(10, 'Maria');
 
-      expect(repository.requestedIds, isEmpty);
+      expect(repository.requestedCustomerIds, isEmpty);
       expect(controller.customerName, 'Maria');
     });
 
     test('não consulta o repositório sem cliente pré-selecionado', () async {
-      final repository = _StubCustomerRepository(
-        (id) async => _customer(id, 'Outro'),
+      final repository = FakeCustomerRepository(
+        onGetCustomer: (id) async => Ok(_customer(id, 'Outro')),
       );
       final controller = _controller(repository);
 
       await controller.init(null, null);
 
-      expect(repository.requestedIds, isEmpty);
+      expect(repository.requestedCustomerIds, isEmpty);
       expect(controller.customerId, isNull);
       expect(controller.isCustomerSelected, isFalse);
     });
@@ -103,8 +76,8 @@ void main() {
     test(
       'falha ao carregar o cliente volta para a busca manual sem travar',
       () async {
-        final repository = _StubCustomerRepository(
-          (id) async => throw Exception('offline'),
+        final repository = FakeCustomerRepository(
+          onGetCustomer: (_) async => const Err(NetworkFailure()),
         );
         final controller = _controller(repository);
 

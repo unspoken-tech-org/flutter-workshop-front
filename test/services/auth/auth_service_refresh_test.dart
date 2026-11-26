@@ -138,27 +138,6 @@ String _makeJwt(int expEpochSeconds) {
 }
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
-  const MethodChannel channel = MethodChannel(
-    'dev.fluttercommunity.plus/package_info',
-  );
-
-  setUpAll(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-          if (methodCall.method == 'getAll') {
-            return <String, dynamic>{
-              'appName': 'flutter_workshop_front',
-              'packageName': 'com.example.flutter_workshop_front',
-              'version': '1.1.1',
-              'buildNumber': '1',
-            };
-          }
-          return null;
-        });
-  });
-
   group('AuthService.refreshToken', () {
     test(
       'deve salvar access e refresh quando backend rotaciona token',
@@ -173,6 +152,7 @@ void main() {
           ),
         });
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: dio,
           storage: storage,
           authNotifier: AuthNotifier(),
@@ -212,6 +192,7 @@ void main() {
           ),
         });
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: dio,
           storage: storage,
           authNotifier: AuthNotifier(),
@@ -249,6 +230,7 @@ void main() {
               _response('/api/auth/revoke', statusCode: 200),
         });
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: dio,
           storage: storage,
           authNotifier: AuthNotifier(),
@@ -274,6 +256,7 @@ void main() {
             _response('/api/auth/revoke', statusCode: 200),
       });
       final service = AuthService(
+        appVersion: () async => '1.1.1',
         dio: dio,
         storage: storage,
         authNotifier: AuthNotifier(),
@@ -299,6 +282,7 @@ void main() {
         ),
       });
       final service = AuthService(
+        appVersion: () async => '1.1.1',
         dio: dio,
         storage: storage,
         authNotifier: authNotifier,
@@ -343,6 +327,7 @@ void main() {
         },
       });
       final service = AuthService(
+        appVersion: () async => '1.1.1',
         dio: dio,
         storage: storage,
         authNotifier: authNotifier,
@@ -396,6 +381,7 @@ void main() {
           },
         });
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: dio,
           storage: storage,
           authNotifier: authNotifier,
@@ -435,6 +421,7 @@ void main() {
               _response('/api/auth/revoke', statusCode: 200),
         });
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: dio,
           storage: storage,
           authNotifier: authNotifier,
@@ -456,6 +443,7 @@ void main() {
             _response('/api/auth/refresh', statusCode: 500),
       });
       final service = AuthService(
+        appVersion: () async => '1.1.1',
         dio: dio,
         storage: storage,
         authNotifier: AuthNotifier(),
@@ -500,6 +488,7 @@ void main() {
             },
           });
           final service = AuthService(
+            appVersion: () async => '1.1.1',
             dio: dio,
             storage: storage,
             authNotifier: authNotifier,
@@ -538,6 +527,7 @@ void main() {
 
     AuthService serviceWith(Future<Response<dynamic>> Function() onRefresh) {
       return AuthService(
+        appVersion: () async => '1.1.1',
         dio: _FakeDio({
           '/api/auth/refresh': (data) {
             refreshCalls += 1;
@@ -711,6 +701,7 @@ void main() {
         adapter: adapter,
       ).createAuthDio();
       final service = AuthService(
+        appVersion: () async => '1.1.1',
         dio: dio,
         storage: storage,
         authNotifier: authNotifier,
@@ -759,6 +750,7 @@ void main() {
           ),
         });
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: dio,
           storage: storage,
           authNotifier: authNotifier,
@@ -786,6 +778,7 @@ void main() {
           },
         });
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: dio,
           storage: storage,
           authNotifier: authNotifier,
@@ -819,6 +812,7 @@ void main() {
           },
         });
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: dio,
           storage: storage,
           authNotifier: notifier,
@@ -848,6 +842,7 @@ void main() {
           },
         });
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: dio,
           storage: storage,
           authNotifier: authNotifier,
@@ -866,6 +861,7 @@ void main() {
       () async {
         final storage = MemorySecurityStorage();
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: _FakeDio({}),
           storage: storage,
           authNotifier: authNotifier,
@@ -884,6 +880,7 @@ void main() {
           ..seedTokens(accessToken: 'at-1', refreshToken: 'rt-1');
         final dio = _FakeDio({});
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: dio,
           storage: storage,
           authNotifier: authNotifier,
@@ -910,6 +907,7 @@ void main() {
           },
         });
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: dio,
           storage: storage,
           authNotifier: authNotifier,
@@ -932,6 +930,7 @@ void main() {
             message: 'Keystore unavailable',
           );
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: _FakeDio({}),
           storage: storage,
           authNotifier: authNotifier,
@@ -954,6 +953,7 @@ void main() {
           message: 'Cannot read device id',
         );
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: _FakeDio({}),
           storage: storage,
           authNotifier: authNotifier,
@@ -985,6 +985,7 @@ void main() {
               _response('/api/auth/revoke', statusCode: 200),
         });
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: dio,
           storage: storage,
           authNotifier: authNotifier,
@@ -1032,6 +1033,7 @@ void main() {
           '/api/auth/refresh': (_) => refreshCompleter.future,
         });
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: dio,
           storage: storage,
           authNotifier: authNotifier,
@@ -1085,6 +1087,7 @@ void main() {
           ),
         });
         final service = AuthService(
+          appVersion: () async => '1.1.1',
           dio: dio,
           storage: storage,
           authNotifier: authNotifier,
@@ -1122,6 +1125,7 @@ void main() {
         final storageExpired = MemorySecurityStorage()
           ..seedTokens(accessToken: expiredJwt);
         final serviceExpired = AuthService(
+          appVersion: () async => '1.1.1',
           dio: _FakeDio({}),
           storage: storageExpired,
           authNotifier: AuthNotifier(),
@@ -1131,6 +1135,7 @@ void main() {
         final storageMalformed = MemorySecurityStorage()
           ..seedTokens(accessToken: 'not-a-jwt');
         final serviceMalformed = AuthService(
+          appVersion: () async => '1.1.1',
           dio: _FakeDio({}),
           storage: storageMalformed,
           authNotifier: AuthNotifier(),
@@ -1140,6 +1145,7 @@ void main() {
         final storageValid = MemorySecurityStorage()
           ..seedTokens(accessToken: validJwt);
         final serviceValid = AuthService(
+          appVersion: () async => '1.1.1',
           dio: _FakeDio({}),
           storage: storageValid,
           authNotifier: AuthNotifier(),
@@ -1149,6 +1155,7 @@ void main() {
         final storageWithRefresh = MemorySecurityStorage()
           ..seedTokens(accessToken: expiredJwt, refreshToken: 'rt-1');
         final serviceWithRefresh = AuthService(
+          appVersion: () async => '1.1.1',
           dio: _FakeDio({}),
           storage: storageWithRefresh,
           authNotifier: AuthNotifier(),

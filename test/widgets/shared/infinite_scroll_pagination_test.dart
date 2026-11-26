@@ -1,14 +1,6 @@
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
-import 'package:flutter_workshop_front/models/customer/customer_model.dart';
-import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
-import 'package:flutter_workshop_front/models/customer/input_customer.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
-import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
-import 'package:flutter_workshop_front/models/device_brand/device_brand_model.dart';
-import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/pageable/page_model.dart';
@@ -18,15 +10,16 @@ import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all
 import 'package:flutter_workshop_front/pages/devices/all_devices/widgets/all_devices_view.dart';
 import 'package:flutter_workshop_front/pages/devices/search_devices/controllers/search_devices_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/search_devices/widgets/search_devices_view.dart';
-import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
-import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
-import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controller.dart';
 import 'package:flutter_workshop_front/widgets/shared/infinite_scroll_listener.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
-import '../../helpers/result_guard.dart';
+
+import '../../support/fakes/fake_catalog_repository.dart';
+import '../../support/fakes/fake_customer_repository.dart';
+import '../../support/fakes/fake_device_repository.dart';
 
 MinifiedCustomerModel _customer(int id) => MinifiedCustomerModel(
   customerId: id,
@@ -52,65 +45,6 @@ DeviceDataTable _device(int id) => DeviceDataTable(
   entryDate: DateTime(2026, 1, 1),
 );
 
-class _FakeCustomerRepository implements CustomerRepository {
-  final Future<Page<MinifiedCustomerModel>> Function(int page) onSearch;
-  final List<CustomerSearchFilter?> receivedFilters = [];
-
-  _FakeCustomerRepository(this.onSearch);
-
-  @override
-  Future<Result<Page<MinifiedCustomerModel>>> searchCustomers(
-    CustomerSearchFilter? filter,
-  ) => guardResult(() {
-    receivedFilters.add(filter);
-    return onSearch(filter?.page ?? 0);
-  });
-
-  @override
-  Future<Result<CustomerModel>> createCustomer(InputCustomer customer) =>
-      guardResult(() => throw UnimplementedError());
-
-  @override
-  Future<Result<CustomerModel>> getCustomer(int customerId) =>
-      guardResult(() => throw UnimplementedError());
-
-  @override
-  Future<Result<CustomerModel>> updateCustomer(
-    int customerId,
-    InputCustomer customer,
-  ) => guardResult(() => throw UnimplementedError());
-}
-
-class _FakeDevicesRepository extends Fake implements DeviceRepository {
-  final Future<Page<DeviceDataTable>> Function(int page) onFetch;
-
-  _FakeDevicesRepository(this.onFetch);
-
-  @override
-  Future<Result<Page<DeviceDataTable>>> getAllDevicesFiltering([
-    DeviceFilter? filter,
-  ]) => guardResult(() => onFetch(filter?.page ?? 0));
-
-  @override
-  Future<Result<Page<DeviceDataTable>>> searchDevices([
-    DeviceSearchFilter? filter,
-  ]) => guardResult(() => onFetch(filter?.page ?? 0));
-}
-
-class _StubCatalogRepository extends Fake implements CatalogRepository {
-  @override
-  Future<Result<List<DeviceBrand>>> getAllDeviceBrands([
-    String? name,
-    bool forceRefresh = false,
-  ]) => guardResult(() async => []);
-
-  @override
-  Future<Result<List<DeviceType>>> getAllDeviceTypes([
-    String? name,
-    bool forceRefresh = false,
-  ]) => guardResult(() async => []);
-}
-
 Widget _wrapWithRouter(Widget child) {
   final router = GoRouter(
     initialLocation: '/list',
@@ -134,33 +68,40 @@ void main() {
         addTearDown(tester.view.resetPhysicalSize);
 
         final requestedPages = <int>[];
-        final repo = _FakeCustomerRepository((page) async {
-          requestedPages.add(page);
-          if (page == 0) {
-            return Page(
-              content: [_customer(1), _customer(2)],
-              last: false,
-              totalPages: 2,
-              totalElements: 4,
-              size: 2,
-              number: 0,
-              numberOfElements: 2,
-              first: true,
-              empty: false,
+        final repo = FakeCustomerRepository(
+          onSearchCustomers: (filter) async {
+            final page = filter?.page ?? 0;
+            requestedPages.add(page);
+            if (page == 0) {
+              return Ok(
+                Page(
+                  content: [_customer(1), _customer(2)],
+                  last: false,
+                  totalPages: 2,
+                  totalElements: 4,
+                  size: 2,
+                  number: 0,
+                  numberOfElements: 2,
+                  first: true,
+                  empty: false,
+                ),
+              );
+            }
+            return Ok(
+              Page(
+                content: [_customer(3), _customer(4)],
+                last: true,
+                totalPages: 2,
+                totalElements: 4,
+                size: 2,
+                number: 1,
+                numberOfElements: 2,
+                first: false,
+                empty: false,
+              ),
             );
-          }
-          return Page(
-            content: [_customer(3), _customer(4)],
-            last: true,
-            totalPages: 2,
-            totalElements: 4,
-            size: 2,
-            number: 1,
-            numberOfElements: 2,
-            first: false,
-            empty: false,
-          );
-        });
+          },
+        );
 
         final controller = AllCustomerController(customerRepository: repo);
         await tester.pumpWidget(
@@ -180,7 +121,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(requestedPages, [0, 1]);
-        expect(repo.receivedFilters.map((f) => (f?.page, f?.size)), [
+        expect(repo.recordedSearchFilters.map((f) => (f?.page, f?.size)), [
           (0, 10),
           (1, 10),
         ]);
@@ -240,36 +181,49 @@ void main() {
         final requestedPages = <int>[];
         var shouldFailPage1 = true;
 
-        final repo = _FakeCustomerRepository((page) async {
-          requestedPages.add(page);
-          if (page == 0) {
-            return Page(
-              content: [_customer(1), _customer(2)],
-              last: false,
-              totalPages: 2,
-              totalElements: 4,
-              size: 2,
-              number: 0,
-              numberOfElements: 2,
-              first: true,
-              empty: false,
+        final repo = FakeCustomerRepository(
+          onSearchCustomers: (filter) async {
+            final page = filter?.page ?? 0;
+            requestedPages.add(page);
+            if (page == 0) {
+              return Ok(
+                Page(
+                  content: [_customer(1), _customer(2)],
+                  last: false,
+                  totalPages: 2,
+                  totalElements: 4,
+                  size: 2,
+                  number: 0,
+                  numberOfElements: 2,
+                  first: true,
+                  empty: false,
+                ),
+              );
+            }
+            if (shouldFailPage1) {
+              return const Err(
+                ValidationFailure(
+                  message: 'Falha na paginação',
+                  code: '500',
+                  statusCode: 400,
+                ),
+              );
+            }
+            return Ok(
+              Page(
+                content: [_customer(3)],
+                last: true,
+                totalPages: 2,
+                totalElements: 3,
+                size: 2,
+                number: 1,
+                numberOfElements: 1,
+                first: false,
+                empty: false,
+              ),
             );
-          }
-          if (shouldFailPage1) {
-            throw RequisitionException('Falha na paginação', '500');
-          }
-          return Page(
-            content: [_customer(3)],
-            last: true,
-            totalPages: 2,
-            totalElements: 3,
-            size: 2,
-            number: 1,
-            numberOfElements: 1,
-            first: false,
-            empty: false,
-          );
-        });
+          },
+        );
 
         final controller = AllCustomerController(customerRepository: repo);
         await tester.pumpWidget(
@@ -315,25 +269,30 @@ void main() {
         addTearDown(tester.view.resetPhysicalSize);
 
         final requestedPages = <int>[];
-        final repo = _FakeDevicesRepository((page) async {
-          requestedPages.add(page);
-          if (page == 0) {
-            return Page(
-              content: [_device(1)],
-              last: false,
-              totalPages: 2,
-              totalElements: 2,
-              size: 1,
-              number: 0,
-              numberOfElements: 1,
-              first: true,
-              empty: false,
-            );
-          }
-          throw Exception('network error');
-        });
+        final repo = FakeDeviceRepository(
+          onGetAllDevicesFiltering: (filter) async {
+            final page = filter?.page ?? 0;
+            requestedPages.add(page);
+            if (page == 0) {
+              return Ok(
+                Page(
+                  content: [_device(1)],
+                  last: false,
+                  totalPages: 2,
+                  totalElements: 2,
+                  size: 1,
+                  number: 0,
+                  numberOfElements: 1,
+                  first: true,
+                  empty: false,
+                ),
+              );
+            }
+            return const Err(NetworkFailure());
+          },
+        );
 
-        final controller = AllDevicesController(repo, _StubCatalogRepository());
+        final controller = AllDevicesController(repo, FakeCatalogRepository());
         await tester.pumpWidget(
           _wrapWithRouter(
             ChangeNotifierProvider.value(
@@ -366,36 +325,49 @@ void main() {
 
         final requestedPages = <int>[];
         var failPage1 = true;
-        final repo = _FakeDevicesRepository((page) async {
-          requestedPages.add(page);
-          if (page == 0) {
-            return Page(
-              content: [_device(10)],
-              last: false,
-              totalPages: 2,
-              totalElements: 2,
-              size: 1,
-              number: 0,
-              numberOfElements: 1,
-              first: true,
-              empty: false,
+        final repo = FakeDeviceRepository(
+          onSearchDevices: (filter) async {
+            final page = filter?.page ?? 0;
+            requestedPages.add(page);
+            if (page == 0) {
+              return Ok(
+                Page(
+                  content: [_device(10)],
+                  last: false,
+                  totalPages: 2,
+                  totalElements: 2,
+                  size: 1,
+                  number: 0,
+                  numberOfElements: 1,
+                  first: true,
+                  empty: false,
+                ),
+              );
+            }
+            if (failPage1) {
+              return const Err(
+                ValidationFailure(
+                  message: 'Falha na busca',
+                  code: '500',
+                  statusCode: 400,
+                ),
+              );
+            }
+            return Ok(
+              Page(
+                content: [_device(11)],
+                last: true,
+                totalPages: 2,
+                totalElements: 2,
+                size: 1,
+                number: 1,
+                numberOfElements: 1,
+                first: false,
+                empty: false,
+              ),
             );
-          }
-          if (failPage1) {
-            throw RequisitionException('Falha na busca', '500');
-          }
-          return Page(
-            content: [_device(11)],
-            last: true,
-            totalPages: 2,
-            totalElements: 2,
-            size: 1,
-            number: 1,
-            numberOfElements: 1,
-            first: false,
-            empty: false,
-          );
-        });
+          },
+        );
 
         final controller = SearchDevicesController(repo);
         await tester.pumpWidget(

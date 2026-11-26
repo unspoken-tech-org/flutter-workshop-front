@@ -1,12 +1,12 @@
-import '../../support/offline_services.dart';
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
-import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
-import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
+import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
-import '../../helpers/result_guard.dart';
+import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
+
+import '../../support/fakes/fake_device_repository.dart';
+import '../../support/offline_services.dart';
 
 DeviceCustomer _device({
   String problem = 'Não liga',
@@ -38,24 +38,6 @@ DeviceCustomer _device({
   'payments': const <dynamic>[],
 });
 
-class _FakeDeviceRepository extends Fake implements DeviceRepository {
-  Future<DeviceCustomer> Function(DeviceCustomer) onUpdate;
-  Future<DeviceCustomer> Function(bool) onUrgency;
-
-  _FakeDeviceRepository({required this.onUpdate, required this.onUrgency});
-
-  @override
-  Future<Result<DeviceCustomer>> updateDeviceCustomer(
-    DeviceCustomer deviceCustomer,
-  ) => guardResult(() => onUpdate(deviceCustomer));
-
-  @override
-  Future<Result<DeviceCustomer>> updateDeviceHasUrgency(
-    int deviceId,
-    bool hasUrgency,
-  ) => guardResult(() => onUrgency(hasUrgency));
-}
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -65,9 +47,8 @@ void main() {
       () async {
         final saved = _device(problem: 'Tela quebrada');
         final controller = testDeviceCustomerPageController(
-          deviceRepository: _FakeDeviceRepository(
-            onUpdate: (_) async => saved,
-            onUrgency: (_) async => throw UnimplementedError(),
+          deviceRepository: FakeDeviceRepository(
+            onUpdateDeviceCustomer: (_) async => Ok(saved),
           ),
         )..deviceCustomer = _device();
 
@@ -79,9 +60,14 @@ void main() {
 
     test('retorna false quando o servidor rejeita', () async {
       final controller = testDeviceCustomerPageController(
-        deviceRepository: _FakeDeviceRepository(
-          onUpdate: (_) async => throw RequisitionException('Inválido', '400'),
-          onUrgency: (_) async => throw UnimplementedError(),
+        deviceRepository: FakeDeviceRepository(
+          onUpdateDeviceCustomer: (_) async => const Err(
+            ValidationFailure(
+              message: 'Inválido',
+              code: '400',
+              statusCode: 400,
+            ),
+          ),
         ),
       )..deviceCustomer = _device();
 
@@ -90,15 +76,15 @@ void main() {
     });
 
     test('save não é descartado por uma ação rápida em andamento', () async {
-      final urgency = Completer<DeviceCustomer>();
+      final urgency = Completer<Result<DeviceCustomer>>();
       var saveCalls = 0;
       final controller = testDeviceCustomerPageController(
-        deviceRepository: _FakeDeviceRepository(
-          onUpdate: (d) async {
+        deviceRepository: FakeDeviceRepository(
+          onUpdateDeviceCustomer: (d) async {
             saveCalls++;
-            return d;
+            return Ok(d);
           },
-          onUrgency: (_) => urgency.future,
+          onUpdateDeviceHasUrgency: (_, __) => urgency.future,
         ),
       )..deviceCustomer = _device();
 
@@ -108,15 +94,16 @@ void main() {
       expect(await controller.updateDeviceCustomer(), isTrue);
       expect(saveCalls, 1);
 
-      urgency.complete(_device(hasUrgency: true));
+      urgency.complete(Ok(_device(hasUrgency: true)));
       await urgencyFuture;
     });
 
     test('cancelar após ação rápida mantém o que o servidor gravou', () async {
       final controller = testDeviceCustomerPageController(
-        deviceRepository: _FakeDeviceRepository(
-          onUpdate: (d) async => d,
-          onUrgency: (value) async => _device(hasUrgency: value),
+        deviceRepository: FakeDeviceRepository(
+          onUpdateDeviceCustomer: (d) async => Ok(d),
+          onUpdateDeviceHasUrgency: (_, value) async =>
+              Ok(_device(hasUrgency: value)),
         ),
       )..deviceCustomer = _device();
 

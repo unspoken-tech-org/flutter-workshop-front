@@ -1,15 +1,11 @@
 import '../../support/offline_services.dart';
+
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_workshop_front/core/exceptions/requisition_exception.dart';
 import 'package:flutter_workshop_front/models/customer/customer_model.dart';
-import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
-import 'package:flutter_workshop_front/models/customer/input_customer.dart';
-import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_contact.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
-import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/controllers/customer_detail_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/widgets/customer_detail_form.dart';
@@ -17,14 +13,15 @@ import 'package:flutter_workshop_front/pages/devices/device_details/device_detai
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/contact_card.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_info_header_widget.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/customer_device_technical_info_widget.dart';
-import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
-import 'package:flutter_workshop_front/repositories/customer/customer_repository.dart';
-import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controller.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
-import '../../helpers/result_guard.dart';
+
+import '../../support/fakes/fake_catalog_repository.dart';
+import '../../support/fakes/fake_customer_repository.dart';
+import '../../support/fakes/fake_device_repository.dart';
 
 DeviceCustomer _sampleDevice({
   int technicianId = 10,
@@ -57,48 +54,6 @@ DeviceCustomer _sampleDevice({
   'payments': const <dynamic>[],
 });
 
-class _StubDeviceRepository extends Fake implements DeviceRepository {
-  final Future<DeviceCustomer> Function(int deviceId) onGet;
-
-  _StubDeviceRepository(this.onGet);
-
-  @override
-  Future<Result<DeviceCustomer>> getCustomerDeviceById(int deviceId) =>
-      guardResult(() => onGet(deviceId));
-}
-
-class _StubCatalogRepository extends Fake implements CatalogRepository {
-  final Future<List<Technician>> Function() onGet;
-
-  _StubCatalogRepository(this.onGet);
-
-  @override
-  Future<Result<List<Technician>>> getTechnicians({
-    bool forceRefresh = false,
-  }) => guardResult(() => onGet());
-}
-
-class _StubCustomerRepository implements CustomerRepository {
-  @override
-  Future<Result<CustomerModel>> createCustomer(InputCustomer customer) =>
-      throw UnimplementedError();
-
-  @override
-  Future<Result<CustomerModel>> getCustomer(int customerId) =>
-      throw UnimplementedError();
-
-  @override
-  Future<Result<Page<MinifiedCustomerModel>>> searchCustomers(
-    CustomerSearchFilter? filter,
-  ) => throw UnimplementedError();
-
-  @override
-  Future<Result<CustomerModel>> updateCustomer(
-    int customerId,
-    InputCustomer customer,
-  ) => throw UnimplementedError();
-}
-
 Widget _wrapWithRouter(Widget child) {
   final router = GoRouter(
     initialLocation: '/device',
@@ -126,17 +81,25 @@ void main() {
         addTearDown(tester.view.resetPhysicalSize);
 
         var attempts = 0;
-        final deviceRepo = _StubDeviceRepository((id) async {
-          attempts++;
-          if (attempts == 1) {
-            throw RequisitionException('Falha ao carregar aparelho', '500');
-          }
-          return _sampleDevice();
-        });
-        final catalogRepo = _StubCatalogRepository(
-          () async => [
+        final deviceRepo = FakeDeviceRepository(
+          onGetCustomerDeviceById: (id) async {
+            attempts++;
+            if (attempts == 1) {
+              return const Err(
+                ValidationFailure(
+                  message: 'Falha ao carregar aparelho',
+                  code: '500',
+                  statusCode: 400,
+                ),
+              );
+            }
+            return Ok(_sampleDevice());
+          },
+        );
+        final catalogRepo = FakeCatalogRepository(
+          techniciansResult: Ok([
             Technician(id: 10, name: 'Carlos Silva', number: '11999999999'),
-          ],
+          ]),
         );
 
         await tester.pumpWidget(
@@ -170,9 +133,11 @@ void main() {
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.resetPhysicalSize);
 
-        final deviceRepo = _StubDeviceRepository((_) async => _sampleDevice());
-        final catalogRepo = _StubCatalogRepository(
-          () async => throw Exception('network down'),
+        final deviceRepo = FakeDeviceRepository(
+          customerDeviceResult: Ok(_sampleDevice()),
+        );
+        final catalogRepo = FakeCatalogRepository(
+          techniciansResult: const Err(NetworkFailure()),
         );
 
         await tester.pumpWidget(
@@ -288,7 +253,7 @@ void main() {
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.resetPhysicalSize);
 
-        final controller = CustomerDetailController(_StubCustomerRepository());
+        final controller = CustomerDetailController(FakeCustomerRepository());
         final customer = CustomerModel(
           customerId: 1,
           name: 'João',

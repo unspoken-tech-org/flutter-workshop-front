@@ -9,34 +9,10 @@ import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/pages/bootstrap_error/bootstrap_error_page.dart';
 import 'package:flutter_workshop_front/pages/home/home_page.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
+import 'package:flutter_workshop_front/pages/splash/splash_page.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 
-class _StubAuthService implements AuthService {
-  int initializeCalls = 0;
-  Completer<AuthRouteState>? pendingInitialize;
-  AuthRouteState nextState = AuthRouteState.authenticated;
-  final AuthNotifier _authNotifier;
-
-  _StubAuthService(this._authNotifier);
-
-  @override
-  Future<String?> get apiKey async => null;
-
-  @override
-  Future<AuthRouteState> initializeAuthState() async {
-    initializeCalls += 1;
-    if (pendingInitialize != null) {
-      final result = await pendingInitialize!.future;
-      _authNotifier.setState(result);
-      return result;
-    }
-    _authNotifier.setState(nextState);
-    return nextState;
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+import '../../support/fakes/fake_auth_service.dart';
 
 void main() {
   group('BootstrapErrorPage', () {
@@ -44,9 +20,9 @@ void main() {
       'exibe mensagem de offline e aciona retry e reconfiguracao de chave',
       (tester) async {
         final authNotifier = AuthNotifier(initialState: AuthRouteState.offline);
-        final authService = _StubAuthService(authNotifier);
+        final authService = FakeAuthService(authNotifier: authNotifier);
         final completer = Completer<AuthRouteState>();
-        authService.pendingInitialize = completer;
+        authService.onInitializeAuthState = () => completer.future;
 
         await tester.pumpWidget(
           MultiProvider(
@@ -84,7 +60,7 @@ void main() {
       final authNotifier = AuthNotifier(
         initialState: AuthRouteState.storageError,
       );
-      final authService = _StubAuthService(authNotifier);
+      final authService = FakeAuthService(authNotifier: authNotifier);
 
       await tester.pumpWidget(
         MultiProvider(
@@ -104,17 +80,21 @@ void main() {
 
   group('GoRouter redirects for AuthRouteState', () {
     test('resolveAuthRedirect cobre todos os estados de AuthRouteState', () {
-      // restoring: nunca redireciona
+      // restoring: redireciona tudo para /splash
       expect(
         resolveAuthRedirect(AuthRouteState.restoring, HomePage.route),
-        isNull,
+        SplashPage.route,
       );
       expect(
         resolveAuthRedirect(AuthRouteState.restoring, SetupPage.route),
-        isNull,
+        SplashPage.route,
       );
       expect(
         resolveAuthRedirect(AuthRouteState.restoring, BootstrapErrorPage.route),
+        SplashPage.route,
+      );
+      expect(
+        resolveAuthRedirect(AuthRouteState.restoring, SplashPage.route),
         isNull,
       );
 
@@ -151,7 +131,11 @@ void main() {
         expect(resolveAuthRedirect(state, BootstrapErrorPage.route), isNull);
       }
 
-      // authenticated: tira de /setup e /bootstrap-error, libera rotas do app
+      // authenticated: tira de /splash, /setup e /bootstrap-error, libera rotas do app
+      expect(
+        resolveAuthRedirect(AuthRouteState.authenticated, SplashPage.route),
+        HomePage.route,
+      );
       expect(
         resolveAuthRedirect(AuthRouteState.authenticated, SetupPage.route),
         HomePage.route,
@@ -177,10 +161,14 @@ void main() {
       tester,
     ) async {
       final authNotifier = AuthNotifier(initialState: AuthRouteState.restoring);
-      final authService = _StubAuthService(authNotifier);
+      final authService = FakeAuthService(authNotifier: authNotifier);
       final router = buildRouter(
         authNotifier,
         routesOverride: [
+          GoRoute(
+            path: SplashPage.route,
+            builder: (_, __) => const SplashPage(),
+          ),
           GoRoute(
             path: HomePage.route,
             builder: (_, __) => const Scaffold(body: Text('HOME_PLACEHOLDER')),
@@ -205,10 +193,10 @@ void main() {
           child: MaterialApp.router(routerConfig: router),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
 
-      // 1. restoring: permanece em /home
-      expect(find.text('HOME_PLACEHOLDER'), findsOneWidget);
+      // 1. restoring: exibe SplashPage em /splash
+      expect(find.byType(SplashPage), findsOneWidget);
 
       // 2. offline -> /bootstrap-error com BootstrapErrorPage
       authNotifier.setState(AuthRouteState.offline);
