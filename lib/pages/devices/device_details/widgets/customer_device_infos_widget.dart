@@ -23,6 +23,9 @@ class _CustomerDeviceInfosWidgetState extends State<CustomerDeviceInfosWidget> {
   bool isEditing = false;
   @override
   Widget build(BuildContext context) {
+    final isSaving = context.select<DeviceCustomerPageController, bool>(
+      (controller) => controller.isSaving,
+    );
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -78,6 +81,7 @@ class _CustomerDeviceInfosWidgetState extends State<CustomerDeviceInfosWidget> {
                   children: [
                     if (isEditing)
                       DeviceCustomerCancelButton(
+                        isSaving: isSaving,
                         onCancel: () {
                           context
                               .read<DeviceCustomerPageController>()
@@ -108,6 +112,7 @@ class _CustomerDeviceInfosWidgetState extends State<CustomerDeviceInfosWidget> {
                         setState(() => isEditing = true);
                       },
                       isEditing: isEditing,
+                      isSaving: isSaving,
                     ),
                   ],
                 ),
