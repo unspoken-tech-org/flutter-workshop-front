@@ -11,8 +11,13 @@ a new release undoes it. Workflow: `.github/workflows/release-flutter-windows.ym
   create it again. CI fails a PR whose pubspec version is below the last final
   tag. The build takes the version from the tag (`--build-name`).
 - `vX.Y.Z-rc.N` (with a dot) becomes a pre-release, ignored by
-  `/releases/latest`. `vX.Y.Z` on the same commit as the approved rc becomes
-  `latest`. A hotfix patch skips the rc. The API uses the same suffixes.
+  `/releases/latest`, and may be tagged on `main`, `release/X.Y` or
+  `feature/<name>`. `vX.Y.Z` on the same commit as the approved rc becomes
+  `latest`; the workflow refuses a final tag whose commit is not in `main` or
+  `release/*`. A hotfix patch skips the rc. The API uses the same suffixes.
+- An rc on `feature/<name>` (usually `-qa`) validates the feature before its
+  final PR; bump the pubspec to `X.Y.Z` in that branch first. It never becomes
+  the final: tag a new rc on the merge commit in `main` and promote that one.
 - `vX.Y.Z-rc.N-qa` builds the rc against the QA API (`.env-qa`); every other
   tag builds with `.env-prd`. The workflow drops `GITHUB_OWNER`/`GITHUB_REPO`
   from the QA build, so it never checks for updates (it would install the next
