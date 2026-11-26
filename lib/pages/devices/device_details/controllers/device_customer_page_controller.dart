@@ -9,8 +9,10 @@ import 'package:flutter_workshop_front/models/customer_device/customer_device_pa
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
+import 'package:flutter_workshop_front/models/device/device_input.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
+import 'package:flutter_workshop_front/models/types_brands_models/type_brand_model_input.dart';
 import 'package:flutter_workshop_front/repositories/catalog/catalog_repository.dart';
 import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 
@@ -44,6 +46,7 @@ class DeviceCustomerPageController extends ChangeNotifier
     createContact = Command<InputCustomerContact, void>(_createContact);
     updateContact = Command<(int, InputCustomerContact), void>(_updateContact);
     createPayment = Command<InputPayment, void>(_createPayment);
+    openRevision = Command<DeviceCustomer, int>(_openRevision);
     for (final command in _commands) {
       command.addListener(notifyListeners);
     }
@@ -59,6 +62,7 @@ class DeviceCustomerPageController extends ChangeNotifier
   late final Command<InputCustomerContact, void> createContact;
   late final Command<(int, InputCustomerContact), void> updateContact;
   late final Command<InputPayment, void> createPayment;
+  late final Command<DeviceCustomer, int> openRevision;
 
   List<ChangeNotifier> get _commands => [
     load,
@@ -69,6 +73,7 @@ class DeviceCustomerPageController extends ChangeNotifier
     createContact,
     updateContact,
     createPayment,
+    openRevision,
   ];
 
   /// Monta o controller com os repositórios do [AppDependencies].
@@ -87,7 +92,10 @@ class DeviceCustomerPageController extends ChangeNotifier
 
   /// Alguma ação rápida do cabeçalho (urgência, revisão ou status) rodando.
   bool get isUpdating =>
-      setUrgency.running || setRevision.running || setStatus.running;
+      setUrgency.running ||
+      setRevision.running ||
+      setStatus.running ||
+      openRevision.running;
 
   /// Salvamento da edição. Separado de [isUpdating] para que uma ação rápida
   /// em andamento não descarte o save em silêncio.
@@ -202,12 +210,22 @@ class DeviceCustomerPageController extends ChangeNotifier
     }
   }
 
-  Future<void> updateDeviceHasUrgency(bool hasUrgency) => _runQuickAction(
-    setUrgency,
-    hasUrgency,
-    success: 'Urgencia do dispositivo atualizada com sucesso',
-    failure: 'Erro ao atualizar urgência do dispositivo. Tente novamente.',
-  );
+  static const closedOrderMessage =
+      'OS encerrada: não é possível alterar urgência ou contatos. '
+      'Use "Abrir revisão" para abrir uma nova OS.';
+
+  Future<void> updateDeviceHasUrgency(bool hasUrgency) async {
+    if (deviceCustomer?.isClosed ?? false) {
+      emitError(closedOrderMessage);
+      return;
+    }
+    await _runQuickAction(
+      setUrgency,
+      hasUrgency,
+      success: 'Urgencia do dispositivo atualizada com sucesso',
+      failure: 'Erro ao atualizar urgência do dispositivo. Tente novamente.',
+    );
+  }
 
   Future<void> updateDeviceRevision(bool revision) => _runQuickAction(
     setRevision,
@@ -251,6 +269,63 @@ class DeviceCustomerPageController extends ChangeNotifier
     }
   }
 
+  /// Abre uma OS de revisão a partir da OS encerrada [origin] (plano §4.3):
+  /// cria a OS nova com cliente, tipo/marca/modelo, cores e defeito da origem
+  /// (`originOrderId` + `revision`) e, como a API anterior à Fase 2 ignora
+  /// esses campos, marca a revisão na OS nova (aberta, então permitido).
+  /// A OS de origem não é alterada. Devolve o id da OS nova.
+  Future<Result<int>> _openRevision(DeviceCustomer origin) async {
+    final created = await _deviceRepository.createDeviceCustomer(
+      DeviceInput(
+        customerId: origin.customerId,
+        problem: origin.problem,
+        typeBrandModel: TypeBrandModelInput(
+          type: origin.typeName,
+          brand: origin.brandName,
+          model: origin.modelName,
+        ),
+        colors: origin.deviceColors,
+        originOrderId: origin.deviceId,
+        revision: true,
+      ),
+    );
+    switch (created) {
+      case Err(:final failure):
+        return Err<int>(failure);
+      case Ok(:final value):
+        final newId = value.deviceId;
+        if (await _deviceRepository.updateDeviceRevision(newId, true)
+            case Err()) {
+          emitError(
+            'A OS nova foi criada, mas não foi possível marcá-la como '
+            'revisão. Marque a revisão no detalhe dela.',
+          );
+        }
+        return Ok<int>(newId);
+    }
+  }
+
+  /// Retorna o id da OS de revisão criada, ou `null` (OS não encerrada, ação
+  /// em andamento ou erro, já publicado como mensagem).
+  Future<int?> openRevisionOrder() async {
+    final origin = deviceCustomer;
+    if (origin == null || !origin.isClosed || isUpdating || isSaving) {
+      return null;
+    }
+    switch (await openRevision.execute(origin)) {
+      case null:
+        return null;
+      case Ok(:final value):
+        emitSuccess('Revisão aberta em uma nova OS');
+        return value;
+      case Err(:final failure):
+        emitError(
+          failure.messageOr('Erro ao abrir a revisão. Tente novamente.'),
+        );
+        return null;
+    }
+  }
+
   Future<Result<void>> _createContact(InputCustomerContact contact) async {
     final result = await _deviceRepository.createCustomerContact(contact);
     if (result is Ok<void>) await _getCustomerDevice(deviceCustomer!.deviceId);
@@ -261,6 +336,10 @@ class DeviceCustomerPageController extends ChangeNotifier
     InputCustomerContact customerContact,
   ) async {
     if (deviceCustomer == null) return false;
+    if (deviceCustomer!.isClosed) {
+      emitError(closedOrderMessage);
+      return false;
+    }
     switch (await createContact.execute(customerContact)) {
       case null:
         return false;
@@ -287,6 +366,10 @@ class DeviceCustomerPageController extends ChangeNotifier
     InputCustomerContact customerContact,
   ) async {
     if (deviceCustomer == null) return false;
+    if (deviceCustomer!.isClosed) {
+      emitError(closedOrderMessage);
+      return false;
+    }
     switch (await updateContact.execute((contactId, customerContact))) {
       case null:
         return false;

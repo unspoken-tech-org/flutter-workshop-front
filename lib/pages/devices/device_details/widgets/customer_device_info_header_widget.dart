@@ -6,7 +6,6 @@ import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/models/customer_device/customer_phones.dart';
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
-import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/device_status_chip.dart';
 import 'package:flutter_workshop_front/core/format/br_format.dart';
@@ -36,46 +35,47 @@ class _CustomerDeviceInfoHeaderWidgetState
     return BrFormat.phone(mainPhone.number);
   }
 
-  Future<void> _executeUpdateOrShowDialog(
-    BuildContext context, {
-    required Future<void> Function() onConfirm,
-    required StatusEnum actualStatus,
-    required String message,
-  }) async {
-    if (![StatusEnum.delivered, StatusEnum.disposed].contains(actualStatus)) {
-      await onConfirm();
-      return Future.value();
-    }
-    return showDialog(
+  Future<void> _confirmOpenRevision(
+    BuildContext context,
+    DeviceCustomer origin,
+  ) async {
+    final controller = context.read<DeviceCustomerPageController>();
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => SizedBox(
-        width: 100,
-        height: 100,
-        child: AlertDialog(
-          title: const Text('Aviso'),
-          content: SizedBox(width: 300, child: Text(message)),
-          actions: [
-            Semantics(
-              identifier: 'deviceDetail.warning.cancel',
-              child: TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancelar'),
-              ),
-            ),
-            Semantics(
-              identifier: 'deviceDetail.warning.confirm',
-              child: TextButton(
-                onPressed: () {
-                  unawaited(onConfirm());
-                  Navigator.pop(context);
-                },
-                child: const Text('Prosseguir'),
-              ),
-            ),
-          ],
+      builder: (context) => AlertDialog(
+        title: const Text('Abrir revisão'),
+        content: SizedBox(
+          width: 360,
+          child: Text(
+            'Será aberta uma nova OS de revisão para '
+            '${origin.customerName.capitalizeAllWords}, com o mesmo aparelho '
+            '(${origin.typeName} ${origin.brandName} ${origin.modelName}), '
+            'cores e defeito desta OS. A OS atual continua encerrada, com '
+            'pagamentos e data de saída. Deseja prosseguir?',
+          ),
         ),
+        actions: [
+          Semantics(
+            identifier: 'deviceDetail.openRevision.cancel',
+            child: TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+          ),
+          Semantics(
+            identifier: 'deviceDetail.openRevision.confirm',
+            child: TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Abrir revisão'),
+            ),
+          ),
+        ],
       ),
     );
+    if (confirmed != true) return;
+    final newId = await controller.openRevisionOrder();
+    if (newId == null || !context.mounted) return;
+    await WsNavigator.pushDeviceDetails(context, newId, replaced: true);
   }
 
   @override
@@ -108,52 +108,49 @@ class _CustomerDeviceInfoHeaderWidgetState
                       identifier: 'deviceDetail.urgency',
                       child: UrgencyChip(
                         hasUrgency: deviceCustomer.hasUrgency,
-                        onTap: isUpdating
+                        disabledTooltip: deviceCustomer.isClosed
+                            ? 'OS encerrada: urgência não pode ser alterada'
+                            : null,
+                        onTap: isUpdating || deviceCustomer.isClosed
                             ? null
-                            : () async {
-                                await _executeUpdateOrShowDialog(
-                                  context,
-                                  actualStatus: deviceCustomer.deviceStatus,
-                                  message:
-                                      'Alterar o status de urgência fara com que o status do aparelho seja alterado para "Novo". Deseja Prosseguir?',
-                                  onConfirm: () async {
-                                    await context
-                                        .read<DeviceCustomerPageController>()
-                                        .updateDeviceHasUrgency(
-                                          !deviceCustomer.hasUrgency,
-                                        );
-                                    if (!mounted) return;
-                                    setState(() {});
-                                  },
-                                );
-                              },
+                            : () => unawaited(
+                                context
+                                    .read<DeviceCustomerPageController>()
+                                    .updateDeviceHasUrgency(
+                                      !deviceCustomer.hasUrgency,
+                                    ),
+                              ),
                       ),
                     ),
-                    Semantics(
-                      identifier: 'deviceDetail.revision',
-                      child: RevisionChip(
-                        revision: deviceCustomer.revision,
-                        onTap: isUpdating
-                            ? null
-                            : () async {
-                                await _executeUpdateOrShowDialog(
-                                  context,
-                                  actualStatus: deviceCustomer.deviceStatus,
-                                  message:
-                                      'Alterar o status de revisão fara com que o status do aparelho seja alterado para "Novo". Deseja Prosseguir?',
-                                  onConfirm: () async {
-                                    await context
-                                        .read<DeviceCustomerPageController>()
-                                        .updateDeviceRevision(
-                                          !deviceCustomer.revision,
-                                        );
-                                    if (!mounted) return;
-                                    setState(() {});
-                                  },
-                                );
-                              },
+                    if (deviceCustomer.isClosed)
+                      Semantics(
+                        identifier: 'deviceDetail.openRevision',
+                        child: OutlinedButton.icon(
+                          onPressed: isUpdating
+                              ? null
+                              : () => unawaited(
+                                  _confirmOpenRevision(context, deviceCustomer),
+                                ),
+                          icon: const Icon(Icons.history, size: 16),
+                          label: const Text('Abrir revisão'),
+                        ),
+                      )
+                    else
+                      Semantics(
+                        identifier: 'deviceDetail.revision',
+                        child: RevisionChip(
+                          revision: deviceCustomer.revision,
+                          onTap: isUpdating
+                              ? null
+                              : () => unawaited(
+                                  context
+                                      .read<DeviceCustomerPageController>()
+                                      .updateDeviceRevision(
+                                        !deviceCustomer.revision,
+                                      ),
+                                ),
+                        ),
                       ),
-                    ),
                     DeviceStatusChip(
                       status: deviceCustomer.deviceStatus,
                       onSelect: isUpdating
