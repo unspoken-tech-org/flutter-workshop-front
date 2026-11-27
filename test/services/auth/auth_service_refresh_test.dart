@@ -1,4 +1,5 @@
 import '../../support/memory_security_storage.dart';
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -698,6 +699,7 @@ void main() {
       );
       final dio = CustomDio(
         baseUri: Uri.parse('https://test.example.com'),
+        onMessage: (_) {},
         adapter: adapter,
       ).createAuthDio();
       final service = AuthService(

@@ -60,6 +60,12 @@ class DeviceCustomer extends Equatable {
     this.payments = const [],
   });
 
+  /// OS encerrada: urgência e contatos ficam desabilitados.
+  bool get isClosed => deviceStatus.isClosed;
+
+  /// "Abrir revisão" só existe para OS `ENTREGUE` (`DESCARTADO` é final).
+  bool get canOpenRevision => deviceStatus.allowsRevision;
+
   Money get totalPaid {
     return payments.fold(Money.zero, (sum, p) => sum + p.paymentValue);
   }

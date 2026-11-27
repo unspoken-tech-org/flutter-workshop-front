@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/utils/phone_utils.dart';
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/secondary_phone_form_field.dart';
 
 class SecondaryPhonesWidget extends StatefulWidget {
@@ -52,7 +52,7 @@ class _SecondaryPhonesWidgetState extends State<SecondaryPhonesWidget> {
             'phone_field_name_${phone.name}_number_${phone.number}',
           ),
           name: phone.name,
-          number: PhoneUtils.formatPhone(phone.number),
+          number: BrFormat.phone(phone.number),
           readOnly: !widget.isEditing,
           onSaved: widget.onSaved,
         ),

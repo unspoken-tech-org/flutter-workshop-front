@@ -8,8 +8,6 @@ import 'package:flutter_workshop_front/pages/customers/all_customers/controllers
 import 'package:flutter_workshop_front/pages/customers/all_customers/widgets/customers_list.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/widgets/all_devices_view.dart';
-import 'package:flutter_workshop_front/pages/devices/search_devices/controllers/search_devices_controller.dart';
-import 'package:flutter_workshop_front/pages/devices/search_devices/widgets/search_devices_view.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controller.dart';
 import 'package:flutter_workshop_front/widgets/shared/infinite_scroll_listener.dart';
 import 'package:go_router/go_router.dart';
@@ -270,8 +268,7 @@ void main() {
 
         final requestedPages = <int>[];
         final repo = FakeDeviceRepository(
-          onGetAllDevicesFiltering: (filter) async {
-            final page = filter?.page ?? 0;
+          onQueryDevices: (query, page) async {
             requestedPages.add(page);
             if (page == 0) {
               return Ok(
@@ -316,84 +313,82 @@ void main() {
       },
     );
 
-    testWidgets(
-      'SearchDevicesView auto-loads page 2 on high viewport, prevents error loop, and retries',
-      (tester) async {
-        tester.view.physicalSize = const Size(1920, 2000);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
+    testWidgets('retries a failed page 2 and finishes the list', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
-        final requestedPages = <int>[];
-        var failPage1 = true;
-        final repo = FakeDeviceRepository(
-          onSearchDevices: (filter) async {
-            final page = filter?.page ?? 0;
-            requestedPages.add(page);
-            if (page == 0) {
-              return Ok(
-                Page(
-                  content: [_device(10)],
-                  last: false,
-                  totalPages: 2,
-                  totalElements: 2,
-                  size: 1,
-                  number: 0,
-                  numberOfElements: 1,
-                  first: true,
-                  empty: false,
-                ),
-              );
-            }
-            if (failPage1) {
-              return const Err(
-                ValidationFailure(
-                  message: 'Falha na busca',
-                  code: '500',
-                  statusCode: 400,
-                ),
-              );
-            }
+      final requestedPages = <int>[];
+      var failPage1 = true;
+      final repo = FakeDeviceRepository(
+        onQueryDevices: (query, page) async {
+          requestedPages.add(page);
+          if (page == 0) {
             return Ok(
               Page(
-                content: [_device(11)],
-                last: true,
+                content: [_device(10)],
+                last: false,
                 totalPages: 2,
                 totalElements: 2,
                 size: 1,
-                number: 1,
+                number: 0,
                 numberOfElements: 1,
-                first: false,
+                first: true,
                 empty: false,
               ),
             );
-          },
-        );
-
-        final controller = SearchDevicesController(repo);
-        await tester.pumpWidget(
-          _wrapWithRouter(
-            ChangeNotifierProvider.value(
-              value: controller,
-              child: const SearchDevicesView(),
+          }
+          if (failPage1) {
+            return const Err(
+              ValidationFailure(
+                message: 'Falha na busca',
+                code: '500',
+                statusCode: 400,
+              ),
+            );
+          }
+          return Ok(
+            Page(
+              content: [_device(11)],
+              last: true,
+              totalPages: 2,
+              totalElements: 2,
+              size: 1,
+              number: 1,
+              numberOfElements: 1,
+              first: false,
+              empty: false,
             ),
+          );
+        },
+      );
+
+      final controller = AllDevicesController(repo, FakeCatalogRepository());
+      await tester.pumpWidget(
+        _wrapWithRouter(
+          ChangeNotifierProvider.value(
+            value: controller,
+            child: const AllDevicesView(),
           ),
-        );
-        await tester.pump(const Duration(milliseconds: 300));
-        await tester.pumpAndSettle();
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
 
-        expect(requestedPages, [0, 1]);
-        expect(controller.loadMoreFailed, isTrue);
-        expect(find.text('Tentar novamente'), findsOneWidget);
+      expect(requestedPages, [0, 1]);
+      expect(controller.loadMoreFailed, isTrue);
+      expect(find.text('Tentar novamente'), findsOneWidget);
 
-        failPage1 = false;
-        await tester.tap(find.text('Tentar novamente'));
-        await tester.pumpAndSettle();
+      failPage1 = false;
+      await tester.tap(find.text('Tentar novamente'));
+      await tester.pumpAndSettle();
 
-        expect(requestedPages, [0, 1, 1]);
-        expect(controller.devices.length, 2);
-        expect(controller.hasMore, isFalse);
-      },
-    );
+      expect(requestedPages, [0, 1, 1]);
+      expect(controller.devices.length, 2);
+      expect(controller.hasMore, isFalse);
+    });
 
     testWidgets(
       'InfiniteScrollListener triggers loadMore when viewport resizes taller via ScrollMetricsNotification',

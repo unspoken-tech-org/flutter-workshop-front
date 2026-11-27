@@ -3,9 +3,8 @@ import 'package:flutter_workshop_front/models/customer_device/create_device_cust
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
 import 'package:flutter_workshop_front/models/device/device_input.dart';
-import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
+import 'package:flutter_workshop_front/models/device/device_query.dart';
 import 'package:flutter_workshop_front/models/device_statistics/device_statistics.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
@@ -31,13 +30,10 @@ class DeviceRepository {
   final CustomerContactService _customerContactService;
   final DeviceStatisticsService _deviceStatisticsService;
 
-  Future<Result<Page<DeviceDataTable>>> getAllDevicesFiltering([
-    DeviceFilter? filter,
-  ]) => _deviceCustomerService.getAllDevicesFiltering(filter);
-
-  Future<Result<Page<DeviceDataTable>>> searchDevices([
-    DeviceSearchFilter? filter,
-  ]) => _deviceCustomerService.searchDevices(filter);
+  Future<Result<Page<DeviceDataTable>>> queryDevices(
+    DeviceQuery query,
+    int page,
+  ) => _deviceCustomerService.queryDevices(query, page);
 
   Future<Result<DeviceCustomer>> getCustomerDeviceById(int id) =>
       _deviceCustomerService.getCustomerDeviceById(id);

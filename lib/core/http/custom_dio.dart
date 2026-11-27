@@ -5,6 +5,7 @@ import 'package:flutter_workshop_front/core/http/interceptors/security_intercept
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
 import 'package:flutter_workshop_front/core/security/refresh_result.dart';
 import 'package:flutter_workshop_front/core/security/security_storage.dart';
+import 'package:flutter_workshop_front/core/ui/ui_message.dart';
 
 /// Fábrica das instâncias de [Dio] da API, sem estado global.
 ///
@@ -15,15 +16,21 @@ import 'package:flutter_workshop_front/core/security/security_storage.dart';
 class CustomDio {
   CustomDio({
     required this.baseUri,
+    required this.onMessage,
     @visibleForTesting HttpClientAdapter? adapter,
   }) : _adapter = adapter;
 
   final Uri baseUri;
+
+  /// Recebe as mensagens de erro de infraestrutura do [GlobalErrorInterceptor].
+  final void Function(UiMessage message) onMessage;
   final HttpClientAdapter? _adapter;
 
   /// Instância dedicada à autenticação, sem [SecurityInterceptor] (evita loop
   /// de refresh).
-  Dio createAuthDio() => _baseDio()..interceptors.add(GlobalErrorInterceptor());
+  Dio createAuthDio() =>
+      _baseDio()
+        ..interceptors.add(GlobalErrorInterceptor(onMessage: onMessage));
 
   /// Instância das chamadas autenticadas: injeta o token, renova em 401 e
   /// repete a requisição por um `retryDio` sem [SecurityInterceptor].
@@ -34,7 +41,8 @@ class CustomDio {
     Future<void> Function()? onCredentialRejected,
   }) {
     // retryDio: mesmas BaseOptions, sem SecurityInterceptor → sem deadlock no retry.
-    final retryDio = _baseDio()..interceptors.add(GlobalErrorInterceptor());
+    final retryDio = _baseDio()
+      ..interceptors.add(GlobalErrorInterceptor(onMessage: onMessage));
 
     return _baseDio()
       ..interceptors.addAll([
@@ -46,7 +54,7 @@ class CustomDio {
           onCredentialRejected: onCredentialRejected,
         ),
         // GlobalErrorInterceptor por último: processa o erro final.
-        GlobalErrorInterceptor(),
+        GlobalErrorInterceptor(onMessage: onMessage),
       ]);
   }
 

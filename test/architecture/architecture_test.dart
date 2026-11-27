@@ -116,10 +116,8 @@ void main() {
       () {
         const legacyChangeNotifiersWithoutMixin = <String>{
           'lib/core/security/auth_notifier.dart:AuthNotifier',
-          'lib/pages/customers/all_customers/controllers/all_customer_controller.dart:AllCustomerController',
           'lib/pages/customers/customer_detail/controllers/customer_detail_controller.dart:CustomerDetailController',
           'lib/pages/customers/customer_register/controllers/customer_register_controller.dart:CustomerRegisterController',
-          'lib/pages/devices/search_devices/controllers/search_devices_controller.dart:SearchDevicesController',
           'lib/pages/setup/setup_controller.dart:SetupController',
           'lib/widgets/core/ws_drawer/ws_drawer_controller.dart:WsDrawerController',
         };
@@ -158,6 +156,68 @@ void main() {
         );
       },
     );
+  });
+
+  group('UI feedback guardrails', () {
+    test(
+      'controllers, interceptors, services and core do not import SnackBarUtil',
+      () {
+        const snackBarImport =
+            'package:flutter_workshop_front/utils/snackbar_util.dart';
+
+        bool isNonUiLayer(String relPath) {
+          if (relPath.startsWith('lib/core/') ||
+              relPath.startsWith('lib/services/') ||
+              relPath.startsWith('lib/repositories/')) {
+            return true;
+          }
+          return relPath.startsWith('lib/pages/') &&
+              (relPath.contains('/controller/') ||
+                  relPath.contains('/controllers/'));
+        }
+
+        final violations = <String>[];
+        for (final file in _dartFilesIn('${root.path}/lib')) {
+          final relPath = _relativePath(root, file);
+          if (!isNonUiLayer(relPath)) continue;
+          if (_extractImports(
+            file.readAsStringSync(),
+          ).contains(snackBarImport)) {
+            violations.add(relPath);
+          }
+        }
+
+        expect(
+          violations,
+          isEmpty,
+          reason:
+              'Controllers and the HTTP layer publish a UiMessage '
+              '(UiMessageSource / UiMessageBus); only pages and widgets show '
+              'it, through UiMessageListener.',
+        );
+      },
+    );
+
+    test('only SnackBarUtil shows snackbars (no ScaffoldMessenger.of)', () {
+      final violations = <String>[];
+      for (final file in _dartFilesIn('${root.path}/lib')) {
+        final relPath = _relativePath(root, file);
+        if (relPath == 'lib/utils/snackbar_util.dart') continue;
+        final source = file.readAsStringSync();
+        if (source.contains('ScaffoldMessenger.of(') ||
+            source.contains('.showSnackBar(')) {
+          violations.add(relPath);
+        }
+      }
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'Show feedback with SnackBarUtil (widgets) or UiMessage '
+            '(controllers) so every message has the same look.',
+      );
+    });
   });
 
   group('Test hygiene guardrails', () {

@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:flutter/services.dart';
 
 class PhoneNumberFormatter extends TextInputFormatter {
@@ -8,7 +9,7 @@ class PhoneNumberFormatter extends TextInputFormatter {
   ) {
     final newText = newValue.text;
 
-    final newDigitsOnly = newText.replaceAll(RegExp(r'\D'), '');
+    final newDigitsOnly = BrFormat.digitsOnly(newText);
     final newDigitsLength = newDigitsOnly.length;
 
     if (newDigitsLength > 11) {

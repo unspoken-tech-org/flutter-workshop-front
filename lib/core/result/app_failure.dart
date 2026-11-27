@@ -6,13 +6,19 @@
 /// o chamador informa o texto de fallback com [AppFailureMessage.messageOr].
 sealed class AppFailure {
   const AppFailure();
+
+  /// O `GlobalErrorInterceptor` já mostrou esta falha ao usuário (rede,
+  /// timeout, `429`, `5xx`); o controller não publica outra mensagem por cima.
+  bool get shownGlobally => false;
 }
 
 /// Sem resposta do servidor: timeout, conexão recusada ou sem internet.
 final class NetworkFailure extends AppFailure {
-  const NetworkFailure({this.cause});
+  const NetworkFailure({this.cause, this.shownGlobally = false});
 
   final Object? cause;
+  @override
+  final bool shownGlobally;
 }
 
 /// `401` ou `403`. Quem trata sessão (logout/refresh) é o
@@ -27,10 +33,16 @@ final class SessionFailure extends AppFailure {
 
 /// `429`. [retryAfter] vem do header `Retry-After`, quando presente.
 final class RateLimitedFailure extends AppFailure {
-  const RateLimitedFailure({this.message, this.retryAfter});
+  const RateLimitedFailure({
+    this.message,
+    this.retryAfter,
+    this.shownGlobally = false,
+  });
 
   final String? message;
   final Duration? retryAfter;
+  @override
+  final bool shownGlobally;
 }
 
 /// A API recusou a requisição com um corpo de erro (4xx, exceto sessão e
@@ -77,10 +89,16 @@ final class ConflictFailure extends RejectedFailure {
 
 /// `5xx`.
 final class ServerFailure extends AppFailure {
-  const ServerFailure({required this.statusCode, this.message});
+  const ServerFailure({
+    required this.statusCode,
+    this.message,
+    this.shownGlobally = false,
+  });
 
   final int statusCode;
   final String? message;
+  @override
+  final bool shownGlobally;
 }
 
 /// Status 2xx diferente do esperado, resposta que não decodifica

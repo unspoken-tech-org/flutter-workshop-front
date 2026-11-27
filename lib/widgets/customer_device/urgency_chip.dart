@@ -5,11 +5,15 @@ class UrgencyChip extends StatelessWidget {
   final bool showTooltip;
   final VoidCallback? onTap;
 
+  /// Dica no lugar do texto padrão quando o chip está desabilitado.
+  final String? disabledTooltip;
+
   const UrgencyChip({
     super.key,
     required this.hasUrgency,
     this.showTooltip = true,
     this.onTap,
+    this.disabledTooltip,
   });
 
   Color get color => hasUrgency ? Colors.red : Colors.grey;
@@ -17,7 +21,9 @@ class UrgencyChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: showTooltip ? (hasUrgency ? 'Urgente' : 'Não urgente') : null,
+      message: showTooltip
+          ? (disabledTooltip ?? (hasUrgency ? 'Urgente' : 'Não urgente'))
+          : null,
       child: InkWell(
         onTap: onTap,
         child: Container(

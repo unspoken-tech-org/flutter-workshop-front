@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
+import 'package:flutter_workshop_front/models/device/device_query.dart';
 import 'package:flutter_workshop_front/models/device_statistics/device_statistics.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/pages/home/controllers/home_controller.dart';
@@ -13,8 +13,8 @@ import 'package:provider/provider.dart';
 class DashboardStatsView extends StatelessWidget {
   const DashboardStatsView({super.key});
 
-  void _onPressed(BuildContext context, DeviceFilter filter) async {
-    await WsNavigator.pushAllDevices(context, filter: filter);
+  void _onPressed(BuildContext context, DeviceQuery filter) async {
+    await WsNavigator.pushAllDevices(context, query: filter);
     if (context.mounted) {
       await context.read<HomeController>().getDeviceStatistics();
     }
@@ -104,7 +104,7 @@ class DashboardStatsView extends StatelessWidget {
                     backgroundIconColor: Colors.deepPurple.shade50,
                     change: statistics.revisao.lastMonth,
                     onPressed: () {
-                      _onPressed(context, DeviceFilter(hasRevision: true));
+                      _onPressed(context, const DeviceQuery(hasRevision: true));
                     },
                   ),
                   DataStatisticCardWidget(
@@ -116,7 +116,7 @@ class DashboardStatsView extends StatelessWidget {
                     backgroundIconColor: Colors.red.shade50,
                     change: statistics.urgente.lastMonth,
                     onPressed: () {
-                      _onPressed(context, DeviceFilter(hasUrgency: true));
+                      _onPressed(context, const DeviceQuery(hasUrgency: true));
                     },
                   ),
                   DataStatisticCardWidget(
@@ -130,7 +130,7 @@ class DashboardStatsView extends StatelessWidget {
                     onPressed: () {
                       _onPressed(
                         context,
-                        DeviceFilter(status: [StatusEnum.newDevice]),
+                        const DeviceQuery(status: [StatusEnum.newDevice]),
                       );
                     },
                   ),
@@ -145,7 +145,7 @@ class DashboardStatsView extends StatelessWidget {
                     onPressed: () {
                       _onPressed(
                         context,
-                        DeviceFilter(status: [StatusEnum.inProgress]),
+                        const DeviceQuery(status: [StatusEnum.inProgress]),
                       );
                     },
                   ),
@@ -160,7 +160,7 @@ class DashboardStatsView extends StatelessWidget {
                     onPressed: () {
                       _onPressed(
                         context,
-                        DeviceFilter(status: [StatusEnum.waitingApproval]),
+                        const DeviceQuery(status: [StatusEnum.waitingApproval]),
                       );
                     },
                   ),
@@ -175,7 +175,7 @@ class DashboardStatsView extends StatelessWidget {
                     onPressed: () {
                       _onPressed(
                         context,
-                        DeviceFilter(status: [StatusEnum.ready]),
+                        const DeviceQuery(status: [StatusEnum.ready]),
                       );
                     },
                   ),
@@ -190,7 +190,7 @@ class DashboardStatsView extends StatelessWidget {
                     onPressed: () {
                       _onPressed(
                         context,
-                        DeviceFilter(status: [StatusEnum.delivered]),
+                        const DeviceQuery(status: [StatusEnum.delivered]),
                       );
                     },
                   ),
@@ -205,7 +205,7 @@ class DashboardStatsView extends StatelessWidget {
                     onPressed: () {
                       _onPressed(
                         context,
-                        DeviceFilter(status: [StatusEnum.disposed]),
+                        const DeviceQuery(status: [StatusEnum.disposed]),
                       );
                     },
                   ),

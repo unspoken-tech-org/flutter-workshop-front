@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_workshop_front/core/money/money.dart';
 
@@ -11,7 +12,7 @@ class CurrencyInputFormatter extends TextInputFormatter {
       return newValue.copyWith(text: '');
     }
 
-    final digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final digitsOnly = BrFormat.digitsOnly(newValue.text);
     if (digitsOnly.isEmpty) {
       return const TextEditingValue();
     }

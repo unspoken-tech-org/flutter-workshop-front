@@ -18,6 +18,7 @@ import 'package:flutter_workshop_front/repositories/customer/customer_repository
 import 'package:flutter_workshop_front/repositories/device/device_repository.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
+import 'package:flutter_workshop_front/widgets/core/ui_message_listener.dart';
 import 'package:flutter_workshop_front/widgets/core/ws_drawer/ws_drawer_controller.dart';
 
 Future<void> main() => runWithAgentToolkit(_startApp);
@@ -103,6 +104,10 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         scaffoldMessengerKey: SnackBarUtil().scaffoldKey,
         routerConfig: router,
+        builder: (context, child) => UiMessageListener(
+          source: deps.uiMessages,
+          child: child ?? const SizedBox.shrink(),
+        ),
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
         locale: const Locale('pt', 'BR'),
         supportedLocales: const [Locale('pt', 'BR')],

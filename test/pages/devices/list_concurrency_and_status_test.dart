@@ -4,38 +4,17 @@ import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/models/customer/customer_search_filter.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
-import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/pageable/page_model.dart';
 import 'package:flutter_workshop_front/models/types_brands_models/types_brands_models.dart'
     as tbm;
 import 'package:flutter_workshop_front/pages/customers/all_customers/controllers/all_customer_controller.dart';
-import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/widgets/type_brand_model_autocomplete_form_field.dart';
-import 'package:flutter_workshop_front/pages/devices/search_devices/controllers/search_devices_controller.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/searchable_dropdown_form_field.dart';
-import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
 
-import '../../support/fakes/fake_catalog_repository.dart';
 import '../../support/fakes/fake_customer_repository.dart';
-import '../../support/fakes/fake_device_repository.dart';
-
-DeviceDataTable _device(int id, String name) => DeviceDataTable(
-  deviceId: id,
-  customerId: id,
-  customerName: name,
-  type: 'Notebook',
-  brand: 'Dell',
-  model: 'Inspiron',
-  status: StatusEnum.newDevice,
-  problem: 'Sem imagem',
-  hasUrgency: false,
-  hasRevision: false,
-  entryDate: DateTime(2026, 1, 1),
-);
 
 MinifiedCustomerModel _customer(int id, String name) => MinifiedCustomerModel(
   customerId: id,
@@ -77,31 +56,6 @@ _pendingCustomerRepo() {
     },
   );
   return (repo, pending);
-}
-
-(
-  FakeDeviceRepository,
-  List<(DeviceFilter?, Completer<Result<Page<DeviceDataTable>>>)>,
-  List<(DeviceSearchFilter?, Completer<Result<Page<DeviceDataTable>>>)>,
-)
-_pendingDeviceRepo() {
-  final pendingAll =
-      <(DeviceFilter?, Completer<Result<Page<DeviceDataTable>>>)>[];
-  final pendingSearch =
-      <(DeviceSearchFilter?, Completer<Result<Page<DeviceDataTable>>>)>[];
-  final repo = FakeDeviceRepository(
-    onGetAllDevicesFiltering: (filter) {
-      final completer = Completer<Result<Page<DeviceDataTable>>>();
-      pendingAll.add((filter, completer));
-      return completer.future;
-    },
-    onSearchDevices: (filter) {
-      final completer = Completer<Result<Page<DeviceDataTable>>>();
-      pendingSearch.add((filter, completer));
-      return completer.future;
-    },
-  );
-  return (repo, pendingAll, pendingSearch);
 }
 
 void main() {
@@ -151,7 +105,7 @@ void main() {
       );
       await search;
 
-      final refresh = controller.refresh();
+      final refresh = controller.reload();
       expect(pending.length, 3);
       expect(pending[2].$1?.searchName, 'Maria');
       expect(pending[2].$1?.page, 0);
@@ -238,170 +192,6 @@ void main() {
         expect(controller.customers.map((c) => c.name), ['Novo']);
       },
     );
-  });
-
-  group('3.2 — AllDevicesController concorrência e paginação', () {
-    test(
-      'filtro alterado durante loading não é descartado e loadMore antigo não contamina nova busca',
-      () async {
-        final (repo, pendingAllDevices, _) = _pendingDeviceRepo();
-        final controller = AllDevicesController(repo, FakeCatalogRepository());
-
-        // Aguarda debounce inicial de 200ms
-        await Future<void>.delayed(const Duration(milliseconds: 220));
-        expect(pendingAllDevices.length, 1);
-
-        // Usuário altera filtro enquanto a primeira requisição está em voo
-        controller.addRemoveStatus(StatusEnum.ready);
-        await Future<void>.delayed(const Duration(milliseconds: 220));
-        expect(pendingAllDevices.length, 2);
-
-        // Requisição mais nova (PRONTO) completa
-        pendingAllDevices[1].$2.complete(
-          Ok(_page([_device(2, 'Pronto')], number: 0, last: false)),
-        );
-        await Future<void>.delayed(Duration.zero);
-        expect(controller.devices.map((d) => d.customerName), ['Pronto']);
-        expect(controller.isLoading, false);
-
-        // Requisição inicial atrasada completa: deve ser ignorada
-        pendingAllDevices[0].$2.complete(
-          Ok(_page([_device(1, 'Antigo')], number: 0, last: true)),
-        );
-        await Future<void>.delayed(Duration.zero);
-        expect(controller.devices.map((d) => d.customerName), ['Pronto']);
-
-        // Inicia loadMore e antes dele responder dispara nova busca
-        final loadMoreFuture = controller.loadMore();
-        expect(pendingAllDevices.length, 3);
-
-        controller.filterTable('Cliente Final');
-        await Future<void>.delayed(const Duration(milliseconds: 220));
-        expect(pendingAllDevices.length, 4);
-
-        pendingAllDevices[3].$2.complete(
-          Ok(_page([_device(4, 'Cliente Final')], number: 0, last: true)),
-        );
-        await Future<void>.delayed(Duration.zero);
-
-        pendingAllDevices[2].$2.complete(
-          Ok(_page([_device(3, 'PaginaVelha')], number: 1, last: true)),
-        );
-        await loadMoreFuture;
-
-        expect(controller.devices.map((d) => d.customerName), [
-          'Cliente Final',
-        ]);
-      },
-    );
-  });
-
-  group('AllDevicesController total em falha', () {
-    test('zera o total quando a nova busca falha', () async {
-      final (repo, pendingAllDevices, _) = _pendingDeviceRepo();
-      final controller = AllDevicesController(repo, FakeCatalogRepository());
-
-      await Future<void>.delayed(const Duration(milliseconds: 220));
-      pendingAllDevices[0].$2.complete(
-        Ok(
-          _page([_device(1, 'Ana'), _device(2, 'Bia')], number: 0, last: false),
-        ),
-      );
-      await Future<void>.delayed(Duration.zero);
-      expect(controller.totalElements, 2);
-
-      controller.addRemoveStatus(StatusEnum.ready);
-      await Future<void>.delayed(const Duration(milliseconds: 220));
-      pendingAllDevices[1].$2.complete(const Err(NetworkFailure()));
-      await Future<void>.delayed(Duration.zero);
-
-      expect(controller.devices, isEmpty);
-      expect(controller.totalElements, 0);
-      expect(controller.totalPages, 0);
-      expect(controller.hasMore, isFalse);
-      expect(controller.isLoading, isFalse);
-    });
-  });
-
-  group('3.2 — SearchDevicesController concorrência e paginação', () {
-    test(
-      'busca alterada durante loading não é descartada e loadMore antigo não contamina nova busca',
-      () async {
-        final (repo, _, pendingSearchDevices) = _pendingDeviceRepo();
-        final controller = SearchDevicesController(repo);
-
-        await Future<void>.delayed(const Duration(milliseconds: 220));
-        expect(pendingSearchDevices.length, 1);
-
-        controller.filterTable('Notebook');
-        await Future<void>.delayed(const Duration(milliseconds: 220));
-        expect(pendingSearchDevices.length, 2);
-
-        pendingSearchDevices[1].$2.complete(
-          Ok(_page([_device(2, 'Notebook')], number: 0, last: false)),
-        );
-        await Future<void>.delayed(Duration.zero);
-        expect(controller.devices.map((d) => d.customerName), ['Notebook']);
-        expect(controller.isLoading, false);
-
-        pendingSearchDevices[0].$2.complete(
-          Ok(_page([_device(1, 'Antigo')], number: 0, last: true)),
-        );
-        await Future<void>.delayed(Duration.zero);
-        expect(controller.devices.map((d) => d.customerName), ['Notebook']);
-
-        final loadMoreFuture = controller.loadMore();
-        expect(pendingSearchDevices.length, 3);
-
-        controller.filterTable('TV');
-        await Future<void>.delayed(const Duration(milliseconds: 220));
-        expect(pendingSearchDevices.length, 4);
-
-        pendingSearchDevices[3].$2.complete(
-          Ok(_page([_device(4, 'TV')], number: 0, last: true)),
-        );
-        await Future<void>.delayed(Duration.zero);
-
-        pendingSearchDevices[2].$2.complete(
-          Ok(_page([_device(3, 'PaginaVelha')], number: 1, last: true)),
-        );
-        await loadMoreFuture;
-
-        expect(controller.devices.map((d) => d.customerName), ['TV']);
-      },
-    );
-  });
-
-  group('SearchDevicesController total em falha', () {
-    test('limpa a lista e zera o total quando a nova busca falha', () async {
-      final (repo, _, pendingSearchDevices) = _pendingDeviceRepo();
-      final controller = SearchDevicesController(repo);
-
-      await Future<void>.delayed(const Duration(milliseconds: 220));
-      pendingSearchDevices[0].$2.complete(
-        Ok(
-          _page([_device(1, 'Ana'), _device(2, 'Bia')], number: 0, last: false),
-        ),
-      );
-      await Future<void>.delayed(Duration.zero);
-      expect(controller.devices.length, 2);
-      expect(controller.totalElements, 2);
-      expect(controller.totalPages, 2);
-      expect(controller.hasMore, isTrue);
-
-      controller.filterTable('Notebook');
-      await Future<void>.delayed(const Duration(milliseconds: 220));
-      pendingSearchDevices[1].$2.complete(
-        Err(UnexpectedFailure(cause: Exception('502 Bad Gateway'))),
-      );
-      await Future<void>.delayed(Duration.zero);
-
-      expect(controller.devices, isEmpty);
-      expect(controller.totalElements, 0);
-      expect(controller.totalPages, 0);
-      expect(controller.hasMore, isFalse);
-      expect(controller.isLoading, isFalse);
-    });
   });
 
   group('3.2 — Autocomplete descarta sugestões de busca antiga', () {

@@ -9,7 +9,7 @@ import 'package:flutter_workshop_front/core/result/app_failure.dart';
 ///   case Ok(:final value):
 ///     ...
 ///   case Err(:final failure):
-///     SnackBarUtil().showError(failure.messageOr('Erro ao carregar'));
+///     emitError(failure.messageOr('Erro ao carregar'));
 /// }
 /// ```
 sealed class Result<T> {

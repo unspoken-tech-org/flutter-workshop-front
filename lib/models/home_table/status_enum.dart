@@ -16,6 +16,13 @@ enum StatusEnum {
 
   const StatusEnum({required this.dbName, required this.displayName});
 
+  /// OS encerrada (`ENTREGUE`/`DESCARTADO`): a API passa a recusar urgência,
+  /// revisão e contatos nela, então o app já os bloqueia (plano §4.3).
+  bool get isClosed => this == delivered || this == disposed;
+
+  /// Só OS `ENTREGUE` gera revisão; `DESCARTADO` é status final.
+  bool get allowsRevision => this == delivered;
+
   static List<StatusEnum> get selectableValues =>
       values.where((s) => s != unknown).toList(growable: false);
 

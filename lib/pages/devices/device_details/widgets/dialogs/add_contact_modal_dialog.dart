@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/validators/form_validators.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
@@ -7,10 +8,9 @@ import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
 import 'package:flutter_workshop_front/models/technician/technician.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/controllers/device_customer_page_controller.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/widgets/dialogs/contact_modal_shared.dart';
-import 'package:flutter_workshop_front/utils/phone_utils.dart';
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_date_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class AddContactModalDialog extends StatefulWidget {
@@ -35,7 +35,7 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
     inputCustomerContact = InputCustomerContact.empty(
       controller.deviceCustomer?.deviceId ?? 0,
     );
-    _dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    _dateController.text = BrFormat.date(DateTime.now());
   }
 
   @override
@@ -108,12 +108,9 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                           ContactType.pessoalmente.displayName;
                                       setState(() {});
                                     },
-                                    validator: (value) {
-                                      if (value == null) {
-                                        return 'Selecione um tipo de contato';
-                                      }
-                                      return null;
-                                    },
+                                    validator: FormValidators.selected(
+                                      'Selecione um tipo de contato',
+                                    ),
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
@@ -131,12 +128,9 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                               )
                                               ?.id;
                                     },
-                                    validator: (value) {
-                                      if (value == null) {
-                                        return 'Selecione um contactante';
-                                      }
-                                      return null;
-                                    },
+                                    validator: FormValidators.selected(
+                                      'Selecione um contactante',
+                                    ),
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
@@ -145,10 +139,7 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                     headerLabel: 'Número de telefone',
                                     enabled: !isContactTypePersonally,
                                     items: deviceCustomer.customerPhones
-                                        .map(
-                                          (e) =>
-                                              PhoneUtils.formatPhone(e.number),
-                                        )
+                                        .map((e) => BrFormat.phone(e.number))
                                         .toList(),
                                     onSave: (value) {
                                       inputCustomerContact.phoneNumber = value;
@@ -187,12 +178,9 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                             statusValue.dbName;
                                       }
                                     },
-                                    validator: (value) {
-                                      if (value == null) {
-                                        return 'Selecione um status do aparelho';
-                                      }
-                                      return null;
-                                    },
+                                    validator: FormValidators.selected(
+                                      'Selecione um status do aparelho',
+                                    ),
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDropdownButtonFormField(
@@ -208,12 +196,9 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                             value,
                                           ).name;
                                     },
-                                    validator: (value) {
-                                      if (value == null) {
-                                        return 'Selecione um status do contato';
-                                      }
-                                      return null;
-                                    },
+                                    validator: FormValidators.selected(
+                                      'Selecione um status do contato',
+                                    ),
                                   ),
                                   const SizedBox(height: 16),
                                   CustomDateFormField(
@@ -221,18 +206,12 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                     label: 'Data do contato',
                                     dateController: _dateController,
                                     onSave: (value) {
-                                      final DateFormat format = DateFormat(
-                                        "dd/MM/yyyy",
-                                      );
-                                      inputCustomerContact.contactDate = format
-                                          .parse(value);
+                                      inputCustomerContact.contactDate =
+                                          BrFormat.parseDate(value);
                                     },
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Selecione uma data';
-                                      }
-                                      return null;
-                                    },
+                                    validator: FormValidators.required(
+                                      'Selecione uma data',
+                                    ),
                                   ),
                                 ],
                               ),
@@ -260,12 +239,9 @@ class _AddContactModalDialogState extends State<AddContactModalDialog> {
                                         inputCustomerContact.message =
                                             value ?? '';
                                       },
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Digite aqui os detalhes da conversa';
-                                        }
-                                        return null;
-                                      },
+                                      validator: FormValidators.required(
+                                        'Digite aqui os detalhes da conversa',
+                                      ),
                                     ),
                                   ),
                                 ],

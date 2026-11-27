@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/validators/form_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/phone_number_formatter.dart';
 
@@ -38,16 +39,7 @@ class SecondaryPhoneFormField extends StatelessWidget {
         FormField<PhoneFieldParameters>(
           initialValue: PhoneFieldParameters(name: name, number: number),
           onSaved: onSaved,
-          validator: (value) {
-            final int digitCount = (value?.number ?? '')
-                .replaceAll(RegExp(r'\D'), '')
-                .length;
-            if (value?.number?.isNotEmpty == true && digitCount < 10) {
-              return 'Telefone incompleto';
-            }
-
-            return null;
-          },
+          validator: (value) => FormValidators.optionalPhone(value?.number),
           builder: (FormFieldState<PhoneFieldParameters> state) {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,

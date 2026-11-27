@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -174,12 +175,7 @@ class _MultiSelectColorFieldState extends State<MultiSelectColorField> {
     if (alreadyExists) {
       _controller.clear();
       _removeOverlay();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cor já adicionada'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      SnackBarUtil().showWarning('Cor já adicionada');
       return;
     }
 
@@ -260,12 +256,7 @@ class _MultiSelectColorFieldState extends State<MultiSelectColorField> {
     );
     if (alreadyExists) {
       _controller.clear();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cor já adicionada'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      SnackBarUtil().showWarning('Cor já adicionada');
       return;
     }
 
@@ -276,9 +267,7 @@ class _MultiSelectColorFieldState extends State<MultiSelectColorField> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erro ao criar cor: $e')));
+        SnackBarUtil().showError('Erro ao criar cor: $e');
       }
     }
   }

@@ -1,8 +1,9 @@
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
+import 'package:flutter_workshop_front/models/device/device_query.dart';
 import 'package:flutter_workshop_front/models/device_brand/device_brand_model.dart';
 import 'package:flutter_workshop_front/models/device_type.dart/device_type_model.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
@@ -12,7 +13,6 @@ import 'package:flutter_workshop_front/widgets/form_fields/custom_date_form_fiel
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/searchable_dropdown_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/switch_form_field.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class AllDevicesFilterListView extends StatelessWidget {
@@ -71,13 +71,13 @@ class AllDevicesFilterListView extends StatelessWidget {
           ),
           Row(
             children: [
-              Selector<AllDevicesController, DeviceFilter>(
-                selector: (context, controller) => controller.filter,
+              Selector<AllDevicesController, DeviceQuery>(
+                selector: (context, controller) => controller.query,
                 builder: (context, filter, _) {
-                  final String rangeDate =
-                      [filter.initialEntryDate, filter.finalEntryDate].nonNulls
-                          .map((e) => DateFormat('dd/MM/yyyy').format(e))
-                          .join(' - ');
+                  final String rangeDate = [
+                    filter.initialEntryDate,
+                    filter.finalEntryDate,
+                  ].nonNulls.map((e) => BrFormat.date(e)).join(' - ');
                   return Flexible(
                     child: CustomDateFormField(
                       headerLabel: 'Data de entrada',
@@ -111,6 +111,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                   return Flexible(
                     child: SearchableDropdownFormField<DeviceType>(
                       semanticsIdentifier: 'allDevices.filter.type',
+                      clearOnAccept: true,
                       headerLabelText: 'Tipo de aparelho',
                       hintText: 'Busque pelo tipo',
                       searchFn: (query) async {
@@ -138,6 +139,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                   return Flexible(
                     child: SearchableDropdownFormField<DeviceBrand>(
                       semanticsIdentifier: 'allDevices.filter.brand',
+                      clearOnAccept: true,
                       headerLabelText: 'Marca do aparelho',
                       hintText: 'Busque pela marca',
                       searchFn: (query) async {
@@ -159,8 +161,8 @@ class AllDevicesFilterListView extends StatelessWidget {
                   );
                 },
               ),
-              Selector<AllDevicesController, DeviceFilter>(
-                selector: (context, controller) => controller.filter,
+              Selector<AllDevicesController, DeviceQuery>(
+                selector: (context, controller) => controller.query,
                 builder: (context, filter, _) {
                   final statusNames = StatusEnum.selectableValues
                       .map((e) => e.displayName)
@@ -192,8 +194,8 @@ class AllDevicesFilterListView extends StatelessWidget {
             ],
           ),
           SelectedFiltersView(controller: controller),
-          Selector<AllDevicesController, DeviceFilter>(
-            selector: (context, controller) => controller.filter,
+          Selector<AllDevicesController, DeviceQuery>(
+            selector: (context, controller) => controller.query,
             builder: (context, filter, _) {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -208,7 +210,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                           children: [
                             SwitchFormField(
                               semanticsIdentifier: 'allDevices.filter.urgency',
-                              initialValue: controller.filter.hasUrgency,
+                              initialValue: controller.query.hasUrgency,
                               onChanged: (value) {
                                 controller.toggleUrgency();
                               },
@@ -227,7 +229,7 @@ class AllDevicesFilterListView extends StatelessWidget {
                           children: [
                             SwitchFormField(
                               semanticsIdentifier: 'allDevices.filter.revision',
-                              initialValue: controller.filter.hasRevision,
+                              initialValue: controller.query.hasRevision,
                               onChanged: (value) {
                                 controller.toggleRevision();
                               },

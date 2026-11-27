@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
+import 'package:flutter_workshop_front/models/device/device_query.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
 import 'package:provider/provider.dart';
 
@@ -8,9 +8,9 @@ class FilterButtonView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Selector<AllDevicesController, (bool, DeviceFilter)>(
+    return Selector<AllDevicesController, (bool, DeviceQuery)>(
       selector: (context, controller) =>
-          (controller.isFiltering, controller.filter),
+          (controller.isFiltering, controller.query),
       builder: (context, values, _) {
         final (isFiltering, filter) = values;
         final filtersApplied = filter.filtersApplied;

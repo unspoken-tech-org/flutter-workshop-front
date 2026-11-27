@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
+import 'package:flutter_workshop_front/models/device/device_query.dart';
 import 'package:flutter_workshop_front/pages/devices/all_devices/controllers/all_devices_controller.dart';
 import 'package:provider/provider.dart';
 
@@ -10,8 +10,8 @@ class SelectedFiltersView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Selector<AllDevicesController, DeviceFilter>(
-      selector: (context, controller) => controller.filter,
+    return Selector<AllDevicesController, DeviceQuery>(
+      selector: (context, controller) => controller.query,
       builder: (context, filter, _) {
         final filteredTypes = filter.deviceTypes;
         final filteredBrands = filter.deviceBrands;

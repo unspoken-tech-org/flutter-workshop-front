@@ -5,6 +5,8 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_workshop_front/models/customer/customer_model.dart';
+import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
+import 'package:flutter_workshop_front/models/device_statistics/device_statistics.dart';
 import 'package:flutter_workshop_front/models/customer/input_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
@@ -21,6 +23,8 @@ import '../../support/fakes/fake_auth_service.dart';
 import '../../support/fakes/fake_catalog_repository.dart';
 import '../../support/fakes/fake_customer_repository.dart';
 import '../../support/fakes/fake_device_repository.dart';
+import '../../support/fixtures/device_customer_fixture.dart';
+import '../../support/fixtures/device_statistics_fixture.dart';
 
 // ---------------------------------------------------------------------------
 // Stubs
@@ -33,9 +37,7 @@ FakeCustomerRepository _blockingCustomerRepository() => FakeCustomerRepository(
 );
 
 FakeDeviceRepository _blockingDeviceRepository() => FakeDeviceRepository(
-  onGetAllDevicesFiltering: (_) =>
-      Completer<Result<Page<DeviceDataTable>>>().future,
-  onSearchDevices: (_) => Completer<Result<Page<DeviceDataTable>>>().future,
+  onQueryDevices: (_, _) => Completer<Result<Page<DeviceDataTable>>>().future,
 );
 
 // ---------------------------------------------------------------------------
@@ -62,21 +64,6 @@ void main() {
 
   // -------------------------------------------------------------------------
   group('CustomerRegisterController — guard de criação', () {
-    test(
-      'createCustomer retorna null imediatamente quando isCreatingCustomer=true',
-      () async {
-        final repo = _blockingCustomerRepository();
-        final controller = CustomerRegisterController(repo);
-        controller.isCreatingCustomer = true;
-
-        final result = await controller.createCustomer(InputCustomer.empty());
-
-        expect(result, isNull);
-        expect(repo.createCalls, 0); // serviço não foi chamado
-        expect(controller.isCreatingCustomer, true);
-      },
-    );
-
     test('segunda chamada concorrente é ignorada pelo guard', () async {
       final repo = _blockingCustomerRepository();
       final controller = CustomerRegisterController(repo);
@@ -96,20 +83,6 @@ void main() {
 
   // -------------------------------------------------------------------------
   group('CustomerDetailController — guard de carregamento', () {
-    test(
-      'fetchCustomer retorna sem chamar o repo quando isLoading=true',
-      () async {
-        final repo = _blockingCustomerRepository();
-        final controller = CustomerDetailController(repo);
-        controller.isLoading = true;
-
-        await controller.fetchCustomer(1);
-
-        expect(repo.getCalls, 0);
-        expect(controller.isLoading, true);
-      },
-    );
-
     test('segunda chamada concorrente a fetchCustomer é ignorada', () async {
       final repo = _blockingCustomerRepository();
       final controller = CustomerDetailController(repo);
@@ -124,21 +97,6 @@ void main() {
 
       expect(repo.getCalls, 1);
     });
-
-    test(
-      'updateCustomer retorna false sem chamar o repo quando isLoading=true',
-      () async {
-        final repo = _blockingCustomerRepository();
-        final controller = CustomerDetailController(repo);
-        controller.isLoading = true;
-
-        final result = await controller.updateCustomer(1);
-
-        expect(result, false);
-        expect(repo.updateCalls, 0);
-        expect(controller.isLoading, true);
-      },
-    );
 
     test('segunda chamada concorrente a updateCustomer é ignorada', () async {
       final repo = _blockingCustomerRepository();
@@ -159,12 +117,12 @@ void main() {
 
   // -------------------------------------------------------------------------
   group('AllDevicesController — geração de listagem e guard de filtros', () {
-    // O construtor chama fetchAllDevicesFiltering() fire-and-forget.
-    // Uma nova chamada a fetchAllDevicesFiltering() durante isLoading=true
+    // O construtor chama reload() fire-and-forget.
+    // Uma nova chamada a reload() durante isLoading=true
     // NÃO deve ser descartada (ela incrementa a geração e invalida a anterior).
 
     test(
-      'fetchAllDevicesFiltering não descarta nova chamada quando isLoading=true e invalida chamada anterior',
+      'reload não descarta nova chamada quando isLoading=true e invalida chamada anterior',
       () async {
         final deviceRepo = _blockingDeviceRepository();
         final catalogRepo = FakeCatalogRepository();
@@ -172,16 +130,16 @@ void main() {
 
         // Construtor definiu isLoading = true sincronamente
         expect(controller.isLoading, true);
-        // getAllDevicesFiltering ainda não foi chamado (está atrás do Future.delayed)
-        expect(deviceRepo.recordedAllDevicesFilters, isEmpty);
+        // queryDevices ainda não foi chamado (está atrás do Future.delayed)
+        expect(deviceRepo.recordedDeviceQueries, isEmpty);
 
         // Nova chamada enquanto a primeira está no Future.delayed(200ms)
-        final secondCall = controller.fetchAllDevicesFiltering();
+        final secondCall = controller.reload();
         expect(controller.isLoading, true);
 
         // Aguarda o debounce de 200ms: apenas a geração mais nova chega ao repo
         await Future<void>.delayed(const Duration(milliseconds: 250));
-        expect(deviceRepo.recordedAllDevicesFilters, hasLength(1));
+        expect(deviceRepo.recordedDeviceQueries, hasLength(1));
 
         // Não aguardamos secondCall porque _blockingDeviceRepository nunca completa
         unawaited(secondCall);
@@ -214,101 +172,119 @@ void main() {
 
   // -------------------------------------------------------------------------
   group('HomeController — guard de estatísticas', () {
-    test(
-      'getDeviceStatistics retorna sem side effects quando isLoading=true',
-      () async {
-        final controller = HomeController(offlineDeviceRepository());
-        controller.isLoading = true;
-        int notifyCount = 0;
-        controller.addListener(() => notifyCount++);
+    test('segunda chamada concorrente é ignorada', () async {
+      final blocker = Completer<Result<DeviceStatistics>>();
+      var calls = 0;
+      final controller = HomeController(
+        FakeDeviceRepository(
+          onGetDeviceStatistics: () {
+            calls++;
+            return blocker.future;
+          },
+        ),
+      );
 
-        await controller.getDeviceStatistics();
+      final first = controller.getDeviceStatistics();
+      expect(controller.isLoading, true);
+      await controller.getDeviceStatistics();
+      await Future<void>.delayed(const Duration(milliseconds: 250));
 
-        expect(controller.isLoading, true);
-        expect(notifyCount, 0); // nenhum listener notificado
-      },
-    );
+      expect(calls, 1);
+      blocker.complete(Ok(makeDeviceStatistics()));
+      await first;
+      expect(controller.isLoading, false);
+    });
   });
 
   // -------------------------------------------------------------------------
   group('DeviceCustomerPageController — guards de atualização', () {
-    // Neste controller os serviços são instanciados internamente (sem DI).
-    // Os testes verificam que o guard dispara antes de qualquer acesso
-    // a serviços ou campos late (deviceCustomer, technicians).
-
     test(
-      'updateDeviceCustomer retorna sem side effects quando isSaving=true',
+      'updateDeviceCustomer ignora segunda chamada enquanto salva',
       () async {
-        final controller = testDeviceCustomerPageController();
-        controller.isSaving = true;
-        int notifyCount = 0;
-        controller.addListener(() => notifyCount++);
+        final blocker = Completer<Result<DeviceCustomer>>();
+        var calls = 0;
+        final controller = testDeviceCustomerPageController(
+          deviceRepository: FakeDeviceRepository(
+            onUpdateDeviceCustomer: (_) {
+              calls++;
+              return blocker.future;
+            },
+          ),
+        )..deviceCustomer = makeDeviceCustomer();
 
-        final saved = await controller.updateDeviceCustomer();
-
-        expect(saved, false);
+        final first = controller.updateDeviceCustomer();
         expect(controller.isSaving, true);
-        expect(notifyCount, 0);
+        expect(await controller.updateDeviceCustomer(), false);
+        expect(calls, 1);
+
+        blocker.complete(Ok(makeDeviceCustomer()));
+        expect(await first, true);
+        expect(controller.isSaving, false);
       },
     );
 
-    test(
-      'updateDeviceHasUrgency retorna sem side effects quando isUpdating=true',
-      () async {
-        final controller = testDeviceCustomerPageController();
-        controller.isUpdating = true;
-        int notifyCount = 0;
-        controller.addListener(() => notifyCount++);
+    test('ações rápidas ignoram chamadas enquanto uma delas roda', () async {
+      final blocker = Completer<Result<DeviceCustomer>>();
+      var urgencyCalls = 0;
+      var revisionCalls = 0;
+      var statusCalls = 0;
+      final controller = testDeviceCustomerPageController(
+        deviceRepository: FakeDeviceRepository(
+          onUpdateDeviceHasUrgency: (_, __) {
+            urgencyCalls++;
+            return blocker.future;
+          },
+          onUpdateDeviceRevision: (_, __) async {
+            revisionCalls++;
+            return Ok(makeDeviceCustomer());
+          },
+          onUpdateDeviceStatus: (_, __) async {
+            statusCalls++;
+            return Ok(makeDeviceCustomer());
+          },
+        ),
+      )..deviceCustomer = makeDeviceCustomer();
 
-        await controller.updateDeviceHasUrgency(true);
+      final first = controller.updateDeviceHasUrgency(true);
+      expect(controller.isUpdating, true);
+      await controller.updateDeviceHasUrgency(true);
+      await controller.updateDeviceRevision(true);
+      await controller.updateDeviceStatus(StatusEnum.newDevice);
 
-        expect(controller.isUpdating, true);
-        expect(notifyCount, 0);
-      },
-    );
-
-    test(
-      'updateDeviceRevision retorna sem side effects quando isUpdating=true',
-      () async {
-        final controller = testDeviceCustomerPageController();
-        controller.isUpdating = true;
-        int notifyCount = 0;
-        controller.addListener(() => notifyCount++);
-
-        await controller.updateDeviceRevision(true);
-
-        expect(controller.isUpdating, true);
-        expect(notifyCount, 0);
-      },
-    );
-
-    test(
-      'updateDeviceStatus retorna sem side effects quando isUpdating=true',
-      () async {
-        final controller = testDeviceCustomerPageController();
-        controller.isUpdating = true;
-        int notifyCount = 0;
-        controller.addListener(() => notifyCount++);
-
-        await controller.updateDeviceStatus(StatusEnum.newDevice);
-
-        expect(controller.isUpdating, true);
-        expect(notifyCount, 0);
-      },
-    );
+      expect([urgencyCalls, revisionCalls, statusCalls], [1, 0, 0]);
+      blocker.complete(Ok(makeDeviceCustomer()));
+      await first;
+      expect(controller.isUpdating, false);
+    });
 
     test(
-      'createCustomerContact retorna sem side effects quando isCreatingContact=true',
+      'createCustomerContact ignora segunda chamada enquanto cria',
       () async {
-        final controller = testDeviceCustomerPageController();
-        controller.isCreatingContact = true;
-        int notifyCount = 0;
-        controller.addListener(() => notifyCount++);
+        final blocker = Completer<Result<void>>();
+        var calls = 0;
+        final controller = testDeviceCustomerPageController(
+          deviceRepository: FakeDeviceRepository(
+            onCreateCustomerContact: (_) {
+              calls++;
+              return blocker.future;
+            },
+            onGetCustomerDeviceById: (_) async => Ok(makeDeviceCustomer()),
+          ),
+        )..deviceCustomer = makeDeviceCustomer();
 
-        await controller.createCustomerContact(InputCustomerContact.empty(1));
-
+        final first = controller.createCustomerContact(
+          InputCustomerContact.empty(1),
+        );
         expect(controller.isCreatingContact, true);
-        expect(notifyCount, 0);
+        expect(
+          await controller.createCustomerContact(InputCustomerContact.empty(1)),
+          false,
+        );
+        expect(calls, 1);
+
+        blocker.complete(const Ok<void>(null));
+        expect(await first, true);
+        expect(controller.isCreatingContact, false);
       },
     );
   });

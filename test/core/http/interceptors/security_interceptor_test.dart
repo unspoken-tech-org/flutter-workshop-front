@@ -7,6 +7,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_workshop_front/widgets/core/ui_message_listener.dart';
+import 'package:flutter_workshop_front/core/ui/ui_message.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/global_error_interceptor.dart';
 import 'package:flutter_workshop_front/core/http/interceptors/security_interceptor.dart';
 import 'package:flutter_workshop_front/core/security/auth_notifier.dart';
@@ -86,6 +88,8 @@ class _TestHttpClientAdapter implements HttpClientAdapter {
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
+
+final _bus = UiMessageBus();
 
 void main() {
   group('SecurityInterceptor', () {
@@ -808,12 +812,64 @@ void main() {
       },
     );
 
+    for (final status in [400, 401, 404]) {
+      test(
+        'refresh reativo com $status transitório não repassa a resposta do refresh',
+        () async {
+          storage.seedTokens(
+            accessToken: validToken,
+            refreshToken: 'rt-1',
+            apiKey: 'api-key-1',
+          );
+
+          dio.httpClientAdapter = _TestHttpClientAdapter(
+            responder: (_) => const _AdapterResult(
+              statusCode: 401,
+              data: {'error': 'expired'},
+            ),
+          );
+
+          dio.interceptors.add(
+            buildInterceptor(
+              onRefresh: () async => RefreshTransientFailure(
+                errorType: DioExceptionType.badResponse,
+                response: Response(
+                  requestOptions: RequestOptions(path: '/api/auth/refresh'),
+                  statusCode: status,
+                ),
+              ),
+            ),
+          );
+
+          await expectLater(
+            dio.get<dynamic>('/protected'),
+            throwsA(
+              isA<DioException>()
+                  .having((e) => e.response, 'response', isNull)
+                  .having(
+                    (e) => e.error,
+                    'error',
+                    isA<SessionRefreshUnavailable>().having(
+                      (u) => u.statusCode,
+                      'statusCode',
+                      status,
+                    ),
+                  ),
+            ),
+          );
+          expect(await storage.getApiKey(), 'api-key-1');
+        },
+      );
+    }
+
     testWidgets(
       'refresh proativo com falha transitória aciona GlobalErrorInterceptor uma única vez sem duplicar no authDio',
       (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             scaffoldMessengerKey: SnackBarUtil().scaffoldKey,
+            builder: (context, child) =>
+                UiMessageListener(source: _bus, child: child!),
             home: const Scaffold(body: SizedBox.shrink()),
           ),
         );
@@ -826,7 +882,7 @@ void main() {
 
         // authDio real com GlobalErrorInterceptor, simulando falha de conexão.
         final authDio = Dio(BaseOptions(baseUrl: 'https://example.test'))
-          ..interceptors.add(GlobalErrorInterceptor());
+          ..interceptors.add(GlobalErrorInterceptor(onMessage: _bus.publish));
         authDio.httpClientAdapter = _TestHttpClientAdapter(
           responder: (options) => throw DioException(
             requestOptions: options,
@@ -850,7 +906,7 @@ void main() {
               onRefresh: authService.refreshToken,
             ),
           )
-          ..add(GlobalErrorInterceptor());
+          ..add(GlobalErrorInterceptor(onMessage: _bus.publish));
 
         await tester.runAsync(() async {
           await expectLater(
@@ -881,6 +937,8 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             scaffoldMessengerKey: SnackBarUtil().scaffoldKey,
+            builder: (context, child) =>
+                UiMessageListener(source: _bus, child: child!),
             home: const Scaffold(body: SizedBox.shrink()),
           ),
         );
@@ -892,7 +950,7 @@ void main() {
         );
 
         final authDio = Dio(BaseOptions(baseUrl: 'https://example.test'))
-          ..interceptors.add(GlobalErrorInterceptor());
+          ..interceptors.add(GlobalErrorInterceptor(onMessage: _bus.publish));
         authDio.httpClientAdapter = _TestHttpClientAdapter(
           responder: (_) => const _AdapterResult(
             statusCode: 500,
@@ -919,7 +977,7 @@ void main() {
               onRefresh: authService.refreshToken,
             ),
           )
-          ..add(GlobalErrorInterceptor());
+          ..add(GlobalErrorInterceptor(onMessage: _bus.publish));
 
         await tester.runAsync(() async {
           await expectLater(
@@ -950,6 +1008,8 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             scaffoldMessengerKey: SnackBarUtil().scaffoldKey,
+            builder: (context, child) =>
+                UiMessageListener(source: _bus, child: child!),
             home: const Scaffold(body: SizedBox.shrink()),
           ),
         );
@@ -969,7 +1029,7 @@ void main() {
               onRefresh: () async => const RefreshSessionExpired(),
             ),
           )
-          ..interceptors.add(GlobalErrorInterceptor());
+          ..interceptors.add(GlobalErrorInterceptor(onMessage: _bus.publish));
 
         await tester.runAsync(() async {
           await expectLater(
@@ -993,7 +1053,7 @@ void main() {
             type: DioExceptionType.sendTimeout,
           ),
         );
-        dio.interceptors.add(GlobalErrorInterceptor());
+        dio.interceptors.add(GlobalErrorInterceptor(onMessage: _bus.publish));
 
         await tester.runAsync(() async {
           await expectLater(

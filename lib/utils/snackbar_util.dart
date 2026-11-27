@@ -56,6 +56,12 @@ class SnackBarUtil {
     );
   }
 
+  /// Esconde a mensagem exibida agora, se houver.
+  void hideCurrent() {
+    _removeActiveOverlay();
+    _scaffoldKey.currentState?.hideCurrentSnackBar();
+  }
+
   void _showSnackBar(
     String message, {
     required Color backgroundColor,

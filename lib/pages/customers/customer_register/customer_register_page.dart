@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/widgets/core/ui_message_listener.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_register/controllers/customer_register_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_register/widgets/customer_register_form.dart';
@@ -23,17 +24,19 @@ class _CustomerRegisterPageState extends State<CustomerRegisterPage> {
       lazy: false,
       create: (context) =>
           CustomerRegisterController(context.read<CustomerRepository>()),
-      child: WsScaffold(
-        backgroundColor: const Color(0xFFF5F5F5),
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.all(16.0),
-            width: width * 0.5,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+      child: ProviderUiMessageListener<CustomerRegisterController>(
+        child: WsScaffold(
+          backgroundColor: const Color(0xFFF5F5F5),
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.all(16.0),
+              width: width * 0.5,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const CustomerRegisterForm(),
             ),
-            child: const CustomerRegisterForm(),
           ),
         ),
       ),

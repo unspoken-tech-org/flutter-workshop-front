@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/core/validators/form_validators.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
@@ -9,14 +10,11 @@ import 'package:flutter_workshop_front/models/customer/customer_model.dart';
 import 'package:flutter_workshop_front/models/customer/input_customer.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/controllers/customer_detail_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_detail/widgets/edit_action_buttons_view.dart';
-import 'package:flutter_workshop_front/utils/cpf_utils.dart';
-import 'package:flutter_workshop_front/utils/phone_utils.dart';
-import 'package:flutter_workshop_front/utils/validators/cpf_validator.dart';
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/secondary_phone_form_field.dart';
 import 'package:flutter_workshop_front/widgets/shared/secondary_phones_widget.dart';
-import 'package:flutter_workshop_front/utils/validators/text_validators.dart';
 
 class CustomerDetailForm extends StatefulWidget {
   final CustomerModel customer;
@@ -73,7 +71,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
       _secondaryPhoneFields.add(
         SecondaryPhoneFormField(
           name: phone.name,
-          number: PhoneUtils.formatPhone(phone.number),
+          number: BrFormat.phone(phone.number),
           onSaved: (value) {
             _onSaveSecondaryPhone(widget.controller, value);
           },
@@ -177,12 +175,9 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                           .updatedCustomerData
                           .copyWith(gender: value);
                     },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, selecione o sexo';
-                      }
-                      return null;
-                    },
+                    validator: FormValidators.required(
+                      'Por favor, selecione o sexo',
+                    ),
                   ),
                 ),
               ],
@@ -205,12 +200,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                           .updatedCustomerData
                           .copyWith(name: value);
                     },
-                    validator: (value) {
-                      if (!TextValidators.hasText(value)) {
-                        return 'Por favor, insira um nome';
-                      }
-                      return null;
-                    },
+                    validator: FormValidators.name,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -220,7 +210,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                     semanticsIdentifier: 'customerDetail.cpf',
                     fieldLabel: 'CPF',
                     readOnly: !isEditing,
-                    value: CpfUtils.formatCpf(customer.cpf),
+                    value: BrFormat.cpf(customer.cpf),
                     inputFormatters: [CpfFormatter()],
                     keyboardType: TextInputType.number,
                     onSave: (value) {
@@ -229,15 +219,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                           .updatedCustomerData
                           .copyWith(cpf: value);
                     },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, insira um CPF';
-                      }
-                      if (!CpfValidator.isValid(value)) {
-                        return 'CPF inválido';
-                      }
-                      return null;
-                    },
+                    validator: FormValidators.cpf,
                   ),
                 ),
               ],
@@ -258,7 +240,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                       return CustomTextField(
                         semanticsIdentifier: 'customerDetail.mainPhone',
                         fieldLabel: 'Telefone Principal',
-                        value: PhoneUtils.formatPhone(mainPhone?.number ?? ''),
+                        value: BrFormat.phone(mainPhone?.number ?? ''),
                         readOnly: !isEditing,
                         inputFormatters: [PhoneNumberFormatter()],
                         keyboardType: TextInputType.phone,
@@ -280,18 +262,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                                 ],
                               );
                         },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'O telefone principal é obrigatório';
-                          }
-                          final int digitCount = value
-                              .replaceAll(RegExp(r'\D'), '')
-                              .length;
-                          if (digitCount < 10) {
-                            return 'Telefone incompleto';
-                          }
-                          return null;
-                        },
+                        validator: FormValidators.mainPhone,
                       );
                     },
                   ),
@@ -310,15 +281,7 @@ class CustomerDetailFormState extends State<CustomerDetailForm> {
                           .updatedCustomerData
                           .copyWith(email: value);
                     },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return null;
-                      }
-                      if (!TextValidators.isEmail(value)) {
-                        return 'O email é inválido';
-                      }
-                      return null;
-                    },
+                    validator: FormValidators.optionalEmail,
                   ),
                 ),
               ],

@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/design/ws_text_styles.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
 import 'package:flutter_workshop_front/models/customer/minified_customer.dart';
-import 'package:flutter_workshop_front/utils/cpf_utils.dart';
-import 'package:flutter_workshop_front/utils/phone_utils.dart';
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:flutter_workshop_front/widgets/hoverable_card.dart';
 
 class CustomerCard extends StatelessWidget {
@@ -74,14 +73,14 @@ class CustomerCard extends StatelessWidget {
                   child: _InfoRow(
                     icon: Icons.person_outline,
                     label: 'CPF',
-                    value: CpfUtils.formatCpf(customer.cpf),
+                    value: BrFormat.cpf(customer.cpf),
                   ),
                 ),
                 Expanded(
                   child: _InfoRow(
                     icon: Icons.phone_outlined,
                     label: 'Telefone',
-                    value: PhoneUtils.formatPhone(customer.mainPhone),
+                    value: BrFormat.phone(customer.mainPhone),
                   ),
                 ),
               ],

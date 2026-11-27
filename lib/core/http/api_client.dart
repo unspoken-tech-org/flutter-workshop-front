@@ -1,10 +1,12 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter_workshop_front/core/http/interceptors/global_error_interceptor.dart';
 import 'package:flutter_workshop_front/core/http/response_validation.dart';
 import 'package:flutter_workshop_front/core/logging/app_logger.dart';
 import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
+import 'package:flutter_workshop_front/core/security/refresh_result.dart';
 
 /// Ponto único de saída das chamadas HTTP dos services.
 ///
@@ -33,7 +35,12 @@ class ApiClient {
     try {
       response = await call(_dio);
     } on DioException catch (e) {
-      final failure = _fromDioException(e);
+      final failure = _markShownGlobally(
+        _fromDioException(e),
+        shown:
+            e.requestOptions.extra[GlobalErrorInterceptor.shownGloballyKey] ==
+            true,
+      );
       _logDioFailure(e, failure);
       return Err(failure);
     } catch (e, stackTrace) {
@@ -127,6 +134,28 @@ class ApiClient {
   Object _withoutSource(Object error) =>
       error is FormatException ? FormatException(error.message) : error;
 
+  AppFailure _markShownGlobally(AppFailure failure, {required bool shown}) {
+    if (!shown) return failure;
+    return switch (failure) {
+      NetworkFailure(:final cause) => NetworkFailure(
+        cause: cause,
+        shownGlobally: true,
+      ),
+      RateLimitedFailure(:final message, :final retryAfter) =>
+        RateLimitedFailure(
+          message: message,
+          retryAfter: retryAfter,
+          shownGlobally: true,
+        ),
+      ServerFailure(:final statusCode, :final message) => ServerFailure(
+        statusCode: statusCode,
+        message: message,
+        shownGlobally: true,
+      ),
+      _ => failure,
+    };
+  }
+
   AppFailure _fromDioException(DioException e) {
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
@@ -143,7 +172,9 @@ class ApiClient {
         return UnexpectedFailure(cause: e);
       case DioExceptionType.unknown:
         final error = e.error;
-        if (error is SocketException || error is HttpException) {
+        if (error is SocketException ||
+            error is HttpException ||
+            error is SessionRefreshUnavailable) {
           return NetworkFailure(cause: e);
         }
         final response = e.response;

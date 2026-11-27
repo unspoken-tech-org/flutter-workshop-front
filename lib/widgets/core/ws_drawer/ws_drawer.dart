@@ -1,3 +1,4 @@
+import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 import 'package:flutter_workshop_front/core/di/app_dependencies.dart';
 
 import 'dart:async';
@@ -10,7 +11,7 @@ import 'package:flutter_workshop_front/pages/customers/customer_detail/customer_
 import 'package:flutter_workshop_front/pages/customers/customer_register/customer_register_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_details/device_details_page.dart';
 import 'package:flutter_workshop_front/pages/devices/device_register/device_register_page.dart';
-import 'package:flutter_workshop_front/pages/devices/search_devices/search_devices_page.dart';
+import 'package:flutter_workshop_front/pages/devices/all_devices/all_devices_page.dart';
 import 'package:flutter_workshop_front/pages/home/home_page.dart';
 import 'package:flutter_workshop_front/pages/setup/setup_page.dart';
 import 'package:flutter_workshop_front/services/auth/auth_service.dart';
@@ -32,7 +33,11 @@ class WsDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final isExpanded = context.watch<WsDrawerController>().isExpanded;
     final controller = context.read<WsDrawerController>();
-    final canPop = GoRouter.of(context).canPop();
+    final router = GoRouter.of(context);
+    // The route stack is empty on the error page of an unknown deep link.
+    final canPop =
+        router.routerDelegate.currentConfiguration.isNotEmpty &&
+        router.canPop();
 
     return Container(
       width: double.infinity,
@@ -175,12 +180,12 @@ class WsDrawer extends StatelessWidget {
               title: 'Buscar Aparelhos',
               semanticsIdentifier: 'drawer.searchDevices',
               route: const [
-                SearchDevicesPage.route,
+                AllDevicesPage.route,
                 DeviceDetailsPage.route,
                 DeviceRegisterPage.route,
               ],
               onTap: () {
-                unawaited(WsNavigator.pushSearchDevices(context));
+                unawaited(WsNavigator.pushAllDevices(context));
               },
             ),
             const Spacer(),
@@ -194,13 +199,8 @@ class WsDrawer extends StatelessWidget {
               route: const [],
               onTap: () async {
                 AppLogger.info('Update', 'Manual update check from drawer');
-                final scaffoldMessenger = ScaffoldMessenger.of(context);
-                scaffoldMessenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Verificando atualizações...'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
+                final snackBar = SnackBarUtil()
+                  ..showInfo('Verificando atualizações...');
 
                 final updateService = context
                     .read<AppDependencies>()
@@ -209,7 +209,7 @@ class WsDrawer extends StatelessWidget {
 
                 if (!context.mounted) return;
 
-                scaffoldMessenger.hideCurrentSnackBar();
+                snackBar.hideCurrent();
 
                 final String errorMessage;
                 switch (result) {
@@ -221,12 +221,7 @@ class WsDrawer extends StatelessWidget {
                         updateService,
                       );
                     } else {
-                      scaffoldMessenger.showSnackBar(
-                        const SnackBar(
-                          content: Text('O aplicativo já está atualizado!'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
+                      snackBar.showSuccess('O aplicativo já está atualizado!');
                     }
                     return;
                   case UpdateCheckCompleted():
@@ -242,12 +237,7 @@ class WsDrawer extends StatelessWidget {
                   case UpdateCheckFailed():
                     errorMessage = 'Erro ao verificar atualizações.';
                 }
-                scaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    content: Text(errorMessage),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                snackBar.showError(errorMessage);
               },
             ),
             if (AppLogger.canOpenLogDirectory)
@@ -259,17 +249,11 @@ class WsDrawer extends StatelessWidget {
                 semanticsIdentifier: 'drawer.logs',
                 route: const [],
                 onTap: () async {
-                  final scaffoldMessenger = ScaffoldMessenger.of(context);
                   final opened = await AppLogger.openLogDirectory();
                   if (opened) return;
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Não foi possível abrir a pasta de logs: '
-                        '${AppLogger.logDirectoryPath}',
-                      ),
-                      backgroundColor: Colors.red,
-                    ),
+                  SnackBarUtil().showError(
+                    'Não foi possível abrir a pasta de logs: '
+                    '${AppLogger.logDirectoryPath}',
                   );
                 },
               ),

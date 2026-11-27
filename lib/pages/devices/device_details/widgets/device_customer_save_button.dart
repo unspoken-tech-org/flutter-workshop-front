@@ -5,11 +5,15 @@ class DeviceCustomerSaveButton extends StatelessWidget {
   final bool isEditing;
   final VoidCallback onSave;
   final VoidCallback onEdit;
+
+  /// Salvamento em andamento: desabilita o botão e troca o ícone por progresso.
+  final bool isSaving;
   const DeviceCustomerSaveButton({
     super.key,
     required this.onSave,
     required this.onEdit,
     this.isEditing = false,
+    this.isSaving = false,
   });
 
   @override
@@ -17,12 +21,21 @@ class DeviceCustomerSaveButton extends StatelessWidget {
     return Semantics(
       identifier: isEditing ? 'deviceDetail.save' : 'deviceDetail.edit',
       child: TextButton.icon(
-        onPressed: isEditing ? onSave : onEdit,
-        icon: Icon(isEditing ? Icons.save : Icons.edit),
+        onPressed: isSaving ? null : (isEditing ? onSave : onEdit),
+        icon: isSaving
+            ? const SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : Icon(isEditing ? Icons.save : Icons.edit),
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           backgroundColor: isEditing ? Colors.blueAccent : Colors.grey,
+          disabledBackgroundColor: Colors.blueAccent.withAlpha(150),
           iconColor: Colors.white,
         ),
         label: Text(

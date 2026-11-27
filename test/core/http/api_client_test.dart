@@ -4,11 +4,14 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_workshop_front/core/http/interceptors/global_error_interceptor.dart';
+import 'package:flutter_workshop_front/core/ui/ui_message.dart';
 import 'package:flutter_workshop_front/core/http/api_client.dart';
 import 'package:flutter_workshop_front/core/logging/app_logger.dart';
 import 'package:flutter_workshop_front/core/logging/log_sink.dart';
 import 'package:flutter_workshop_front/core/result/app_failure.dart';
 import 'package:flutter_workshop_front/core/result/result.dart';
+import 'package:flutter_workshop_front/core/security/refresh_result.dart';
 
 typedef _Handler = FutureOr<ResponseBody> Function(RequestOptions options);
 
@@ -37,6 +40,20 @@ ResponseBody _json(int status, String body, {Map<String, List<String>>? h}) {
       ...?h,
     },
   );
+}
+
+/// [_client] com o `GlobalErrorInterceptor` real, como no `CustomDio`.
+ApiClient _clientWithGlobalErrors(_Handler handler, List<UiMessage> shown) {
+  final dio =
+      Dio(
+          BaseOptions(
+            baseUrl: 'https://test.example.com',
+            validateStatus: (s) => s! < 500 && s != 401 && s != 403 && s != 429,
+          ),
+        )
+        ..httpClientAdapter = _FakeAdapter(handler)
+        ..interceptors.add(GlobalErrorInterceptor(onMessage: shown.add));
+  return ApiClient(dio);
 }
 
 /// Mesmo `validateStatus` do `CustomDio`: 401/403/429/5xx viram DioException.
@@ -260,6 +277,20 @@ void main() {
       expect(_failure(await _get(client)), isA<NetworkFailure>());
     });
 
+    test(
+      'refresh indisponível (SessionRefreshUnavailable) vira NetworkFailure',
+      () async {
+        final client = _client(
+          (options) => throw DioException(
+            requestOptions: options,
+            error: const SessionRefreshUnavailable(statusCode: 400),
+          ),
+        );
+
+        expect(_failure(await _get(client)), isA<NetworkFailure>());
+      },
+    );
+
     test('cancelamento vira UnexpectedFailure', () async {
       final client = _client(
         (options) => throw DioException.requestCancelled(
@@ -289,6 +320,62 @@ void main() {
       );
 
       expect(_failure(result), isA<UnexpectedFailure>());
+    });
+  });
+
+  group('ApiClient.send com GlobalErrorInterceptor', () {
+    test('falha já exibida pelo interceptor vem com shownGlobally', () async {
+      final shown = <UiMessage>[];
+      final offline = _clientWithGlobalErrors(
+        (options) => throw DioException.connectionError(
+          requestOptions: options,
+          reason: 'sem rede',
+        ),
+        shown,
+      );
+      final down = _clientWithGlobalErrors((_) => _json(503, '{}'), shown);
+
+      expect(_failure(await _get(offline)).shownGlobally, isTrue);
+      expect(_failure(await _get(down)).shownGlobally, isTrue);
+      expect(shown, hasLength(2));
+    });
+
+    test(
+      'falha que o interceptor não exibiu continua para o controller',
+      () async {
+        final shown = <UiMessage>[];
+        final socket = _clientWithGlobalErrors(
+          (options) => throw DioException(
+            requestOptions: options,
+            error: const SocketException('down'),
+          ),
+          shown,
+        );
+        final rejected = _clientWithGlobalErrors(
+          (_) => _json(400, '{"error":{"code":"x","message":"Nome"}}'),
+          shown,
+        );
+
+        final socketFailure = _failure(await _get(socket));
+        expect(socketFailure, isA<NetworkFailure>());
+        expect(socketFailure.shownGlobally, isFalse);
+        expect(_failure(await _get(rejected)).shownGlobally, isFalse);
+        expect(shown, isEmpty);
+      },
+    );
+
+    test('requisição silent não marca shownGlobally', () async {
+      final shown = <UiMessage>[];
+      final client = _clientWithGlobalErrors((_) => _json(500, '{}'), shown);
+
+      final result = await client.send(
+        (dio) =>
+            dio.get<dynamic>('/x', options: Options(extra: {'silent': true})),
+        decode: (data) => data,
+      );
+
+      expect(_failure(result).shownGlobally, isFalse);
+      expect(shown, isEmpty);
     });
   });
 

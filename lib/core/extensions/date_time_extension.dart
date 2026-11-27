@@ -1,8 +1,9 @@
+import 'package:flutter_workshop_front/core/format/br_format.dart';
 import 'package:intl/intl.dart';
 
 extension DateTimeFormat on DateTime {
   String formatDate() {
-    return DateFormat('dd/MM/yyyy').format(this);
+    return BrFormat.date(this);
   }
 
   String formatDateTime() {

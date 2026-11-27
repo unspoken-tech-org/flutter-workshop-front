@@ -1,3 +1,5 @@
+import 'package:flutter_workshop_front/core/format/br_format.dart';
+import 'package:flutter_workshop_front/core/validators/form_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workshop_front/core/route/ws_navigator.dart';
 import 'package:flutter_workshop_front/core/text_input_formatters/cpf_formatter.dart';
@@ -5,12 +7,10 @@ import 'package:flutter_workshop_front/core/text_input_formatters/phone_number_f
 import 'package:flutter_workshop_front/models/customer/input_customer.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_register/controllers/customer_register_controller.dart';
 import 'package:flutter_workshop_front/pages/customers/customer_register/widgets/customer_registration_header.dart';
-import 'package:flutter_workshop_front/utils/validators/cpf_validator.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_dropdown_button_form_field.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
 import 'package:flutter_workshop_front/widgets/shared/secondary_phones_widget.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_workshop_front/utils/validators/text_validators.dart';
 
 class CustomerRegisterForm extends StatefulWidget {
   const CustomerRegisterForm({super.key});
@@ -70,12 +70,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
             CustomTextField(
               semanticsIdentifier: 'customerRegister.name',
               fieldLabel: 'Nome',
-              validator: (value) {
-                if (!TextValidators.hasText(value)) {
-                  return 'Por favor, insira o nome';
-                }
-                return null;
-              },
+              validator: FormValidators.name,
               onSave: (value) {
                 _inputCustomer = _inputCustomer.copyWith(name: value);
               },
@@ -85,17 +80,9 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
               semanticsIdentifier: 'customerRegister.cpf',
               fieldLabel: 'CPF',
               inputFormatters: [CpfFormatter()],
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Por favor, insira o CPF';
-                }
-                if (!CpfValidator.isValid(value)) {
-                  return 'CPF inválido';
-                }
-                return null;
-              },
+              validator: FormValidators.cpf,
               onSave: (value) {
-                final cpf = value?.replaceAll(RegExp(r'\D'), '');
+                final cpf = BrFormat.digitsOnly(value);
                 _inputCustomer = _inputCustomer.copyWith(cpf: cpf);
               },
             ),
@@ -104,12 +91,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
               semanticsIdentifier: 'customerRegister.gender',
               fieldLabel: 'Sexo',
               items: const ['Masculino', 'Feminino', 'Outro'],
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Por favor, selecione o sexo';
-                }
-                return null;
-              },
+              validator: FormValidators.required('Por favor, selecione o sexo'),
               onSave: (value) {
                 _inputCustomer = _inputCustomer.copyWith(gender: value);
               },
@@ -119,15 +101,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
               semanticsIdentifier: 'customerRegister.email',
               fieldLabel: 'Email (opcional)',
               keyboardType: TextInputType.emailAddress,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return null;
-                }
-                if (!TextValidators.isEmail(value)) {
-                  return 'Por favor, insira um email válido';
-                }
-                return null;
-              },
+              validator: FormValidators.optionalEmail,
               onSave: (value) {
                 _inputCustomer = _inputCustomer.copyWith(email: value);
               },
@@ -146,18 +120,7 @@ class _CustomerRegisterFormState extends State<CustomerRegisterForm> {
                   ],
                 );
               },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'O telefone principal é obrigatório';
-                }
-                final int digitCount = value
-                    .replaceAll(RegExp(r'\D'), '')
-                    .length;
-                if (digitCount < 10) {
-                  return 'Telefone incompleto';
-                }
-                return null;
-              },
+              validator: FormValidators.mainPhone,
             ),
             const SizedBox(height: 16),
             SecondaryPhonesWidget(

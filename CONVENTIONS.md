@@ -11,8 +11,13 @@ Este documento registra as convenções obrigatórias para código novo e revis�
    - **Por quê:** manter desacoplamento de transporte HTTP e tratamento uniforme de `Result<T>` / `AppFailure`.
 2. **Configuração de build centralizada:** `String.fromEnvironment` só pode ser chamado em `AppConfig.fromEnvironment()` (`lib/core/config/app_config.dart`). `bool.fromEnvironment('MCP_TOOLKIT')` em `lib/core/agent/agent_toolkit.dart` é a única exceção de flag de tooling.
    - **Por quê:** validação única no boot com fallback para `ConfigErrorApp`.
-3. **`SafeChangeNotifierMixin` obrigatório:** todo novo `ChangeNotifier` em `lib/` deve usar `with SafeChangeNotifierMixin` (referência: `HomeController`, `DeviceRegisterController`, `DeviceCustomerPageController`, `AllDevicesController`).
-   - **Baseline congelada (legado):** `AuthNotifier`, `AllCustomerController`, `CustomerDetailController`, `CustomerRegisterController`, `SearchDevicesController`, `SetupController` e `WsDrawerController` estão congelados na baseline de `architecture_test.dart` até sua migração.
+3. **`SafeChangeNotifierMixin` obrigatório:** todo novo `ChangeNotifier` em `lib/` deve usar `with SafeChangeNotifierMixin` (referência: `HomeController`, `DeviceRegisterController`, `DeviceCustomerPageController`, `AllDevicesController`, `PagedListController`).
+   - **Baseline congelada (legado):** `AuthNotifier`, `CustomerDetailController`, `CustomerRegisterController`, `SetupController` e `WsDrawerController` estão congelados na baseline de `architecture_test.dart` até sua migração.
+4. **Feedback ao usuário só na UI:** controllers, interceptors, `core/`, `services/` e `repositories/` nunca importam `SnackBarUtil`. O controller publica `UiSuccess`/`UiError` (`with UiMessageSource`, `emitSuccess`/`emitError`), o interceptor HTTP chama o `onMessage` recebido (`UiMessageBus` do `AppDependencies`) e a página exibe com `UiMessageListener`/`ProviderUiMessageListener`.
+   - **Falha de `Result`:** use `emitFailure(failure, 'fallback')`, não `emitError` direto. Sem rede, o `GlobalErrorInterceptor` já mostrou o toast global e a falha chega com `shownGlobally`; `emitFailure` não repete a mensagem.
+5. **Ação assíncrona de tela = `Command`:** cada ação (carregar, salvar, criar) é um `Command<A, T>` (`lib/core/ui/command.dart`) com `running` e `result`/`error` próprios; o controller encaminha `addListener(notifyListeners)`, em vez de guardas e flags manuais.
+   - **Shimmer só no carregamento:** a página troca o conteúdo pelo shimmer apenas com o `Command` de carregamento (`isFetching`/`isLoading`), nunca com o de salvar ou criar. Durante o salvamento o formulário fica na tela (com o que foi digitado), o botão de ação mostra progresso e ele e o Cancelar ficam desabilitados. Referências: `EditActionButtons` (cliente) e `DeviceCustomerSaveButton` (aparelho).
+6. **Validação e formatação BR centralizadas:** validadores de `FormField` em `lib/core/validators/form_validators.dart` (textos de erro únicos) e data, telefone, CPF e `digitsOnly` em `lib/core/format/br_format.dart`; proibido novo `DateFormat('dd/MM/yyyy')` ou `RegExp(r'\D')` fora deles.
 
 ---
 

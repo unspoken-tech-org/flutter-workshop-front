@@ -5,12 +5,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_workshop_front/core/debouncer.dart';
 import 'package:flutter_workshop_front/core/extensions/string_extensions.dart';
+import 'package:flutter_workshop_front/core/format/catalog_name_key.dart';
 import 'package:flutter_workshop_front/models/types_brands_models/types_brands_models.dart';
 import 'package:flutter_workshop_front/utils/snackbar_util.dart';
 import 'package:flutter_workshop_front/widgets/form_fields/custom_text_field.dart';
 
 typedef SearchFn<T> = Future<List<T>> Function(String query);
 typedef CreateFn<T> = Future<T> Function(String name);
+
+/// Primeiro item de [items] cujo nome tem o mesmo `name_key` de [query]
+/// (mesma regra da API: "Micro-ondas" e "microondas" são o mesmo item), ou
+/// `null`. Consulta sem alfanumérico não casa com nada.
+T? findByNameKey<T>(
+  Iterable<T> items,
+  String query,
+  String Function(T item) getName,
+) {
+  final key = CatalogNameKey.of(query);
+  if (key.isEmpty) return null;
+  for (final item in items) {
+    if (CatalogNameKey.of(getName(item)) == key) return item;
+  }
+  return null;
+}
 
 class TypeBrandModelAutocompleteFormField<T extends ITypeBrandModelColor>
     extends StatefulWidget {
@@ -78,16 +95,12 @@ class _TypeBrandModelAutocompleteFormFieldState<T extends ITypeBrandModelColor>
   final FocusNode _focusNode = FocusNode();
 
   bool get _showCreateOption =>
-      _currentQuery.isNotEmpty && !_queryExistsInSuggestions;
+      CatalogNameKey.of(_currentQuery).isNotEmpty && !_queryExistsInSuggestions;
 
   int get _totalItems => _suggestions.length + (_showCreateOption ? 1 : 0);
 
-  bool get _queryExistsInSuggestions {
-    final normalizedQuery = _currentQuery.toLowerCase();
-    return _suggestions.any((item) {
-      return widget.getName(item).toLowerCase() == normalizedQuery;
-    });
-  }
+  bool get _queryExistsInSuggestions =>
+      findByNameKey(_suggestions, _currentQuery, widget.getName) != null;
 
   @override
   void initState() {
@@ -220,7 +233,7 @@ class _TypeBrandModelAutocompleteFormFieldState<T extends ITypeBrandModelColor>
         _selectItem(_suggestions.first);
         return;
       }
-      if (_currentQuery.isNotEmpty) {
+      if (CatalogNameKey.of(_currentQuery).isNotEmpty) {
         unawaited(_createItem(_currentQuery));
       }
       return;
@@ -286,6 +299,13 @@ class _TypeBrandModelAutocompleteFormFieldState<T extends ITypeBrandModelColor>
   }
 
   Future<void> _createItem(String name) async {
+    // O nome já existe (mesma name_key): seleciona o existente em vez de
+    // criar um duplicado.
+    final existing = findByNameKey(_suggestions, name, widget.getName);
+    if (existing != null) {
+      _selectItem(existing);
+      return;
+    }
     try {
       final created = await widget.createFn(name);
       if (mounted) {
@@ -294,9 +314,7 @@ class _TypeBrandModelAutocompleteFormFieldState<T extends ITypeBrandModelColor>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erro ao criar: $e')));
+        SnackBarUtil().showError('Erro ao criar: $e');
       }
     }
   }

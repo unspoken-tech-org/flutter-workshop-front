@@ -289,6 +289,14 @@ class SecurityInterceptor extends Interceptor {
         type: DioExceptionType.cancel,
         error: 'Sessão expirada',
       ),
+      // 4xx do refresh (exceto 429): não é falha da requisição original.
+      RefreshTransientFailure(:final response?)
+          when _isClientRefreshError(response.statusCode) =>
+        DioException(
+          requestOptions: options,
+          type: DioExceptionType.unknown,
+          error: SessionRefreshUnavailable(statusCode: response.statusCode),
+        ),
       RefreshTransientFailure(
         :final errorType,
         :final response,
@@ -305,6 +313,9 @@ class SecurityInterceptor extends Interceptor {
       ),
     };
   }
+
+  bool _isClientRefreshError(int? status) =>
+      status != null && status >= 400 && status < 500 && status != 429;
 
   bool _isExpiredOrExpiringSoon(String token) {
     try {

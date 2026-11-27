@@ -5,9 +5,8 @@ import 'package:flutter_workshop_front/models/customer_device/create_device_cust
 import 'package:flutter_workshop_front/models/customer_device/device_customer.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_customer_contact.dart';
 import 'package:flutter_workshop_front/models/customer_device/input_payment.dart';
-import 'package:flutter_workshop_front/models/device/device_filter.dart';
 import 'package:flutter_workshop_front/models/device/device_input.dart';
-import 'package:flutter_workshop_front/models/device/device_search_filter.dart';
+import 'package:flutter_workshop_front/models/device/device_query.dart';
 import 'package:flutter_workshop_front/models/device_statistics/device_statistics.dart';
 import 'package:flutter_workshop_front/models/home_table/device_data_table.dart';
 import 'package:flutter_workshop_front/models/home_table/status_enum.dart';
@@ -23,8 +22,7 @@ import '../../support/fixtures/device_statistics_fixture.dart';
 import '../../support/fixtures/page_fixture.dart';
 
 class _FakeDeviceCustomerService extends Fake implements DeviceCustomerService {
-  DeviceFilter? lastDeviceFilter;
-  DeviceSearchFilter? lastSearchFilter;
+  (DeviceQuery, int)? lastDeviceQuery;
   int? lastDeviceId;
   DeviceInput? lastDeviceInput;
   DeviceCustomer? lastUpdatedDevice;
@@ -35,9 +33,6 @@ class _FakeDeviceCustomerService extends Fake implements DeviceCustomerService {
   Result<Page<DeviceDataTable>> allDevicesResult = Ok(
     makePage([makeDeviceDataTable()]),
   );
-  Result<Page<DeviceDataTable>> searchDevicesResult = Ok(
-    makePage([makeDeviceDataTable(deviceId: 2)]),
-  );
   Result<DeviceCustomer> deviceByIdResult = Ok(makeDeviceCustomer());
   Result<CreateDeviceCustomerResponse> createResult = Ok(
     CreateDeviceCustomerResponse(deviceId: 99),
@@ -45,19 +40,12 @@ class _FakeDeviceCustomerService extends Fake implements DeviceCustomerService {
   Result<DeviceCustomer> updateResult = Ok(makeDeviceCustomer(deviceId: 10));
 
   @override
-  Future<Result<Page<DeviceDataTable>>> getAllDevicesFiltering([
-    DeviceFilter? filter,
-  ]) async {
-    lastDeviceFilter = filter;
+  Future<Result<Page<DeviceDataTable>>> queryDevices(
+    DeviceQuery query,
+    int page,
+  ) async {
+    lastDeviceQuery = (query, page);
     return allDevicesResult;
-  }
-
-  @override
-  Future<Result<Page<DeviceDataTable>>> searchDevices([
-    DeviceSearchFilter? filter,
-  ]) async {
-    lastSearchFilter = filter;
-    return searchDevicesResult;
   }
 
   @override
@@ -178,20 +166,12 @@ void main() {
   });
 
   group('DeviceRepository', () {
-    test('getAllDevicesFiltering forwards filter and returns Result', () async {
-      final filter = DeviceFilter(customerName: 'Maria', page: 2);
-      final result = await repository.getAllDevicesFiltering(filter);
+    test('queryDevices forwards query and page and returns Result', () async {
+      const query = DeviceQuery(searchQuery: 'Maria');
+      final result = await repository.queryDevices(query, 2);
 
-      expect(deviceCustomerService.lastDeviceFilter, same(filter));
+      expect(deviceCustomerService.lastDeviceQuery, (query, 2));
       expect(result.valueOrNull?.content, hasLength(1));
-    });
-
-    test('searchDevices forwards filter and returns Result', () async {
-      final filter = DeviceSearchFilter(searchQuery: 'Galaxy');
-      final result = await repository.searchDevices(filter);
-
-      expect(deviceCustomerService.lastSearchFilter, same(filter));
-      expect(result.valueOrNull?.content.single.deviceId, 2);
     });
 
     test('getCustomerDeviceById forwards id and propagates Err', () async {

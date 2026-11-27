@@ -296,4 +296,55 @@ void main() {
       },
     );
   });
+
+  group('status da taxa de orçamento', () {
+    Future<void> pumpValues(WidgetTester tester, DeviceCustomer device) async {
+      final controller = testDeviceCustomerPageController()
+        ..deviceCustomer = device;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ChangeNotifierProvider.value(
+              value: controller,
+              child: const Form(child: DeviceValuesWidget(isEditing: false)),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('taxa zero ou ausente mostra "Sem taxa"', (tester) async {
+      for (final fee in [null, 0.0]) {
+        await pumpValues(tester, _deviceWithPayments(budgetFee: fee));
+        expect(find.text('Sem taxa'), findsOneWidget);
+        expect(find.text('Pendente'), findsNothing);
+      }
+    });
+
+    testWidgets('taxa positiva sem pagamento mostra "Pendente"', (
+      tester,
+    ) async {
+      await pumpValues(tester, _deviceWithPayments(budgetFee: 50));
+      expect(find.text('Pendente'), findsOneWidget);
+    });
+
+    testWidgets('taxa positiva quitada mostra "Coletada"', (tester) async {
+      await pumpValues(
+        tester,
+        _deviceWithPayments(
+          budgetFee: 50,
+          payments: const [
+            {
+              'paymentId': 1,
+              'paymentDate': '2026-01-01T00:00:00',
+              'paymentType': 'pix',
+              'paymentValue': 50.0,
+              'category': 'taxa_orcamento',
+            },
+          ],
+        ),
+      );
+      expect(find.text('Coletada'), findsOneWidget);
+    });
+  });
 }

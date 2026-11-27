@@ -20,6 +20,9 @@ class CustomerContactsListWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = context.read<DeviceCustomerPageController>();
+    final isClosed = context.select<DeviceCustomerPageController, bool>(
+      (c) => c.deviceCustomer?.isClosed ?? false,
+    );
     return Column(
       key: const ValueKey('contact_list'),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,27 +35,34 @@ class CustomerContactsListWidget extends StatelessWidget {
             children: [
               Semantics(
                 identifier: 'deviceDetail.addContact',
-                child: TextButton.icon(
-                  onPressed: () => showDialog<void>(
-                    context: context,
-                    builder: (context) => ChangeNotifierProvider.value(
-                      value: controller,
-                      child: const AddContactModalDialog(),
+                child: Tooltip(
+                  message: isClosed
+                      ? 'OS encerrada: não é possível adicionar contatos'
+                      : '',
+                  child: TextButton.icon(
+                    onPressed: isClosed
+                        ? null
+                        : () => showDialog<void>(
+                            context: context,
+                            builder: (context) => ChangeNotifierProvider.value(
+                              value: controller,
+                              child: const AddContactModalDialog(),
+                            ),
+                          ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 18,
+                      ),
+                      backgroundColor: const Color(0xFF6366F1),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Adicionar Contato'),
                   ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 18,
-                    ),
-                    backgroundColor: const Color(0xFF6366F1),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Adicionar Contato'),
                 ),
               ),
             ],
@@ -77,13 +87,15 @@ class CustomerContactsListWidget extends StatelessWidget {
                   final contact = customerContacts[index];
                   return ContactCard(
                     contact: contact,
-                    onEdit: () => showDialog<void>(
-                      context: context,
-                      builder: (context) => ChangeNotifierProvider.value(
-                        value: controller,
-                        child: EditContactModalDialog(contact: contact),
-                      ),
-                    ),
+                    onEdit: isClosed
+                        ? null
+                        : () => showDialog<void>(
+                            context: context,
+                            builder: (context) => ChangeNotifierProvider.value(
+                              value: controller,
+                              child: EditContactModalDialog(contact: contact),
+                            ),
+                          ),
                   );
                 },
                 separatorBuilder: (context, index) {
