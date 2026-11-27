@@ -18,6 +18,15 @@ class WsScaffold extends StatelessWidget {
     this.floatingActionButtonLocation,
   });
 
+  // The error page (unknown deep link) is built without a GoRouterState.
+  static String _currentRouteName(BuildContext context) {
+    try {
+      return GoRouterState.of(context).name ?? '';
+    } on GoError {
+      return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,9 +40,7 @@ class WsScaffold extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
               width: drawerWidth,
-              child: WsDrawer(
-                currentRoute: GoRouterState.of(context).name ?? '',
-              ),
+              child: WsDrawer(currentRoute: _currentRouteName(context)),
             ),
             Expanded(child: child),
           ],

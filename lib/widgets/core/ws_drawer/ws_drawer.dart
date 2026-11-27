@@ -33,7 +33,11 @@ class WsDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final isExpanded = context.watch<WsDrawerController>().isExpanded;
     final controller = context.read<WsDrawerController>();
-    final canPop = GoRouter.of(context).canPop();
+    final router = GoRouter.of(context);
+    // The route stack is empty on the error page of an unknown deep link.
+    final canPop =
+        router.routerDelegate.currentConfiguration.isNotEmpty &&
+        router.canPop();
 
     return Container(
       width: double.infinity,
